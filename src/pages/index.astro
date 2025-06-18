@@ -1,16 +1,197 @@
 ---
+// Server-side code - runs at build time
+const currentDate = new Date().toLocaleDateString("en-US", {
+  weekday: "long",
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
 
+const currentTime = new Date().toLocaleTimeString("en-US", {
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Astro Demo - Client & Server Side</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: white;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 2.5rem;
+        font-weight: 700;
+      }
+
+      .section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .section h2 {
+        margin-top: 0;
+        color: #fbbf24;
+        font-size: 1.5rem;
+      }
+
+      .counter-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        justify-content: center;
+        margin: 1rem 0;
+      }
+
+      .counter-value {
+        font-size: 3rem;
+        font-weight: bold;
+        min-width: 80px;
+        text-align: center;
+        color: #10b981;
+      }
+
+      button {
+        background: linear-gradient(45deg, #10b981, #059669);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      .date-info {
+        text-align: center;
+        font-size: 1.2rem;
+        line-height: 1.6;
+      }
+
+      .date-highlight {
+        color: #fbbf24;
+        font-weight: 600;
+      }
+
+      .description {
+        text-align: center;
+        opacity: 0.9;
+        font-style: italic;
+        margin-top: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🚀 Astro Demo</h1>
+
+      <!-- Server-side section -->
+      <div class="section">
+        <h2>📅 Server-Side Rendering</h2>
+        <div class="date-info">
+          <p>Current Date: <span class="date-highlight">{currentDate}</span></p>
+          <p>Current Time: <span class="date-highlight">{currentTime}</span></p>
+        </div>
+        <p class="description">This data is generated on the server at build time and embedded in the HTML.</p>
+      </div>
+
+      <!-- Client-side section -->
+      <div class="section">
+        <h2>⚡ Client-Side Interactivity</h2>
+        <div class="counter-container">
+          <button id="decreaseBtn">-</button>
+          <div class="counter-value" id="counter">0</div>
+          <button id="increaseBtn">+</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Client-side JavaScript - runs in the browser
+      let count = 0;
+      const counterElement = document.getElementById("counter");
+      const decreaseBtn = document.getElementById("decreaseBtn");
+      const increaseBtn = document.getElementById("increaseBtn");
+
+      function updateCounter() {
+        if (counterElement) {
+          counterElement.textContent = count.toString();
+
+          // Add visual feedback
+          counterElement.style.transform = "scale(1.1)";
+          setTimeout(() => {
+            if (counterElement) {
+              counterElement.style.transform = "scale(1)";
+            }
+          }, 150);
+        }
+      }
+
+      if (decreaseBtn) {
+        decreaseBtn.addEventListener("click", () => {
+          count--;
+          updateCounter();
+        });
+      }
+
+      if (increaseBtn) {
+        increaseBtn.addEventListener("click", () => {
+          count++;
+          updateCounter();
+        });
+      }
+
+      // Add keyboard support
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowDown" || event.key === "-") {
+          count--;
+          updateCounter();
+        } else if (event.key === "ArrowUp" || event.key === "+") {
+          count++;
+          updateCounter();
+        }
+      });
+
+      // Initialize with a welcome message
+      console.log("🎉 Client-side JavaScript loaded successfully!");
+      console.log("💡 Try using arrow keys or +/- keys to control the counter");
+    </script>
+  </body>
 </html>
