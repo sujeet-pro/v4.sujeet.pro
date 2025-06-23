@@ -11,18 +11,13 @@ import { Icon } from "astro-icon/components";
         type="text"
         id="search-input"
         placeholder="Search..."
-        class="w-full rounded-lg border border-primary-300 bg-primary-100 px-4 py-2 pr-12 pl-10 text-sm focus:border-transparent focus:ring-2 focus:ring-primary-500 focus:outline-none dark:border-primary-600 dark:bg-primary-800 dark:focus:ring-primary-400"
+        class="w-full rounded-lg border px-4 py-2 pr-12 pl-10 text-sm focus:outline-none"
       />
       <label for="search-input">
-        <Icon
-          name="carbon:search"
-          class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-primary-500/60 dark:text-primary-400/60"
-        />
+        <Icon name="carbon:search" class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
       </label>
       <label for="search-input" class="absolute top-1/2 right-3 -translate-y-1/2 transform">
-        <kbd
-          class="inline-flex items-center rounded border border-primary-200 bg-primary-50 px-1.5 py-0.5 font-mono text-xs text-primary-600 dark:border-primary-600 dark:bg-primary-700 dark:text-primary-300"
-        >
+        <kbd class="inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-xs">
           <span class="text-xs">⌘</span>
           <span class="ml-0.5">K</span>
         </kbd>
@@ -31,12 +26,7 @@ import { Icon } from "astro-icon/components";
   </div>
   <!-- Mobile Search Link -->
   <div class="md:hidden">
-    <Link
-      href="/search"
-      class="flex items-center p-2 text-primary-700 transition-colors hover:text-primary-600 dark:text-primary-300 dark:hover:text-primary-400"
-      aria-label="Search"
-      id="search-link"
-    >
+    <Link href="/search" class="flex items-center p-2" aria-label="Search" id="search-link">
       <Icon name="carbon:search" class="h-5 w-5" />
     </Link>
   </div>

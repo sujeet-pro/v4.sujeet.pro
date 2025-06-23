@@ -11,7 +11,7 @@ export async function getTagsByRefs(refs: ReferenceDataEntry<"tags">[]) {
   return tags;
 }
 
-interface BlogContent {
+interface PageContent {
   id: string;
   title: string;
   minutesRead: string;
@@ -27,9 +27,9 @@ const remarkPluginFrontmatterSchema = z.object({
   minutesRead: z.string().min(1, "Minutes read is required"),
 });
 
-export async function getBlogs(): Promise<BlogContent[]> {
+export async function getBlogs(): Promise<PageContent[]> {
   const blogs = await getCollection("blogs");
-  const blogsWithContent: BlogContent[] = [];
+  const blogsWithContent: PageContent[] = [];
   for (const blog of blogs) {
     const { Content, remarkPluginFrontmatter } = await render(blog);
     const { title, minutesRead } = remarkPluginFrontmatterSchema.parse(remarkPluginFrontmatter);
@@ -55,4 +55,32 @@ export async function getBlogs(): Promise<BlogContent[]> {
   });
 
   return blogsWithContent;
+}
+
+export async function getPages(): Promise<PageContent[]> {
+  const pages = await getCollection("pages");
+  const pagesWithContent: PageContent[] = [];
+  for (const page of pages) {
+    const { Content, remarkPluginFrontmatter } = await render(page);
+    const { title, minutesRead } = remarkPluginFrontmatterSchema.parse(remarkPluginFrontmatter);
+    const { description, publishedOn, lastUpdatedOn, isDraft } = page.data;
+    const tags = await getTagsByRefs(page.data.tags);
+    pagesWithContent.push({
+      id: page.id,
+      title,
+      minutesRead,
+      description,
+      publishedOn,
+      lastUpdatedOn,
+      isDraft,
+      tags,
+      Content,
+    });
+  }
+  pagesWithContent.sort((a, b) => {
+    const dateA = new Date(a.publishedOn).getTime();
+    const dateB = new Date(b.publishedOn).getTime();
+    return dateB - dateA;
+  });
+  return pagesWithContent;
 }

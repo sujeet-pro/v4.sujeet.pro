@@ -7,7 +7,7 @@ const blogs = await getBlogs();
 ---
 
 <Layout title="Blog" description="Blog">
-  <h1 class="my-8 text-2xl font-bold">Blog</h1>
+  <h1 class="my-8 text-2xl font-light">Blog</h1>
   <ul class="flex flex-col gap-4">
     {
       blogs
@@ -22,7 +22,7 @@ const blogs = await getBlogs();
               lastUpdatedOn: blog.lastUpdatedOn,
               isDraft: blog.isDraft,
               id: blog.id,
-              readingTime: parseInt(blog.minutesRead),
+              readingTime: blog.minutesRead,
             }}
           />
         ))

@@ -1,0 +1,179 @@
+---
+import Layout from "@/layout/layout.astro";
+import Link from "@/components/link.astro";
+import { Icon } from "astro-icon/components";
+---
+
+<Layout
+  title="CV - Sujeet Jaiswal"
+  description="Professional CV and experience of Sujeet Jaiswal, Principal Engineer at Quince"
+>
+  <div class="mx-auto max-w-4xl py-16">
+    <div class="mb-12 text-center">
+      <h1 class="mb-4 text-4xl font-light">Sujeet Kumar Jaiswal</h1>
+      <p class="mb-2 text-xl">Principal Engineer @ Quince</p>
+      <p class="suppressed-text">sujeet.profession@gmail.com • +91-8861301007 • sujeet.pro</p>
+    </div>
+
+    <!-- Summary -->
+    <section class="mb-12">
+      <h2 class="mb-4 border-b pb-2 text-2xl">Professional Summary</h2>
+      <p class="leading-relaxed">
+        Results-driven engineering leader with ~11 years of experience architecting and developing high-performance,
+        scalable, and distributed web applications. Expert in e-commerce platforms, micro-frontend architecture, and
+        performance optimization. Proven track record of leading engineering teams, establishing design systems, and
+        delivering exceptional user experiences. Passionate about deep technical topics including Node.js event loop, V8
+        engine, libuv, Critical Rendering Path, and programming fundamentals.
+      </p>
+    </section>
+
+    <!-- Core Skills -->
+    <section class="mb-12">
+      <h2 class="mb-4 border-b pb-2 text-2xl">Technical Skills</h2>
+      <div class="grid gap-6 md:grid-cols-2">
+        <div>
+          <h3 class="mb-3 text-lg">Modern Web Development</h3>
+          <ul class="space-y-2">
+            <li>• Next.js SSR, Gatsby SSG, React, TypeScript</li>
+            <li>• Micro-frontend Architecture</li>
+            <li>• Performance Optimization (Core Web Vitals)</li>
+            <li>• Accessibility (WCAG 2.1 AA)</li>
+            <li>• SEO Best Practices</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="mb-3 text-lg">Platform & Infrastructure</h3>
+          <ul class="space-y-2">
+            <li>• Video Streaming (HLS, DASH, FFmpeg)</li>
+            <li>• Image Optimization Services</li>
+            <li>• Authentication & Authorization (OAuth2, SSO)</li>
+            <li>• Headless CMS (Contentful, Sanity)</li>
+            <li>• AWS Services (Cognito, S3, CloudFront)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Experience -->
+    <section class="mb-12">
+      <h2 class="mb-4 border-b pb-2 text-2xl">Professional Experience</h2>
+
+      <div class="space-y-8">
+        <div>
+          <div class="mb-2 flex items-start justify-between">
+            <h3 class="text-xl">Principal Engineer</h3>
+            <span class="suppressed-text">July 2024 - Present</span>
+          </div>
+          <p class="suppressed-text mb-3">Quince (E-commerce, B2C)</p>
+          <ul class="space-y-2">
+            <li>
+              • Migrated quince.com (12M MAU) to server-side rendering architecture (Next.js) enabling personalized
+              content and A/B testing
+            </li>
+            <li>• Developed high-performance backend-for-frontend (BFF) achieving p99 latency of 38.5ms for 300 RPS</li>
+            <li>• Led development of Site Content Service with versioning, rollback and controlled releases</li>
+            <li>• Optimized search result relevance achieving ~25% CTR and ~10% CVR for add-to-cart</li>
+            <li>• Built Vanity URL Service and in-house Image Service on AWS achieving 30% cost reduction</li>
+            <li>• Implemented HLS and DASH video streaming using AWS Elemental MediaConvert</li>
+            <li>• Enhanced Core Web Vitals (+20%), accessibility (+30%), and SEO (+20%) scores</li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="mb-2 flex items-start justify-between">
+            <h3 class="text-xl">Technical Lead</h3>
+            <span class="suppressed-text">May 2023 - April 2024</span>
+          </div>
+          <p class="suppressed-text mb-3">Quince</p>
+          <ul class="space-y-2">
+            <li>• Migrated A/B testing to Statsig enabling advanced experimentation strategies</li>
+            <li>• Improved website performance by migrating to server-side Google Tag Manager (SGTM)</li>
+            <li>• Strengthened system resilience with Datadog and Sentry reducing issue resolution times</li>
+            <li>• Contributed to key features like shareable wishlists and SSO integration</li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="mb-2 flex items-start justify-between">
+            <h3 class="text-xl">Lead Software Engineer / Acting Engineering Manager</h3>
+            <span class="suppressed-text">Aug 2020 - May 2023</span>
+          </div>
+          <p class="suppressed-text mb-3">Vistaprint (E-commerce, B2C - $2B revenue, ~16M MAU)</p>
+          <ul class="space-y-2">
+            <li>• Led and managed team of 6 developers, handled promotions and PIP cases</li>
+            <li>• Hired and built team in India within Vistaprint's Merch Tech Domain</li>
+            <li>
+              • Migrated upper funnel discovery pages to microservice and micro-frontend architecture across 20 global
+              markets
+            </li>
+            <li>• Built logo-maker web app from prototype to full launch</li>
+            <li>• Developed design system (SWAN) ensuring consistent brand identity and 90+ lighthouse score</li>
+            <li>• Implemented headers & footers as ESI in Cloudflare saving 50+ hours per deployment</li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="mb-2 flex items-start justify-between">
+            <h3 class="text-xl">Lead Software Engineer</h3>
+            <span class="suppressed-text">Feb 2020 - Aug 2020</span>
+          </div>
+          <p class="suppressed-text mb-3">CureFit (Audit Platform, Health & Business, B2C)</p>
+          <ul class="space-y-2">
+            <li>• Built end-to-end Audit platform with Rest APIs, React Native mobile app, and admin site</li>
+            <li>• Developed Video Review Tool with time-stamped feedback and annotations</li>
+            <li>• Reduced page load time by ~20%, TTI by 15% using lazy loading and virtualization</li>
+            <li>• Handled up to 12.5K input elements on React SPA with JS optimizations</li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="mb-2 flex items-start justify-between">
+            <h3 class="text-xl">Specialist Programmer - Expert Track</h3>
+            <span class="suppressed-text">Feb 2016 - Nov 2019</span>
+          </div>
+          <p class="suppressed-text mb-3">Infosys (Multi-tenant Enterprise EdTech, B2C)</p>
+          <ul class="space-y-2">
+            <li>• Built Wingspan enterprise multi-tenant re-skilling platform with 40 clients (Siemens, Ford)</li>
+            <li>• Developed content recommendation system using Association Rule Learning</li>
+            <li>• Built video ingestion pipeline with HLS and DASH transcoding using FFmpeg</li>
+            <li>• Created multi-format content player (branched videos, PDFs, epubs, MCQs)</li>
+            <li>• Authored plugin-based page framework reducing tenant onboarding from 3 to 1 week</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Education -->
+    <section class="mb-12">
+      <h2 class="mb-4 border-b pb-2 text-2xl">Education</h2>
+      <div>
+        <div class="mb-2 flex items-start justify-between">
+          <h3 class="text-xl">B.Tech (Mechanical)</h3>
+          <span class="suppressed-text">2014</span>
+        </div>
+        <p class="suppressed-text">Uttar Pradesh Technical University</p>
+      </div>
+    </section>
+
+    <!-- Certifications -->
+    <section class="mb-12">
+      <h2 class="mb-4 border-b pb-2 text-2xl">Key Achievements</h2>
+      <ul class="space-y-2">
+        <li>• Successfully migrated 12M MAU e-commerce platform to Next.js SSR architecture</li>
+        <li>• Achieved p99 latency of 38.5ms for 300 RPS in high-performance BFF development</li>
+        <li>• Improved Core Web Vitals (+20%), accessibility (+30%), and SEO (+20%) scores</li>
+        <li>• Led micro-frontend migration across 20 global markets at Vistaprint</li>
+        <li>• Built enterprise multi-tenant platform serving 40+ clients including Siemens and Ford</li>
+        <li>• Reduced tenant onboarding time by 66% through plugin-based framework development</li>
+      </ul>
+    </section>
+
+    <!-- Download CV -->
+    <div class="border-t pt-8 text-center">
+      <Link href="download-cv" target="_blank" class="inline-flex items-center gap-2 rounded-lg border px-6 py-3">
+        <Icon name="carbon:generate-pdf" />
+        Download PDF Version
+      </Link>
+    </div>
+  </div>
+</Layout>

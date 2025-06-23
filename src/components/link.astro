@@ -1,7 +1,17 @@
 ---
 import type { HTMLAttributes } from "astro/types";
 import { getLinkProps } from "@/utils/link.utils";
-const { href: propsHref, target: propsTarget, rel: propsRel, ...props } = Astro.props as HTMLAttributes<"a">;
+import { Icon } from "astro-icon/components";
+const {
+  href: propsHref,
+  target: propsTarget,
+  rel: propsRel,
+  icon,
+  class: propsClass,
+  ...props
+} = Astro.props as HTMLAttributes<"a"> & {
+  icon?: string;
+};
 
 if (!propsHref) {
   throw new Error("href is required");
@@ -17,6 +27,7 @@ const { href, target, rel } = getLinkProps({
 });
 ---
 
-<a data-props-href={propsHref} data-href={href} {...props} {href} {target} {rel}>
+<a {...props} {href} {target} {rel} class:list={[propsClass, icon && "flex items-center gap-2"]}>
+  {icon && <Icon name={icon} />}
   <slot />
 </a>

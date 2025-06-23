@@ -2,12 +2,12 @@
 import { Icon } from "astro-icon/components";
 
 type Props = {
-  readingTime: number;
+  readingTime: string;
 };
 const { readingTime } = Astro.props as Props;
 ---
 
 <span class="flex items-center gap-1">
   <Icon name="carbon:time" />
-  {readingTime} min read
+  {readingTime}
 </span>
