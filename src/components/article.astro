@@ -1,0 +1,52 @@
+---
+import FormattedDate from "./formatted-date.astro";
+import Link from "./link.astro";
+
+interface Props {
+  title: string;
+  minutesRead: string;
+  publishedOn: Date;
+  lastUpdatedOn: Date;
+  description: string;
+  tags: string[];
+  as?: "article" | "section";
+}
+
+const { title, minutesRead, publishedOn, lastUpdatedOn, description, tags, as } = Astro.props as Props;
+const Element = as === "article" ? "article" : "section";
+---
+
+<Element
+  class="mx-auto my-8 prose prose-base max-w-none prose-slate dark:prose-invert prose-headings:font-medium prose-h1:text-4xl"
+>
+  {title ? <h1 class="mb-2 text-3xl font-bold">{title}</h1> : null}
+  <div class="mb-8 text-sm text-primary-500">
+    <span>{minutesRead}</span>
+    <span>
+      | Published on <FormattedDate date={publishedOn} />
+    </span>
+    {
+      publishedOn.toDateString() !== lastUpdatedOn.toDateString() && (
+        <span>
+          | Last updated on <FormattedDate date={lastUpdatedOn} />
+        </span>
+      )
+    }
+  </div>
+  {description ? <p>{description}</p> : null}
+  <slot />
+  {
+    tags && tags.length > 0 && (
+      <div class="mt-4 flex flex-wrap gap-2">
+        {tags.map((tag) => (
+          <Link
+            href={`/tags/${tag}`}
+            class="rounded-full bg-primary-100 px-3 py-1 text-sm text-primary-800 dark:bg-primary-900 dark:text-primary-200"
+          >
+            {tag}
+          </Link>
+        ))}
+      </div>
+    )
+  }
+</Element>

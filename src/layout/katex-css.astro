@@ -1,0 +1,74 @@
+---
+
+---
+
+<script>
+  import { getFilePath } from "@/utils/link.utils";
+  (() => {
+    let katexLoaded = false;
+
+    const loadKatexCSS = () => {
+      // Check if KaTeX is already loaded
+      if (katexLoaded) {
+        return;
+      }
+
+      // Check if page has .katex elements
+      const hasKatexElements = document.querySelector(".katex") !== null;
+      if (!hasKatexElements) {
+        return;
+      }
+
+      // Check if KaTeX CSS is already loaded
+      const existingLink = document.querySelector("#katex-css");
+      if (existingLink) {
+        katexLoaded = true;
+        return;
+      }
+
+      // Load KaTeX CSS
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.id = "katex-css";
+      link.href = getFilePath("katex-v1", "katex.min.css");
+
+      link.onload = () => {
+        katexLoaded = true;
+      };
+
+      link.onerror = () => {
+        console.error("Failed to load KaTeX CSS:", link.href);
+      };
+
+      document.head.appendChild(link);
+    };
+
+    // Run on initial load
+    loadKatexCSS();
+
+    // Run on route changes (Astro uses view transitions)
+    document.addEventListener("astro:page-load", loadKatexCSS);
+
+    // Also listen for DOM changes in case .katex elements are added dynamically
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === "childList") {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
+              if (element.classList?.contains("katex") || element.querySelector?.(".katex")) {
+                loadKatexCSS();
+                break;
+              }
+            }
+          }
+        }
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  })();
+</script>

@@ -9,47 +9,85 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 
-export default defineConfig([
-  globalIgnores(["node_modules", "dist", "build", "public", "public/**", "dist/**", "build/**"]),
+// Base language options for JavaScript/TypeScript files
+const baseLanguageOptions = {
+  sourceType: "module",
+  globals: {
+    ...globals.browser,
+    ...globals.node,
+  },
+};
+
+// JavaScript/TypeScript/Astro configurations
+const jsTsAstroConfigs = defineConfig([
+  // JavaScript configuration
   {
-    ...js.configs.recommended,
     files: ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs", "**/*.astro/*.js", "*.astro/*.js"],
+    ...js.configs.recommended,
     languageOptions: {
+      ...baseLanguageOptions,
       parser: js.parser,
-      sourceType: "module",
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-      },
     },
   },
+  // TypeScript configuration
   {
     files: ["**/*.ts", "**/*.tsx", "**/*.cts", "**/*.mts", "**/*.astro/*.ts", "*.astro/*.ts"],
     languageOptions: {
+      ...baseLanguageOptions,
+      parser: tseslint.parser,
       parserOptions: {
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-      },
-      sourceType: "module",
-      parser: tseslint.parser,
     },
   },
-  [...tseslint.configs.strictTypeChecked, ...tseslint.configs.stylisticTypeChecked].map((config) => ({
+  // TypeScript strict and stylistic rules
+  ...[...tseslint.configs.strictTypeChecked, ...tseslint.configs.stylisticTypeChecked].map((config) => ({
     ...config,
     files: ["**/*.ts", "**/*.tsx", "**/*.cts", "**/*.mts", "**/*.astro/*.ts", "*.astro/*.ts"],
   })),
-
-  astro.configs["flat/jsx-a11y-strict"].map((config) => ({
+  // Astro configuration
+  ...astro.configs["flat/jsx-a11y-strict"].map((config) => ({
     files: ["**/*.astro", "*.astro", "**/*.astro/*.js", "*.astro/*.js", "**/*.astro/*.ts", "*.astro/*.ts"],
-    // If the file is not configured, apply for all the astro files.
     ...config,
   })),
+]);
 
-  // JSON files
+// CSS configurations
+const cssConfigs = defineConfig([
+  {
+    files: ["**/*.css"],
+    plugins: {
+      css,
+    },
+    language: "css/css",
+    languageOptions: {
+      tolerant: true,
+      customSyntax: {
+        ...tailwindSyntax,
+        atrules: {
+          ...tailwindSyntax.atrules,
+          plugin: {
+            prelude: "<string>",
+          },
+          theme: {
+            prelude: "<string>",
+          },
+          "custom-variant": {
+            prelude: "<string>",
+          },
+        },
+      },
+    },
+    rules: {
+      ...css.configs.recommended.rules,
+      "css/no-invalid-at-rules": "off",
+    },
+  },
+]);
+
+// JSON configurations
+const jsonConfigs = defineConfig([
   {
     files: ["**/*.json"],
     ignores: ["package-lock.json", "**/tsconfig.json", ".vscode/*.json"],
@@ -78,21 +116,10 @@ export default defineConfig([
     language: "json/json5",
     extends: ["json/recommended"],
   },
+]);
 
-  // CSS files
-  {
-    files: ["**/*.css"],
-    plugins: {
-      css,
-    },
-    language: "css/css",
-    languageOptions: {
-      customSyntax: tailwindSyntax,
-    },
-    extends: ["css/recommended"],
-  },
-
-  // Markdown files
+// Markdown configuration
+const markdownConfig = defineConfig([
   {
     files: ["**/*.md"],
     plugins: { markdown },
@@ -103,3 +130,14 @@ export default defineConfig([
     extends: ["markdown/recommended"],
   },
 ]);
+
+// Main configuration
+const config = defineConfig([
+  globalIgnores([".astro", ".vscode", "node_modules", "dist", "public"]),
+  // ...jsTsAstroConfigs,
+  ...cssConfigs,
+  // ...jsonConfigs,
+  // ...markdownConfig,
+]);
+
+export default config;

@@ -1,0 +1,34 @@
+---
+import Layout from "@/layout/layout.astro";
+import PageFindSearch from "astro-pagefind/components/Search";
+---
+
+<Layout title="Search" description="Search for posts on Sujeet's blog">
+  <PageFindSearch
+    id="pagefind-ui-search"
+    uiOptions={{
+      showImages: false,
+      openFilters: [], //['Category', 'Tag'],
+      autofocus: true,
+      pageSize: 10,
+      showSubResults: false,
+      showEmptyFilters: false,
+    }}
+  />
+</Layout>
+
+<script>
+  function onLoadQueryParamHandlerForSearch() {
+    const el = document.querySelector(`#pagefind-ui-search`);
+    const query = new URLSearchParams(window.location.search).get("q");
+    console.log(query);
+    if (el && query) {
+      const input = el.querySelector<HTMLInputElement>(`input[type="text"]`);
+      if (input) {
+        input.value = query;
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    }
+  }
+  document.addEventListener("DOMContentLoaded", onLoadQueryParamHandlerForSearch);
+</script>

@@ -1,0 +1,37 @@
+{
+  // Domains
+  ecom: { name: "E-commerce" },
+  ads: { name: "Ad Tech" },
+  edu: { name: "Ed Tech" },
+  fin: { name: "Fin Tech" },
+  health: { name: "Health Tech" },
+  realestate: { name: "Real Estate" },
+  travel: { name: "Travel" },
+  gaming: { name: "Gaming" },
+  saas: { name: "SaaS" },
+  startup: { name: "Startup" },
+  marketing: { name: "Marketing" },
+  design: { name: "Design" },
+  devops: { name: "DevOps" },
+  tools: { name: "Developer Tools" },
+  // Tech Domains
+  web: { name: "Web Development" },
+  frontend: { name: "Frontend Development" },
+  backend: { name: "Backend Development" },
+  fullstack: { name: "Fullstack Development" },
+  mobile: { name: "Mobile Development" },
+  desktop: { name: "Desktop Development" },
+  ai: { name: "AI" },
+  ml: { name: "Machine Learning" },
+  // Languages
+  js: { name: "JavaScript" },
+  ts: { name: "TypeScript" },
+  css: { name: "CSS" },
+  html: { name: "HTML" },
+  python: { name: "Python" },
+  java: { name: "Java" },
+  // Frontend Frameworks and Libraries
+  react: { name: "React" },
+  next: { name: "Next.js" },
+  tailwind: { name: "Tailwind CSS" },
+}

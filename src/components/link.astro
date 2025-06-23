@@ -1,0 +1,22 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { getLinkProps } from "@/utils/link.utils";
+const { href: propsHref, target: propsTarget, rel: propsRel, ...props } = Astro.props as HTMLAttributes<"a">;
+
+if (!propsHref) {
+  throw new Error("href is required");
+}
+if (typeof propsHref !== "string") {
+  throw new Error("href must be a string");
+}
+
+const { href, target, rel } = getLinkProps({
+  href: propsHref,
+  target: propsTarget,
+  rel: propsRel,
+});
+---
+
+<a data-props-href={propsHref} data-href={href} {...props} {href} {target} {rel}>
+  <slot />
+</a>

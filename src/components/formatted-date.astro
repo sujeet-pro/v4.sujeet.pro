@@ -1,0 +1,42 @@
+---
+import { Icon } from "astro-icon/components";
+
+type Props = {
+  date: Date;
+  class?: string | undefined;
+  type?: "published" | "updated" | undefined;
+};
+
+const { class: className, date, type } = Astro.props;
+
+if (!date || !(date instanceof Date)) {
+  throw new Error("Date is required and must be a Date object");
+}
+
+let icon: string | undefined = undefined;
+if (type === "published") {
+  icon = "carbon:calendar";
+} else if (type === "updated") {
+  icon = "carbon:update-now";
+}
+
+let text: string | undefined = undefined;
+if (type === "published") {
+  text = "Published On";
+} else if (type === "updated") {
+  text = "Last Updated On";
+}
+---
+
+<span class:list={["flex flex-row items-center gap-1", className]} title={text}>
+  {icon ? <Icon name={icon} /> : null}
+  <time datetime={date.toISOString()} class={className}>
+    {
+      date.toLocaleDateString("en-us", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    }
+  </time>
+</span>

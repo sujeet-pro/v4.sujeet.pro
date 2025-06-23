@@ -1,0 +1,68 @@
+---
+import Link from "@/components/link.astro";
+import { Icon } from "astro-icon/components";
+---
+
+<div class="flex flex-1 items-center justify-center md:justify-start">
+  <!-- Desktop Search Input -->
+  <div class="hidden w-full md:flex">
+    <div class="relative w-full">
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Search..."
+        class="w-full rounded-lg border border-primary-300 bg-primary-100 px-4 py-2 pr-12 pl-10 text-sm focus:border-transparent focus:ring-2 focus:ring-primary-500 focus:outline-none dark:border-primary-600 dark:bg-primary-800 dark:focus:ring-primary-400"
+      />
+      <label for="search-input">
+        <Icon
+          name="carbon:search"
+          class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-primary-500/60 dark:text-primary-400/60"
+        />
+      </label>
+      <label for="search-input" class="absolute top-1/2 right-3 -translate-y-1/2 transform">
+        <kbd
+          class="inline-flex items-center rounded border border-primary-200 bg-primary-50 px-1.5 py-0.5 font-mono text-xs text-primary-600 dark:border-primary-600 dark:bg-primary-700 dark:text-primary-300"
+        >
+          <span class="text-xs">⌘</span>
+          <span class="ml-0.5">K</span>
+        </kbd>
+      </label>
+    </div>
+  </div>
+  <!-- Mobile Search Link -->
+  <div class="md:hidden">
+    <Link
+      href="/search"
+      class="flex items-center p-2 text-primary-700 transition-colors hover:text-primary-600 dark:text-primary-300 dark:hover:text-primary-400"
+      aria-label="Search"
+      id="search-link"
+    >
+      <Icon name="carbon:search" class="h-5 w-5" />
+    </Link>
+  </div>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const searchInput = document.querySelector<HTMLInputElement>("input#search-input");
+    const searchLink = document.querySelector<HTMLAnchorElement>("a#search-link");
+    searchInput?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const path = searchLink?.getAttribute("href") || "/search";
+        window.location.href = path + "?q=" + encodeURIComponent(searchInput.value.trim());
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        if (searchInput && searchInput.offsetParent !== null) {
+          searchInput.focus();
+        } else if (searchLink) {
+          searchLink.click();
+        } else {
+          window.location.href = "/search";
+        }
+      }
+    });
+  });
+</script>

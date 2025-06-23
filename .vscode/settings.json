@@ -15,5 +15,22 @@
     "astro",
     "typescript",
     "typescriptreact"
-  ]
+  ],
+  "cSpell.words": [
+    "daisyui",
+    "devicon",
+    "favicons",
+    "fontsource",
+    "frontmatter",
+    "iconify",
+    "katex",
+    "pagefind",
+    "prefersdark"
+  ],
+  "[xml]": {
+    "editor.defaultFormatter": "redhat.vscode-xml"
+  },
+  "files.associations": {
+    "*.css": "tailwindcss"
+  }
 }

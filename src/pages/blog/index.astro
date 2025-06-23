@@ -1,0 +1,31 @@
+---
+import Item from "@/components/item.astro";
+import Layout from "@/layout/layout.astro";
+import { getBlogs } from "@/utils/content.utils";
+
+const blogs = await getBlogs();
+---
+
+<Layout title="Blog" description="Blog">
+  <h1 class="my-8 text-2xl font-bold">Blog</h1>
+  <ul class="flex flex-col gap-4">
+    {
+      blogs
+        //.filter((blog) => !blog.isDraft)
+        .map((blog) => (
+          <Item
+            item={{
+              title: blog.title,
+              description: blog.description,
+              link: `/blog/${blog.id}`,
+              publishedOn: blog.publishedOn,
+              lastUpdatedOn: blog.lastUpdatedOn,
+              isDraft: blog.isDraft,
+              id: blog.id,
+              readingTime: parseInt(blog.minutesRead),
+            }}
+          />
+        ))
+    }
+  </ul>
+</Layout>

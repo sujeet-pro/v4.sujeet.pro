@@ -1,0 +1,44 @@
+---
+import { getFilePath, getFaviconPath } from "@/utils/link.utils";
+---
+
+<!-- Main favicon -->
+<link rel="icon" type="image/x-icon" href={getFaviconPath("favicon.ico")} />
+
+<!-- Apple Touch Icons -->
+<link rel="apple-touch-icon" sizes="57x57" href={getFaviconPath("apple-icon-57x57.png")} />
+<link rel="apple-touch-icon" sizes="60x60" href={getFaviconPath("apple-icon-60x60.png")} />
+<link rel="apple-touch-icon" sizes="72x72" href={getFaviconPath("apple-icon-72x72.png")} />
+<link rel="apple-touch-icon" sizes="76x76" href={getFaviconPath("apple-icon-76x76.png")} />
+<link rel="apple-touch-icon" sizes="114x114" href={getFaviconPath("apple-icon-114x114.png")} />
+<link rel="apple-touch-icon" sizes="120x120" href={getFaviconPath("apple-icon-120x120.png")} />
+<link rel="apple-touch-icon" sizes="144x144" href={getFaviconPath("apple-icon-144x144.png")} />
+<link rel="apple-touch-icon" sizes="152x152" href={getFaviconPath("apple-icon-152x152.png")} />
+<link rel="apple-touch-icon" sizes="180x180" href={getFaviconPath("apple-icon-180x180.png")} />
+
+<!-- Apple Touch Icon Precomposed (for older iOS versions) -->
+<link rel="apple-touch-icon-precomposed" href={getFaviconPath("apple-icon-precomposed.png")} />
+
+<!-- Standard Icons -->
+<link rel="icon" type="image/png" sizes="192x192" href={getFaviconPath("android-icon-192x192.png")} />
+<link rel="icon" type="image/png" sizes="144x144" href={getFaviconPath("android-icon-144x144.png")} />
+<link rel="icon" type="image/png" sizes="96x96" href={getFaviconPath("android-icon-96x96.png")} />
+<link rel="icon" type="image/png" sizes="72x72" href={getFaviconPath("android-icon-72x72.png")} />
+<link rel="icon" type="image/png" sizes="48x48" href={getFaviconPath("android-icon-48x48.png")} />
+<link rel="icon" type="image/png" sizes="36x36" href={getFaviconPath("android-icon-36x36.png")} />
+<link rel="icon" type="image/png" sizes="32x32" href={getFaviconPath("favicon-32x32.png")} />
+<link rel="icon" type="image/png" sizes="16x16" href={getFaviconPath("favicon-16x16.png")} />
+
+<!-- Web App Manifest -->
+<link rel="manifest" href={getFilePath("manifest.json")} />
+
+<!-- Microsoft Tiles -->
+<meta name="msapplication-config" content={getFilePath("browserconfig.xml")} />
+<meta name="msapplication-TileImage" content={getFaviconPath("ms-icon-144x144.png")} />
+<meta name="msapplication-TileColor" content="#f8fafc" />
+
+<!-- Theme Colors -->
+<meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)" />
+<meta name="msapplication-TileColor" content="#f8fafc" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />

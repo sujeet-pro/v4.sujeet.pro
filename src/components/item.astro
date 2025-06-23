@@ -1,0 +1,84 @@
+---
+import FormattedDate from "./formatted-date.astro";
+import Link from "./link.astro";
+import ReadingTime from "./reading-time.astro";
+
+type Props = {
+  item: {
+    title: string;
+    description: string;
+    link: string;
+    publishedOn: Date;
+    lastUpdatedOn: Date;
+    isDraft: boolean;
+    id: string;
+    readingTime: number;
+  };
+};
+const { item } = Astro.props as Props;
+
+// Check if lastUpdatedOn is different from publishedOn (date only)
+const showLastUpdated = item.publishedOn.toDateString() !== item.lastUpdatedOn.toDateString();
+---
+
+<li
+  class="group relative cursor-pointer rounded-lg border border-primary-200 bg-white p-6 transition-all duration-200 hover:shadow-lg dark:border-primary-700 dark:bg-primary-800"
+>
+  <!-- Pseudo element for full card hover effect -->
+  <div
+    class="absolute inset-0 rounded-lg bg-primary-50 opacity-0 transition-opacity duration-200 group-hover:opacity-100 dark:bg-primary-700"
+  >
+  </div>
+
+  <!-- Content wrapper with relative positioning -->
+  <div class="relative z-10">
+    <!-- Title with link -->
+
+    <h2
+      class="mb-2 text-xl font-bold text-primary-900 transition-colors duration-200 hover:text-primary-600 dark:text-white dark:hover:text-primary-400"
+    >
+      <Link href={item.link} class="item-link no-underline">
+        {item.title}
+      </Link>
+    </h2>
+
+    <!-- Description -->
+    <p class="mb-3 line-clamp-2 text-sm text-primary-600 dark:text-primary-300">
+      {item.description}
+    </p>
+
+    <!-- Meta information -->
+    <div class="flex items-center gap-2 text-xs text-primary-500 dark:text-primary-400">
+      <FormattedDate date={item.publishedOn} type="published" />
+      {
+        showLastUpdated ? (
+          <>
+            <span>•</span>
+            <FormattedDate date={item.lastUpdatedOn} type="updated" />
+          </>
+        ) : null
+      }
+      <span>•</span>
+      <ReadingTime readingTime={item.readingTime} />
+      {
+        item.isDraft ? (
+          <>
+            <span>•</span>
+            <span class="text-primary-600 dark:text-primary-400">Draft</span>
+          </>
+        ) : null
+      }
+    </div>
+  </div>
+</li>
+
+<style>
+  .item-link::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+</style>

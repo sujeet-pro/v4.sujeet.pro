@@ -1,0 +1,39 @@
+---
+import Search from "./search.astro";
+import ThemeToggler from "./theme-toggler.astro";
+import Link from "@/components/link.astro";
+
+interface Props {
+  maxWidth?: string;
+}
+
+const { maxWidth = "container" } = Astro.props;
+---
+
+<header
+  class="sticky top-0 z-50 w-full border-b border-primary-200 bg-white/80 backdrop-blur-sm dark:border-primary-800 dark:bg-primary-950/80"
+>
+  <div class={`${maxWidth} mx-auto px-4`}>
+    <div class="flex h-16 items-center justify-between gap-4">
+      <!-- Logo/Title -->
+      <div class="flex items-center gap-4">
+        <Link
+          href="/"
+          class="text-xl font-bold text-primary-600 transition-colors hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+        >
+          sujeet.pro
+        </Link>
+        <Link
+          href="/blog"
+          class="text-base text-primary-600 transition-colors hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+        >
+          Blog
+        </Link>
+      </div>
+      <div class="flex items-center gap-4">
+        <Search />
+        <ThemeToggler />
+      </div>
+    </div>
+  </div>
+</header>

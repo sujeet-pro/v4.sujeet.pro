@@ -1,0 +1,52 @@
+---
+import "@fontsource-variable/open-sans";
+import "@/styles/global.css";
+import font from "@fontsource-variable/open-sans/files/open-sans-latin-wght-normal.woff2?url";
+import font2 from "@fontsource-variable/open-sans/files/open-sans-symbols-wght-normal.woff2?url";
+import Header from "./header.astro";
+import Footer from "./footer.astro";
+import KatexCSS from "./katex-css.astro";
+import Favicons from "./favicons.astro";
+import Seo from "./seo.astro";
+import type { Props as SeoProps } from "./seo.astro";
+import { getFilePath } from "@/utils/link.utils";
+interface Props extends SeoProps {
+  noIndex?: boolean;
+}
+
+const { noIndex, ...seoProps } = Astro.props;
+const maxWidth = " max-w-[80ch]";
+---
+
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Sujeet's personal website - Blog and Portfolio" />
+    <meta name="color-scheme" content="light dark" />
+    {noIndex ? <meta name="robots" content="noindex" /> : null}
+    <link rel="preload" as="font" type="font/woff2" href={font} crossorigin="anonymous" />
+    <link rel="preload" as="font" type="font/woff2" href={font2} crossorigin="anonymous" />
+    <Favicons />
+    <Seo {...seoProps} />
+    <link rel="alternate" type="application/rss+xml" href={getFilePath("rss.xml")} />
+    <link rel="sitemap" href={getFilePath("sitemap.xml")} />
+  </head>
+  <body>
+    <Header maxWidth={maxWidth} />
+    <main class="flex-1">
+      <div class={`${maxWidth} mx-auto px-4`}>
+        <slot />
+      </div>
+    </main>
+    <Footer maxWidth={maxWidth} />
+    <KatexCSS />
+  </body>
+</html>
+
+<script>
+  import { base, site } from "astro:config/client";
+  console.log("base", base);
+  console.log("site", site);
+</script>

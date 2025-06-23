@@ -1,0 +1,28 @@
+---
+import { getBlogs } from "@/utils/content.utils";
+import Layout from "@/layout/layout.astro";
+import Article from "@/components/article.astro";
+
+// Generate static paths for all blog posts
+export async function getStaticPaths() {
+  const blogs = await getBlogs();
+
+  return blogs.map((blog) => {
+    return {
+      params: { slug: blog.id },
+      props: {
+        blog,
+      },
+    };
+  });
+}
+
+const { blog } = Astro.props;
+const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft } = blog;
+---
+
+<Layout {title} {description} pageType="article" noIndex={isDraft}>
+  <Article {title} {description} {minutesRead} {publishedOn} {lastUpdatedOn} tags={tags} as="article">
+    <Content />
+  </Article>
+</Layout>

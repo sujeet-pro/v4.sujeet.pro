@@ -1,0 +1,32 @@
+---
+import { SITE_CANONICAL_ORIGIN, SITE_CANONICAL_PATH } from "astro:env/client";
+
+export type Props = {
+  title?: string | undefined;
+  description?: string | undefined;
+  image?: string | undefined;
+  pageType?: "website" | "article";
+};
+
+const { description, image, pageType = "website" } = Astro.props;
+const title = Astro.props.title ? `${Astro.props.title} - Sujeet Jaiswal` : "Sujeet Jaiswal";
+const canonicalURL = SITE_CANONICAL_ORIGIN + SITE_CANONICAL_PATH + Astro.url.pathname;
+---
+
+<!-- Canonical URL -->
+<link rel="canonical" href={canonicalURL} />
+<!-- Primary Meta Tags -->
+<title>{title}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content={pageType} />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+{image ? <meta property="og:image" content={new URL(image, Astro.url)} /> : null}
+
+<!-- Twitter / X -->
+<meta name="twitter:site" content="@sujeetpro" />
+<meta name="twitter:card" content="summary_large_image" />
