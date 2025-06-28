@@ -3,7 +3,6 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "postinstall": "npx playwright install --with-deps chromium",
     "dev": "astro dev",
     "dev:cf": "astro dev -- --site https://sujeet.pro --base /",
     "build:cf": "astro build -- --site https://sujeet.pro --base /",

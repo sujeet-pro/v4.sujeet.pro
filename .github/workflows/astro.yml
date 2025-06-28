@@ -32,6 +32,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    environment: github-pages
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,6 +67,10 @@ jobs:
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
         working-directory: ${{ env.BUILD_PATH }}
+      - name: Install Playwright browsers
+        uses: microsoft/playwright-github-action@v1
+        with:
+          browsers: chromium
       - name: Build with Astro
         run: |
           ${{ steps.detect-package-manager.outputs.runner }} astro build \
@@ -73,8 +78,8 @@ jobs:
             --base "${{ steps.pages.outputs.base_path }}"
         working-directory: ${{ env.BUILD_PATH }}
         env:
-          SITE_CANONICAL_ORIGIN: ${{ env.SITE_CANONICAL_ORIGIN }}
-          SITE_CANONICAL_PATH: ${{ env.SITE_CANONICAL_PATH }}
+          SITE_CANONICAL_ORIGIN: ${{ vars.SITE_CANONICAL_ORIGIN }}
+          SITE_CANONICAL_PATH: ${{ vars.SITE_CANONICAL_PATH }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
