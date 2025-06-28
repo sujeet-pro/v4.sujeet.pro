@@ -10,7 +10,9 @@
   hashnode: { target: "https://hashnode.com/@sujeetpro" },
   medium: { target: "https://medium.com/sujeet-pro" },
   stackoverflow: { target: "https://stackoverflow.com/users/5570700/sujeet-jaiswal" },
-  cv: { target: "https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing" },
+  "cv-doc": {
+    target: "https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing",
+  },
   "download-cv": {
     target: "https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/export?format=pdf",
   },

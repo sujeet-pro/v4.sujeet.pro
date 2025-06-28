@@ -1,28 +1,42 @@
 ---
-import { getBlogs } from "@/utils/content.utils";
+import { getBlogs } from "@/utils/content-blogs.utils";
 import Layout from "@/layout/layout.astro";
 import Article from "@/components/article.astro";
+import { getAllSeries } from "@/utils/content-series.utils";
 
 // Generate static paths for all blog posts
 export async function getStaticPaths() {
   const blogs = await getBlogs();
-
+  const allSeries = await getAllSeries();
   return blogs.map((blog) => {
     return {
       params: { slug: blog.id },
       props: {
         blog,
+        series: allSeries.find((series) => series.blogs.some((b) => b.id === blog.id)) ?? null,
       },
     };
   });
 }
 
-const { blog } = Astro.props;
+const { blog, series } = Astro.props;
 const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft } = blog;
+const crumbs = [
+  {
+    title: "Blog",
+    href: "/blog",
+  },
+];
+if (series) {
+  crumbs.push({
+    title: series.name,
+    href: series.href,
+  });
+}
 ---
 
-<Layout {title} {description} pageType="article" noIndex={isDraft}>
-  <Article {title} {description} {minutesRead} {publishedOn} {lastUpdatedOn} tags={tags} as="article">
+<Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft}>
+  <Article {title} {description} {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} {tags} {series} as="article">
     <Content />
   </Article>
 </Layout>

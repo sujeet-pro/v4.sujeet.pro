@@ -10,6 +10,8 @@ tags: ["ai", "ml", "python"]
 
 This is a test blog post in a nested directory to verify that the blog page generation works with nested structures.
 
+## Table of Contents
+
 ## AI and Machine Learning
 
 This post focuses on AI and Machine Learning topics, demonstrating how tags work across different categories.

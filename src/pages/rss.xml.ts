@@ -1,4 +1,4 @@
-import { getBlogs } from "@/utils/content.utils";
+import { getBlogs } from "@/utils/content-blogs.utils";
 import { getFilePath, getLinkProps } from "@/utils/link.utils";
 import rss, { type RSSOptions } from "@astrojs/rss";
 import type { APIRoute } from "astro";
@@ -22,7 +22,7 @@ export const GET: APIRoute = async () => {
           description: item.description,
           link: postUrl,
           pubDate: item.publishedOn,
-          categories: item.tags,
+          categories: item.tags.map((tag) => tag.name),
           customData: [`<lastmod>${new Date(item.lastUpdatedOn).toDateString()}</lastmod>`].join("\n"),
         };
       }),

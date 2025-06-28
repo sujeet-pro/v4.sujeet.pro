@@ -2,15 +2,16 @@
 import { SITE_CANONICAL_ORIGIN, SITE_CANONICAL_PATH } from "astro:env/client";
 
 export type Props = {
-  title?: string | undefined;
-  description?: string | undefined;
+  title: string;
+  description: string;
   image?: string | undefined;
-  pageType?: "website" | "article";
+  pageType: "default" | "article";
 };
-
-const { description, image, pageType = "website" } = Astro.props;
+const defaultDescription = "Sujeet's personal website - Blog and Portfolio";
+const { description, image, pageType = "default" } = Astro.props;
 const title = Astro.props.title ? `${Astro.props.title} - Sujeet Jaiswal` : "Sujeet Jaiswal";
 const canonicalURL = SITE_CANONICAL_ORIGIN + SITE_CANONICAL_PATH + Astro.url.pathname;
+const seoPageType = pageType === "default" ? "website" : "article";
 ---
 
 <!-- Canonical URL -->
@@ -18,10 +19,10 @@ const canonicalURL = SITE_CANONICAL_ORIGIN + SITE_CANONICAL_PATH + Astro.url.pat
 <!-- Primary Meta Tags -->
 <title>{title}</title>
 <meta name="title" content={title} />
-<meta name="description" content={description} />
+<meta name="description" content={description || defaultDescription} />
 
 <!-- Open Graph / Facebook -->
-<meta property="og:type" content={pageType} />
+<meta property="og:type" content={seoPageType} />
 <meta property="og:url" content={canonicalURL} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />

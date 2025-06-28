@@ -10,12 +10,16 @@ import Favicons from "./favicons.astro";
 import Seo from "./seo.astro";
 import type { Props as SeoProps } from "./seo.astro";
 import { getFilePath } from "@/utils/link.utils";
+import Breadcrumb from "@/components/breadcrumb.astro";
+import type { Props as BreadcrumbProps } from "@/components/breadcrumb.astro";
+
 interface Props extends SeoProps {
-  noIndex?: boolean;
+  noIndex?: boolean | undefined | null;
+  crumbs: BreadcrumbProps["crumbs"] | null;
 }
 
-const { noIndex, ...seoProps } = Astro.props;
-const maxWidth = " max-w-[80ch]";
+const { noIndex, crumbs, ...seoProps } = Astro.props;
+const containerClassName = "max-w-[80ch] mx-auto p-4";
 ---
 
 <!doctype html>
@@ -23,7 +27,6 @@ const maxWidth = " max-w-[80ch]";
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Sujeet's personal website - Blog and Portfolio" />
     <meta name="color-scheme" content="light dark" />
     {noIndex ? <meta name="robots" content="noindex" /> : null}
     <link rel="preload" as="font" type="font/woff2" href={font} crossorigin="anonymous" />
@@ -34,19 +37,14 @@ const maxWidth = " max-w-[80ch]";
     <link rel="sitemap" href={getFilePath("sitemap.xml")} />
   </head>
   <body>
-    <Header maxWidth={maxWidth} />
+    <Header {containerClassName} />
     <main class="flex-1">
-      <div class={`${maxWidth} mx-auto px-4`}>
+      <div class={containerClassName}>
+        {crumbs ? <Breadcrumb currentPageTitle={seoProps.title} {crumbs} /> : null}
         <slot />
       </div>
     </main>
-    <Footer maxWidth={maxWidth} />
+    <Footer {containerClassName} />
     <KatexCSS />
   </body>
 </html>
-
-<script>
-  import { base, site } from "astro:config/client";
-  console.log("base", base);
-  console.log("site", site);
-</script>

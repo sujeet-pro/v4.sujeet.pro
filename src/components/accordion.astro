@@ -1,0 +1,36 @@
+---
+import { Icon } from "astro-icon/components";
+
+type Props = {
+  title: string;
+  open?: boolean;
+};
+const { title, open = true } = Astro.props;
+---
+
+<details open={open} class="sp-accordion p-4 bg-blend-lighten">
+  <summary class="flex cursor-pointer list-none items-center justify-between">
+    <slot name="title"><span class="font-semibold">{title}</span></slot>
+    <Icon name="carbon:chevron-up" class="accordion-icon" />
+  </summary>
+  <div class="accordion-content py-4">
+    <slot />
+  </div>
+</details>
+
+<style>
+  details summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details[open] .accordion-icon {
+    transform: rotate(0deg);
+  }
+  details:not([open]) .accordion-content {
+    display: none;
+  }
+  .accordion-icon {
+    transform: rotate(180deg);
+    transition: transform 0.2s;
+  }
+</style>

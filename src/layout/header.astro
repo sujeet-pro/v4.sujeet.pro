@@ -4,25 +4,23 @@ import ThemeToggler from "./theme-toggler.astro";
 import Link from "@/components/link.astro";
 
 interface Props {
-  maxWidth?: string;
-  class?: string;
+  containerClassName?: string;
 }
 
-const { maxWidth = "container", class: className } = Astro.props;
+const { containerClassName } = Astro.props;
 ---
 
-<header class:list={["sticky top-0 z-50 w-full border-b", className]}>
-  <div class={`${maxWidth} mx-auto px-4`}>
-    <div class="flex h-16 items-center justify-between gap-4">
-      <!-- Logo/Title -->
-      <div class="flex items-center gap-4">
-        <Link href="/" class="text-xl font-light"> sujeet.pro </Link>
-        <Link href="/blog" class="text-base"> Blog </Link>
-      </div>
-      <div class="flex items-center gap-4">
-        <Search />
-        <ThemeToggler />
-      </div>
+<header class:list={["sp-border-muted sticky top-0 z-50 w-full border-b"]}>
+  <div class:list={["flex items-center justify-between gap-4", containerClassName]}>
+    <!-- Logo/Title -->
+    <div class="flex items-center gap-4">
+      <Link href="/" class="text-xl font-light"> sujeet.pro </Link>
+      <Link href="/blog" class="text-base"> Blog </Link>
+      <Link href="/cv" class="text-base"> CV </Link>
+    </div>
+    <div class="flex items-center gap-4">
+      <Search />
+      <ThemeToggler />
     </div>
   </div>
 </header>

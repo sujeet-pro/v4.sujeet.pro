@@ -1,0 +1,49 @@
+---
+import Layout from "@/layout/layout.astro";
+import Item from "@/components/item.astro";
+
+export async function getStaticPaths() {
+  const { getAllSeries } = await import("@/utils/content-series.utils");
+  const series = await getAllSeries();
+
+  return series.map((seriesItem) => ({
+    params: { series: seriesItem.id },
+    props: { series: seriesItem },
+  }));
+}
+
+const { series } = Astro.props;
+const crumbs = [
+  {
+    title: "Series",
+    href: "/series",
+  },
+];
+---
+
+<Layout title={series.name} description={`Blog posts in the ${series.name} series`} {crumbs} pageType="default">
+  <h1>{series.name}</h1>
+
+  {
+    series.blogs.length > 0 ? (
+      <ul class="flex flex-col">
+        {series.blogs.map((blog) => (
+          <Item
+            item={{
+              title: blog.title,
+              description: blog.description,
+              link: `/blog/${blog.id}`,
+              publishedOn: blog.publishedOn,
+              lastUpdatedOn: blog.lastUpdatedOn,
+              isDraft: blog.isDraft,
+              id: blog.id,
+              readingTime: blog.minutesRead,
+            }}
+          />
+        ))}
+      </ul>
+    ) : (
+      <p class="text-gray-600">No blog posts found in this series.</p>
+    )
+  }
+</Layout>

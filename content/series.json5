@@ -1,0 +1,33 @@
+{
+  v8: {
+    name: "V8 Deep dive",
+    blogs: [
+      "test",
+      "nested/test",
+      // "deep-dives/v8-internals",
+      // "deep-dives/v8-interpreter-ignition",
+      // "deep-dives/v8-jit-compiler-turbo-fan",
+      // "deep-dives/v8-gc-orinoco",
+    ],
+  },
+  "node-js": {
+    name: "Node.js Deep dive",
+    blogs: [
+      "nested/test",
+      "test",
+      // "deep-dives/nodejs-architecture",
+      // "deep-dives/nodejs-event-loop",
+      // "deep-dives/nodejs-libuv"
+    ],
+  },
+  ssg: {
+    name: "Statically Generated Sites",
+    blogs: [
+      // "features/ssg",
+      // "features/ssg-multi-device-cls",
+      // "features/ssg-redirection",
+      // "features/ssg-rollback-with-aws",
+      // "features/ssg-serving-pre-compressed",
+    ],
+  },
+}

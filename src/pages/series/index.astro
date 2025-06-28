@@ -1,0 +1,35 @@
+---
+import Layout from "@/layout/layout.astro";
+import Link from "@/components/link.astro";
+import { getAllSeries } from "@/utils/content-series.utils";
+
+const series = await getAllSeries();
+const crumbs: { title: string; href: string }[] = [];
+---
+
+<Layout title="Series" description="All blog series" {crumbs} pageType="default">
+  <h1>Series</h1>
+
+  <div class="space-y-6">
+    {
+      series
+        .filter((seriesItem) => seriesItem.blogs.length > 0)
+        .map((seriesItem) => (
+          <div>
+            <h2 class="text-2xl font-light">
+              <Link href={seriesItem.href}>
+                {seriesItem.name} ({seriesItem.blogs.length} {seriesItem.blogs.length === 1 ? "post" : "posts"})
+              </Link>
+            </h2>
+            <ul class="mt-2 flex flex-col gap-2 pl-4">
+              {seriesItem.blogs.map((blog) => (
+                <li class="list-disc">
+                  <Link href={blog.href}>{blog.title}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+    }
+  </div>
+</Layout>

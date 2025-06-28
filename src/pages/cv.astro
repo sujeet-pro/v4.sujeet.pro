@@ -7,17 +7,19 @@ import { Icon } from "astro-icon/components";
 <Layout
   title="CV - Sujeet Jaiswal"
   description="Professional CV and experience of Sujeet Jaiswal, Principal Engineer at Quince"
+  crumbs={[]}
+  pageType="default"
 >
   <div class="mx-auto max-w-4xl py-16">
     <div class="mb-12 text-center">
       <h1 class="mb-4 text-4xl font-light">Sujeet Kumar Jaiswal</h1>
       <p class="mb-2 text-xl">Principal Engineer @ Quince</p>
-      <p class="suppressed-text">sujeet.profession@gmail.com • +91-8861301007 • sujeet.pro</p>
+      <p class="font-light">sujeet.profession@gmail.com • +91-8861301007 • sujeet.pro</p>
     </div>
 
     <!-- Summary -->
     <section class="mb-12">
-      <h2 class="mb-4 border-b pb-2 text-2xl">Professional Summary</h2>
+      <h2 class="sp-border-muted mb-4 border-b pb-2 text-2xl">Professional Summary</h2>
       <p class="leading-relaxed">
         Results-driven engineering leader with ~11 years of experience architecting and developing high-performance,
         scalable, and distributed web applications. Expert in e-commerce platforms, micro-frontend architecture, and
@@ -29,7 +31,7 @@ import { Icon } from "astro-icon/components";
 
     <!-- Core Skills -->
     <section class="mb-12">
-      <h2 class="mb-4 border-b pb-2 text-2xl">Technical Skills</h2>
+      <h2 class="sp-border-muted mb-4 border-b pb-2 text-2xl">Technical Skills</h2>
       <div class="grid gap-6 md:grid-cols-2">
         <div>
           <h3 class="mb-3 text-lg">Modern Web Development</h3>
@@ -56,15 +58,15 @@ import { Icon } from "astro-icon/components";
 
     <!-- Experience -->
     <section class="mb-12">
-      <h2 class="mb-4 border-b pb-2 text-2xl">Professional Experience</h2>
+      <h2 class="sp-border-muted mb-4 border-b pb-2 text-2xl">Professional Experience</h2>
 
       <div class="space-y-8">
         <div>
           <div class="mb-2 flex items-start justify-between">
             <h3 class="text-xl">Principal Engineer</h3>
-            <span class="suppressed-text">July 2024 - Present</span>
+            <span class="font-light">July 2024 - Present</span>
           </div>
-          <p class="suppressed-text mb-3">Quince (E-commerce, B2C)</p>
+          <p class="mb-3 font-light">Quince (E-commerce, B2C)</p>
           <ul class="space-y-2">
             <li>
               • Migrated quince.com (12M MAU) to server-side rendering architecture (Next.js) enabling personalized
@@ -82,9 +84,9 @@ import { Icon } from "astro-icon/components";
         <div>
           <div class="mb-2 flex items-start justify-between">
             <h3 class="text-xl">Technical Lead</h3>
-            <span class="suppressed-text">May 2023 - April 2024</span>
+            <span class="font-light">May 2023 - April 2024</span>
           </div>
-          <p class="suppressed-text mb-3">Quince</p>
+          <p class="mb-3 font-light">Quince</p>
           <ul class="space-y-2">
             <li>• Migrated A/B testing to Statsig enabling advanced experimentation strategies</li>
             <li>• Improved website performance by migrating to server-side Google Tag Manager (SGTM)</li>
@@ -96,9 +98,9 @@ import { Icon } from "astro-icon/components";
         <div>
           <div class="mb-2 flex items-start justify-between">
             <h3 class="text-xl">Lead Software Engineer / Acting Engineering Manager</h3>
-            <span class="suppressed-text">Aug 2020 - May 2023</span>
+            <span class="font-light">Aug 2020 - May 2023</span>
           </div>
-          <p class="suppressed-text mb-3">Vistaprint (E-commerce, B2C - $2B revenue, ~16M MAU)</p>
+          <p class="mb-3 font-light">Vistaprint (E-commerce, B2C - $2B revenue, ~16M MAU)</p>
           <ul class="space-y-2">
             <li>• Led and managed team of 6 developers, handled promotions and PIP cases</li>
             <li>• Hired and built team in India within Vistaprint's Merch Tech Domain</li>
@@ -115,9 +117,9 @@ import { Icon } from "astro-icon/components";
         <div>
           <div class="mb-2 flex items-start justify-between">
             <h3 class="text-xl">Lead Software Engineer</h3>
-            <span class="suppressed-text">Feb 2020 - Aug 2020</span>
+            <span class="font-light">Feb 2020 - Aug 2020</span>
           </div>
-          <p class="suppressed-text mb-3">CureFit (Audit Platform, Health & Business, B2C)</p>
+          <p class="mb-3 font-light">CureFit (Audit Platform, Health & Business, B2C)</p>
           <ul class="space-y-2">
             <li>• Built end-to-end Audit platform with Rest APIs, React Native mobile app, and admin site</li>
             <li>• Developed Video Review Tool with time-stamped feedback and annotations</li>
@@ -129,9 +131,9 @@ import { Icon } from "astro-icon/components";
         <div>
           <div class="mb-2 flex items-start justify-between">
             <h3 class="text-xl">Specialist Programmer - Expert Track</h3>
-            <span class="suppressed-text">Feb 2016 - Nov 2019</span>
+            <span class="font-light">Feb 2016 - Nov 2019</span>
           </div>
-          <p class="suppressed-text mb-3">Infosys (Multi-tenant Enterprise EdTech, B2C)</p>
+          <p class="mb-3 font-light">Infosys (Multi-tenant Enterprise EdTech, B2C)</p>
           <ul class="space-y-2">
             <li>• Built Wingspan enterprise multi-tenant re-skilling platform with 40 clients (Siemens, Ford)</li>
             <li>• Developed content recommendation system using Association Rule Learning</li>
@@ -145,19 +147,19 @@ import { Icon } from "astro-icon/components";
 
     <!-- Education -->
     <section class="mb-12">
-      <h2 class="mb-4 border-b pb-2 text-2xl">Education</h2>
+      <h2 class="sp-border-muted mb-4 border-b pb-2 text-2xl">Education</h2>
       <div>
         <div class="mb-2 flex items-start justify-between">
           <h3 class="text-xl">B.Tech (Mechanical)</h3>
-          <span class="suppressed-text">2014</span>
+          <span class="font-light">2014</span>
         </div>
-        <p class="suppressed-text">Uttar Pradesh Technical University</p>
+        <p class="font-light">Uttar Pradesh Technical University</p>
       </div>
     </section>
 
     <!-- Certifications -->
     <section class="mb-12">
-      <h2 class="mb-4 border-b pb-2 text-2xl">Key Achievements</h2>
+      <h2 class="sp-border-muted mb-4 border-b pb-2 text-2xl">Key Achievements</h2>
       <ul class="space-y-2">
         <li>• Successfully migrated 12M MAU e-commerce platform to Next.js SSR architecture</li>
         <li>• Achieved p99 latency of 38.5ms for 300 RPS in high-performance BFF development</li>
@@ -169,8 +171,16 @@ import { Icon } from "astro-icon/components";
     </section>
 
     <!-- Download CV -->
-    <div class="border-t pt-8 text-center">
-      <Link href="download-cv" target="_blank" class="inline-flex items-center gap-2 rounded-lg border px-6 py-3">
+    <div class="sp-border-muted border-t pt-8 text-center">
+      <Link href="cv-doc" isVanity class="sp-border-muted inline-flex items-center gap-2 rounded-lg border px-6 py-3">
+        <Icon name="carbon:generate-pdf" />
+        View Google Doc Version
+      </Link>
+      <Link
+        href="download-cv"
+        isVanity
+        class="sp-border-muted inline-flex items-center gap-2 rounded-lg border px-6 py-3"
+      >
         <Icon name="carbon:generate-pdf" />
         Download PDF Version
       </Link>

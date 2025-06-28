@@ -20,6 +20,19 @@ const vanity = defineCollection({
   }),
 });
 
+const series = defineCollection({
+  loader: file("./content/series.json5", {
+    parser: (fileContent) => {
+      const data = json5.parse(fileContent);
+      return data;
+    },
+  }),
+  schema: z.object({
+    name: z.string(),
+    blogs: z.array(z.string()),
+  }),
+});
+
 const contentSchema = z.object({
   description: z.string(),
   publishedOn: z.date(),
@@ -49,5 +62,5 @@ export const collections = {
   pages,
   tags,
   vanity,
+  series,
 };
-export type ContentSchema = z.infer<typeof contentSchema>;

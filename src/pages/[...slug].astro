@@ -1,5 +1,5 @@
 ---
-import { getPages } from "@/utils/content.utils";
+import { getPages } from "@/utils/content-blogs.utils";
 import Layout from "@/layout/layout.astro";
 import Article from "@/components/article.astro";
 
@@ -19,9 +19,10 @@ export async function getStaticPaths() {
 
 const { page } = Astro.props;
 const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft } = page;
+const crumbs: { title: string; href: string }[] = [];
 ---
 
-<Layout {title} {description} pageType="website" noIndex={isDraft}>
+<Layout {title} {description} {crumbs} pageType="default" noIndex={isDraft}>
   <Article {title} {description} {minutesRead} {publishedOn} {lastUpdatedOn} tags={tags}>
     <Content />
   </Article>

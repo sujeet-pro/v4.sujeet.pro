@@ -22,6 +22,19 @@
   --color-primary-outline: #a3a3a3; /* Use a neutral for outlines/borders */
 }
 
+/* Global Overrides */
+
+* {
+  /* Remove all font variations - no italics, no bold except where explicitly needed */
+  @apply font-normal not-italic;
+  /* Ensure no color overrides except through global CSS */
+  @apply text-inherit;
+  /* Remove any background colors except through global CSS */
+  @apply bg-transparent;
+  /* Border colors should match outline variable */
+  @apply border-current;
+}
+
 html {
   @apply scheme-light dark:scheme-dark;
   @apply scroll-pt-20 scroll-smooth focus:scroll-auto;
@@ -39,51 +52,27 @@ body {
 header,
 .footer, /* legacy class */
 footer {
-  background-color: var(--color-primary-100);
-  border-bottom: 1px solid var(--color-primary-outline);
-  color: inherit;
+  @apply bg-primary-100 dark:bg-primary-900;
+  @apply border-b border-primary-outline dark:border-primary-outline;
+  @apply text-inherit;
 }
 
 footer {
-  border-top: 1px solid var(--color-primary-outline);
-  border-bottom: none;
-}
-
-[data-theme="dark"] header,
-[data-theme="dark"] .footer,
-[data-theme="dark"] footer {
-  background-color: var(--color-primary-900);
-  color: inherit;
-  border-color: var(--color-primary-outline);
-}
-
-/* Remove all font variations - no italics, no bold except where explicitly needed */
-* {
-  font-style: normal;
-  font-weight: normal;
+  @apply border-t border-primary-outline dark:border-primary-outline;
+  @apply border-b-0;
 }
 
 /* Light font weight for specific elements */
-h1,
-.item-heading,
-.tag,
-.suppressed-text {
-  font-weight: 300;
+h1 {
+  @apply my-12 text-3xl font-light;
 }
 
-/* Ensure no color overrides except through global CSS */
-* {
-  color: inherit;
-}
-
-/* Remove any background colors except through global CSS */
-* {
-  background-color: transparent;
-}
-
-/* Border colors should match outline variable */
-* {
-  border-color: currentColor;
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply font-light;
 }
 
 @media (prefers-color-scheme: light) {
@@ -102,12 +91,15 @@ h1,
 .heading-with-deep-link {
   @apply relative;
 }
+
 .heading-with-deep-link .deep-link {
   @apply no-underline;
 }
+
 .heading-with-deep-link:hover .deep-link {
   @apply underline;
 }
+
 .heading-with-deep-link .deep-link::before {
   content: "#";
   @apply absolute left-0 -translate-x-full;
@@ -128,6 +120,7 @@ h1,
   --pagefind-ui-border: var(--color-base-200);
   --pagefind-ui-tag: var(--color-secondary-content);
 }
+
 .pagefind-ui__result-link {
   @apply font-normal!;
 }
@@ -144,14 +137,13 @@ img,
 video,
 iframe,
 svg:not([data-icon]) {
-  max-width: 100%;
   @apply mx-auto max-w-full;
 }
 
 svg[data-icon] {
-  width: 1em;
-  height: 1em;
+  @apply h-4 w-4;
 }
+
 svg[data-icon="devicon:github"],
 svg[data-icon="devicon:twitter"] {
   @apply dark:invert;
@@ -159,5 +151,13 @@ svg[data-icon="devicon:twitter"] {
 
 a,
 button {
-  cursor: pointer;
+  @apply cursor-pointer;
+}
+
+/* Custom Global Styles */
+.sp-accordion {
+  @apply bg-primary-100 dark:bg-primary-800;
+}
+.sp-border-muted {
+  @apply border-primary-outline dark:border-primary-outline;
 }

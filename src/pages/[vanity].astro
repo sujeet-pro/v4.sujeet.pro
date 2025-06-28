@@ -1,14 +1,14 @@
 ---
-import { getCollection } from "astro:content";
+import { getVanityUrls } from "@/utils/content-vanity.utils";
 
 export async function getStaticPaths() {
-  const vanityEntries = await getCollection("vanity");
+  const vanityEntries = await getVanityUrls();
 
   return vanityEntries.map((entry) => ({
-    params: { vanity: entry.id },
+    params: { vanity: entry.source },
     props: {
-      source: entry.id,
-      target: entry.data.target,
+      source: entry.source,
+      target: entry.target,
     },
   }));
 }

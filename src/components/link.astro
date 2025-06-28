@@ -2,15 +2,18 @@
 import type { HTMLAttributes } from "astro/types";
 import { getLinkProps } from "@/utils/link.utils";
 import { Icon } from "astro-icon/components";
+import { getVanityUrlMap } from "@/utils/content-vanity.utils";
 const {
   href: propsHref,
   target: propsTarget,
   rel: propsRel,
   icon,
   class: propsClass,
+  isVanity,
   ...props
 } = Astro.props as HTMLAttributes<"a"> & {
   icon?: string;
+  isVanity?: boolean;
 };
 
 if (!propsHref) {
@@ -20,14 +23,24 @@ if (typeof propsHref !== "string") {
   throw new Error("href must be a string");
 }
 
+const vanity = await getVanityUrlMap();
+
+const vanityHrefKey = propsHref.replace(/^\/|\/$/g, "");
+
+if (isVanity && !vanity.has(vanityHrefKey)) {
+  throw new Error(`Vanity URL ${propsHref} not found`);
+} else if (!isVanity && vanity.has(vanityHrefKey)) {
+  throw new Error(`Vanity URL ${propsHref} found but isVanity is false`);
+}
+
 const { href, target, rel } = getLinkProps({
-  href: propsHref,
+  href: isVanity ? (vanity.get(vanityHrefKey) ?? propsHref) : propsHref,
   target: propsTarget,
   rel: propsRel,
 });
 ---
 
-<a {...props} {href} {target} {rel} class:list={[propsClass, icon && "flex items-center gap-2"]}>
+<a {...props} {href} {target} {rel} class:list={[propsClass, icon && "flex items-center gap-2", "hover:underline"]}>
   {icon && <Icon name={icon} />}
   <slot />
 </a>

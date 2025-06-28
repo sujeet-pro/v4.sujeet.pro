@@ -9,6 +9,8 @@ tags: ["web", "js", "react"]
 
 This is a test blog post to verify that the blog page generation and tag fetching functionality works correctly.
 
+## Table of Contents
+
 ## Features
 
 - **Tag Support**: This post has tags like Web Development, JavaScript, and React

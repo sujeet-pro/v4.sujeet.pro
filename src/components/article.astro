@@ -1,7 +1,9 @@
 ---
+import type { Series, Tag } from "@/utils/content.type";
 import FormattedDate from "./formatted-date.astro";
 import Link from "./link.astro";
 import ReadingTime from "./reading-time.astro";
+import Accordion from "./accordion.astro";
 
 interface Props {
   title: string;
@@ -9,19 +11,27 @@ interface Props {
   publishedOn: Date;
   lastUpdatedOn: Date;
   description: string;
-  tags: string[];
+  tags: Tag[];
   as?: "article" | "section";
+  isDraft?: boolean;
+  series?: Series;
 }
 
-const { title, minutesRead, publishedOn, lastUpdatedOn, description, tags, as } = Astro.props as Props;
+const { title, minutesRead, publishedOn, lastUpdatedOn, description, tags, as, isDraft, series } = Astro.props as Props;
 const Element = as === "article" ? "article" : "section";
 ---
 
-<Element
-  class="mx-auto my-8 prose prose-base max-w-none prose-slate dark:prose-invert prose-headings:font-normal prose-h1:font-light"
->
-  {title ? <h1 class="mb-2 text-3xl font-light">{title}</h1> : null}
-  <div class="suppressed-text mb-8 flex flex-wrap items-center gap-2">
+<Element class="mx-auto my-8 prose prose-base max-w-none dark:prose-invert">
+  {title ? <h1>{title}</h1> : null}
+  <div class="mb-8 flex flex-wrap items-center gap-2 font-light">
+    {
+      isDraft ? (
+        <>
+          <span>Draft</span>
+          <span>•</span>
+        </>
+      ) : null
+    }
     <ReadingTime readingTime={minutesRead} />
     <span>•</span>
     <span class="flex items-center gap-1">
@@ -39,13 +49,32 @@ const Element = as === "article" ? "article" : "section";
     }
   </div>
   {description ? <p>{description}</p> : null}
+  {
+    series && (
+      <Accordion title={`Part of Series: ${series.name}`} open={true}>
+        <ol class="list-inside list-decimal space-y-2 p-0">
+          {series.blogs.map((blog) => (
+            <li class="pl-2">
+              {blog.title === title ? (
+                <span class="font-medium text-primary-600 dark:text-primary-400">{blog.title}</span>
+              ) : (
+                <Link href={blog.href} class="hover:underline">
+                  {blog.title}
+                </Link>
+              )}
+            </li>
+          ))}
+        </ol>
+      </Accordion>
+    )
+  }
   <slot />
   {
     tags && tags.length > 0 && (
       <div class="mt-4 flex flex-wrap gap-2">
         {tags.map((tag) => (
-          <Link href={`/tags/${tag}`} class="tag rounded-full border px-3 py-1 text-sm">
-            {tag}
+          <Link href={tag.href} class="tag sp-border-muted rounded-full border px-3 py-1 text-sm">
+            #{tag.name}
           </Link>
         ))}
       </div>

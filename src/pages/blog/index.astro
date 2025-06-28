@@ -1,14 +1,15 @@
 ---
 import Item from "@/components/item.astro";
 import Layout from "@/layout/layout.astro";
-import { getBlogs } from "@/utils/content.utils";
+import { getBlogs } from "@/utils/content-blogs.utils";
 
 const blogs = await getBlogs();
+const crumbs: { title: string; href: string }[] = [];
 ---
 
-<Layout title="Blog" description="Blog">
-  <h1 class="my-8 text-2xl font-light">Blog</h1>
-  <ul class="flex flex-col gap-4">
+<Layout title="Blog" description="Blog" {crumbs} pageType="default">
+  <h1>Blog</h1>
+  <ul class="flex flex-col">
     {
       blogs
         //.filter((blog) => !blog.isDraft)

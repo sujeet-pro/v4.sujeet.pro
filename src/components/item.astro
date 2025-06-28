@@ -21,11 +21,11 @@ const { item } = Astro.props as Props;
 const showLastUpdated = item.publishedOn.toDateString() !== item.lastUpdatedOn.toDateString();
 ---
 
-<li class="group relative cursor-pointer rounded-lg border-b p-6">
+<li class="group sp-border-muted relative cursor-pointer border-b py-6 last:border-b-0">
   <!-- Content wrapper with relative positioning -->
   <div class="relative z-10">
     <!-- Title with link -->
-    <h2 class="item-heading mb-2 text-2xl font-light">
+    <h2 class="mb-2 text-xl font-light">
       <Link href={item.link} class="item-link no-underline hover:underline">
         {item.title}
       </Link>
@@ -37,8 +37,10 @@ const showLastUpdated = item.publishedOn.toDateString() !== item.lastUpdatedOn.t
     </p>
 
     <!-- Meta information -->
-    <div class="suppressed-text flex items-center gap-2">
-      <FormattedDate date={item.publishedOn} type="published" />
+    <div class="flex flex-wrap items-center gap-2 text-xs font-light">
+      <ReadingTime readingTime={item.readingTime} />
+      <span class="hidden md:inline">•</span>
+      <FormattedDate class="hidden md:inline" date={item.publishedOn} type="published" />
       {
         showLastUpdated ? (
           <>
@@ -47,8 +49,7 @@ const showLastUpdated = item.publishedOn.toDateString() !== item.lastUpdatedOn.t
           </>
         ) : null
       }
-      <span>•</span>
-      <ReadingTime readingTime={item.readingTime} />
+
       {
         item.isDraft ? (
           <>
