@@ -72,6 +72,10 @@ jobs:
             --site "${{ steps.pages.outputs.origin }}" \
             --base "${{ steps.pages.outputs.base_path }}"
         working-directory: ${{ env.BUILD_PATH }}
+        env:
+          SITE_CANONICAL_ORIGIN: ${{ env.SITE_CANONICAL_ORIGIN }}
+          SITE_CANONICAL_PATH: ${{ env.SITE_CANONICAL_PATH }}
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
