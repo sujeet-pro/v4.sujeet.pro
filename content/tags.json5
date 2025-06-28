@@ -34,4 +34,10 @@
   react: { name: "React" },
   next: { name: "Next.js" },
   tailwind: { name: "Tailwind CSS" },
+  // Concepts
+  "error-handling": { name: "Error Handling" },
+  caching: { name: "Caching" },
+  dsa: { name: "Data Structures and Algorithms" },
+  "data-structures": { name: "Data Structures" },
+  "design-patterns": { name: "Design Patterns" },
 }

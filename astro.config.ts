@@ -26,9 +26,7 @@ import rehypeMermaid from "rehype-mermaid";
 // import rehypeSlug from "rehype-slug";
 
 // Custom Plugins
-import { remarkAutoFrontmatterLayout } from "./plugins/remark-auto-frontmatter-layout";
-import { remarkReadingTime } from "./plugins/remark-frontmatter-reading-time";
-import { remarkHeading1AsFrontmatterTitle } from "./plugins/remark-heading1-as-title";
+import { remarkFrontmatterPlugin } from "./plugins/remark-frontmatter-plugin";
 
 // https://astro.build/config
 
@@ -74,9 +72,7 @@ export default defineConfig({
       remarkMath,
       remarkNormalizeHeadings,
       remarkEmoji,
-      [remarkHeading1AsFrontmatterTitle, {}],
-      [remarkReadingTime, {}],
-      [remarkAutoFrontmatterLayout, { defaultLayout: "@/layout/layout-markdown.astro" }],
+      [remarkFrontmatterPlugin, { defaultLayout: "@/layout/layout-markdown.astro" }],
       [remarkToc, { heading: "Table of Contents", maxDepth: 3, tight: true }],
     ],
     rehypePlugins: [

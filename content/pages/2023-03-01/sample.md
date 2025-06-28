@@ -1,6 +1,4 @@
 ---
-description: Sample Description
-publishedOn: 2025-08-10
 lastUpdatedOn: 2025-08-10
 tags: []
 ---

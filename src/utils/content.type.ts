@@ -29,6 +29,14 @@ export interface PageContent {
 }
 
 export const remarkPluginFrontmatterSchema = z.object({
-  title: z.string().min(1, "Title is required, check plugin for auto-generation. Ensure content has level 1 heading"),
-  minutesRead: z.string().min(1, "Minutes read is required"),
+  title: z
+    .string({
+      required_error: "Title is required",
+      message: "Title is required",
+    })
+    .min(1, "Title is required of min size 1"),
+  description: z.string({ message: "Description is required" }).min(1, "Description is required"),
+  minutesRead: z.string({ message: "Minutes read is required" }).min(1, "Minutes read is required"),
+  publishedOn: z.coerce.date({ message: "Published on is required" }),
+  isDraft: z.boolean({ message: "Is draft is required" }),
 });

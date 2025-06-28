@@ -30,7 +30,7 @@ if (type === "published") {
 
 <span class:list={["flex flex-row items-center gap-1", className]} title={text}>
   {icon ? <Icon name={icon} /> : null}
-  <time datetime={date.toISOString()} class={className}>
+  <time datetime={date.toISOString()}>
     {
       date.toLocaleDateString("en-us", {
         year: "numeric",

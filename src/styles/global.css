@@ -64,7 +64,7 @@ footer {
 
 /* Light font weight for specific elements */
 h1 {
-  @apply my-12 text-3xl font-light;
+  @apply text-3xl font-light;
 }
 
 h2,

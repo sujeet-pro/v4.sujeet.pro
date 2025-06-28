@@ -34,10 +34,7 @@ const series = defineCollection({
 });
 
 const contentSchema = z.object({
-  description: z.string(),
-  publishedOn: z.date(),
   lastUpdatedOn: z.date(),
-  isDraft: z.boolean().default(false),
   tags: z.array(reference("tags")),
 });
 

@@ -12,7 +12,9 @@
     "astro": "astro",
     "check": "astro check",
     "lint": "eslint --fix .",
-    "format": "prettier . --write --ignore-unknown"
+    "format": "prettier . --write --ignore-unknown",
+    "sync": "astro sync",
+    "clean": "rm -rf .astro dist"
   },
   "devDependencies": {
     "@eslint/css": "^0.9.0",

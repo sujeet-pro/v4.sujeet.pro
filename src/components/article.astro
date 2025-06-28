@@ -22,7 +22,6 @@ const Element = as === "article" ? "article" : "section";
 ---
 
 <Element class="mx-auto my-8 prose prose-base max-w-none dark:prose-invert">
-  {title ? <h1>{title}</h1> : null}
   <div class="mb-8 flex flex-wrap items-center gap-2 font-light">
     {
       isDraft ? (
@@ -48,7 +47,6 @@ const Element = as === "article" ? "article" : "section";
       )
     }
   </div>
-  {description ? <p>{description}</p> : null}
   {
     series && (
       <Accordion title={`Part of Series: ${series.name}`} open={true}>

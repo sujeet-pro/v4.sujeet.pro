@@ -40,7 +40,7 @@ const showLastUpdated = item.publishedOn.toDateString() !== item.lastUpdatedOn.t
     <div class="flex flex-wrap items-center gap-2 text-xs font-light">
       <ReadingTime readingTime={item.readingTime} />
       <span class="hidden md:inline">•</span>
-      <FormattedDate class="hidden md:inline" date={item.publishedOn} type="published" />
+      <FormattedDate class="hidden md:flex" date={item.publishedOn} type="published" />
       {
         showLastUpdated ? (
           <>
