@@ -1,32 +1,27 @@
 ---
+import type { PageContentItem } from "@/utils/content.type";
 import FormattedDate from "./formatted-date.astro";
 import Link from "./link.astro";
 import ReadingTime from "./reading-time.astro";
+import Frontmatter from "./frontmatter.astro";
 
 type Props = {
-  item: {
-    title: string;
-    description: string;
-    link: string;
-    publishedOn: Date;
-    lastUpdatedOn: Date;
-    isDraft: boolean;
-    id: string;
-    readingTime: string;
-  };
+  item: PageContentItem;
+  textHeading?: string;
 };
-const { item } = Astro.props as Props;
-
-// Check if lastUpdatedOn is different from publishedOn (date only)
-const showLastUpdated = item.publishedOn.toDateString() !== item.lastUpdatedOn.toDateString();
+const { item, textHeading } = Astro.props as Props;
+const { minutesRead, publishedOn, lastUpdatedOn, isDraft } = item;
 ---
 
 <li class="group sp-border-muted relative cursor-pointer border-b py-6 last:border-b-0">
   <!-- Content wrapper with relative positioning -->
   <div class="relative z-10">
+    <!-- Text heading (if provided) -->
+    {textHeading && <p class="text-muted-foreground mb-1 text-sm font-light">{textHeading}</p>}
+
     <!-- Title with link -->
     <h2 class="mb-2 text-xl font-light">
-      <Link href={item.link} class="item-link no-underline hover:underline">
+      <Link href={item.href} class="item-link no-underline hover:underline">
         {item.title}
       </Link>
     </h2>
@@ -37,28 +32,7 @@ const showLastUpdated = item.publishedOn.toDateString() !== item.lastUpdatedOn.t
     </p>
 
     <!-- Meta information -->
-    <div class="flex flex-wrap items-center gap-2 text-xs font-light">
-      <ReadingTime readingTime={item.readingTime} />
-      <span class="hidden md:inline">•</span>
-      <FormattedDate class="hidden md:flex" date={item.publishedOn} type="published" />
-      {
-        showLastUpdated ? (
-          <>
-            <span>•</span>
-            <FormattedDate date={item.lastUpdatedOn} type="updated" />
-          </>
-        ) : null
-      }
-
-      {
-        item.isDraft ? (
-          <>
-            <span>•</span>
-            <span class="">Draft</span>
-          </>
-        ) : null
-      }
-    </div>
+    <Frontmatter {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} />
   </div>
 </li>
 

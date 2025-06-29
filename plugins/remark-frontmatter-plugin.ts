@@ -33,7 +33,10 @@ function getTitle(tree: mdast.Root, file: VFile) {
   if (!h1) {
     throw new Error(`Missing h1 heading in ${file.path}`);
   }
-  return toString(h1);
+  return toString(h1, {
+    includeHtml: false,
+    includeImageAlt: false,
+  });
 }
 
 function getDescription(tree: mdast.Root, file: VFile) {
@@ -51,13 +54,18 @@ function getDescription(tree: mdast.Root, file: VFile) {
     throw new Error(`Missing "Table of Contents" heading in ${file.path}`);
   }
 
-  const firstNonParaIndex = tree.children.findIndex((child, idx) => idx > h1Idx && child.type !== "paragraph");
-  if (firstNonParaIndex === -1) {
-    throw new Error(`Missing non-paragraph content in ${file.path}`);
-  }
+  // const firstNonParaIndex = tree.children.findIndex((child, idx) => idx > h1Idx && child.type !== "paragraph");
+  // if (firstNonParaIndex === -1) {
+  //   throw new Error(`Missing non-paragraph content in ${file.path}`);
+  // }
+  // const endIdx = Math.min(tableOfContentsIndex, firstNonParaIndex);
+  const endIdx = tableOfContentsIndex;
 
   // Setting description from text between h1 and "Table of Contents"
-  const description = toString(tree.children.slice(h1Idx + 1, Math.min(tableOfContentsIndex, firstNonParaIndex)));
+  const description = toString(tree.children.slice(h1Idx + 1, endIdx), {
+    includeHtml: false,
+    includeImageAlt: false,
+  });
   if (!description) {
     throw new Error(`Missing description in ${file.path}`);
   }

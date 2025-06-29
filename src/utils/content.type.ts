@@ -28,6 +28,8 @@ export interface PageContent {
   type: "blog" | "page";
 }
 
+export type PageContentItem = Omit<PageContent, "Content" | "tags">;
+
 export const remarkPluginFrontmatterSchema = z.object({
   title: z
     .string({

@@ -1,0 +1,39 @@
+---
+import FormattedDate from "./formatted-date.astro";
+import ReadingTime from "./reading-time.astro";
+
+interface Props {
+  minutesRead: string;
+  publishedOn: Date;
+  lastUpdatedOn: Date;
+  isDraft: boolean;
+}
+const { minutesRead, publishedOn, lastUpdatedOn, isDraft } = Astro.props as Props;
+const hasUpdates = publishedOn.toDateString() !== lastUpdatedOn.toDateString();
+---
+
+<div class="mb-8 flex flex-wrap items-center gap-2 font-light">
+  {
+    isDraft ? (
+      <>
+        <span>Draft</span>
+        <span>•</span>
+      </>
+    ) : null
+  }
+  <ReadingTime readingTime={minutesRead} />
+  <span class="hidden md:inline">•</span>
+  <span class="hidden items-center gap-1 md:flex">
+    Published on <FormattedDate date={publishedOn} />
+  </span>
+  {
+    hasUpdates && (
+      <>
+        <span>•</span>
+        <span class="flex items-center gap-1">
+          Last updated on <FormattedDate date={lastUpdatedOn} />
+        </span>
+      </>
+    )
+  }
+</div>

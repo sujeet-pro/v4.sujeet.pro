@@ -22,7 +22,9 @@
   --color-primary-outline: #a3a3a3; /* Use a neutral for outlines/borders */
 }
 
-/* Global Overrides */
+/* ==========================================================================
+   GLOBAL RESETS & BASE STYLES
+   ========================================================================== */
 
 * {
   /* Remove all font variations - no italics, no bold except where explicitly needed */
@@ -49,8 +51,11 @@ body {
   @apply font-normal;
 }
 
+/* ==========================================================================
+   LAYOUT COMPONENTS
+   ========================================================================== */
+
 header,
-.footer, /* legacy class */
 footer {
   @apply bg-primary-100 dark:bg-primary-900;
   @apply border-b border-primary-outline dark:border-primary-outline;
@@ -62,11 +67,11 @@ footer {
   @apply border-b-0;
 }
 
-/* Light font weight for specific elements */
-h1 {
-  @apply text-3xl font-light;
-}
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
 
+h1,
 h2,
 h3,
 h4,
@@ -74,6 +79,78 @@ h5,
 h6 {
   @apply font-light;
 }
+h1 {
+  @apply text-3xl;
+}
+/* ==========================================================================
+   HEADING DEEP LINKS
+   ========================================================================== */
+
+.heading-with-deep-link {
+  @apply relative;
+
+  .deep-link {
+    @apply no-underline;
+
+    &::before {
+      content: "#";
+      @apply absolute left-0 -translate-x-full;
+      @apply hidden;
+    }
+  }
+
+  &:hover {
+    .deep-link {
+      @apply underline;
+
+      &::before {
+        @apply block;
+      }
+    }
+  }
+}
+
+/* ==========================================================================
+   MEDIA ELEMENTS
+   ========================================================================== */
+
+img,
+video,
+iframe,
+svg:not([data-icon]) {
+  @apply mx-auto max-w-full;
+}
+
+svg[data-icon] {
+  @apply h-4 w-4;
+
+  &[data-icon="devicon:github"],
+  &[data-icon="devicon:twitter"] {
+    @apply dark:invert;
+  }
+}
+
+figure {
+  img {
+    @apply mb-0;
+  }
+  figcaption {
+    @apply text-center;
+  }
+}
+
+/* ==========================================================================
+   INTERACTIVE ELEMENTS
+   ========================================================================== */
+
+a,
+button {
+  @apply cursor-pointer;
+}
+
+/* ==========================================================================
+   MERMAID DIAGRAMS
+   ========================================================================== */
 
 @media (prefers-color-scheme: light) {
   [data-theme="dark"] img[id^="mermaid-"] {
@@ -87,30 +164,10 @@ h6 {
   }
 }
 
-/* heading with links - autolink headings */
-.heading-with-deep-link {
-  @apply relative;
-}
+/* ==========================================================================
+   PAGEFIND SEARCH COMPONENT
+   ========================================================================== */
 
-.heading-with-deep-link .deep-link {
-  @apply no-underline;
-}
-
-.heading-with-deep-link:hover .deep-link {
-  @apply underline;
-}
-
-.heading-with-deep-link .deep-link::before {
-  content: "#";
-  @apply absolute left-0 -translate-x-full;
-  @apply hidden;
-}
-
-.heading-with-deep-link:hover .deep-link::before {
-  @apply block;
-}
-
-/* PageFind Component Style overrides */
 .pagefind-ui {
   --pagefind-ui-font: var(--font-primary);
   --pagefind-ui-border-width: var(--border);
@@ -119,45 +176,24 @@ h6 {
   --pagefind-ui-background: var(--color-base-100);
   --pagefind-ui-border: var(--color-base-200);
   --pagefind-ui-tag: var(--color-secondary-content);
+
+  &__result-link {
+    @apply font-normal!;
+  }
+
+  &__search-input {
+    @apply font-normal!;
+  }
 }
 
-.pagefind-ui__result-link {
-  @apply font-normal!;
-}
+/* ==========================================================================
+   CUSTOM COMPONENT STYLES
+   ========================================================================== */
 
-.pagefind-ui__search-input {
-  @apply font-normal!;
-}
-
-figcaption {
-  @apply text-center;
-}
-
-img,
-video,
-iframe,
-svg:not([data-icon]) {
-  @apply mx-auto max-w-full;
-}
-
-svg[data-icon] {
-  @apply h-4 w-4;
-}
-
-svg[data-icon="devicon:github"],
-svg[data-icon="devicon:twitter"] {
-  @apply dark:invert;
-}
-
-a,
-button {
-  @apply cursor-pointer;
-}
-
-/* Custom Global Styles */
 .sp-accordion {
   @apply bg-primary-100 dark:bg-primary-800;
 }
+
 .sp-border-muted {
   @apply border-primary-outline dark:border-primary-outline;
 }

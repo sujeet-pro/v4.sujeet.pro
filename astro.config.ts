@@ -33,7 +33,7 @@ import { remarkFrontmatterPlugin } from "./plugins/remark-frontmatter-plugin";
 export default defineConfig({
   site: "https://projects.sujeet.pro",
   base: "/v4.sujeet.pro/",
-  trailingSlash: "never",
+  trailingSlash: "ignore",
   output: "static",
   scopedStyleStrategy: "where",
   prefetch: {

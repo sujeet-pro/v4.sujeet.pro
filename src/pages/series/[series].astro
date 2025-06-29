@@ -28,18 +28,7 @@ const crumbs = [
     series.blogs.length > 0 ? (
       <ul class="flex flex-col">
         {series.blogs.map((blog) => (
-          <Item
-            item={{
-              title: blog.title,
-              description: blog.description,
-              link: `/blog/${blog.id}`,
-              publishedOn: blog.publishedOn,
-              lastUpdatedOn: blog.lastUpdatedOn,
-              isDraft: blog.isDraft,
-              id: blog.id,
-              readingTime: blog.minutesRead,
-            }}
-          />
+          <Item item={blog} />
         ))}
       </ul>
     ) : (

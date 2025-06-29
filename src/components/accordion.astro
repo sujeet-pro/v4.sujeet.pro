@@ -4,11 +4,12 @@ import { Icon } from "astro-icon/components";
 type Props = {
   title: string;
   open?: boolean;
+  noIndex?: boolean;
 };
-const { title, open = true } = Astro.props;
+const { title, open = true, noIndex } = Astro.props;
 ---
 
-<details open={open} class="sp-accordion p-4 bg-blend-lighten">
+<details open={open} class="sp-accordion p-4 bg-blend-lighten" data-pagefind-body={noIndex ? null : ""}>
   <summary class="flex cursor-pointer list-none items-center justify-between">
     <slot name="title"><span class="font-semibold">{title}</span></slot>
     <Icon name="carbon:chevron-up" class="accordion-icon" />

@@ -1,55 +1,23 @@
 ---
-import type { Series, Tag } from "@/utils/content.type";
-import FormattedDate from "./formatted-date.astro";
+import type { Series } from "@/utils/content.type";
 import Link from "./link.astro";
-import ReadingTime from "./reading-time.astro";
 import Accordion from "./accordion.astro";
 
 interface Props {
   title: string;
-  minutesRead: string;
-  publishedOn: Date;
-  lastUpdatedOn: Date;
-  description: string;
-  tags: Tag[];
   as?: "article" | "section";
-  isDraft?: boolean;
   series?: Series;
+  noIndex?: boolean;
 }
 
-const { title, minutesRead, publishedOn, lastUpdatedOn, description, tags, as, isDraft, series } = Astro.props as Props;
+const { title, as, series, noIndex } = Astro.props as Props;
 const Element = as === "article" ? "article" : "section";
 ---
 
-<Element class="mx-auto my-8 prose prose-base max-w-none dark:prose-invert">
-  <div class="mb-8 flex flex-wrap items-center gap-2 font-light">
-    {
-      isDraft ? (
-        <>
-          <span>Draft</span>
-          <span>•</span>
-        </>
-      ) : null
-    }
-    <ReadingTime readingTime={minutesRead} />
-    <span>•</span>
-    <span class="flex items-center gap-1">
-      Published on <FormattedDate date={publishedOn} />
-    </span>
-    {
-      publishedOn.toDateString() !== lastUpdatedOn.toDateString() && (
-        <>
-          <span>•</span>
-          <span class="flex items-center gap-1">
-            Last updated on <FormattedDate date={lastUpdatedOn} />
-          </span>
-        </>
-      )
-    }
-  </div>
+<Element data-pagefind-body={noIndex ? null : ""} class="mx-auto my-8 prose prose-base max-w-none dark:prose-invert">
   {
     series && (
-      <Accordion title={`Part of Series: ${series.name}`} open={true}>
+      <Accordion title={`Part of Series: ${series.name}`} open={true} noIndex={true}>
         <ol class="list-inside list-decimal space-y-2 p-0">
           {series.blogs.map((blog) => (
             <li class="pl-2">
@@ -67,15 +35,4 @@ const Element = as === "article" ? "article" : "section";
     )
   }
   <slot />
-  {
-    tags && tags.length > 0 && (
-      <div class="mt-4 flex flex-wrap gap-2">
-        {tags.map((tag) => (
-          <Link href={tag.href} class="tag sp-border-muted rounded-full border px-3 py-1 text-sm">
-            #{tag.name}
-          </Link>
-        ))}
-      </div>
-    )
-  }
 </Element>

@@ -2,24 +2,78 @@
 import { getBlogs } from "@/utils/content-blogs.utils";
 import Layout from "@/layout/layout.astro";
 import Article from "@/components/article.astro";
+import Item from "@/components/item.astro";
 import { getAllSeries } from "@/utils/content-series.utils";
+import Frontmatter from "@/components/frontmatter.astro";
+import Link from "@/components/link.astro";
 
 // Generate static paths for all blog posts
 export async function getStaticPaths() {
   const blogs = await getBlogs();
   const allSeries = await getAllSeries();
-  return blogs.map((blog) => {
+
+  return blogs.map((blog, index) => {
+    const nextBlog = index < blogs.length - 1 ? blogs[index + 1] : null;
+    const prevBlog = index > 0 ? blogs[index - 1] : null;
+
+    // Find the series this blog belongs to
+    const currentSeries = allSeries.find((series) => series.blogs.some((b) => b.id === blog.id)) ?? null;
+
+    // Get next and previous blogs in the same series
+    let nextInSeries = null;
+    let prevInSeries = null;
+
+    if (currentSeries) {
+      const seriesBlogIndex = currentSeries.blogs.findIndex((b) => b.id === blog.id);
+      if (seriesBlogIndex > 0) {
+        prevInSeries = currentSeries.blogs[seriesBlogIndex - 1];
+      }
+      if (seriesBlogIndex < currentSeries.blogs.length - 1) {
+        nextInSeries = currentSeries.blogs[seriesBlogIndex + 1];
+      }
+    }
+
+    // Create navigation items with deduplication
+    const navigationItems = [];
+
+    // Add previous items (prev in series takes precedence)
+    if (prevInSeries && currentSeries) {
+      navigationItems.push({
+        title: `Previous in series: ${currentSeries.name}`,
+        item: prevInSeries,
+      });
+    } else if (prevBlog) {
+      navigationItems.push({
+        title: "Previous",
+        item: prevBlog,
+      });
+    }
+
+    // Add next items (next in series takes precedence)
+    if (nextInSeries && currentSeries) {
+      navigationItems.push({
+        title: `Next in series: ${currentSeries.name}`,
+        item: nextInSeries,
+      });
+    } else if (nextBlog) {
+      navigationItems.push({
+        title: "Next",
+        item: nextBlog,
+      });
+    }
+
     return {
       params: { slug: blog.id },
       props: {
         blog,
-        series: allSeries.find((series) => series.blogs.some((b) => b.id === blog.id)) ?? null,
+        series: currentSeries,
+        navigationItems,
       },
     };
   });
 }
 
-const { blog, series } = Astro.props;
+const { blog, series, navigationItems } = Astro.props;
 const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft } = blog;
 const crumbs = [
   {
@@ -36,7 +90,38 @@ if (series) {
 ---
 
 <Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft}>
-  <Article {title} {description} {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} {tags} {series} as="article">
+  <Frontmatter {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} />
+  <Article {title} noIndex={isDraft} {series} as="article">
     <Content />
   </Article>
+
+  <!-- Tags -->
+  {
+    tags.length > 0 && (
+      <section class="sp-border-muted mt-12 border-t pt-12">
+        <h2 class="mb-6 text-2xl font-light">Tags</h2>
+        <div class="flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <Link href={tag.href} class="px-3 py-1 text-sm">
+              #{tag.name}
+            </Link>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- Read more -->
+  {
+    navigationItems.length > 0 && (
+      <section class="mt-12">
+        <h2 class="mb-6 text-2xl font-light">Read more</h2>
+        <ul class="flex flex-col">
+          {navigationItems.map(({ title: textHeading, item }) => (
+            <Item {textHeading} {item} />
+          ))}
+        </ul>
+      </section>
+    )
+  }
 </Layout>

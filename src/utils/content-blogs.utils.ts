@@ -34,7 +34,7 @@ async function pageContentGeneric(
     const datePattern = /^\d{4}-\d{2}-\d{2}\//;
     itemId = item.id.replace(datePattern, "");
     itemsWithContent.push({
-      id: item.id,
+      id: itemId,
       title,
       minutesRead,
       description,

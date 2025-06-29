@@ -41,21 +41,6 @@ const crumbs = [
 <Layout title={`Tag: ${tag.name}`} description={`Blog posts tagged with ${tag.name}`} {crumbs} pageType="default">
   <h1 class="text-center">#{tag.name}</h1>
   <ul class="flex flex-col gap-4">
-    {
-      blogs.map((blog) => (
-        <Item
-          item={{
-            title: blog.title,
-            description: blog.description,
-            link: `/blog/${blog.id}`,
-            publishedOn: blog.publishedOn,
-            lastUpdatedOn: blog.lastUpdatedOn,
-            isDraft: blog.isDraft,
-            id: blog.id,
-            readingTime: blog.minutesRead,
-          }}
-        />
-      ))
-    }
+    {blogs.map((blog) => <Item item={blog} />)}
   </ul>
 </Layout>

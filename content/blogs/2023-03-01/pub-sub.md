@@ -12,7 +12,19 @@ This pattern allows for better modularity and scalability by decoupling the even
 
 <figure>
 
-![Pub Sub Data Flow](./pub-sub.svg)
+```mermaid
+flowchart LR
+    N1[Notifier 1] -->|publish| PS[PubSub Hub]
+    N2[Notifier 2] -->|publish| PS
+    PS -->|notify| S1[Subscriber 1]
+    PS -->|notify| S2[Subscriber 2]
+
+    style N1 fill:#dae8fc,stroke:#6c8ebf
+    style N2 fill:#dae8fc,stroke:#6c8ebf
+    style PS fill:#e1d5e7,stroke:#9673a6
+    style S1 fill:#d5e8d4,stroke:#82b366
+    style S2 fill:#d5e8d4,stroke:#82b366
+```
 
 <figcaption>Pub-Sub data flow</figcaption>
 </figure>
@@ -28,7 +40,7 @@ The Publish-Subscribe (Pub/Sub) pattern is a software design pattern that facili
 
 ## Implementation
 
-```ts
+```ts title="pub-sub.ts"
 type Task<T> = (data: T) => void;
 
 export class PubSub<T> {
@@ -52,7 +64,7 @@ export class PubSub<T> {
 
 ## Usages
 
-```ts
+```ts title="usage.ts"
 const pubSub = new PubSub<string>();
 
 // Can have one or more subscriber
