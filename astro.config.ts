@@ -13,6 +13,7 @@ import { rehypeHeadingIds } from "@astrojs/markdown-remark";
 import type { RehypePlugin } from "node_modules/@astrojs/markdown-remark/dist/types";
 
 // Remark Markdown Plugins
+import remarkCodeImport from "remark-code-import";
 import remarkEmoji from "remark-emoji";
 import remarkMath from "remark-math";
 import remarkNormalizeHeadings from "remark-normalize-headings";
@@ -26,6 +27,7 @@ import rehypeMermaid from "rehype-mermaid";
 // import rehypeSlug from "rehype-slug";
 
 // Custom Plugins
+import { remarkCodeTitleUsingFile } from "./plugins/remark-code-title-using-file";
 import { remarkFrontmatterPlugin } from "./plugins/remark-frontmatter-plugin";
 
 // https://astro.build/config
@@ -69,11 +71,13 @@ export default defineConfig({
   },
   markdown: {
     remarkPlugins: [
+      [remarkCodeImport, { removeRedundantIndentations: true }] as any,
       remarkMath,
       remarkNormalizeHeadings,
       remarkEmoji,
       [remarkFrontmatterPlugin, { defaultLayout: "@/layout/layout-markdown.astro" }],
       [remarkToc, { heading: "Table of Contents", maxDepth: 3, tight: true }],
+      remarkCodeTitleUsingFile,
     ],
     rehypePlugins: [
       rehypeKatex,

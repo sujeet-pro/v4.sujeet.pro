@@ -38,10 +38,10 @@ const contentSchema = z.object({
   tags: z.array(reference("tags")),
 });
 
-const blogs = defineCollection({
+const posts = defineCollection({
   loader: glob({
     pattern: "**/[^_]*.md",
-    base: "./content/blogs",
+    base: "./content/posts",
   }),
   schema: contentSchema,
 });
@@ -55,7 +55,7 @@ const pages = defineCollection({
 });
 
 export const collections = {
-  blogs,
+  posts,
   pages,
   tags,
   vanity,

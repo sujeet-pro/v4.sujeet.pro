@@ -1,0 +1,21 @@
+     scenarios: (100.00%) 1 scenario, 1 max VUs, 10m30s max duration (incl. graceful stop):
+              * default: 1 iterations for each of 1 VUs (maxDuration: 10m0s, gracefulStop: 30s)
+
+
+     data_received..................: 16 kB 17 kB/s
+     data_sent......................: 450 B 486 B/s
+     http_req_blocked...............: avg=619.67ms min=619.67ms med=619.67ms max=619.67ms p(90)=619.67ms p(95)=619.67ms
+     http_req_connecting............: avg=275.78ms min=275.78ms med=275.78ms max=275.78ms p(90)=275.78ms p(95)=275.78ms
+     http_req_duration..............: avg=305.46ms min=305.46ms med=305.46ms max=305.46ms p(90)=305.46ms p(95)=305.46ms
+       { expected_response:true }...: avg=305.46ms min=305.46ms med=305.46ms max=305.46ms p(90)=305.46ms p(95)=305.46ms
+     http_req_failed................: 0.00% 0 out of 1
+     http_req_receiving.............: avg=76µs     min=76µs     med=76µs     max=76µs     p(90)=76µs     p(95)=76µs    
+     http_req_sending...............: avg=106µs    min=106µs    med=106µs    max=106µs    p(90)=106µs    p(95)=106µs   
+     http_req_tls_handshaking.......: avg=315.15ms min=315.15ms med=315.15ms max=315.15ms p(90)=315.15ms p(95)=315.15ms
+     http_req_waiting...............: avg=305.28ms min=305.28ms med=305.28ms max=305.28ms p(90)=305.28ms p(95)=305.28ms
+     http_reqs......................: 1     1.079472/s
+     iteration_duration.............: avg=926.11ms min=926.11ms med=926.11ms max=926.11ms p(90)=926.11ms p(95)=926.11ms
+     iterations.....................: 1     1.079472/s
+
+
+running (00m00.9s), 0/1 VUs, 1 complete and 0 interrupted iterations

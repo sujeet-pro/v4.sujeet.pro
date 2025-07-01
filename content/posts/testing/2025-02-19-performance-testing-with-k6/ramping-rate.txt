@@ -1,0 +1,25 @@
+     scenarios: (100.00%) 1 scenario, 20 max VUs, 1m15s max duration (incl. graceful stop):
+              * ramping_arrival_rate: Up to 15.00 iterations/s for 45s over 6 stages (maxVUs: 5-20, gracefulStop: 30s)
+
+
+     data_received..................: 4.7 MB 104 kB/s
+     data_sent......................: 46 kB  1.0 kB/s
+     dropped_iterations.............: 8      0.176378/s
+     http_req_blocked...............: avg=16.95ms  min=2µs      med=5µs      max=1.24s    p(90)=13.4µs   p(95)=28µs    
+     http_req_connecting............: avg=7.12ms   min=0s       med=0s       max=283.08ms p(90)=0s       p(95)=0s      
+     http_req_duration..............: avg=457.71ms min=207.27ms med=409.92ms max=3.16s    p(90)=683.39ms p(95)=1.11s   
+       { expected_response:true }...: avg=457.71ms min=207.27ms med=409.92ms max=3.16s    p(90)=683.39ms p(95)=1.11s   
+     http_req_failed................: 0.00%  0 out of 407
+     http_req_receiving.............: avg=14.64ms  min=21µs     med=50µs     max=682.75ms p(90)=109.2µs  p(95)=204.14ms
+     http_req_sending...............: avg=24.52µs  min=9µs      med=17µs     max=776µs    p(90)=37.4µs   p(95)=51.69µs 
+     http_req_tls_handshaking.......: avg=9.74ms   min=0s       med=0s       max=1.04s    p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=443.04ms min=207.2ms  med=247.73ms max=3.04s    p(90)=678.81ms p(95)=1.11s   
+     http_reqs......................: 407    8.973254/s
+     iteration_duration.............: avg=474.8ms  min=207.44ms med=412.32ms max=3.16s    p(90)=699.15ms p(95)=1.41s   
+     iterations.....................: 407    8.973254/s
+     vus............................: 4      min=1        max=11
+     vus_max........................: 13     min=5        max=13
+
+
+running (0m45.4s), 00/13 VUs, 407 complete and 0 interrupted iterations
+ramping_arrival_rate ✓ [======================================] 00/13 VUs  45s  15.00 iters/s

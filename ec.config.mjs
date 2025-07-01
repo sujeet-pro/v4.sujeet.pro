@@ -12,11 +12,19 @@ export default defineEcConfig({
   defaultProps: {
     // Disable line numbers by default
     showLineNumbers: false,
+    collapseStyle: "collapsible-auto",
     // But enable line numbers for certain languages
     overridesByLang: {
       "js,ts,html": {
         showLineNumbers: true,
       },
+      bash: {
+        frame: "terminal",
+      },
     },
+  },
+
+  shiki: {
+    langs: [import("./plugins/m3u8-grammar.js")],
   },
 });

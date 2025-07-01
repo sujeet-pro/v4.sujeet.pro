@@ -11,9 +11,6 @@ export function getLinkProps({
   target?: string | null | undefined;
   rel?: string | null | undefined;
 }) {
-  if (href === "/blog") {
-    debugger;
-  }
   if (!href || typeof href !== "string") {
     return { href, target, rel };
   }

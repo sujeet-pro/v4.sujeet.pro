@@ -3,8 +3,8 @@ import { getTagsByRefs } from "./content-tags.utils";
 import { remarkPluginFrontmatterSchema, type PageContent } from "./content.type";
 
 export async function getBlogs(): Promise<PageContent[]> {
-  const blogs = await getCollection("blogs");
-  return pageContentGeneric("blog", blogs);
+  const blogs = await getCollection("posts");
+  return pageContentGeneric("post", blogs);
 }
 
 export async function getPages(): Promise<PageContent[]> {
@@ -13,13 +13,13 @@ export async function getPages(): Promise<PageContent[]> {
 }
 
 async function pageContentGeneric(
-  type: "blog" | "page",
-  items: CollectionEntry<"blogs">[] | CollectionEntry<"pages">[],
+  type: "post" | "page",
+  items: CollectionEntry<"posts">[] | CollectionEntry<"pages">[],
 ) {
   const itemsWithContent: PageContent[] = [];
   for (const item of items) {
     const { Content, remarkPluginFrontmatter } = await render(item);
-    const { title, minutesRead, description, isDraft, publishedOn } = remarkPluginFrontmatterSchema.parse(
+    const { title, minutesRead, description, isDraft, publishedOn, slug } = remarkPluginFrontmatterSchema.parse(
       remarkPluginFrontmatter,
       {
         errorMap: (error) => ({
@@ -29,12 +29,9 @@ async function pageContentGeneric(
     );
     const { lastUpdatedOn } = item.data;
     const tags = await getTagsByRefs(item.data.tags);
-    let itemId = item.id;
-    // Remove the YYYY-MM-DD/ prefix from itemId
-    const datePattern = /^\d{4}-\d{2}-\d{2}\//;
-    itemId = item.id.replace(datePattern, "");
     itemsWithContent.push({
-      id: itemId,
+      id: item.id,
+      slug,
       title,
       minutesRead,
       description,
@@ -43,7 +40,7 @@ async function pageContentGeneric(
       isDraft,
       tags,
       Content,
-      href: type === "blog" ? `/blog/${itemId}` : `/${itemId}`,
+      href: type === "post" ? `/post/${slug}` : `/${slug}`,
       type,
     });
   }

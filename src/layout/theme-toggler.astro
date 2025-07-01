@@ -53,9 +53,16 @@ import { Icon } from "astro-icon/components";
 
     function cycleThemeHandler() {
       const currentTheme = getCurrentTheme();
-      const currentIndex = themes.indexOf(currentTheme);
-      const nextIndex = (currentIndex + 1) % themes.length;
-      const newTheme = themes[nextIndex] || "auto";
+      let newTheme: Theme;
+
+      if (currentTheme === "auto") {
+        // If current theme is auto, get the actually applied theme and set to opposite
+        const appliedTheme = document.documentElement.getAttribute("data-theme");
+        newTheme = appliedTheme === "light" ? "dark" : "light";
+      } else {
+        newTheme = "auto";
+      }
+
       window.applySiteTheme(newTheme);
       if (newTheme === "auto") {
         localStorage.removeItem("theme");

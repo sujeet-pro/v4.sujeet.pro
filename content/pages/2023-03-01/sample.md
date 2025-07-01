@@ -256,7 +256,7 @@ function demo() {
 
 ### Combined Features
 
-```typescript editor 1-15 mark=3,7,11
+```ts title="index.ts" editor 1-15 mark=3,7,11
 interface ApiResponse<T> {
   data: T;
   status: number;

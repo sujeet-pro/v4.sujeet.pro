@@ -1,0 +1,27 @@
+     scenarios: (100.00%) 2 scenarios, 40 max VUs, 1m0s max duration (incl. graceful stop):
+              * constant_request_rate: 10.00 iterations/s for 30s (maxVUs: 5-20, gracefulStop: 30s)
+              * ramping_arrival_rate: Up to 5.00 iterations/s for 15s over 2 stages (maxVUs: 5-20, gracefulStop: 30s)
+
+
+     data_received..................: 4.2 MB 136 kB/s
+     data_sent......................: 42 kB  1.4 kB/s
+     dropped_iterations.............: 4      0.130029/s
+     http_req_blocked...............: avg=21.72ms  min=2µs      med=5µs      max=943.03ms p(90)=17µs     p(95)=53.94µs 
+     http_req_connecting............: avg=8.54ms   min=0s       med=0s       max=235.63ms p(90)=0s       p(95)=0s      
+     http_req_duration..............: avg=474.72ms min=207.31ms med=437.69ms max=1.79s    p(90)=762.19ms p(95)=1.01s   
+       { expected_response:true }...: avg=474.72ms min=207.31ms med=437.69ms max=1.79s    p(90)=762.19ms p(95)=1.01s   
+     http_req_failed................: 0.00%  0 out of 360
+     http_req_receiving.............: avg=16.03ms  min=15µs     med=51µs     max=775.55ms p(90)=118.8µs  p(95)=208.08ms
+     http_req_sending...............: avg=28.76µs  min=6µs      med=18µs     max=339µs    p(90)=50µs     p(95)=101.04µs
+     http_req_tls_handshaking.......: avg=13.07ms  min=0s       med=0s       max=707.33ms p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=458.66ms min=207.25ms med=426.26ms max=1.79s    p(90)=736.89ms p(95)=964.56ms
+     http_reqs......................: 360    11.702628/s
+     iteration_duration.............: avg=496.59ms min=207.45ms med=440.84ms max=1.79s    p(90)=878.98ms p(95)=1.12s   
+     iterations.....................: 360    11.702628/s
+     vus............................: 6      min=3        max=10
+     vus_max........................: 14     min=12       max=14
+
+
+running (0m30.8s), 00/14 VUs, 360 complete and 0 interrupted iterations
+constant_request_rate ✓ [======================================] 00/09 VUs  30s  10.00 iters/s
+ramping_arrival_rate  ✓ [======================================] 00/05 VUs  15s  5.00 iters/s

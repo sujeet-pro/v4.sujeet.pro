@@ -1,0 +1,24 @@
+     scenarios: (100.00%) 1 scenario, 10 max VUs, 45s max duration (incl. graceful stop):
+              * default: Up to 10 looping VUs for 15s over 2 stages (gracefulRampDown: 30s, gracefulStop: 30s)
+
+
+     data_received..................: 4.2 MB 271 kB/s
+     data_sent......................: 41 kB  2.6 kB/s
+     http_req_blocked...............: avg=13.72ms  min=0s       med=5µs      max=758.52ms p(90)=12µs     p(95)=19µs    
+     http_req_connecting............: avg=5.99ms   min=0s       med=0s       max=233.73ms p(90)=0s       p(95)=0s      
+     http_req_duration..............: avg=333.16ms min=210.86ms med=233.8ms  max=1.27s    p(90)=481.08ms p(95)=681.9ms 
+       { expected_response:true }...: avg=333.16ms min=210.86ms med=233.8ms  max=1.27s    p(90)=481.08ms p(95)=681.9ms 
+     http_req_failed................: 0.00%  0 out of 364
+     http_req_receiving.............: avg=8.09ms   min=8µs      med=69µs     max=419.52ms p(90)=157.7µs  p(95)=416.34µs
+     http_req_sending...............: avg=26.63µs  min=2µs      med=18.5µs   max=306µs    p(90)=44µs     p(95)=61.94µs 
+     http_req_tls_handshaking.......: avg=7.71ms   min=0s       med=0s       max=527.52ms p(90)=0s       p(95)=0s      
+     http_req_waiting...............: avg=325.03ms min=210.66ms med=229.16ms max=1.27s    p(90)=471.68ms p(95)=639.4ms 
+     http_reqs......................: 364    23.419803/s
+     iteration_duration.............: avg=347.02ms min=211.02ms med=234.82ms max=1.27s    p(90)=495.74ms p(95)=692.85ms
+     iterations.....................: 364    23.419803/s
+     vus............................: 10     min=2        max=10
+     vus_max........................: 10     min=10       max=10
+
+
+running (15.5s), 00/10 VUs, 364 complete and 0 interrupted iterations
+default ✓ [======================================] 00/10 VUs  15s

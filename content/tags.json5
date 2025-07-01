@@ -30,6 +30,7 @@
   html: { name: "HTML" },
   python: { name: "Python" },
   java: { name: "Java" },
+  k6: { name: "K6" },
   // Frontend Frameworks and Libraries
   react: { name: "React" },
   next: { name: "Next.js" },
@@ -40,4 +41,12 @@
   dsa: { name: "Data Structures and Algorithms" },
   "data-structures": { name: "Data Structures" },
   "design-patterns": { name: "Design Patterns" },
+  "distributed-systems": { name: "Distributed Systems" },
+  "system-design": { name: "System Design" },
+  "web-performance": { name: "Web Performance" },
+  performance: { name: "Performance" },
+  "video-streaming": { name: "Video Streaming" },
+  "load-testing": { name: "Load Testing" },
+  "performance-testing": { name: "Performance Testing" },
+  "stress-testing": { name: "Stress Testing" },
 }

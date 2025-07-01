@@ -1,18 +1,18 @@
 ---
-import FormattedDate from "./formatted-date.astro";
-import ReadingTime from "./reading-time.astro";
+import { Icon } from "astro-icon/components";
 
 interface Props {
   minutesRead: string;
   publishedOn: Date;
   lastUpdatedOn: Date;
   isDraft: boolean;
+  class?: string;
 }
-const { minutesRead, publishedOn, lastUpdatedOn, isDraft } = Astro.props as Props;
+const { minutesRead, publishedOn, lastUpdatedOn, isDraft, class: className } = Astro.props as Props;
 const hasUpdates = publishedOn.toDateString() !== lastUpdatedOn.toDateString();
 ---
 
-<div class="mb-8 flex flex-wrap items-center gap-2 font-light">
+<div class:list={["flex flex-wrap items-center gap-2 text-sm font-light", className]}>
   {
     isDraft ? (
       <>
@@ -21,17 +21,40 @@ const hasUpdates = publishedOn.toDateString() !== lastUpdatedOn.toDateString();
       </>
     ) : null
   }
-  <ReadingTime readingTime={minutesRead} />
-  <span class="hidden md:inline">•</span>
-  <span class="hidden items-center gap-1 md:flex">
-    Published on <FormattedDate date={publishedOn} />
+  <span class="flex items-center gap-1">
+    <Icon name="carbon:time" />
+    {minutesRead}
   </span>
+
+  <span>•</span>
+  <span class="flex items-center gap-1" title="Published on">
+    <span class="hidden md:inline">Published on</span>
+    <Icon name="carbon:calendar" />
+    <time datetime={publishedOn.toISOString()}>
+      {
+        publishedOn.toLocaleDateString("en-us", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      }
+    </time>
+  </span>
+
   {
     hasUpdates && (
       <>
         <span>•</span>
-        <span class="flex items-center gap-1">
-          Last updated on <FormattedDate date={lastUpdatedOn} />
+        <span class="flex items-center gap-1" title="Last Updated On">
+          <span class="hidden md:inline">Last Updated On</span>
+          <Icon name="carbon:update-now" />
+          <time datetime={lastUpdatedOn.toISOString()}>
+            {lastUpdatedOn.toLocaleDateString("en-us", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </time>
         </span>
       </>
     )

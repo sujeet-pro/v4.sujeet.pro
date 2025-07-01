@@ -1,0 +1,26 @@
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:15
+#EXT-X-MEDIA-SEQUENCE:0
+#EXTINF:12.000000,
+segment0.ts
+#EXTINF:3.850000,
+segment1.ts
+#EXTINF:7.300000,
+segment2.ts
+#EXTINF:12.500000,
+segment3.ts
+#EXTINF:12.200000,
+segment4.ts
+#EXTINF:8.350000,
+segment5.ts
+#EXTINF:4.600000,
+segment6.ts
+#EXTINF:3.100000,
+segment7.ts
+#EXTINF:5.650000,
+segment8.ts
+#EXTINF:1.850000,
+segment9.ts
+.... More segments
+#EXT-X-ENDLIST

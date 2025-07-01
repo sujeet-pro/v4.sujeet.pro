@@ -63,7 +63,7 @@ export async function getStaticPaths() {
     }
 
     return {
-      params: { slug: blog.id },
+      params: { slug: blog.slug },
       props: {
         blog,
         series: currentSeries,
@@ -78,7 +78,7 @@ const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Conte
 const crumbs = [
   {
     title: "Blog",
-    href: "/blog",
+    href: "/post",
   },
 ];
 if (series) {

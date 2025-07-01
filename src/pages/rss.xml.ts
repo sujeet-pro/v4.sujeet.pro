@@ -16,7 +16,7 @@ export const GET: APIRoute = async () => {
     items: blogs
       // .filter((blog) => !blog.isDraft)
       .map((item) => {
-        const postUrl = getLinkProps({ href: `/blog/${item.id}` }).href;
+        const postUrl = getLinkProps({ href: item.href }).href;
         return {
           title: item.title,
           description: item.description,
