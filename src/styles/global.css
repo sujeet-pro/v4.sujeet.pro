@@ -197,3 +197,7 @@ button {
 .sp-border-muted {
   @apply border-primary-outline dark:border-primary-outline;
 }
+
+.img-invert {
+  @apply dark:invert;
+}

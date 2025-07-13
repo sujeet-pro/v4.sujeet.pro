@@ -35,6 +35,10 @@
   react: { name: "React" },
   next: { name: "Next.js" },
   tailwind: { name: "Tailwind CSS" },
+  ssg: { name: "Static Site Generation" },
+  ssr: { name: "Server Side Rendering" },
+  csr: { name: "Client Side Rendering" },
+
   // Concepts
   "error-handling": { name: "Error Handling" },
   caching: { name: "Caching" },

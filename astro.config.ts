@@ -15,15 +15,16 @@ import type { RehypePlugin } from "node_modules/@astrojs/markdown-remark/dist/ty
 // Remark Markdown Plugins
 import remarkCodeImport from "remark-code-import";
 import remarkEmoji from "remark-emoji";
+import remarkInlineSvg from "remark-inline-svg";
 import remarkMath from "remark-math";
 import remarkNormalizeHeadings from "remark-normalize-headings";
 import remarkToc from "remark-toc";
-
 // Rehype Markdown Plugins
 import { rehypeAccessibleEmojis } from "rehype-accessible-emojis";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeKatex from "rehype-katex";
 import rehypeMermaid from "rehype-mermaid";
+import rehypeImgClass from "./plugins/rehype-img-class";
 // import rehypeSlug from "rehype-slug";
 
 // Custom Plugins
@@ -71,6 +72,7 @@ export default defineConfig({
   },
   markdown: {
     remarkPlugins: [
+      [remarkInlineSvg, { className: "md-inline-svg", suffix: ".inline.svg" }],
       [remarkCodeImport, { removeRedundantIndentations: true }] as any,
       remarkMath,
       remarkNormalizeHeadings,
@@ -92,6 +94,7 @@ export default defineConfig({
         },
       ],
       [rehypeMermaid, { colorScheme: "light", dark: true, strategy: "img-svg" }],
+      rehypeImgClass,
     ],
     gfm: true,
   },

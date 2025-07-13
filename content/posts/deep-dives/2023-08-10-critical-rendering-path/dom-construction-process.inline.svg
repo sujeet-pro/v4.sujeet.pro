@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="711" height="201" viewBox="-0.5 -0.5 711 201">
+  <rect fill="transparent" width="100%" height="100%" />
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M120 40h73.63" fill="none" pointer-events="stroke" />
+    <path d="m198.88 40-7 3.5 1.75-3.5-1.75-3.5Z" pointer-events="all" />
+  </g>
+  <path d="m10 70 20-60h100l-20 60Z" fill="transparent" stroke="currentColor" stroke-miterlimit="10"
+    pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:40px;margin-left:11px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            Network
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="70" y="44" font-family="Helvetica" font-size="12" text-anchor="middle">Network</text>
+  </switch>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M320 40h63.63" fill="none" pointer-events="stroke" />
+    <path d="m388.88 40-7 3.5 1.75-3.5-1.75-3.5Z" pointer-events="all" />
+  </g>
+  <path fill="transparent" stroke="currentColor" pointer-events="all" d="M200 10h120v60H200z" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:40px;margin-left:201px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            Tokenizer
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="260" y="44" font-family="Helvetica" font-size="12" text-anchor="middle">Tokenizer</text>
+  </switch>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M450 70v53.63" fill="none" pointer-events="stroke" />
+    <path d="m450 128.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M510 40h130v13.63" fill="none" pointer-events="stroke" />
+    <path d="m640 58.88-3.5-7 3.5 1.75 3.5-1.75Z" pointer-events="all" />
+  </g>
+  <path fill="transparent" stroke="currentColor" pointer-events="all" d="M390 10h120v60H390z" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:40px;margin-left:391px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            Tree Construction
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="450" y="44" font-family="Helvetica" font-size="12" text-anchor="middle">Tree
+      Construction</text>
+  </switch>
+  <path d="M580 60h120v68q-30-21.6-60 0t-60 0V72Z" fill="transparent" stroke="currentColor"
+    stroke-miterlimit="10" pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:88px;margin-left:581px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            DOM
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="640" y="92" font-family="Helvetica" font-size="12" text-anchor="middle">DOM</text>
+  </switch>
+  <g stroke="currentColor" stroke-miterlimit="10">
+    <path d="M390 160H260V76.37" fill="none" pointer-events="stroke" />
+    <path d="m260 71.12 3.5 7-3.5-1.75-3.5 1.75Z" pointer-events="all" />
+  </g>
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:1px;height:1px;padding-top:151px;margin-left:311px">
+        <div data-drawio-colors="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:11px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:nowrap">
+            document.write()
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="311" y="154" font-family="Helvetica" font-size="11" text-anchor="middle">
+      document.write()</text>
+  </switch>
+  <path fill="transparent" stroke="currentColor" pointer-events="all" d="M390 130h120v60H390z" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:118px;height:1px;padding-top:160px;margin-left:391px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:currentColor;line-height:1.2;pointer-events:all;white-space:normal;overflow-wrap:normal">
+            Script Execution
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="450" y="164" font-family="Helvetica" font-size="12" text-anchor="middle">Script
+      Execution</text>
+  </switch>
+  <path d="M510 160h134l-.04-30.96" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-miterlimit="10" stroke-dasharray="2 6" pointer-events="stroke" />
+</svg>

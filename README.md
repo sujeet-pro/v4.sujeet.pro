@@ -2,38 +2,33 @@
 
 This repository contains my personal portfolio website and a collection of blogs written over time. Built with Astro for fast, modern web development.
 
-## 🚀 Project Structure
+## Supported Features (Tech)
 
-Inside of your Astro project, you'll see the following folders and files:
+The blogs are intended to be written in Markdown(.md) files.
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+Below functionality are extended.
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+### Frontmatter
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+#### Frontmatter Extraction
 
-Any static assets, like images, can be placed in the `public/` directory.
+- Title: H1
+- Description: Between H1 and Table of Content
+- Published On: From the name of file. (YYYY-MM-DD-slug-path)
 
-## 🧞 Commands
+#### Frontmatter Generation
 
-All commands are run from the root of the project, from a terminal:
+- Minutes Read
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+#### Explicit Frontmatter
 
-## 👀 Want to learn more?
+- Last Updated On
+- Tags
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+### Image
+
+#### SVG
+
+- inline SVGs, if it ends with .inline.svg: This will allow to use the `currentColor` attribute in SVG and will work in both dark/light mode for text based diagrams
+
+Since we use tailwind, we can additionally use the tailwind classes (not recommended.)

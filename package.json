@@ -33,6 +33,7 @@
     "prettier-plugin-organize-imports": "^4.1.0",
     "prettier-plugin-tailwindcss": "0.6.12",
     "remark-code-import": "^1.2.0",
+    "remark-inline-svg": "^1.1.1",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.1"
   },
