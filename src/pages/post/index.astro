@@ -10,6 +10,6 @@ const crumbs: { title: string; href: string }[] = []
 <Layout title="Blog" description="Blog" {crumbs} pageType="default">
   <h1>Blog</h1>
   <ul class="flex flex-col">
-    {blogs.filter((blog) => !blog.isDraft || import.meta.env.DEV).map((blog) => <Item item={blog} />)}
+    {blogs.map((blog) => <Item item={blog} />)}
   </ul>
 </Layout>

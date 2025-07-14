@@ -4,7 +4,7 @@ import { remarkPluginFrontmatterSchema, type PageContent } from "./content.type"
 
 export async function getBlogs(): Promise<PageContent[]> {
   const blogs = await getCollection("posts")
-  return pageContentGeneric("post", blogs)
+  return (await pageContentGeneric("post", blogs)).filter((blog) => !blog.isDraft || import.meta.env.DEV)
 }
 
 export async function getPages(): Promise<PageContent[]> {
