@@ -13,7 +13,7 @@ Let us explore why is it 21 and how to get 3.
 
 <figure>
 
-![Image with different non-text icons](./2023-03-20-cover-length-of-a-string.jpg)
+![Image with different non-text icons](./2023-03-20-js-length-of-a-string/2023-03-20-cover-length-of-a-string.jpg)
 
 <figcaption>
 Photo by <a href="https://unsplash.com/@rikku72?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Maria Cappelli</a> on <a href="https://unsplash.com/photos/assorted-color-and-shape-plastic-toy-fXjG59gqZxo?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
@@ -29,8 +29,8 @@ units and icons are a combination of more than one of such code units. Use
 `Intl.Segmenter` to get the length of rendered graphemes.
 
 ```typescript
-console.log("👩‍👩‍👦‍👦🌦️🧘🏻‍♂️".length) // 21
-console.log(getVisibleLength("👩‍👩‍👦‍👦🌦️🧘🏻‍♂️")) // 3 - How can we get this?
+console.log("👩‍👩‍👦‍👦🌦️🧘🏻‍♂️".length); // 21
+console.log(getVisibleLength("👩‍👩‍👦‍👦🌦️🧘🏻‍♂️")); // 3 - How can we get this?
 ```
 
 ## What is the `.length`?
@@ -45,8 +45,8 @@ I always thought we used `utf-8` encoding, mostly because we use to set
 > 💡Did you know, JS engines use UTF-16 encoding and not UTF-8?
 
 ```typescript
-const logItemsWithlength = (...items) => console.log(items.map((item) => `${item}:${item.length}`))
-logItemsWithlength("A", "a", "À", "⇐", "⇟")
+const logItemsWithlength = (...items) => console.log(items.map((item) => `${item}:${item.length}`));
+logItemsWithlength("A", "a", "À", "⇐", "⇟");
 // ['A:1', 'a:1', 'À:1', '⇐:1', '⇟:1']
 ```
 
@@ -62,7 +62,7 @@ each character is 1.
 ## Length of Icons
 
 ```typescript
-logItemsWithlength("🧘", "🌦", "😂", "😃", "🥖", "🚗")
+logItemsWithlength("🧘", "🌦", "😂", "😃", "🥖", "🚗");
 // ['🧘:2', '🌦:2', '😂:2', '😃:2', '🥖:2', '🚗:2']
 ```
 
@@ -86,7 +86,7 @@ codepoints of utf-16 encoding (basically utf-32 encoding) have a lot of possible
 spaces to accommodate different colors.
 
 ```typescript
-logItemsWithlength("🧘", "🧘🏻‍♂️")
+logItemsWithlength("🧘", "🧘🏻‍♂️");
 //  ['🧘:2', '🧘🏻‍♂️:7']
 ```
 
@@ -95,8 +95,8 @@ Why is the icon in blue have a length of 7?
 ### Icons are like words!
 
 ```typescript
-console.log("👩‍👩‍👦‍👦".length) // 11
-console.log([..."👩‍👩‍👦‍👦"])
+console.log("👩‍👩‍👦‍👦".length); // 11
+console.log([..."👩‍👩‍👦‍👦"]);
 // ['👩', '‍', '👩', '‍', '👦', '‍', '👦']
 ```
 
@@ -106,8 +106,8 @@ the icons of variable length.
 ## How do you split these?
 
 ```typescript
-console.log("👩‍👩‍👦‍👦🌦️🧘🏻‍♂️".length) // 21
-console.log("👩‍👩‍👦‍👦🌦️🧘🏻‍♂️".split(""))
+console.log("👩‍👩‍👦‍👦🌦️🧘🏻‍♂️".length); // 21
+console.log("👩‍👩‍👦‍👦🌦️🧘🏻‍♂️".split(""));
 // ['\uD83D', '\uDC69', '‍', '\uD83D', '\uDC69', '‍', '\uD83D', '\uDC66', '‍', '\uD83D', '\uDC66', '\uD83C', '\uDF26', '️', '\uD83E', '\uDDD8', '\uD83C', '\uDFFB', '‍', '♂', '️']
 ```
 
@@ -141,10 +141,10 @@ and return its length.
 
 ```typescript
 function getVisibleLength(str, locale = "en") {
-  return [...new Intl.Segmenter(locale).segment(str)].length
+  return [...new Intl.Segmenter(locale).segment(str)].length;
 }
-console.log("👩‍👩‍👦‍👦🌦️🧘🏻‍♂️".length) // 21
-console.log(getVisibleLength("👩‍👩‍👦‍👦🌦️🧘🏻‍♂️")) // 3
+console.log("👩‍👩‍👦‍👦🌦️🧘🏻‍♂️".length); // 21
+console.log(getVisibleLength("👩‍👩‍👦‍👦🌦️🧘🏻‍♂️")); // 3
 ```
 
 ## References

@@ -13,7 +13,7 @@ response, inspired by Go. JS Now Try Statement (In Proposal Stage)
 
 <figure>
 
-![](./2023-03-11-cover-better-error-handling-in-js.jpg)
+![](./2023-03-11-js-error-as-return-value/2023-03-11-cover-better-error-handling-in-js.jpg)
 
 <figcaption>
 Photo by <a href="https://unsplash.com/@brett_jordan?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Brett Jordan</a> on <a href="https://unsplash.com/photos/brown-wooden-blocks-on-white-surface-XWar9MbNGUY?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
@@ -44,10 +44,10 @@ This motivates developers to account for errors at the beginning itself and not 
 ```typescript
 async function errorFirstFunctionSample(): Promise<readonly [ResultType, null] | readonly [null, ErrorType]> {
   try {
-    const res = await someApiCall()
-    return [res, null]
+    const res = await someApiCall();
+    return [res, null];
   } catch (err) {
-    return [null, err]
+    return [null, err];
   }
 }
 ```
@@ -58,11 +58,11 @@ What if we could create some utility `withError` that does this conversion for u
 
 ```typescript
 function getAsyncData(options: Options): Promise<Result> {
-  return promise_result_from_somewhere
+  return promise_result_from_somewhere;
 }
-const getAsyncDataWithError = withError(getAsyncData)
+const getAsyncDataWithError = withError(getAsyncData);
 // Final Usages
-const [result, err] = await getAsyncDataWithError(options)
+const [result, err] = await getAsyncDataWithError(options);
 ```
 
 ## Implementing our `withError`
@@ -73,15 +73,15 @@ function withError<E = unknown, F extends (...args: any) => Promise<any> = (...a
   ctx?: unknown,
 ) {
   return async (...args: Parameters<F>) => {
-    let res: ReturnType<F> | null = null
-    let err: E | null = null
+    let res: ReturnType<F> | null = null;
+    let err: E | null = null;
     try {
-      res = await func.apply(ctx, args)
+      res = await func.apply(ctx, args);
     } catch (error) {
-      err = error
+      err = error;
     }
-    return [res, err] as const
-  }
+    return [res, err] as const;
+  };
 }
 ```
 
@@ -92,30 +92,30 @@ To demonstrate how this utility is helpful, let us consider the below use case.
 We want to show product recommendations to our users. The recommendation API needs user preference. For cases, when user preference is not available, we will use the trending API to show products. All the errors must be logged.
 
 ```typescript
-type UserPreference = unknown
-type Product = unknown
-declare function getUserPreferences(): Promise<UserPreference>
-declare function getRecommendedProducts(userPreference: UserPreference): Promise<Product[]>
-declare function getTrendingProducts(): Promise<Product[]>
-declare function logger(input: any): void
+type UserPreference = unknown;
+type Product = unknown;
+declare function getUserPreferences(): Promise<UserPreference>;
+declare function getRecommendedProducts(userPreference: UserPreference): Promise<Product[]>;
+declare function getTrendingProducts(): Promise<Product[]>;
+declare function logger(input: any): void;
 ```
 
 ### Implementation using our `withError` Utility
 
 ```typescript
 async function getProductsUsingWithError() {
-  const [userPref, prefError] = await getUserPreferencesWithError()
+  const [userPref, prefError] = await getUserPreferencesWithError();
   if (prefError) {
-    logger(prefError)
+    logger(prefError);
   }
   const [products, productErr] = userPref
     ? await getRecommendedProducts(userPref)
-    : await getTrendingProductsWithError()
+    : await getTrendingProductsWithError();
   if (productErr) {
-    logger(productErr)
-    throw productErr
+    logger(productErr);
+    throw productErr;
   }
-  return products
+  return products;
 }
 ```
 
@@ -133,22 +133,22 @@ For this, let us assume all the above available functions also follow a callback
 function getPageData(cb: (err, products: Product[]) => void) {
   getUserPreferences((err, userPref: UserPreference) => {
     if (err1) {
-      logger(err1)
+      logger(err1);
       getTrendingProducts((err2, products2) => {
         if (err2) {
-          logger(err2)
+          logger(err2);
         }
-        cb(err2, products2)
-      })
+        cb(err2, products2);
+      });
     } else {
       getRecommendedProducts(userPref, (err3, products3) => {
         if (err3) {
-          logger(err3)
+          logger(err3);
         }
-        cb(err3, products3)
-      })
+        cb(err3, products3);
+      });
     }
-  })
+  });
 }
 ```
 
@@ -160,16 +160,16 @@ With the introduction of promises, we got chainable `.catch` apart from `.then` 
 function getProductsUsingPromises() {
   return getUserPreferences()
     .then((userPref) => {
-      return getRecommendedProducts(userPref)
+      return getRecommendedProducts(userPref);
     })
     .catch((err) => {
-      logger(err)
-      return getTrendingProducts()
+      logger(err);
+      return getTrendingProducts();
     })
     .catch((err) => {
-      logger(err)
-      return Promise.reject(err)
-    })
+      logger(err);
+      return Promise.reject(err);
+    });
 }
 ```
 
@@ -184,10 +184,10 @@ Async Await made it easier to reason with the sequence of execution, especially 
 ```typescript
 async function getProductsWithoutHandlingErrors() {
   try {
-    const userPref = await getUserPreferences()
-    return getRecommendedProducts(userPref)
+    const userPref = await getUserPreferences();
+    return getRecommendedProducts(userPref);
   } catch {
-    return getTrendingProducts()
+    return getTrendingProducts();
   }
 }
 ```
@@ -197,22 +197,22 @@ But, if we come to our use case, and start handling errors of intermediate calls
 ```typescript
 async function getProductsUsingTryCatch() {
   try {
-    const userPref = await getUserPreferences()
+    const userPref = await getUserPreferences();
     try {
-      const products = await getRecommendedProducts(userPref)
-      return products
+      const products = await getRecommendedProducts(userPref);
+      return products;
     } catch (err2) {
-      logger(err2)
-      throw err2
+      logger(err2);
+      throw err2;
     }
   } catch (err1) {
-    logger(err1)
+    logger(err1);
     try {
-      const products = await getTrendingProducts()
-      return products
+      const products = await getTrendingProducts();
+      return products;
     } catch (err3) {
-      logger(err3)
-      throw err3
+      logger(err3);
+      throw err3;
     }
   }
 }
@@ -234,15 +234,15 @@ function withErrorSync<E = unknown, F extends (...args: any) => any = (...args: 
   ctx?: unknown,
 ) {
   return (...args: Parameters<F>) => {
-    let res: ReturnType<F> | null = null
-    let err: E | null = null
+    let res: ReturnType<F> | null = null;
+    let err: E | null = null;
     try {
-      res = func.apply(ctx, args)
+      res = func.apply(ctx, args);
     } catch (error) {
-      err = error
+      err = error;
     }
-    return [res, err] as const
-  }
+    return [res, err] as const;
+  };
 }
 ```
 
@@ -254,9 +254,9 @@ If you want node-like ordering (`error, res`), error-first makes sense.
 For me, since the inspiration was from Go, and it uses `res, err` ordering, I stick with that in the article.
 
 ```typescript
-const [res, error] = await somefunction() // Go Like
+const [res, error] = await somefunction(); // Go Like
 // OR
-const [error, res] = await somefunction() // Node like
+const [error, res] = await somefunction(); // Node like
 
 // Both are cool!
 ```
