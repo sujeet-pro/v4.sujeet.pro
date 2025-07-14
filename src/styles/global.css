@@ -139,6 +139,18 @@ figure {
   }
 }
 
+table {
+  @apply block w-full max-w-full overflow-x-auto;
+  @apply min-w-0;
+  @apply whitespace-nowrap;
+}
+
+thead,
+tbody {
+  @apply w-full;
+  @apply block;
+}
+
 /* ==========================================================================
    INTERACTIVE ELEMENTS
    ========================================================================== */
