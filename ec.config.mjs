@@ -15,7 +15,7 @@ export default defineEcConfig({
     collapseStyle: "collapsible-auto",
     // But enable line numbers for certain languages
     overridesByLang: {
-      "js,ts,html": {
+      "js,ts,html,css": {
         showLineNumbers: true,
       },
       bash: {

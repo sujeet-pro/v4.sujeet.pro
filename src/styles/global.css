@@ -28,7 +28,7 @@
 
 * {
   /* Remove all font variations - no italics, no bold except where explicitly needed */
-  @apply font-normal not-italic;
+  /* @apply font-normal not-italic; */
   /* Ensure no color overrides except through global CSS */
   @apply text-inherit;
   /* Remove any background colors except through global CSS */

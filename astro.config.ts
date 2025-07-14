@@ -49,7 +49,6 @@ export default defineConfig({
     csp: false,
     fonts: [],
     headingIdCompat: true,
-    responsiveImages: true,
   },
   env: {
     schema: {
@@ -83,7 +82,7 @@ export default defineConfig({
     ],
     rehypePlugins: [
       rehypeKatex,
-      rehypeAccessibleEmojis as RehypePlugin,
+      [rehypeAccessibleEmojis as RehypePlugin, { ignore: ["title", "script", "style", "svg", "math", "pre", "code"] }],
       rehypeHeadingIds,
       [
         rehypeAutolinkHeadings,
