@@ -1,36 +1,36 @@
 ---
-import Link from "@/components/link.astro";
-import Layout from "@/layout/layout.astro";
-import { getAllTags } from "@/utils/content-tags.utils";
-import { getBlogs } from "@/utils/content-blogs.utils";
-import { isNonNullish } from "@/utils/function.utils";
+import Link from "@/components/link.astro"
+import Layout from "@/layout/layout.astro"
+import { getAllTags } from "@/utils/content-tags.utils"
+import { getBlogs } from "@/utils/content-blogs.utils"
+import { isNonNullish } from "@/utils/function.utils"
 
-const tags = await getAllTags();
-const allBlogs = await getBlogs();
+const tags = await getAllTags()
+const allBlogs = await getBlogs()
 
 // Get blog count for each tag
 const tagsWithCount = tags
   .map((tag) => {
-    const blogCount = allBlogs.filter((blog) => blog.tags.some((blogTag) => blogTag.id === tag.id)).length;
-    if (blogCount === 0) return null;
+    const blogCount = allBlogs.filter((blog) => blog.tags.some((blogTag) => blogTag.id === tag.id)).length
+    if (blogCount === 0) return null
     return {
       ...tag,
       blogCount,
-    };
+    }
   })
-  .filter(isNonNullish);
+  .filter(isNonNullish)
 
 // Sort tags by blog count (descending) and then alphabetically
 const sortedTags = tagsWithCount.sort((a, b) => {
   if (b.blogCount !== a.blogCount) {
-    return b.blogCount - a.blogCount;
+    return b.blogCount - a.blogCount
   }
-  return a.name.localeCompare(b.name);
-});
+  return a.name.localeCompare(b.name)
+})
 
-const totalTags = tagsWithCount.length;
-const totalBlogs = allBlogs.length;
-const crumbs: { title: string; href: string }[] = [];
+const totalTags = tagsWithCount.length
+const totalBlogs = allBlogs.length
+const crumbs: { title: string; href: string }[] = []
 ---
 
 <Layout title="Tags" description="All tags" {crumbs} pageType="default">

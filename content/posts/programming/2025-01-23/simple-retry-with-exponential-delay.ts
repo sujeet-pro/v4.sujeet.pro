@@ -5,7 +5,7 @@ export async function exponentialBackoffRetryRecursive<T>(
   asyncFunction: () => Promise<T>,
   retries: number,
   delay: number,
-  attempt: number = 0
+  attempt: number = 0,
 ): Promise<T> {
   try {
     return await asyncFunction()

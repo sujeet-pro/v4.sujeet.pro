@@ -1,4 +1,4 @@
-import { AsyncTaskQueue } from './async-queue'
+import { AsyncTaskQueue } from "./async-queue"
 
 const queue = new AsyncTaskQueue(3)
 

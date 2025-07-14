@@ -1,3 +1,3 @@
 interface Window {
-  applySiteTheme(theme?: "light" | "dark" | "auto"): void;
+  applySiteTheme(theme?: "light" | "dark" | "auto"): void
 }

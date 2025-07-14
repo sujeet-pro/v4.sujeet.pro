@@ -1,11 +1,11 @@
-import { getBlogs } from "@/utils/content-blogs.utils";
-import { getFilePath, getLinkProps } from "@/utils/link.utils";
-import rss, { type RSSOptions } from "@astrojs/rss";
-import type { APIRoute } from "astro";
-import { site } from "astro:config/server";
+import { getBlogs } from "@/utils/content-blogs.utils"
+import { getFilePath, getLinkProps } from "@/utils/link.utils"
+import rss, { type RSSOptions } from "@astrojs/rss"
+import type { APIRoute } from "astro"
+import { site } from "astro:config/server"
 export const GET: APIRoute = async () => {
   // Get all blog posts and pages, excluding drafts
-  const blogs = await getBlogs();
+  const blogs = await getBlogs()
 
   // Use Astro's site and base config for URLs
   const rssOptions: RSSOptions = {
@@ -16,7 +16,7 @@ export const GET: APIRoute = async () => {
     items: blogs
       // .filter((blog) => !blog.isDraft)
       .map((item) => {
-        const postUrl = getLinkProps({ href: item.href }).href;
+        const postUrl = getLinkProps({ href: item.href }).href
         return {
           title: item.title,
           description: item.description,
@@ -24,13 +24,13 @@ export const GET: APIRoute = async () => {
           pubDate: item.publishedOn,
           categories: item.tags.map((tag) => tag.name),
           customData: [`<lastmod>${new Date(item.lastUpdatedOn).toDateString()}</lastmod>`].join("\n"),
-        };
+        }
       }),
     customData: [
       `<language>en</language>`,
       `<generator>Astro</generator>`,
       `<copyright>Copyright © ${new Date().getFullYear().toString()} Sujeet Jaiswal. All rights reserved.</copyright>`,
     ].join("\n"),
-  };
-  return rss(rssOptions);
-};
+  }
+  return rss(rssOptions)
+}

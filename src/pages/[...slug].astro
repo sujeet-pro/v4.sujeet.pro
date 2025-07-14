@@ -1,11 +1,11 @@
 ---
-import { getPages } from "@/utils/content-blogs.utils";
-import Layout from "@/layout/layout.astro";
-import Article from "@/components/article.astro";
+import { getPages } from "@/utils/content-blogs.utils"
+import Layout from "@/layout/layout.astro"
+import Article from "@/components/article.astro"
 
 // Generate static paths for all blog posts
 export async function getStaticPaths() {
-  const pages = await getPages();
+  const pages = await getPages()
 
   return pages.map((page) => {
     return {
@@ -13,13 +13,13 @@ export async function getStaticPaths() {
       props: {
         page,
       },
-    };
-  });
+    }
+  })
 }
 
-const { page } = Astro.props;
-const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft } = page;
-const crumbs: { title: string; href: string }[] = [];
+const { page } = Astro.props
+const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft } = page
+const crumbs: { title: string; href: string }[] = []
 ---
 
 <Layout {title} {description} {crumbs} pageType="default" noIndex={isDraft}>

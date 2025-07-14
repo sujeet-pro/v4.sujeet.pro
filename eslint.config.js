@@ -1,13 +1,13 @@
-import css from "@eslint/css";
-import { tailwindSyntax } from "@eslint/css/syntax";
+import css from "@eslint/css"
+import { tailwindSyntax } from "@eslint/css/syntax"
 
-import js from "@eslint/js";
-import json from "@eslint/json";
-import markdown from "@eslint/markdown";
-import astro from "eslint-plugin-astro";
-import { defineConfig, globalIgnores } from "eslint/config";
-import globals from "globals";
-import tseslint from "typescript-eslint";
+import js from "@eslint/js"
+import json from "@eslint/json"
+import markdown from "@eslint/markdown"
+import astro from "eslint-plugin-astro"
+import { defineConfig, globalIgnores } from "eslint/config"
+import globals from "globals"
+import tseslint from "typescript-eslint"
 
 // Base language options for JavaScript/TypeScript files
 const baseLanguageOptions = {
@@ -16,7 +16,7 @@ const baseLanguageOptions = {
     ...globals.browser,
     ...globals.node,
   },
-};
+}
 
 // JavaScript/TypeScript/Astro configurations
 const jsTsAstroConfigs = defineConfig([
@@ -51,7 +51,7 @@ const jsTsAstroConfigs = defineConfig([
     files: ["**/*.astro", "*.astro", "**/*.astro/*.js", "*.astro/*.js", "**/*.astro/*.ts", "*.astro/*.ts"],
     ...config,
   })),
-]);
+])
 
 // CSS configurations
 const cssConfigs = defineConfig([
@@ -82,9 +82,10 @@ const cssConfigs = defineConfig([
     rules: {
       ...css.configs.recommended.rules,
       "css/no-invalid-at-rules": "off",
+      "css/use-baseline": ["error", { available: "newly" }],
     },
   },
-]);
+])
 
 // JSON configurations
 const jsonConfigs = defineConfig([
@@ -116,7 +117,7 @@ const jsonConfigs = defineConfig([
     language: "json/json5",
     extends: ["json/recommended"],
   },
-]);
+])
 
 // Markdown configuration
 const markdownConfig = defineConfig([
@@ -129,7 +130,7 @@ const markdownConfig = defineConfig([
     language: "markdown/gfm",
     extends: ["markdown/recommended"],
   },
-]);
+])
 
 // Main configuration
 const config = defineConfig([
@@ -138,6 +139,6 @@ const config = defineConfig([
   ...cssConfigs,
   // ...jsonConfigs,
   // ...markdownConfig,
-]);
+])
 
-export default config;
+export default config

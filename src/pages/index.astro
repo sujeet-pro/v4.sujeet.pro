@@ -1,6 +1,10 @@
 ---
-import Layout from "@/layout/layout.astro";
-import Profile from "@/components/profile.astro";
+import Layout from "@/layout/layout.astro"
+import Profile from "@/components/profile.astro"
+import Item from "@/components/item.astro"
+import { getFeaturedBlogs } from "@/utils/content-blogs.utils"
+
+const featuredBlogs = await getFeaturedBlogs()
 ---
 
 <Layout
@@ -10,4 +14,19 @@ import Profile from "@/components/profile.astro";
   pageType="default"
 >
   <Profile />
+
+  {
+    featuredBlogs.length > 0 && (
+      <section class="py-16 md:py-24">
+        <div class="mx-auto max-w-4xl">
+          <h2 class="mb-8 text-center text-3xl font-light md:text-4xl">Featured Posts</h2>
+          <ul class="space-y-4">
+            {featuredBlogs.map((blog) => (
+              <Item item={blog} />
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
 </Layout>

@@ -1,52 +1,52 @@
 ---
-import { getBlogs } from "@/utils/content-blogs.utils";
-import Layout from "@/layout/layout.astro";
-import Article from "@/components/article.astro";
-import Item from "@/components/item.astro";
-import { getAllSeries } from "@/utils/content-series.utils";
-import Frontmatter from "@/components/frontmatter.astro";
-import Link from "@/components/link.astro";
+import { getBlogs } from "@/utils/content-blogs.utils"
+import Layout from "@/layout/layout.astro"
+import Article from "@/components/article.astro"
+import Item from "@/components/item.astro"
+import { getAllSeries } from "@/utils/content-series.utils"
+import Frontmatter from "@/components/frontmatter.astro"
+import Link from "@/components/link.astro"
 
 // Generate static paths for all blog posts
 export async function getStaticPaths() {
-  const blogs = await getBlogs();
-  const allSeries = await getAllSeries();
+  const blogs = await getBlogs()
+  const allSeries = await getAllSeries()
 
   return blogs.map((blog, index) => {
-    const nextBlog = index < blogs.length - 1 ? blogs[index + 1] : null;
-    const prevBlog = index > 0 ? blogs[index - 1] : null;
+    const nextBlog = index < blogs.length - 1 ? blogs[index + 1] : null
+    const prevBlog = index > 0 ? blogs[index - 1] : null
 
     // Find the series this blog belongs to
-    const currentSeries = allSeries.find((series) => series.blogs.some((b) => b.id === blog.id)) ?? null;
+    const currentSeries = allSeries.find((series) => series.blogs.some((b) => b.id === blog.id)) ?? null
 
     // Get next and previous blogs in the same series
-    let nextInSeries = null;
-    let prevInSeries = null;
+    let nextInSeries = null
+    let prevInSeries = null
 
     if (currentSeries) {
-      const seriesBlogIndex = currentSeries.blogs.findIndex((b) => b.id === blog.id);
+      const seriesBlogIndex = currentSeries.blogs.findIndex((b) => b.id === blog.id)
       if (seriesBlogIndex > 0) {
-        prevInSeries = currentSeries.blogs[seriesBlogIndex - 1];
+        prevInSeries = currentSeries.blogs[seriesBlogIndex - 1]
       }
       if (seriesBlogIndex < currentSeries.blogs.length - 1) {
-        nextInSeries = currentSeries.blogs[seriesBlogIndex + 1];
+        nextInSeries = currentSeries.blogs[seriesBlogIndex + 1]
       }
     }
 
     // Create navigation items with deduplication
-    const navigationItems = [];
+    const navigationItems = []
 
     // Add previous items (prev in series takes precedence)
     if (prevInSeries && currentSeries) {
       navigationItems.push({
         title: `Previous in series: ${currentSeries.name}`,
         item: prevInSeries,
-      });
+      })
     } else if (prevBlog) {
       navigationItems.push({
         title: "Previous",
         item: prevBlog,
-      });
+      })
     }
 
     // Add next items (next in series takes precedence)
@@ -54,12 +54,12 @@ export async function getStaticPaths() {
       navigationItems.push({
         title: `Next in series: ${currentSeries.name}`,
         item: nextInSeries,
-      });
+      })
     } else if (nextBlog) {
       navigationItems.push({
         title: "Next",
         item: nextBlog,
-      });
+      })
     }
 
     return {
@@ -69,23 +69,23 @@ export async function getStaticPaths() {
         series: currentSeries,
         navigationItems,
       },
-    };
-  });
+    }
+  })
 }
 
-const { blog, series, navigationItems } = Astro.props;
-const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft } = blog;
+const { blog, series, navigationItems } = Astro.props
+const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft } = blog
 const crumbs = [
   {
     title: "Blog",
     href: "/post",
   },
-];
+]
 if (series) {
   crumbs.push({
     title: series.name,
     href: series.href,
-  });
+  })
 }
 ---
 

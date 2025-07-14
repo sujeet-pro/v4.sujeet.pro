@@ -1,24 +1,24 @@
 ---
-import Layout from "@/layout/layout.astro";
-import Item from "@/components/item.astro";
+import Layout from "@/layout/layout.astro"
+import Item from "@/components/item.astro"
 
 export async function getStaticPaths() {
-  const { getAllSeries } = await import("@/utils/content-series.utils");
-  const series = await getAllSeries();
+  const { getAllSeries } = await import("@/utils/content-series.utils")
+  const series = await getAllSeries()
 
   return series.map((seriesItem) => ({
     params: { series: seriesItem.id },
     props: { series: seriesItem },
-  }));
+  }))
 }
 
-const { series } = Astro.props;
+const { series } = Astro.props
 const crumbs = [
   {
     title: "Series",
     href: "/series",
   },
-];
+]
 ---
 
 <Layout title={series.name} description={`Blog posts in the ${series.name} series`} {crumbs} pageType="default">

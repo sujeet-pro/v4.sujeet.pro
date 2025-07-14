@@ -1,4 +1,4 @@
-import http from 'k6/http'
+import http from "k6/http"
 
 // Read the reference doc for full options
 export const options = {
@@ -10,5 +10,5 @@ export const options = {
 export default function () {
   // Make a GET request to the target URL
   // In actual code, this should rotate between long list of actual users
-  http.get('https://test-api.k6.io')
+  http.get("https://test-api.k6.io")
 }

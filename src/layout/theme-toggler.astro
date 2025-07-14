@@ -1,5 +1,5 @@
 ---
-import { Icon } from "astro-icon/components";
+import { Icon } from "astro-icon/components"
 ---
 
 <style>
@@ -18,17 +18,17 @@ import { Icon } from "astro-icon/components";
   window.applySiteTheme =
     window.applySiteTheme ||
     function applySiteTheme(theme) {
-      theme = theme || localStorage.getItem("theme");
+      theme = theme || localStorage.getItem("theme")
       if (theme === "light" || theme === "dark") {
-        document.documentElement.setAttribute("data-theme", theme);
-        document.documentElement.setAttribute("data-current-theme", theme);
+        document.documentElement.setAttribute("data-theme", theme)
+        document.documentElement.setAttribute("data-current-theme", theme)
       } else {
-        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        document.documentElement.setAttribute("data-theme", systemTheme);
-        document.documentElement.setAttribute("data-current-theme", "auto");
+        const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+        document.documentElement.setAttribute("data-theme", systemTheme)
+        document.documentElement.setAttribute("data-current-theme", "auto")
       }
-    };
-  window.applySiteTheme();
+    }
+  window.applySiteTheme()
 </script>
 
 <div class="flex items-center">
@@ -41,42 +41,42 @@ import { Icon } from "astro-icon/components";
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const themeCyclerButton = document.querySelector<HTMLButtonElement>("button#theme-toggle");
-    const themes = ["light", "dark", "auto"] as const;
-    type Theme = (typeof themes)[number];
-    const systemPreferenceQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const themeCyclerButton = document.querySelector<HTMLButtonElement>("button#theme-toggle")
+    const themes = ["light", "dark", "auto"] as const
+    type Theme = (typeof themes)[number]
+    const systemPreferenceQuery = window.matchMedia("(prefers-color-scheme: dark)")
 
     function getCurrentTheme() {
-      const currentTheme = document.documentElement.getAttribute("data-current-theme");
-      return currentTheme === "light" || currentTheme === "dark" ? (currentTheme as Theme) : "auto";
+      const currentTheme = document.documentElement.getAttribute("data-current-theme")
+      return currentTheme === "light" || currentTheme === "dark" ? (currentTheme as Theme) : "auto"
     }
 
     function cycleThemeHandler() {
-      const currentTheme = getCurrentTheme();
-      let newTheme: Theme;
+      const currentTheme = getCurrentTheme()
+      let newTheme: Theme
 
       if (currentTheme === "auto") {
         // If current theme is auto, get the actually applied theme and set to opposite
-        const appliedTheme = document.documentElement.getAttribute("data-theme");
-        newTheme = appliedTheme === "light" ? "dark" : "light";
+        const appliedTheme = document.documentElement.getAttribute("data-theme")
+        newTheme = appliedTheme === "light" ? "dark" : "light"
       } else {
-        newTheme = "auto";
+        newTheme = "auto"
       }
 
-      window.applySiteTheme(newTheme);
+      window.applySiteTheme(newTheme)
       if (newTheme === "auto") {
-        localStorage.removeItem("theme");
+        localStorage.removeItem("theme")
       } else {
-        localStorage.setItem("theme", newTheme);
+        localStorage.setItem("theme", newTheme)
       }
     }
 
     // Add event listeners
-    themeCyclerButton?.addEventListener("click", cycleThemeHandler);
+    themeCyclerButton?.addEventListener("click", cycleThemeHandler)
     systemPreferenceQuery.addEventListener("change", () => {
       if (getCurrentTheme() === "auto") {
-        window.applySiteTheme("auto");
+        window.applySiteTheme("auto")
       }
-    });
-  });
+    })
+  })
 </script>

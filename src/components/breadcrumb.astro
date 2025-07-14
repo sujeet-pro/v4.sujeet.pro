@@ -1,16 +1,16 @@
 ---
-import Link from "./link.astro";
-import { Icon } from "astro-icon/components";
+import Link from "./link.astro"
+import { Icon } from "astro-icon/components"
 
 export interface Props {
-  currentPageTitle: string;
+  currentPageTitle: string
   crumbs: {
-    title: string;
-    href: string;
-  }[];
+    title: string
+    href: string
+  }[]
 }
 
-const { currentPageTitle, crumbs } = Astro.props as Props;
+const { currentPageTitle, crumbs } = Astro.props as Props
 ---
 
 <nav class="mb-6 flex flex-wrap items-center gap-2 text-sm font-light" aria-label="Breadcrumb">

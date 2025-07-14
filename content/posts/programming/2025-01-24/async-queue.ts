@@ -1,4 +1,4 @@
-import { TaskQueue } from './task-queue'
+import { TaskQueue } from "./task-queue"
 
 type Task<T = void> = () => Promise<T>
 

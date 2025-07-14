@@ -10,25 +10,146 @@ Below functionality are extended.
 
 ### Frontmatter
 
-#### Frontmatter Extraction
+#### Automatic Frontmatter Extraction
 
-- Title: H1
-- Description: Between H1 and Table of Content
-- Published On: From the name of file. (YYYY-MM-DD-slug-path)
+- **Title**: Extracted from the first H1 heading in the markdown
+- **Description**: Extracted from content between H1 and "Table of Contents" heading
+- **Published On**: Extracted from the file path (YYYY-MM-DD-slug-path or YYYY-MM-DD/slug-path)
+- **Slug**: Generated from the file path structure
 
-#### Frontmatter Generation
+#### Automatic Frontmatter Generation
 
-- Minutes Read
+- **Minutes Read**: Automatically calculated based on content length
 
-#### Explicit Frontmatter
+#### Required Explicit Frontmatter
 
-- Last Updated On
-- Tags
+```yaml
+---
+lastUpdatedOn: 2024-01-22
+tags:
+  - js
+  - ts
+  - design-patterns
+---
+```
 
-### Image
+#### Optional Explicit Frontmatter
 
-#### SVG
+```yaml
+---
+lastUpdatedOn: 2024-01-22
+tags:
+  - js
+  - ts
+  - design-patterns
+featuredRank: 1 # Optional: Makes post appear on home page (lower numbers = higher priority)
+---
+```
 
-- inline SVGs, if it ends with .inline.svg: This will allow to use the `currentColor` attribute in SVG and will work in both dark/light mode for text based diagrams
+### Draft Posts
 
-Since we use tailwind, we can additionally use the tailwind classes (not recommended.)
+To create a draft post, prefix the title with "Draft:" in the H1 heading:
+
+```markdown
+# Draft: My Work in Progress Post
+
+This post will be marked as a draft and won't appear in public listings.
+```
+
+### Featured Posts
+
+To feature a post on the home page, add `featuredRank` to the frontmatter:
+
+```yaml
+---
+lastUpdatedOn: 2024-01-22
+tags:
+  - js
+  - ts
+featuredRank: 1 # Lower numbers = higher priority (appear first)
+---
+```
+
+- Posts with `featuredRank` defined will appear in the "Featured Posts" section on the home page
+- Posts are sorted by `featuredRank` in ascending order (1 appears before 2)
+- Only non-draft posts with `featuredRank` are displayed
+- If no posts have `featuredRank`, the section won't appear
+
+### Images
+
+#### PNG Images (Auto-inverted for Dark Mode)
+
+PNG images are automatically inverted in dark mode for better visibility:
+
+```markdown
+![Image description](./my-image.png)
+```
+
+#### SVG Images
+
+##### Inline SVGs (Recommended for Diagrams)
+
+SVG files ending with `.inline.svg` will be inlined into the HTML, allowing:
+
+- `currentColor` attribute to work with theme colors
+- Tailwind classes (though not recommended)
+- Proper dark/light mode support for text-based diagrams
+
+```markdown
+![Diagram](./my-diagram.inline.svg)
+```
+
+##### Regular SVGs
+
+Regular SVG files are treated as regular images:
+
+```markdown
+![SVG Image](./my-image.svg)
+```
+
+### File Structure
+
+Posts should follow this naming convention:
+
+```
+content/posts/category/YYYY-MM-DD-post-title.md
+```
+
+Or with date folder structure:
+
+```
+content/posts/category/YYYY-MM-DD/post-title.md
+```
+
+### Example Complete Post
+
+```markdown
+---
+lastUpdatedOn: 2024-01-22
+tags:
+  - js
+  - ts
+  - design-patterns
+featuredRank: 1
+---
+
+# My Awesome Blog Post
+
+This is the description that will appear in listings and meta tags.
+
+<figure>
+![Cover Image](./cover-image.png)
+<figcaption>Image description</figcaption>
+</figure>
+
+## Table of Contents
+
+## Introduction
+
+Your content here...
+
+<figure>
+![Diagram](./diagram.inline.svg)
+<figcaption>SVG diagram that supports currentColor</figcaption>
+</figure>
+```

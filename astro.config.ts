@@ -1,35 +1,36 @@
-import tailwindcss from "@tailwindcss/vite";
-import pagefind from "astro-pagefind";
-import { defineConfig, envField } from "astro/config";
+import tailwindcss from "@tailwindcss/vite"
+import pagefind from "astro-pagefind"
+import { defineConfig, envField } from "astro/config"
 
-import icon from "astro-icon";
+import icon from "astro-icon"
 
-import sitemap from "@astrojs/sitemap";
+import sitemap from "@astrojs/sitemap"
 
-import expressiveCode from "astro-expressive-code";
+import expressiveCode from "astro-expressive-code"
 
 // Astro Markdown Plugins & Types
-import { rehypeHeadingIds } from "@astrojs/markdown-remark";
-import type { RehypePlugin } from "node_modules/@astrojs/markdown-remark/dist/types";
+import { rehypeHeadingIds } from "@astrojs/markdown-remark"
+import type { RehypePlugin } from "node_modules/@astrojs/markdown-remark/dist/types"
 
 // Remark Markdown Plugins
-import remarkCodeImport from "remark-code-import";
-import remarkEmoji from "remark-emoji";
-import remarkInlineSvg from "remark-inline-svg";
-import remarkMath from "remark-math";
-import remarkNormalizeHeadings from "remark-normalize-headings";
-import remarkToc from "remark-toc";
+import remarkCodeImport from "remark-code-import"
+import remarkEmoji from "remark-emoji"
+// @ts-expect-error: No types available for 'remark-inline-svg'
+import remarkInlineSvg from "remark-inline-svg"
+import remarkMath from "remark-math"
+import remarkNormalizeHeadings from "remark-normalize-headings"
+import remarkToc from "remark-toc"
 // Rehype Markdown Plugins
-import { rehypeAccessibleEmojis } from "rehype-accessible-emojis";
-import rehypeAutolinkHeadings from "rehype-autolink-headings";
-import rehypeKatex from "rehype-katex";
-import rehypeMermaid from "rehype-mermaid";
-import rehypeImgClass from "./plugins/rehype-img-class";
+import { rehypeAccessibleEmojis } from "rehype-accessible-emojis"
+import rehypeAutolinkHeadings from "rehype-autolink-headings"
+import rehypeKatex from "rehype-katex"
+import rehypeMermaid from "rehype-mermaid"
+import rehypeImgClass from "./plugins/rehype-img-class"
 // import rehypeSlug from "rehype-slug";
 
 // Custom Plugins
-import { remarkCodeTitleUsingFile } from "./plugins/remark-code-title-using-file";
-import { remarkFrontmatterPlugin } from "./plugins/remark-frontmatter-plugin";
+import { remarkCodeTitleUsingFile } from "./plugins/remark-code-title-using-file"
+import { remarkFrontmatterPlugin } from "./plugins/remark-frontmatter-plugin"
 
 // https://astro.build/config
 
@@ -97,4 +98,4 @@ export default defineConfig({
     ],
     gfm: true,
   },
-});
+})

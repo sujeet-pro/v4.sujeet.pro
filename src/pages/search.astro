@@ -1,6 +1,6 @@
 ---
-import Layout from "@/layout/layout.astro";
-import PageFindSearch from "astro-pagefind/components/Search";
+import Layout from "@/layout/layout.astro"
+import PageFindSearch from "astro-pagefind/components/Search"
 ---
 
 <Layout title="Search" description="Search for posts on Sujeet's blog" crumbs={[]} pageType="default">
@@ -19,16 +19,16 @@ import PageFindSearch from "astro-pagefind/components/Search";
 
 <script>
   function onLoadQueryParamHandlerForSearch() {
-    const el = document.querySelector(`#pagefind-ui-search`);
-    const query = new URLSearchParams(window.location.search).get("q");
-    console.log(query);
+    const el = document.querySelector(`#pagefind-ui-search`)
+    const query = new URLSearchParams(window.location.search).get("q")
+    console.log(query)
     if (el && query) {
-      const input = el.querySelector<HTMLInputElement>(`input[type="text"]`);
+      const input = el.querySelector<HTMLInputElement>(`input[type="text"]`)
       if (input) {
-        input.value = query;
-        input.dispatchEvent(new Event("input", { bubbles: true }));
+        input.value = query
+        input.dispatchEvent(new Event("input", { bubbles: true }))
       }
     }
   }
-  document.addEventListener("DOMContentLoaded", onLoadQueryParamHandlerForSearch);
+  document.addEventListener("DOMContentLoaded", onLoadQueryParamHandlerForSearch)
 </script>

@@ -1,24 +1,24 @@
 ---
-import Item from "@/components/item.astro";
-import Layout from "@/layout/layout.astro";
-import { getBlogs } from "@/utils/content-blogs.utils";
-import { getAllTags } from "@/utils/content-tags.utils";
-import { isNonNullish } from "@/utils/function.utils";
+import Item from "@/components/item.astro"
+import Layout from "@/layout/layout.astro"
+import { getBlogs } from "@/utils/content-blogs.utils"
+import { getAllTags } from "@/utils/content-tags.utils"
+import { isNonNullish } from "@/utils/function.utils"
 
 export async function getStaticPaths() {
-  const tags = await getAllTags();
-  const allBlogs = await getBlogs();
+  const tags = await getAllTags()
+  const allBlogs = await getBlogs()
 
   const tagAndBlogs = tags
     .map((tag) => {
-      const blogs = allBlogs.filter((blog) => blog.tags.find((blogTag) => blogTag.id === tag.id));
-      if (blogs.length === 0) return null;
+      const blogs = allBlogs.filter((blog) => blog.tags.find((blogTag) => blogTag.id === tag.id))
+      if (blogs.length === 0) return null
       return {
         tag,
         blogs,
-      };
+      }
     })
-    .filter(isNonNullish);
+    .filter(isNonNullish)
 
   return tagAndBlogs.map(({ tag, blogs }) => ({
     params: { tag: tag.id },
@@ -26,16 +26,16 @@ export async function getStaticPaths() {
       tag,
       blogs,
     },
-  }));
+  }))
 }
 
-const { tag, blogs } = Astro.props;
+const { tag, blogs } = Astro.props
 const crumbs = [
   {
     title: "Tag",
     href: "/tag",
   },
-];
+]
 ---
 
 <Layout title={`Tag: ${tag.name}`} description={`Blog posts tagged with ${tag.name}`} {crumbs} pageType="default">

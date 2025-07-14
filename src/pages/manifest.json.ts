@@ -1,5 +1,5 @@
-import { getFaviconPath } from "@/utils/link.utils";
-import type { APIRoute } from "astro";
+import { getFaviconPath } from "@/utils/link.utils"
+import type { APIRoute } from "astro"
 
 export const GET: APIRoute = () => {
   const manifest = {
@@ -49,12 +49,12 @@ export const GET: APIRoute = () => {
         density: "4.0",
       },
     ],
-  };
+  }
 
   return new Response(JSON.stringify(manifest, null, 2), {
     status: 200,
     headers: {
       "Content-Type": "application/json",
     },
-  });
-};
+  })
+}

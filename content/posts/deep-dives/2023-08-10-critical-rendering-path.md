@@ -8,6 +8,7 @@ tags:
   - performance
   - ssg
   - ssr
+featuredRank: 1
 ---
 
 # Critical Rendering Path: A Modern, Comprehensive Guide
@@ -298,11 +299,11 @@ Split large JavaScript bundles into smaller chunks loaded on demand:
 
 ```js
 // Dynamic import for code splitting
-const loadAnalytics = () => import("./analytics.js");
+const loadAnalytics = () => import("./analytics.js")
 
 // Lazy load when needed
 if (userInteracts) {
-  loadAnalytics().then((module) => module.init());
+  loadAnalytics().then((module) => module.init())
 }
 ```
 
@@ -312,7 +313,7 @@ Remove unused code during bundling (works best with ES modules):
 
 ```js
 // Only used functions are included in the bundle
-import { usedFunction } from "./utils.js";
+import { usedFunction } from "./utils.js"
 // unusedFunction is eliminated from the final bundle
 ```
 
@@ -328,20 +329,20 @@ Batch DOM reads and writes to avoid forced synchronous reflows:
 
 ```js
 // Anti-pattern: Causes layout thrashing
-const elements = document.querySelectorAll(".box");
+const elements = document.querySelectorAll(".box")
 for (let i = 0; i < elements.length; i++) {
-  const newWidth = elements[i].offsetWidth; // READ
-  elements[i].style.width = newWidth / 2 + "px"; // WRITE
+  const newWidth = elements[i].offsetWidth // READ
+  elements[i].style.width = newWidth / 2 + "px" // WRITE
 }
 
 // Solution: Batch reads, then writes
-const elements = document.querySelectorAll(".box");
-const widths = [];
+const elements = document.querySelectorAll(".box")
+const widths = []
 for (let i = 0; i < elements.length; i++) {
-  widths.push(elements[i].offsetWidth);
+  widths.push(elements[i].offsetWidth)
 }
 for (let i = 0; i < elements.length; i++) {
-  elements[i].style.width = widths[i] / 2 + "px";
+  elements[i].style.width = widths[i] / 2 + "px"
 }
 ```
 
@@ -353,15 +354,15 @@ Implement efficient lazy loading and infinite scrolling:
 const observer = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting) {
-      entry.target.src = entry.target.dataset.src;
-      observer.unobserve(entry.target);
+      entry.target.src = entry.target.dataset.src
+      observer.unobserve(entry.target)
     }
-  });
-});
+  })
+})
 
 document.querySelectorAll("img[data-src]").forEach((img) => {
-  observer.observe(img);
-});
+  observer.observe(img)
+})
 ```
 
 #### Service Workers
@@ -374,11 +375,11 @@ self.addEventListener("fetch", (event) => {
   if (event.request.destination === "image") {
     event.respondWith(
       caches.match(event.request).then((response) => {
-        return response || fetch(event.request);
+        return response || fetch(event.request)
       }),
-    );
+    )
   }
-});
+})
 ```
 
 ## Image Optimization
@@ -474,7 +475,7 @@ Control font loading programmatically:
 if ("fonts" in document) {
   document.fonts.load("1em MyFont").then(() => {
     // Font is loaded and ready
-  });
+  })
 }
 ```
 
@@ -544,14 +545,14 @@ Control resource loading priority:
 ```js
 // Next.js SSR example
 export async function getServerSideProps() {
-  const data = await fetchData();
-  return { props: { data } };
+  const data = await fetchData()
+  return { props: { data } }
 }
 
 // Astro SSG example
 export async function getStaticProps() {
-  const posts = await getPosts();
-  return { props: { posts } };
+  const posts = await getPosts()
+  return { props: { posts } }
 }
 ```
 
@@ -583,9 +584,9 @@ app.get("/", (req, res) => {
   res.push("/css/critical.css", {
     req: { accept: "text/css" },
     res: { "content-type": "text/css" },
-  });
-  res.send(html);
-});
+  })
+  res.send(html)
+})
 ```
 
 #### Bundle Analysis and Optimization
@@ -623,21 +624,21 @@ CSS.paintWorklet.addModule('custom-paint.js');
 class CustomPatternPainter {
   paint(ctx, size, properties) {
     // Custom painting logic runs off main thread
-    ctx.fillStyle = "#f0f0f0";
-    ctx.fillRect(0, 0, size.width, size.height);
+    ctx.fillStyle = "#f0f0f0"
+    ctx.fillRect(0, 0, size.width, size.height)
 
     // Complex patterns without blocking main thread
     for (let i = 0; i < size.width; i += 10) {
-      ctx.strokeStyle = "#333";
-      ctx.beginPath();
-      ctx.moveTo(i, 0);
-      ctx.lineTo(i, size.height);
-      ctx.stroke();
+      ctx.strokeStyle = "#333"
+      ctx.beginPath()
+      ctx.moveTo(i, 0)
+      ctx.lineTo(i, size.height)
+      ctx.stroke()
     }
   }
 }
 
-registerPaint("custom-pattern", CustomPatternPainter);
+registerPaint("custom-pattern", CustomPatternPainter)
 ```
 
 **Benefits:**
@@ -664,19 +665,19 @@ CSS.animationWorklet.addModule('scroll-animation.js');
 // scroll-animation.js
 class ScrollDrivenAnimation {
   constructor(options) {
-    this.options = options;
+    this.options = options
   }
 
   animate(currentTime, effect) {
     // Animation logic runs at 120 FPS on separate thread
-    const progress = currentTime / 1000; // Convert to seconds
-    const transform = `translateY(${progress * 100}px)`;
-    effect.localTime = currentTime;
-    effect.target.style.transform = transform;
+    const progress = currentTime / 1000 // Convert to seconds
+    const transform = `translateY(${progress * 100}px)`
+    effect.localTime = currentTime
+    effect.target.style.transform = transform
   }
 }
 
-registerAnimator("scroll-animation", ScrollDrivenAnimation);
+registerAnimator("scroll-animation", ScrollDrivenAnimation)
 ```
 
 **Benefits:**
@@ -771,10 +772,10 @@ Changing a class on `<body>` forces full-tree recalculation:
 
 ```js
 // ❌ BAD: Forces recalculation of entire document
-document.body.classList.add("dark-theme");
+document.body.classList.add("dark-theme")
 
 // ✅ GOOD: Target specific elements
-document.querySelector(".theme-container").classList.add("dark-theme");
+document.querySelector(".theme-container").classList.add("dark-theme")
 ```
 
 **Why it's bad:** When you modify styles on high-level elements like `<body>` or `<html>`, the browser must recalculate styles for the entire document tree, causing massive performance hits.
@@ -804,20 +805,20 @@ body div.container div.content div.article div.paragraph span.text {
 
 ```js
 // ❌ BAD: Forces reflow on every iteration
-const elements = document.querySelectorAll(".item");
+const elements = document.querySelectorAll(".item")
 for (let i = 0; i < elements.length; i++) {
-  const width = elements[i].offsetWidth; // READ
-  elements[i].style.width = width * 2 + "px"; // WRITE
+  const width = elements[i].offsetWidth // READ
+  elements[i].style.width = width * 2 + "px" // WRITE
 }
 
 // ✅ GOOD: Batch reads and writes
-const elements = document.querySelectorAll(".item");
-const widths = [];
+const elements = document.querySelectorAll(".item")
+const widths = []
 for (let i = 0; i < elements.length; i++) {
-  widths.push(elements[i].offsetWidth); // All READS
+  widths.push(elements[i].offsetWidth) // All READS
 }
 for (let i = 0; i < elements.length; i++) {
-  elements[i].style.width = widths[i] * 2 + "px"; // All WRITES
+  elements[i].style.width = widths[i] * 2 + "px" // All WRITES
 }
 ```
 
@@ -866,14 +867,14 @@ for (let i = 0; i < elements.length; i++) {
 ```js
 // ❌ BAD: Multiple DOM queries
 for (let i = 0; i < 1000; i++) {
-  const element = document.querySelector(".item"); // Expensive query
-  element.style.color = "red";
+  const element = document.querySelector(".item") // Expensive query
+  element.style.color = "red"
 }
 
 // ✅ GOOD: Single query, cache reference
-const element = document.querySelector(".item");
+const element = document.querySelector(".item")
 for (let i = 0; i < 1000; i++) {
-  element.style.color = "red";
+  element.style.color = "red"
 }
 ```
 
@@ -884,19 +885,19 @@ for (let i = 0; i < 1000; i++) {
 ```js
 // ❌ BAD: Creates elements one by one
 for (let i = 0; i < 1000; i++) {
-  const div = document.createElement("div");
-  div.textContent = `Item ${i}`;
-  document.body.appendChild(div); // Forces reflow each time
+  const div = document.createElement("div")
+  div.textContent = `Item ${i}`
+  document.body.appendChild(div) // Forces reflow each time
 }
 
 // ✅ GOOD: Use DocumentFragment
-const fragment = document.createDocumentFragment();
+const fragment = document.createDocumentFragment()
 for (let i = 0; i < 1000; i++) {
-  const div = document.createElement("div");
-  div.textContent = `Item ${i}`;
-  fragment.appendChild(div);
+  const div = document.createElement("div")
+  div.textContent = `Item ${i}`
+  fragment.appendChild(div)
 }
-document.body.appendChild(fragment); // Single reflow
+document.body.appendChild(fragment) // Single reflow
 ```
 
 **Why it's bad:** Each appendChild forces a reflow. DocumentFragment batches all changes.
@@ -968,20 +969,20 @@ document.body.appendChild(fragment); // Single reflow
 function BadComponent() {
   document.addEventListener("scroll", () => {
     // Handle scroll
-  });
+  })
 }
 
 // ✅ GOOD: Clean up listeners
 function GoodComponent() {
   const handleScroll = () => {
     // Handle scroll
-  };
+  }
 
-  document.addEventListener("scroll", handleScroll);
+  document.addEventListener("scroll", handleScroll)
 
   return () => {
-    document.removeEventListener("scroll", handleScroll);
-  };
+    document.removeEventListener("scroll", handleScroll)
+  }
 }
 ```
 
@@ -991,10 +992,10 @@ function GoodComponent() {
 
 ```js
 // ❌ BAD: Imports entire library
-import _ from "lodash";
+import _ from "lodash"
 
 // ✅ GOOD: Import only what you need
-import debounce from "lodash/debounce";
+import debounce from "lodash/debounce"
 ```
 
 **Why it's bad:** Large bundles increase download time and parsing time, blocking the CRP.

@@ -1,17 +1,17 @@
 ---
-import type { Series } from "@/utils/content.type";
-import Link from "./link.astro";
-import Accordion from "./accordion.astro";
+import type { Series } from "@/utils/content.type"
+import Link from "./link.astro"
+import Accordion from "./accordion.astro"
 
 interface Props {
-  title: string;
-  as?: "article" | "section";
-  series?: Series;
-  noIndex?: boolean;
+  title: string
+  as?: "article" | "section"
+  series?: Series
+  noIndex?: boolean
 }
 
-const { title, as, series, noIndex } = Astro.props as Props;
-const Element = as === "article" ? "article" : "section";
+const { title, as, series, noIndex } = Astro.props as Props
+const Element = as === "article" ? "article" : "section"
 ---
 
 <Element data-pagefind-body={noIndex ? null : ""} class="mx-auto my-8 prose prose-base max-w-none dark:prose-invert">

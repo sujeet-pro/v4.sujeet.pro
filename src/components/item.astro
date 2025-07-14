@@ -1,14 +1,14 @@
 ---
-import type { PageContentItem } from "@/utils/content.type";
-import Link from "./link.astro";
-import Frontmatter from "./frontmatter.astro";
+import type { PageContentItem } from "@/utils/content.type"
+import Link from "./link.astro"
+import Frontmatter from "./frontmatter.astro"
 
 type Props = {
-  item: PageContentItem;
-  textHeading?: string;
-};
-const { item, textHeading } = Astro.props as Props;
-const { minutesRead, publishedOn, lastUpdatedOn, isDraft } = item;
+  item: PageContentItem
+  textHeading?: string
+}
+const { item, textHeading } = Astro.props as Props
+const { minutesRead, publishedOn, lastUpdatedOn, isDraft } = item
 ---
 
 <li class="sp-border-muted relative z-10 flex cursor-pointer flex-col gap-2 border-b py-6 last:border-b-0">

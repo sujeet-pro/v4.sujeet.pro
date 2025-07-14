@@ -1,35 +1,36 @@
-import { z } from "astro/zod";
-import type { RenderResult } from "astro:content";
+import { z } from "astro/zod"
+import type { RenderResult } from "astro:content"
 
 export interface Tag {
-  id: string;
-  name: string;
-  href: string;
+  id: string
+  name: string
+  href: string
 }
 
 export interface Series {
-  id: string;
-  name: string;
-  blogs: PageContent[];
-  href: string;
+  id: string
+  name: string
+  blogs: PageContent[]
+  href: string
 }
 
 export interface PageContent {
-  id: string;
-  slug: string;
-  title: string;
-  minutesRead: string;
-  description: string;
-  publishedOn: Date;
-  lastUpdatedOn: Date;
-  isDraft: boolean;
-  tags: Tag[];
-  Content: RenderResult["Content"];
-  href: string;
-  type: "blog" | "page";
+  id: string
+  slug: string
+  title: string
+  minutesRead: string
+  description: string
+  publishedOn: Date
+  lastUpdatedOn: Date
+  isDraft: boolean
+  featuredRank?: number
+  tags: Tag[]
+  Content: RenderResult["Content"]
+  href: string
+  type: "post" | "page"
 }
 
-export type PageContentItem = Omit<PageContent, "Content" | "tags">;
+export type PageContentItem = Omit<PageContent, "Content" | "tags">
 
 export const remarkPluginFrontmatterSchema = z.object({
   title: z
@@ -43,4 +44,4 @@ export const remarkPluginFrontmatterSchema = z.object({
   publishedOn: z.coerce.date({ message: "Published on is required" }),
   isDraft: z.boolean({ message: "Is draft is required" }),
   slug: z.string({ message: "Slug is required" }),
-});
+})

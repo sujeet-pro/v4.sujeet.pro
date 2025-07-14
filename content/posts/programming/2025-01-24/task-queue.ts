@@ -34,7 +34,7 @@ export class TaskQueue<T> {
   // Dequeue: Remove an element from the front of the queue
   dequeue(): T {
     if (!this.head) {
-      throw new Error('Queue is empty')
+      throw new Error("Queue is empty")
     }
     const value = this.head.value
     this.head = this.head.next

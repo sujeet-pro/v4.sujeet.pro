@@ -7,6 +7,7 @@ tags:
   - load-testing
   - performance-testing
   - stress-testing
+featuredRank: 30
 ---
 
 # Performance Testing With K6
@@ -185,23 +186,23 @@ Run them to verify that the system works well under minimal load and to gather b
 ![Smoke Testing From K6 Docs](./2025-02-19-performance-testing-with-k6/smoke-test.png)
 
 ```js title="smoke-test.js" collapse={1-3, 8-17}
-import http from "k6/http";
-import { check, sleep } from "k6";
+import http from "k6/http"
+import { check, sleep } from "k6"
 
 export const options = {
   vus: 3, // Key for Smoke test. Keep it at 2, 3, max 5 VUs
   duration: "1m", // This can be shorter or just a few iterations
-};
+}
 
 export default () => {
-  const urlRes = http.get("https://test-api.k6.io");
-  sleep(1);
+  const urlRes = http.get("https://test-api.k6.io")
+  sleep(1)
   // MORE STEPS
   // Here you can have more steps or complex script
   // Step1
   // Step2
   // etc.
-};
+}
 ```
 
 ### Average Load Testing
@@ -216,8 +217,8 @@ Typical load might be a regular day in production or an average moment.
 ![Average Load Test From K6 Docs](./2025-02-19-performance-testing-with-k6/avg-load-test.png)
 
 ```js title="avg-load-test.js" collapse={1-3, 12-21}
-import http from "k6/http";
-import { sleep } from "k6";
+import http from "k6/http"
+import { sleep } from "k6"
 
 export const options = {
   // Key configurations for avg load test in this section
@@ -226,17 +227,17 @@ export const options = {
     { duration: "30m", target: 100 }, // stay at 100 users for 30 minutes
     { duration: "5m", target: 0 }, // ramp-down to 0 users
   ],
-};
+}
 
 export default () => {
-  const urlRes = http.get("https://test-api.k6.io");
-  sleep(1);
+  const urlRes = http.get("https://test-api.k6.io")
+  sleep(1)
   // MORE STEPS
   // Here you can have more steps or complex script
   // Step1
   // Step2
   // etc.
-};
+}
 ```
 
 ### Stress testing
@@ -246,8 +247,8 @@ Stress testing assesses how the system performs when loads are heavier than usua
 ![Stress Testing From K6 Docs](./2025-02-19-performance-testing-with-k6/stress-test.png)
 
 ```js title="stress-test.js" collapse={1-3, 12-21}
-import http from "k6/http";
-import { sleep } from "k6";
+import http from "k6/http"
+import { sleep } from "k6"
 
 export const options = {
   // Key configurations for Stress in this section
@@ -256,17 +257,17 @@ export const options = {
     { duration: "30m", target: 200 }, // stay at higher 200 users for 30 minutes
     { duration: "5m", target: 0 }, // ramp-down to 0 users
   ],
-};
+}
 
 export default () => {
-  const urlRes = http.get("https://test-api.k6.io");
-  sleep(1);
+  const urlRes = http.get("https://test-api.k6.io")
+  sleep(1)
   // MORE STEPS
   // Here you can have more steps or complex script
   // Step1
   // Step2
   // etc.
-};
+}
 ```
 
 ### Soak Testing
@@ -279,8 +280,8 @@ Soak testing is another variation of the Average-Load test. It focuses on extend
 ![Soak Testing by K6 Docs](./2025-02-19-performance-testing-with-k6/soak-testing.png)
 
 ```js title="soak-test.js" collapse={1-3, 12-21}
-import http from "k6/http";
-import { sleep } from "k6";
+import http from "k6/http"
+import { sleep } from "k6"
 
 export const options = {
   // Key configurations for Soak test in this section
@@ -289,17 +290,17 @@ export const options = {
     { duration: "8h", target: 100 }, // stay at 100 users for 8 hours!!!
     { duration: "5m", target: 0 }, // ramp-down to 0 users
   ],
-};
+}
 
 export default () => {
-  const urlRes = http.get("https://test-api.k6.io");
-  sleep(1);
+  const urlRes = http.get("https://test-api.k6.io")
+  sleep(1)
   // MORE STEPS
   // Here you can have more steps or complex script
   // Step1
   // Step2
   // etc.
-};
+}
 ```
 
 ### Spike Testing
@@ -309,8 +310,8 @@ A spike test verifies whether the system survives and performs under sudden and 
 ![Spike Testing by K6 Docs](./2025-02-19-performance-testing-with-k6/spike-testing.png)
 
 ```js title="spike-test.js" collapse={1-3, 12-21}
-import http from "k6/http";
-import { sleep } from "k6";
+import http from "k6/http"
+import { sleep } from "k6"
 
 export const options = {
   // Key configurations for spike in this section
@@ -319,17 +320,17 @@ export const options = {
     // No plateau
     { duration: "1m", target: 0 }, // quick ramp-down to 0 users
   ],
-};
+}
 
 export default () => {
-  const urlRes = http.get("https://test-api.k6.io");
-  sleep(1);
+  const urlRes = http.get("https://test-api.k6.io")
+  sleep(1)
   // MORE STEPS
   // Add only the processes that will be on high demand
   // Step1
   // Step2
   // etc.
-};
+}
 ```
 
 ## References

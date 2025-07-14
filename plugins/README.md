@@ -14,14 +14,14 @@ This remark plugin automatically adds layout frontmatter to markdown files if it
 ### Basic Usage
 
 ```typescript
-import remarkAutoLayout from "./src/plugins/remark-auto-layout";
+import remarkAutoLayout from "./src/plugins/remark-auto-layout"
 
 // In your Astro config
 export default defineConfig({
   markdown: {
     remarkPlugins: [[remarkAutoLayout, { defaultLayout: "src/layout/layout.astro" }]],
   },
-});
+})
 ```
 
 ### Options
@@ -95,13 +95,13 @@ The plugin is included in this project at `src/plugins/remark-auto-layout.ts`. N
 You can customize the plugin by modifying the options:
 
 ```typescript
-[
+;[
   remarkAutoLayout,
   {
     defaultLayout: "src/layouts/custom-layout.astro",
     skipIfHasLayout: false,
   },
-];
+]
 ```
 
 This will use a different default layout and will add the layout even if one already exists (potentially overwriting it).

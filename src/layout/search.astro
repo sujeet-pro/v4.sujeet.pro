@@ -1,6 +1,6 @@
 ---
-import Link from "@/components/link.astro";
-import { Icon } from "astro-icon/components";
+import Link from "@/components/link.astro"
+import { Icon } from "astro-icon/components"
 ---
 
 <div class="flex flex-1 items-center justify-center md:justify-start">
@@ -33,26 +33,26 @@ import { Icon } from "astro-icon/components";
 </div>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const searchInput = document.querySelector<HTMLInputElement>("input#search-input");
-    const searchLink = document.querySelector<HTMLAnchorElement>("a#search-link");
+    const searchInput = document.querySelector<HTMLInputElement>("input#search-input")
+    const searchLink = document.querySelector<HTMLAnchorElement>("a#search-link")
     searchInput?.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
-        const path = searchLink?.getAttribute("href") || "/search";
-        window.location.href = path + "?q=" + encodeURIComponent(searchInput.value.trim());
+        const path = searchLink?.getAttribute("href") || "/search"
+        window.location.href = path + "?q=" + encodeURIComponent(searchInput.value.trim())
       }
-    });
+    })
 
     document.addEventListener("keydown", (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
+        e.preventDefault()
         if (searchInput && searchInput.offsetParent !== null) {
-          searchInput.focus();
+          searchInput.focus()
         } else if (searchLink) {
-          searchLink.click();
+          searchLink.click()
         } else {
-          window.location.href = "/search";
+          window.location.href = "/search"
         }
       }
-    });
-  });
+    })
+  })
 </script>

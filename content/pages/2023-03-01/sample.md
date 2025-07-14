@@ -78,8 +78,8 @@ _Italic text_ using `*text*` or `_text_`
 
 ```javascript
 function greet(name) {
-  console.log(`Hello, ${name}!`);
-  return `Welcome to GitHub, ${name}`;
+  console.log(`Hello, ${name}!`)
+  return `Welcome to GitHub, ${name}`
 }
 ```
 
@@ -164,9 +164,9 @@ This repository supports [Expressive Code](https://expressive-code.com/) for adv
 ```javascript showLineNumbers
 function calculateFibonacci(n) {
   if (n <= 1) {
-    return n;
+    return n
   }
-  return calculateFibonacci(n - 1) + calculateFibonacci(n - 2);
+  return calculateFibonacci(n - 1) + calculateFibonacci(n - 2)
 }
 ```
 
@@ -174,21 +174,21 @@ function calculateFibonacci(n) {
 
 ```typescript title="TypeScript Interface"
 interface User {
-  id: number;
-  name: string;
-  email: string;
-  isActive: boolean;
+  id: number
+  name: string
+  email: string
+  isActive: boolean
 }
 
 class UserService {
-  private users: User[] = [];
+  private users: User[] = []
 
   addUser(user: User): void {
-    this.users.push(user);
+    this.users.push(user)
   }
 
   getUserById(id: number): User | undefined {
-    return this.users.find((user) => user.id === id);
+    return this.users.find((user) => user.id === id)
   }
 }
 ```
@@ -205,10 +205,10 @@ $ npm start
 
 ```js "given text" del={2} ins={3-4}
 function demo() {
-  console.log("this line is marked as deleted");
+  console.log("this line is marked as deleted")
   // These lines are marked as inserted
-  console.log("this is the second inserted line");
-  return "Multiple matches of the given text are supported";
+  console.log("this is the second inserted line")
+  return "Multiple matches of the given text are supported"
 }
 ```
 
@@ -258,23 +258,23 @@ function demo() {
 
 ```ts title="index.ts" editor 1-15 mark=3,7,11
 interface ApiResponse<T> {
-  data: T;
-  status: number;
-  message: string;
+  data: T
+  status: number
+  message: string
 }
 
 async function fetchUserData(userId: number): Promise<ApiResponse<User>> {
   try {
-    const response = await fetch(`/api/users/${userId}`);
-    const data = await response.json();
+    const response = await fetch(`/api/users/${userId}`)
+    const data = await response.json()
 
     return {
       data,
       status: response.status,
       message: "Success",
-    };
+    }
   } catch (error) {
-    throw new Error(`Failed to fetch user data: ${error.message}`);
+    throw new Error(`Failed to fetch user data: ${error.message}`)
   }
 }
 ```

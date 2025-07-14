@@ -1,6 +1,5 @@
 ---
 lastUpdatedOn: 2025-01-23
-featuredRank: -1
 image: ./async-task-queue.svg
 imageCredit: Async Task Queue and Executors
 

@@ -1,15 +1,15 @@
 ---
-import { Icon } from "astro-icon/components";
+import { Icon } from "astro-icon/components"
 
 interface Props {
-  minutesRead: string;
-  publishedOn: Date;
-  lastUpdatedOn: Date;
-  isDraft: boolean;
-  class?: string;
+  minutesRead: string
+  publishedOn: Date
+  lastUpdatedOn: Date
+  isDraft: boolean
+  class?: string
 }
-const { minutesRead, publishedOn, lastUpdatedOn, isDraft, class: className } = Astro.props as Props;
-const hasUpdates = publishedOn.toDateString() !== lastUpdatedOn.toDateString();
+const { minutesRead, publishedOn, lastUpdatedOn, isDraft, class: className } = Astro.props as Props
+const hasUpdates = publishedOn.toDateString() !== lastUpdatedOn.toDateString()
 ---
 
 <div class:list={["flex flex-wrap items-center gap-2 text-sm font-light", className]}>

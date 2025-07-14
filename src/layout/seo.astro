@@ -1,17 +1,17 @@
 ---
-import { SITE_CANONICAL_ORIGIN, SITE_CANONICAL_PATH } from "astro:env/client";
+import { SITE_CANONICAL_ORIGIN, SITE_CANONICAL_PATH } from "astro:env/client"
 
 export type Props = {
-  title: string;
-  description: string;
-  image?: string | undefined;
-  pageType: "default" | "article";
-};
-const defaultDescription = "Sujeet's personal website - Blog and Portfolio";
-const { description, image, pageType = "default" } = Astro.props;
-const title = Astro.props.title ? `${Astro.props.title} - Sujeet Jaiswal` : "Sujeet Jaiswal";
-const canonicalURL = SITE_CANONICAL_ORIGIN + SITE_CANONICAL_PATH + Astro.url.pathname;
-const seoPageType = pageType === "default" ? "website" : "article";
+  title: string
+  description: string
+  image?: string | undefined
+  pageType: "default" | "article"
+}
+const defaultDescription = "Sujeet's personal website - Blog and Portfolio"
+const { description, image, pageType = "default" } = Astro.props
+const title = Astro.props.title ? `${Astro.props.title} - Sujeet Jaiswal` : "Sujeet Jaiswal"
+const canonicalURL = SITE_CANONICAL_ORIGIN + SITE_CANONICAL_PATH + Astro.url.pathname
+const seoPageType = pageType === "default" ? "website" : "article"
 ---
 
 <!-- Canonical URL -->

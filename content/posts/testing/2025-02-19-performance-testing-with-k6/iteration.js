@@ -1,4 +1,4 @@
-import http from 'k6/http'
+import http from "k6/http"
 
 export const options = {
   discardResponseBodies: true,
@@ -6,5 +6,5 @@ export const options = {
 }
 
 export default function () {
-  http.get('https://test-api.k6.io')
+  http.get("https://test-api.k6.io")
 }

@@ -1,5 +1,5 @@
-import { getFaviconPath } from "@/utils/link.utils";
-import type { APIRoute } from "astro";
+import { getFaviconPath } from "@/utils/link.utils"
+import type { APIRoute } from "astro"
 
 export const GET: APIRoute = () => {
   const browserconfig = `<?xml version="1.0" encoding="utf-8"?>
@@ -12,12 +12,12 @@ export const GET: APIRoute = () => {
       <TileColor>#f8fafc</TileColor>
     </tile>
   </msapplication>
-</browserconfig>`;
+</browserconfig>`
 
   return new Response(browserconfig, {
     status: 200,
     headers: {
       "Content-Type": "application/xml",
     },
-  });
-};
+  })
+}

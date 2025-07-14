@@ -1,13 +1,13 @@
 ---
-import Search from "./search.astro";
-import ThemeToggler from "./theme-toggler.astro";
-import Link from "@/components/link.astro";
+import Search from "./search.astro"
+import ThemeToggler from "./theme-toggler.astro"
+import Link from "@/components/link.astro"
 
 interface Props {
-  containerClassName?: string;
+  containerClassName?: string
 }
 
-const { containerClassName } = Astro.props;
+const { containerClassName } = Astro.props
 ---
 
 <header class:list={["sp-border-muted sticky top-0 z-50 w-full border-b"]}>

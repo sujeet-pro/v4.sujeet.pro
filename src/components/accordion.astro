@@ -1,12 +1,12 @@
 ---
-import { Icon } from "astro-icon/components";
+import { Icon } from "astro-icon/components"
 
 type Props = {
-  title: string;
-  open?: boolean;
-  noIndex?: boolean;
-};
-const { title, open = true, noIndex } = Astro.props;
+  title: string
+  open?: boolean
+  noIndex?: boolean
+}
+const { title, open = true, noIndex } = Astro.props
 ---
 
 <details open={open} class="sp-accordion p-4 bg-blend-lighten" data-pagefind-body={noIndex ? null : ""}>

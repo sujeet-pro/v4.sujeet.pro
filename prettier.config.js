@@ -5,6 +5,7 @@
 const config = {
   trailingComma: "all",
   arrowParens: "always",
+  semi: false,
   printWidth: 120,
   plugins: ["prettier-plugin-organize-imports", "prettier-plugin-astro", "prettier-plugin-tailwindcss"],
   tailwindStylesheet: "./src/styles/global.css",
@@ -16,6 +17,6 @@ const config = {
       },
     },
   ],
-};
+}
 
-export default config;
+export default config

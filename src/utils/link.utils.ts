@@ -1,4 +1,4 @@
-import { base, trailingSlash as trailingSlashConfig } from "astro:config/client";
+import { base, trailingSlash as trailingSlashConfig } from "astro:config/client"
 
 export function getLinkProps({
   href,
@@ -6,53 +6,53 @@ export function getLinkProps({
   target,
   rel,
 }: {
-  href: string;
-  trailingSlash?: "always" | "never" | "ignore";
-  target?: string | null | undefined;
-  rel?: string | null | undefined;
+  href: string
+  trailingSlash?: "always" | "never" | "ignore"
+  target?: string | null | undefined
+  rel?: string | null | undefined
 }) {
   if (!href || typeof href !== "string") {
-    return { href, target, rel };
+    return { href, target, rel }
   }
   if (href.startsWith("https://")) {
     return {
       href: href,
       target: target ?? "_blank",
       rel: rel ?? "noopener noreferrer",
-    };
+    }
   }
 
   if (href === "/") {
-    href = "/" + base.replace(/^\//, "");
+    href = "/" + base.replace(/^\//, "")
   } else {
-    href = "/" + replaceLeadingAndTrailingSlashes(base) + "/" + href.replace(/^\//, "");
+    href = "/" + replaceLeadingAndTrailingSlashes(base) + "/" + href.replace(/^\//, "")
   }
 
   if (trailingSlash === "always" && !href.endsWith("/") && href !== "/") {
-    href = href + "/";
+    href = href + "/"
   } else if (trailingSlash === "never" && href.endsWith("/") && href !== "/") {
-    href = href.replace(/\/$/, "");
+    href = href.replace(/\/$/, "")
   }
 
   return {
     href,
     target,
     rel,
-  };
+  }
 }
 
 export function getFilePath(...pathFragments: string[]) {
-  const path = pathFragments.map(replaceLeadingAndTrailingSlashes).join("/");
+  const path = pathFragments.map(replaceLeadingAndTrailingSlashes).join("/")
   return getLinkProps({
     href: "/" + path,
     trailingSlash: "never",
-  }).href;
+  }).href
 }
 
 export function getFaviconPath(filename: string) {
-  return getFilePath("favicons", filename);
+  return getFilePath("favicons", filename)
 }
 
 function replaceLeadingAndTrailingSlashes(str: string) {
-  return str.replace(/^\//, "").replace(/\/$/, "");
+  return str.replace(/^\//, "").replace(/\/$/, "")
 }
