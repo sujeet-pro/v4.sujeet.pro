@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="954"
+  height="224" viewBox="-0.5 -0.5 954 224" style="background-color:#fff">
+  <path fill="none" pointer-events="all" d="M10 10h235.48v171.9H10z" />
+  <path
+    d="M134.54 10.3c-3.84 0-6.99 3.16-6.99 7v48.79h4.7V17.3c0-1.31.98-2.29 2.29-2.29h84.7c1.3 0 2.29.98 2.29 2.29v65.86h4.7V17.3c0-3.84-3.16-7-6.99-7Zm7.58 8.56c-3.35 0-6.13 2.77-6.13 6.13v41.1h4.7v-41.1c0-.83.6-1.43 1.43-1.43h69.33c.83 0 1.42.6 1.42 1.43v58.17h4.71V24.99c0-3.36-2.78-6.13-6.13-6.13ZM26.69 70.13c-3.47 0-5.91 2.72-5.91 6.3v89.75h-8.04c-1.41 0-2.11 1-2.39 1.56-.28.57-.35 1.07-.35 1.6v6.19c0 3.17 6.92 6.02 10.74 6.02h135.45c3.37 0 10.28-2.67 10.28-6.1v-6.11c0-.53-.07-1.03-.35-1.6-.28-.56-.98-1.56-2.39-1.56h-8.07V75.96c0-3.22-2.51-5.75-5.61-5.83Zm-1.21 4.71h125.47v91.34H25.48Zm9.62 3.79c-3.13 0-5.54 2.44-5.54 5.49v71.65c0 5.71 3.54 6.83 5.96 6.89h104.61c4.88 0 7.45-4.55 7.45-7.72V85.76c0-3.14-2.28-7.13-7.71-7.13Zm-.84 4.7h108.62v74.63H34.26Zm172.05 3.97c-5.68 0-10.32 4.64-10.32 10.32v76.24c0 4.93 4.6 7.74 10.28 7.74h29.47c5.68 0 9.74-3.55 9.74-8.29V97.62c0-5.68-4.65-10.32-10.33-10.32Zm0 4.7h28.84c3.16 0 5.63 2.47 5.63 5.62v6.78h-40.09v-6.78c0-3.15 2.46-5.62 5.62-5.62Zm13.18 3.82v4.7h10.78v-4.7Zm-4.18.06a2.256 2.256 0 1 0 0 4.51c1.24 0 2.25-1 2.25-2.25s-1.01-2.26-2.25-2.26Zm-14.62 13.23h40.09v57.07h-40.09Zm-40.98 8.19v4.7h31.96l.11-4.7Zm16.18 6.06c-4.26 0-7.77 3.51-7.77 7.77 0 4.27 3.51 7.78 7.77 7.78 4.27 0 7.78-3.51 7.78-7.78 0-4.26-3.51-7.77-7.78-7.77Zm0 4.7c1.73 0 3.08 1.35 3.08 3.07 0 1.73-1.35 3.08-3.08 3.08-1.72 0-3.07-1.35-3.07-3.08a3.04 3.04 0 0 1 3.07-3.07Zm-16.18 12.48v4.71h32.1v-4.71ZM14.7 170.88h147.07v3.48c0 1.45-1.9 2.49-4.99 2.49H20.1c-2.89 0-5.4-1.07-5.4-2.5Zm185.99 0h40.09v2.43c0 3.16-1.88 3.58-5.04 3.58h-29.47c-3.16 0-5.58-.7-5.58-3.03Z"
+    fill="#879196" pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe flex-start;justify-content:unsafe center;width:1px;height:1px;padding-top:189px;margin-left:128px">
+        <div data-drawio-colors="color: #545B64;"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:#545b64;line-height:1.2;pointer-events:all;white-space:nowrap">
+            Client
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="128" y="201" fill="#545B64" font-family="Helvetica" font-size="12" text-anchor="middle">
+      Client</text>
+  </switch>
+  <image x="799.5" y="9.5" width="144" height="180"
+    xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMzI2Ljg3NiIgaGVpZ2h0PSI0MDguNTUyIiB2aWV3Qm94PSIwIDAgODYuNDg2IDEwOC4wOTYiPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0iQSIgeDE9IjgzLjgzOSIgeTE9IjIwMC4zOTMiIHgyPSI4My40NyIgeTI9IjEyNy4yOTUiIHhsaW5rOmhyZWY9IiNGIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMwNjc3ZmMiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiM4ZmNhZmUiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0iQiIgeDE9IjExMS4yNjYiIHkxPSIyMDYuMzA0IiB4Mj0iMTExLjQ4IiB5Mj0iMTE4LjM3MiIgeGxpbms6aHJlZj0iI0YiPjxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzA1MjM5YSIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzkxYmNmOCIvPjwvbGluZWFyR3JhZGllbnQ+PGxpbmVhckdyYWRpZW50IGlkPSJDIiB4MT0iMTAzLjA4MiIgeTE9IjEzNi44OSIgeDI9IjEwMy4xOTQiIHkyPSIxMDcuNjI0IiB4bGluazpocmVmPSIjRiI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjYThkZWZlIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMTJhN2ZjIi8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9IkQiIHgxPSIxMzIuMzUxIiB5MT0iMjExLjcwNSIgeDI9IjEzMS44MTkiIHkyPSIxNTkuNjA2IiB4bGluazpocmVmPSIjRiI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmRjMTI1Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjZDAzNjA0Ii8+PC9saW5lYXJHcmFkaWVudD48bGluZWFyR3JhZGllbnQgaWQ9IkUiIHgxPSIxMzIuNzE0IiB5MT0iMjExLjU2MiIgeDI9IjEzMS4yOSIgeTI9IjE2MC4xMzUiIHhsaW5rOmhyZWY9IiNGIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMwMzc1ZmMiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiNmNmZiZmYiLz48L2xpbmVhckdyYWRpZW50PjxsaW5lYXJHcmFkaWVudCBpZD0iRiIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiLz48L2RlZnM+PGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTcyLjU4MyAtMTA1LjczOCkiPjxwYXRoIGQ9Ik0xMjkuNTIgMTg3LjQ2OGwtMzYuOTYzIDE5LjY2OFYxMzcuMjFsMzYuOTYzLTE5LjkzOHoiIGZpbGw9InVybCgjQikiLz48cGF0aCBkPSJNOTIuNTU3IDIwNy4xMzZMNzQuMDgzIDE5Ni45M1YxMjcuMWwxOC40NzQgMTAuMTEiIGZpbGw9InVybCgjQSkiLz48cGF0aCBkPSJNMTI5LjUyIDExNy4yNzJMOTIuNTU3IDEzNy4yMSA3NC4wODMgMTI3LjFsMzYuODQ4LTE5LjY2M3oiIGZpbGw9InVybCgjQykiLz48cGF0aCBkPSJNNzkuMzU1IDE1MC44M3YxLjMyMmw2LjYzIDMuNjM4di0xLjMyMnptMCA2LjY3M3YxLjMyMmw2LjYzIDMuNjM4di0xLjMyMnoiIGRvbWluYW50LWJhc2VsaW5lPSJhdXRvIiBmaWxsPSIjZmZmIi8+PHBhdGggZD0iTTkyLjU1NyAxMzcuMjFsMzYuOTYzLTE5LjkzOHptMCA2OS45MjZWMTM3LjIxTDc0LjA4MyAxMjcuMW0xOC40NzQgODAuMDM2TDc0LjA4MyAxOTYuOTNWMTI3LjFsMzYuODQ4LTE5LjY2MyAxOC41OSA5LjgzNnY3MC4xOTZ6IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMyIvPjxwYXRoIGQ9Ik0xMzEuMyAxNjAuMTM1YzE0LjMyNSAwIDI1LjkwMiAxMS41OCAyNS45MDIgMjUuOTA0YTI1Ljg4IDI1Ljg4IDAgMCAxLTI1LjkwMiAyNS45MDJjLTE0LjMyNSAwLTI1LjkwNC0xMS41NzctMjUuOTA0LTI1LjkwMnMxMS41OC0yNS45MDQgMjUuOTA0LTI1LjkwNHoiIGRvbWluYW50LWJhc2VsaW5lPSJhdXRvIiBmaWxsPSJ1cmwoI0UpIiBwYWludC1vcmRlcj0ibm9ybWFsIi8+PHBhdGggZD0iTTEzNiAxOTIuNTczYy0yLjMzNSAxLjM5LTMuNjc4IDEuNjYtNi4xMDggMi4wNjMtMi4zMy4zNTctNS4yNjcuMjA4LTguMDY3LS4xODZsLTYuMDctMS4wODYtNS4zNzMtOC4wMTYtMy4xNC04LjM1MmMxLjI2NS01LjY4IDUuMDE2LTEwLjUzMyAxMS42MjYtMTQuNDMzIDMuMTUzLTEuMDYzIDQuNzQ0LTIuMzkyIDEwLjMzNC0yLjgzIDMuNzAyIDEuNTI1IDcuMjU2IDMuNDc4IDEwLjA0NSA2Ljc3MiAzLjE0NSAzLjkxMiA1LjA5IDcuODczIDQuODU4IDEyLjI0Ny0uMTY4IDIuNzg2LTEuMiA2LjIyOC0yLjY5NiA4LjUzMy0xLjUyIDIuMjU4LTIuMTg4IDMuMzEyLTUuNDA4IDUuMjg3eiIgb3BhY2l0eT0iLjEiLz48cGF0aCBkPSJNMTUxLjUxMiAxNzMuNTc2bDEuMzUzLS4wMSAxLjM4OCAyLjMzYy40NyAxLjczLjYzMiAzLjQyOC45MSA1LjIwOC4yMzcgMS45NzUuMTI0IDUuMTYuMDk0IDYuODktLjA0IDEuNDU3LS41MiAyLjM5My0uOSAzLjcyMy0uNzk3LjQwMi0xLjkwNi43LTIuNDYyIDEuNTA2bC0xLjQ5My4wMTUtMS45NTItMS4wMTMtMS40OTQtMS41OC0uOTUzLTIuMzMzYy0uMDEtMS45NjguMjc3LTMuODc2LjQ2Ny01LjgwM2wyLjk5Ni01LjQ5N2MuNTcyLTEuMTU2IDEuMjUtMi4yNzggMi4wNDQtMy40MzN6bS01LjA4NS04LjY3M2MxLjI4NSAxLjIgMi40MzQgMi40NTQgMy4zNjMgMy43NTQgMS4xNjYgMS41ODYgMi4yODIgMy4yIDIuNTI0IDMuOTVsLTMuODk2LS4xLS4wMDYgMi4yOTUtLjc1NiAyLjctMS41OTIuMDUtMS4xMjYtLjYzNC0xLjM2OC0yLjA3MmMtLjAyOC0uNTE2LjIzNS0xLjI0My41MjItMS43NTVsLjk5NS0uOTIuMDU1LTMuNzY4em0tMi40MjMtMS41NjdsLTIuNjM1IDEuODg0LTEuMTQ1LTIuODAyLS4yODMgMS40OTYtMi40NTctLjA1LjA0NS44MS0xLjM1NS0uMDAzLTMuMDkgMS4zLTMuODUuNTQ1LTEuNTcuMzUtLjQxNC0yLjM4MiAxLjA0Ni0xLjkzMy0yLjUwMi0uMjc3LTEuMjYyLTEuMjQ1YzEuODQtLjY1OCA0LjQzLTEuMDg2IDcuMjg4LTEuNDM0bDcuMjc2IDEuMzIzem0tMjMuOTI1IDQ1LjQ3OGwuNDI1LTIuOTA2LTEuNTYtLjQ5NmMtMS44Ny0xLjM1LTMuNDM3LTMuMTktNS4xMjYtNC45NmwtLjAyNC0yLjgzNWMuMy0xLjM0LjkzLTIuNzczIDEuMzk0LTMuNzEtLjg5Ny0uNjk4LTEuODMtMS4zNjUtMi41MTYtMi4yNDRsLTMuMTMtNS4wOWMtLjg4LTEuMjk3LTIuMTI0LTIuMDk2LTMuNjAzLTIuNTc1bDIuNTQtMTAuODggNi4xNDItNy4wODcgNy4xMjYtNC4zLS43NjIgMS44MjJjLS4zMzgtLjA2LS42NDYtLjE3Mi0xLjExLjAwMS4wMjIuNjEzLjA5IDEuNjQuMzUgMi4yNDQuNzkuNzgyIDEuNiAxLjQ1IDEuNjc0IDIuMzVsMS4wNS0xLjE0NS42My0yLjE0YzEuMTUuNjU0IDEuNTk0Ljc4IDIuNDY3IDEuNDY1bDIuNDcgMS45NyAyLjI2OC43NTYtMS45ODQgMS43MzZjLS45NzMgMS4wNzgtMi4xNSAyLjMwNy0zLjkzMyAzLjIzNmwtMS4xMjItLjAyNC0uOTggMS4xMzQtLjg1IDEuODc4LTIuMTk3IDEuNzI1Yy0uNi41NDgtMS4wNTQgMS4yODYtMS4xOCAyLjExNGwtLjAxMiAzLjE1NGMtLjY5LS41Ny0xLjA0Ni0xLjQyLTEuMzU4LTIuMzk4bC0uNTA4LTEuNzEzYy0uODc2LS45MDctMi4wMDYtMS43NC0zLjIzNi0yLjQ1Ny0xLjAzNi4zMTYtMS43ODQuNjYtMi41NCAxLjA0LS4zNzIuOTM1LS41IDEuNzQ1LS40OTYgMi40OTIuMjkgMS40NDcuOTQ3IDIuNTU3IDEuODY2IDMuNTMyLjg3OC4zMDIgMS45MzItLjAzNCAyLjQ3LS40OTZsLjQ1IDEuOTczYy0uNzQuMjI2LTEuMTUuNTcyLTEuMzgyLjg4NmwtLjAyNCAxLjc3MmMuMzE3LjkwNS42NCAxLjgwMyAxLjEgMi40OTIuNDk0LjMgMS4wOTYuNDE4IDEuODQzLjMzbC4zNzguNTQzIDUuNzY0LS4wNmMyLjI0Ljk3MiAzLjQ1IDIuMjEzIDQuNjkgMy40NDVsMi45MTggMi45OGMxLjE4Mi41MyAyLjMzLjg5OCAzLjQ3IDEuMjA2IDIuMDU0LjIxOCAzLjE1NS4zNjYgNC4xOTYuNzhsMS4wOCAxLjAzMy4wMDcgMS41NjctMS40NC4zNzgtNy43NSA4LjIyYy0xLjc4LS4yMzYtMy4yNzYtLjM2NS01LjMxNS0uOTdhMzAuOTcgMzAuOTcgMCAwIDEtNC42My0xLjc3MnoiIGZpbGw9InVybCgjRCkiIHN0cm9rZT0iI2ZmYzcyNyIgc3Ryb2tlLXdpZHRoPSIxLjciIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48Y2lyY2xlIHI9IjI2LjIyMiIgY3k9IjE4Ni4xMTEiIGN4PSIxMzEuMzQ3IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIzIiBwYWludC1vcmRlcj0ibm9ybWFsIi8+PC9nPjwvc3ZnPg==" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe flex-start;justify-content:unsafe center;width:1px;height:1px;padding-top:200px;margin-left:872px">
+        <div data-drawio-colors="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;background-color:#fff;white-space:nowrap">
+            Server
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="872" y="212" font-family="Helvetica" font-size="12" text-anchor="middle">Server</text>
+  </switch>
+  <path d="M245.48 47.81 789.6 48" fill="none" stroke="#000" stroke-miterlimit="10"
+    pointer-events="stroke" />
+  <path d="m794.85 48-7 3.5 1.75-3.5-1.75-3.5Z" stroke="#000" stroke-miterlimit="10"
+    pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:1px;height:1px;padding-top:34px;margin-left:351px">
+        <div data-drawio-colors="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:11px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;background-color:#fff;white-space:nowrap">
+            GET /page HTTP/1.1
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="351" y="38" font-family="Helvetica" font-size="11" text-anchor="middle">GET /page
+      HTTP/1.1</text>
+  </switch>
+  <path d="m800 84.69-544.15-.19" fill="none" stroke="#000" stroke-miterlimit="10"
+    pointer-events="stroke" />
+  <path d="m250.6 84.5 7-3.5-1.75 3.5 1.75 3.5Z" stroke="#000" stroke-miterlimit="10"
+    pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:1px;height:1px;padding-top:71px;margin-left:658px">
+        <div data-drawio-colors="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:11px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;background-color:#fff;white-space:nowrap">
+            HTTP/1.1 301 Moved Permanently <br />
+            <div style="text-align:left">
+              Location: new_page
+            </div>
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="658" y="74" font-family="Helvetica" font-size="11" text-anchor="middle">HTTP/1.1 301
+      Moved Permanently...</text>
+  </switch>
+  <path d="m245.48 140 544.15.19" fill="none" stroke="#000" stroke-miterlimit="10"
+    pointer-events="stroke" />
+  <path d="m794.88 140.19-7 3.5 1.75-3.5-1.75-3.5Z" stroke="#000" stroke-miterlimit="10"
+    pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:1px;height:1px;padding-top:127px;margin-left:361px">
+        <div data-drawio-colors="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:11px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;background-color:#fff;white-space:nowrap">
+            GET /new_page HTTP/1.1
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="361" y="130" font-family="Helvetica" font-size="11" text-anchor="middle">GET /new_page
+      HTTP/1.1</text>
+  </switch>
+  <path d="M800 170.19 255.85 170" fill="none" stroke="#000" stroke-miterlimit="10"
+    pointer-events="stroke" />
+  <path d="m250.6 170 7-3.5-1.75 3.5 1.75 3.5Z" stroke="#000" stroke-miterlimit="10"
+    pointer-events="all" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:1px;height:1px;padding-top:157px;margin-left:621px">
+        <div data-drawio-colors="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:11px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;background-color:#fff;white-space:nowrap">
+            HTTP/1.1 200 OK
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="621" y="160" font-family="Helvetica" font-size="11" text-anchor="middle">HTTP/1.1 200
+      OK</text>
+  </switch>
+  <path fill="none" pointer-events="all" d="M420 181.9h150v30H420z" />
+  <switch transform="translate(-.5 -.5)">
+    <foreignObject pointer-events="none" width="100%" height="100%"
+      requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+      style="overflow:visible;text-align:left">
+      <div xmlns="http://www.w3.org/1999/xhtml"
+        style="display:flex;align-items:unsafe center;justify-content:unsafe center;width:1px;height:1px;padding-top:197px;margin-left:495px">
+        <div data-drawio-colors="color: rgb(0, 0, 0);"
+          style="box-sizing:border-box;font-size:0;text-align:center">
+          <div
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;white-space:nowrap">
+            Server Side Redirection
+          </div>
+        </div>
+      </div>
+    </foreignObject>
+    <text x="495" y="201" font-family="Helvetica" font-size="12" text-anchor="middle">Server Side
+      Redirection</text>
+  </switch>
+  <switch>
+    <a transform="translate(0 -5)"
+      xlink:href="https://www.drawio.com/doc/faq/svg-export-text-problems" target="_blank">
+      <text text-anchor="middle" font-size="10" x="50%" y="100%">Text is not SVG - cannot display</text>
+    </a>
+  </switch>
+</svg>
