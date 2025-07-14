@@ -16,7 +16,7 @@ export interface Series {
 
 export interface PageContent {
   id: string
-  slug: string
+  pageSlug: string
   title: string
   minutesRead: string
   description: string
@@ -43,5 +43,5 @@ export const remarkPluginFrontmatterSchema = z.object({
   minutesRead: z.string({ message: "Minutes read is required" }).min(1, "Minutes read is required"),
   publishedOn: z.coerce.date({ message: "Published on is required" }),
   isDraft: z.boolean({ message: "Is draft is required" }),
-  slug: z.string({ message: "Slug is required" }),
+  pageSlug: z.string({ message: "Slug is required" }),
 })

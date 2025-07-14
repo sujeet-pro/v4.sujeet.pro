@@ -73,11 +73,11 @@ docker pull grafana/k6:master-with-browser # Docker with browser
 
 ### Your First Script
 
-```js file=./2025-02-19-performance-testing-with-k6/one-time.js
+```js file=./one-time.js
 
 ```
 
-```bash title="output" file=./2025-02-19-performance-testing-with-k6/one-time.txt collapse={1-20}
+```bash title="output" file=./one-time.txt collapse={1-20}
 
 ```
 
@@ -89,11 +89,11 @@ docker pull grafana/k6:master-with-browser # Docker with browser
 import iterationCode from './code-and-output/iteration.js?raw'
 import iterationOutput from './code-and-output/iteration.txt?raw'
 
-```js file=./2025-02-19-performance-testing-with-k6/iteration.js collapse={1-2, 7-10}
+```js file=./iteration.js collapse={1-2, 7-10}
 
 ```
 
-```bash title="output"  file=./2025-02-19-performance-testing-with-k6/iteration.txt collapse={1-22}
+```bash title="output"  file=./iteration.txt collapse={1-22}
 
 ```
 
@@ -102,21 +102,21 @@ import iterationOutput from './code-and-output/iteration.txt?raw'
 - Run a test with a constant number of Virtual Users (VUs).
 - This is useful when you want to maintain a constant load on the system. (Constant Request that the system handles at a time)
 
-```js file=./2025-02-19-performance-testing-with-k6/n-users.js collapse={1-2, 8-11}
+```js file=./n-users.js collapse={1-2, 8-11}
 
 ```
 
-```bash title="output" file=./2025-02-19-performance-testing-with-k6/n-users.txt collapse={1-22}
+```bash title="output" file=./n-users.txt collapse={1-22}
 
 ```
 
 ### Ramping Users
 
-```js file=./2025-02-19-performance-testing-with-k6/ramp-up-users.js collapse={1-2, 10-13}
+```js file=./ramp-up-users.js collapse={1-2, 10-13}
 
 ```
 
-```bash title="output"  file=./2025-02-19-performance-testing-with-k6/ramp-up-users.txt collapse={1-22}
+```bash title="output"  file=./ramp-up-users.txt collapse={1-22}
 
 ```
 
@@ -131,15 +131,15 @@ How is it different from `Constant Users`?
 - In `Constant Users`, the number of VUs is constant, but the rate of requests can vary based on the response time.
 - In `Constant Rate`, the rate of requests is constant, but the number of VUs can vary based on the response time.
 
-```js file=./2025-02-19-performance-testing-with-k6/constant-rate.js collapse={1-2, 16-19}
+```js file=./constant-rate.js collapse={1-2, 16-19}
 
 ```
 
-```bash title="output"  file=./2025-02-19-performance-testing-with-k6/constant-rate.txt collapse={1-23}
+```bash title="output"  file=./constant-rate.txt collapse={1-23}
 
 ```
 
-```bash title="output"  file=./2025-02-19-performance-testing-with-k6/constant-rate-less-vus.txt collapse={1-23}
+```bash title="output"  file=./constant-rate-less-vus.txt collapse={1-23}
 
 ```
 
@@ -153,11 +153,11 @@ How is it different from `Constant Users`?
 import rampingRateCode from './code-and-output/ramping-rate.js?raw'
 import rampingRateOutput from './code-and-output/ramping-rate.txt?raw'
 
-```js file=./2025-02-19-performance-testing-with-k6/ramping-rate.js collapse={1-2, 23-26}
+```js file=./ramping-rate.js collapse={1-2, 23-26}
 
 ```
 
-```bash title="output"  file=./2025-02-19-performance-testing-with-k6/ramping-rate.txt collapse={1-23}
+```bash title="output"  file=./ramping-rate.txt collapse={1-23}
 
 ```
 
@@ -168,11 +168,11 @@ Run more than one scenario in a single test.
 - Both scenarios runs in parallel.
 - Each scenario has its own VUs and iterations.
 
-```js file=./2025-02-19-performance-testing-with-k6/multiple-scenario.js collapse={1-2, 27-30}
+```js file=./multiple-scenario.js collapse={1-2, 27-30}
 
 ```
 
-```bash title="output"  file=./2025-02-19-performance-testing-with-k6/multiple-scenario.txt collapse={1-24}
+```bash title="output"  file=./multiple-scenario.txt collapse={1-24}
 
 ```
 
@@ -183,7 +183,7 @@ Run more than one scenario in a single test.
 Smoke tests have a minimal load.
 Run them to verify that the system works well under minimal load and to gather baseline performance values.
 
-![Smoke Testing From K6 Docs](./2025-02-19-performance-testing-with-k6/smoke-test.png)
+![Smoke Testing From K6 Docs](./smoke-test.png)
 
 ```js title="smoke-test.js" collapse={1-3, 8-17}
 import http from "k6/http"
@@ -214,7 +214,7 @@ Typical load might be a regular day in production or an average moment.
   - A ramp-up rate scenario can also work.
 - Sometimes, a constant rate scenario can also be used based on the Average RPS.
 
-![Average Load Test From K6 Docs](./2025-02-19-performance-testing-with-k6/avg-load-test.png)
+![Average Load Test From K6 Docs](./avg-load-test.png)
 
 ```js title="avg-load-test.js" collapse={1-3, 12-21}
 import http from "k6/http"
@@ -244,7 +244,7 @@ export default () => {
 
 Stress testing assesses how the system performs when loads are heavier than usual.
 
-![Stress Testing From K6 Docs](./2025-02-19-performance-testing-with-k6/stress-test.png)
+![Stress Testing From K6 Docs](./stress-test.png)
 
 ```js title="stress-test.js" collapse={1-3, 12-21}
 import http from "k6/http"
@@ -277,7 +277,7 @@ Soak testing is another variation of the Average-Load test. It focuses on extend
 - The system's degradation of performance and resource consumption over extended periods.
 - The system's availability and stability during extended periods.
 
-![Soak Testing by K6 Docs](./2025-02-19-performance-testing-with-k6/soak-testing.png)
+![Soak Testing by K6 Docs](./soak-testing.png)
 
 ```js title="soak-test.js" collapse={1-3, 12-21}
 import http from "k6/http"
@@ -307,7 +307,7 @@ export default () => {
 
 A spike test verifies whether the system survives and performs under sudden and massive rushes of utilization.
 
-![Spike Testing by K6 Docs](./2025-02-19-performance-testing-with-k6/spike-testing.png)
+![Spike Testing by K6 Docs](./spike-testing.png)
 
 ```js title="spike-test.js" collapse={1-3, 12-21}
 import http from "k6/http"

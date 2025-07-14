@@ -4,6 +4,8 @@ import path from "node:path"
 import type { RemarkPlugin } from "node_modules/@astrojs/markdown-remark/dist/types"
 import getReadingTime from "reading-time"
 import type { VFile } from "vfile"
+import { getPublishedDate } from "./utils/date.utils"
+import { getSlug } from "./utils/slug.utils"
 
 export const remarkFrontmatterPlugin: RemarkPlugin = (options: { defaultLayout: string }) => {
   return function (tree: mdast.Root, file: VFile) {
@@ -20,7 +22,7 @@ export const remarkFrontmatterPlugin: RemarkPlugin = (options: { defaultLayout: 
     file.data.astro.frontmatter.isDraft ??= title?.toLowerCase().trim().startsWith("draft:") ?? false
     file.data.astro.frontmatter.publishedOn ??= getPublishedDate(file.path)
     file.data.astro.frontmatter.description ??= getDescription(tree, file)
-    file.data.astro.frontmatter.slug ??= getSlug(file.path)
+    file.data.astro.frontmatter.pageSlug ??= getSlug(file.path)
     // featuredRank is optional and should be set in the frontmatter if needed
     // console.log(tree);
     // console.log(
@@ -91,72 +93,4 @@ function getDescription(tree: mdast.Root, file: VFile) {
     throw new Error(`Missing description in ${file.path}`)
   }
   return description
-}
-
-function getPublishedDate(filePath: string) {
-  const contentFolder = path.resolve("./content")
-  const relativePath = filePath.replace(contentFolder, "").replace(/^\/+/, "")
-
-  // Remove the first level folder (blogs or pages) from the path
-  const pathWithoutFirstLevel = relativePath.replace(/^[^\/]+\//, "")
-
-  // Check if date is in folder name (YYYY-MM-DD/)
-  const folderDateMatch = pathWithoutFirstLevel.match(/^(\d{4}-\d{2}-\d{2})\//)
-  if (folderDateMatch && folderDateMatch[1]) {
-    const dateString = folderDateMatch[1]
-    const publishedDate = new Date(dateString)
-    if (isNaN(publishedDate.getTime())) {
-      throw new Error(`Invalid date: ${dateString} in path: ${filePath}`)
-    }
-    return publishedDate
-  }
-
-  // Check if date is in filename (YYYY-MM-DD-*)
-  const filename = path.basename(filePath, path.extname(filePath))
-  const filenameDateMatch = filename.match(/^(\d{4}-\d{2}-\d{2})-/)
-  if (filenameDateMatch && filenameDateMatch[1]) {
-    const dateString = filenameDateMatch[1]
-    const publishedDate = new Date(dateString)
-    if (isNaN(publishedDate.getTime())) {
-      throw new Error(`Invalid date: ${dateString} in filename: ${filePath}`)
-    }
-    return publishedDate
-  }
-
-  throw new Error(
-    `Invalid date format in path: ${filePath}. Expected either folder pattern: /content/[blogs|pages]/YYYY-MM-DD/... or filename pattern: YYYY-MM-DD-*`,
-  )
-}
-
-function getSlug(filePath: string) {
-  const contentFolder = path.resolve("./content")
-  const relativePath = filePath.replace(contentFolder, "").replace(/^\/+/, "")
-
-  // Remove the first level folder (blogs or pages) from the path
-  const pathWithoutFirstLevel = relativePath.replace(/^[^\/]+\//, "")
-
-  // Check if date is in folder name (YYYY-MM-DD/)
-  const folderDateMatch = pathWithoutFirstLevel.match(/^(\d{4}-\d{2}-\d{2})\//)
-  if (folderDateMatch && folderDateMatch[1]) {
-    // Remove the date folder and get the remaining path
-    const slugPath = pathWithoutFirstLevel.replace(/^\d{4}-\d{2}-\d{2}\//, "")
-    // Remove file extension
-    return slugPath.replace(/\.[^/.]+$/, "")
-  }
-
-  // Check if date is in filename (YYYY-MM-DD-*)
-  const filename = path.basename(filePath, path.extname(filePath))
-  const filenameDateMatch = filename.match(/^(\d{4}-\d{2}-\d{2})-/)
-  if (filenameDateMatch && filenameDateMatch[1]) {
-    // Remove the date prefix from filename
-    const slugFilename = filename.replace(/^\d{4}-\d{2}-\d{2}-/, "")
-    // Get the directory path without the filename
-    const dirPath = path.dirname(pathWithoutFirstLevel)
-    // Combine directory path with slug filename
-    return dirPath ? `${dirPath}/${slugFilename}` : slugFilename
-  }
-
-  throw new Error(
-    `Invalid date format in path: ${filePath}. Expected either folder pattern: /content/[blogs|pages]/YYYY-MM-DD/... or filename pattern: YYYY-MM-DD-*`,
-  )
 }

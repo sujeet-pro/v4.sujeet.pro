@@ -34,7 +34,7 @@ const series = defineCollection({
 })
 
 const contentSchema = z.object({
-  lastUpdatedOn: z.date(),
+  lastUpdatedOn: z.coerce.date(),
   tags: z.array(reference("tags")),
   featuredRank: z.number().optional(),
 })

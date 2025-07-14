@@ -24,7 +24,7 @@ During an incident, re-generating the entire site after a fix will take time. Si
 
 In your S3 bucket, while pushing the changes for a new build, instead of replacing the old files, we can just push into a new directory with buildNumber.
 
-```ascii title="S3 Bucket Folder Structure"
+```asciidoc title="S3 Bucket Folder Structure"
 S3 Bucket
 ├── build_001
 │   ├── index.html

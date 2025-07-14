@@ -30,7 +30,7 @@ async function pageContentGeneric(
   const itemsWithContent: PageContent[] = []
   for (const item of items) {
     const { Content, remarkPluginFrontmatter } = await render(item)
-    const { title, minutesRead, description, isDraft, publishedOn, slug } = remarkPluginFrontmatterSchema.parse(
+    const { title, minutesRead, description, isDraft, publishedOn, pageSlug } = remarkPluginFrontmatterSchema.parse(
       remarkPluginFrontmatter,
       {
         errorMap: (error) => ({
@@ -42,7 +42,7 @@ async function pageContentGeneric(
     const tags = await getTagsByRefs(item.data.tags)
     itemsWithContent.push({
       id: item.id,
-      slug,
+      pageSlug,
       title,
       minutesRead,
       description,
@@ -52,7 +52,7 @@ async function pageContentGeneric(
       ...(featuredRank !== undefined && { featuredRank }),
       tags,
       Content,
-      href: type === "post" ? `/post/${slug}` : `/${slug}`,
+      href: type === "post" ? `/post/${pageSlug}` : `/${pageSlug}`,
       type,
     })
   }
