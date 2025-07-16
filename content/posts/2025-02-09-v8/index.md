@@ -8,6 +8,8 @@ tags:
 
 # The V8 Engine: A Deep Architectural Analysis of a Modern High-Performance JavaScript Runtime
 
+## Table of Contents
+
 ## Introduction
 
 The efficient execution of a highly dynamic, loosely-typed scripting language at speeds rivaling statically-compiled languages represents a formidable challenge in computer science. This is the core problem that Google's V8, the open-source JavaScript and WebAssembly engine, is engineered to solve. The design of any such Just-in-Time (JIT) compiler is governed by a fundamental set of trade-offs between compilation time, execution speed, and memory consumption. V8's architecture is a sophisticated and continuously evolving answer to this challenge, designed to balance peak performance with fast startup and modest memory usage.

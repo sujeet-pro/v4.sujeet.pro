@@ -10,7 +10,7 @@ tags:
 
 libuv is a multi-platform support library with a focus on asynchronous I/O
 
-![Libuv Design Overview from libuv.org](./2025-02-08-libuv-internals/libuv-architecture.webp)
+![Libuv Design Overview from libuv.org](./libuv-architecture.webp)
 
 ## Table of Contents
 
@@ -67,7 +67,7 @@ Some examples:
 
 ## Async operations
 
-![Async Operations Slide by Bert Belder at Node Interactive - 2016](./2025-02-08-libuv-internals/async-operations.jpg)
+![Async Operations Slide by Bert Belder at Node Interactive - 2016](./async-operations.jpg)
 
 ### Network I/O
 
@@ -131,7 +131,7 @@ uv_run() is not reentrant. It must not be called from a callback.
 
 ## Loop Iteration
 
-![Loop Iteration from libuv.org](./2025-02-08-libuv-internals/loop_iteration.webp)
+![Loop Iteration from libuv.org](./loop_iteration.webp)
 
 ### Initialize loop time
 

@@ -58,7 +58,7 @@ The browser begins by parsing the raw HTML bytes it receives from the network. T
 </html>
 ```
 
-![DOM Construction Example](./2023-08-10-critical-rendering-path/dom-construction-example.invert.png)
+![DOM Construction Example](./dom-construction-example.invert.png)
 
 ### 2. CSSOM Construction (Parsing CSS)
 
@@ -94,7 +94,7 @@ img {
 }
 ```
 
-![CSSOM Construction](./2023-08-10-critical-rendering-path/cssom-construction.inline.svg)
+![CSSOM Construction](./cssom-construction.inline.svg)
 
 **Non-Render-Blocking CSS:**
 
@@ -137,7 +137,7 @@ JavaScript can be loaded in several modes, each affecting how and when scripts a
 - **Executed after the DOM is parsed** and after all dependencies are loaded.
 - **Order is not guaranteed** for multiple modules unless imported explicitly.
 
-![Async, Defer, Module Diagram](./2023-08-10-critical-rendering-path/asyncdefer.inline.svg)
+![Async, Defer, Module Diagram](./asyncdefer.inline.svg)
 
 | Script Mode | Blocks Parser | Order Preserved | Executes After DOM | Blocks on CSS   | Notes                          |
 | ----------- | ------------- | --------------- | ------------------ | --------------- | ------------------------------ |
@@ -162,7 +162,7 @@ With the DOM and CSSOM ready, the browser combines them to create the Render Tre
 - **Excludes**: Non-visual nodes (like `<head>`, `<script>`, `<meta>`) and nodes with `display: none`.
 - **Difference**: `display: none` removes nodes from the render tree; `visibility: hidden` keeps them in the tree but makes them invisible (they still occupy space).
 
-![Render Tree](./2023-08-10-critical-rendering-path/render-tree.invert.png)
+![Render Tree](./render-tree.invert.png)
 
 ### 4. Layout (Reflow)
 
@@ -1118,7 +1118,7 @@ Use this checklist to audit and optimize your Critical Rendering Path:
 
 - Downloaded from [Alex Xu](https://twitter.com/alexxubyte/status/1534201523713867777) Twitter post.
 
-![CRP from Bytebytego](./2023-08-10-critical-rendering-path/crp-bytebytego.jpeg)
+![CRP from Bytebytego](./crp-bytebytego.jpeg)
 
 <iframe
   width='560'

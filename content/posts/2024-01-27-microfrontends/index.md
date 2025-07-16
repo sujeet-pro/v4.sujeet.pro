@@ -16,6 +16,8 @@ For expert practitioners, the value proposition extends beyond mere code organiz
 
 By aligning frontend modules with specific business domains, cross-functional teams can own their slice of the application end-to-end, fostering innovation and reducing development bottlenecks. This paradigm shift requires a deep understanding of not just the "what," but the "how"—specifically, the critical decisions around composition, deployment, and the management of cross-cutting concerns.
 
+## Table of Contents
+
 ## Core Principles of Microfrontend Architecture
 
 A successful microfrontend implementation is built on a foundation of core principles that ensure scalability and team independence.

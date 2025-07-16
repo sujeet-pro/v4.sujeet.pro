@@ -32,7 +32,7 @@ It is a technique where an application progressively increases the waiting time 
 - We want the users to see the data ASAP
 - So we will retry ASAP
 
-```ts file=./2025-01-23/simple-retry.ts
+```ts file=./simple-retry.ts
 
 ```
 
@@ -44,13 +44,13 @@ It is a technique where an application progressively increases the waiting time 
 
 ### Strategy 2: Retry with constant wait
 
-```ts file=./2025-01-23/simple-retry-with-delay.ts
+```ts file=./simple-retry-with-delay.ts
 
 ```
 
 ### Strategy 3: Retry with exponential Wait
 
-```ts file=./2025-01-23/simple-retry-with-exponential-delay.ts
+```ts file=./simple-retry-with-exponential-delay.ts
 
 ```
 
@@ -58,7 +58,7 @@ It is a technique where an application progressively increases the waiting time 
 
 The Functions should be abortable in production code.
 
-```ts file=./2025-01-23/exponential-backoff-abortable.ts collapse={2-20}
+```ts file=./exponential-backoff-abortable.ts collapse={2-20}
 
 ```
 
