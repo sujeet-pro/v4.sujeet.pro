@@ -7,6 +7,9 @@ tags:
   - http
   - quic
   - networking
+  - architecture
+  - frontend
+  - backend
 ---
 
 # Switching HTTP Versions: A Deep Dive into Browser Protocol Negotiation

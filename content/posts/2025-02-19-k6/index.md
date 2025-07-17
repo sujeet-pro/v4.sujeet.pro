@@ -5,13 +5,15 @@ tags:
   - k6
   - load-testing
   - stress-testing
-  # - soak-testing
-  # - spike-testing
-  # - smoke-testing
+  - soak-testing
+  - spike-testing
+  - smoke-testing
   - web-performance
   - devops
-  # - sre
-  # - ci-cd
+  - sre
+  - "ci-cd"
+  - js
+  - architecture
 ---
 
 # Architectural Deep Dive: k6 Performance Testing Framework for Modern Engineering Teams

@@ -4,9 +4,12 @@ tags:
   - js
   - node
   - performance
-  # - event-loop
-  # - concurrency
-  # - libuv
+  - "event-loop"
+  - concurrency
+  - libuv
+  - architecture
+  - backend
+  - frontend
 ---
 
 # The JavaScript Event Loop: A Unified, Cross-Environment Technical Analysis

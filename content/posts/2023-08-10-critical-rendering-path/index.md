@@ -8,6 +8,9 @@ tags:
   - performance
   - ssg
   - ssr
+  - frontend
+  - architecture
+  - cls
 featuredRank: 1
 ---
 

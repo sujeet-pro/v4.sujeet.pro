@@ -7,6 +7,13 @@ tags:
   - web-performance
   - caching
   - load-testing
+  - frontend
+  - backend
+  - architecture
+  - performance
+  - js
+  - css
+  - html
 ---
 
 # A Systematic Guide to Full-Stack Web Performance Optimization

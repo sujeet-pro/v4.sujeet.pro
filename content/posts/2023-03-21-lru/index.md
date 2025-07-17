@@ -9,6 +9,8 @@ tags:
   - algorithms
   - performance
   - system-design
+  - architecture
+  - backend
 ---
 
 # LRU Cache: From Classic Implementation to Modern Alternatives

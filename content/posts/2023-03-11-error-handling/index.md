@@ -6,6 +6,9 @@ tags:
   - error-handling
   - fp
   - monads
+  - architecture
+  - backend
+  - frontend
 ---
 
 # A Comprehensive Analysis of Error Handling Paradigms in Modern JavaScript

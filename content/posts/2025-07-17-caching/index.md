@@ -6,6 +6,8 @@ tags:
   - performance
   - caching
   - algorithms
+  - architecture
+  - scalability
 ---
 
 # A Comprehensive Guide to Caching: From CPU Architectures to Modern Distributed Systems

@@ -5,6 +5,8 @@ tags:
   - ts
   - unicode
   - encoding
+  - frontend
+  - performance
 ---
 
 # Deconstructing JavaScript String Length: Unicode, UTF-16, and the Grapheme Cluster

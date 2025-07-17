@@ -5,8 +5,11 @@ tags:
   - ts
   - design-patterns
   - distributed-systems
-  # - resilience
-  # - microservices
+  - resilience
+  - microservices
+  - architecture
+  - backend
+  - performance
 ---
 
 # The Art of Resilience: A Deep Dive into Exponential Backoff, Jitter, and Modern Retry Strategies

@@ -4,6 +4,10 @@ tags:
   - js
   - ts
   - design-patterns
+  - architecture
+  - backend
+  - frontend
+  - scalability
 ---
 
 # Publish-Subscribe Pattern: From Core Concepts to Production-Grade Systems

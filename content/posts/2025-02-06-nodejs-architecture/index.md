@@ -4,6 +4,10 @@ tags:
   - js
   - node
   - performance
+  - architecture
+  - backend
+  - "v8-engine"
+  - scalability
 ---
 
 # Deconstructing Node.js: An In-Depth Analysis of Architecture, Evolution, and Performance

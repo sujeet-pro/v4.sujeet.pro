@@ -6,6 +6,12 @@ tags:
   - architecture
   - frontend
   - scalability
+  - js
+  - react
+  - vue
+  - angular
+  - svelte
+  - "design-patterns"
 ---
 
 # The Architect's Guide to Modern Microfrontends: Composition, Deployment, and Strategy

@@ -12,6 +12,11 @@ tags:
   - compression
   - redirection
   - rollback
+  - frontend
+  - backend
+  - ssr
+  - csr
+  - scalability
 ---
 
 # The Ultimate Guide to High-Performance Static Site Generation on AWS: Architecture and Advanced Optimizations

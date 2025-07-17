@@ -4,6 +4,10 @@ tags:
   - js
   - node
   - performance
+  - "v8-engine"
+  - architecture
+  - backend
+  - frontend
 ---
 
 # The V8 Engine: A Deep Architectural Analysis of a Modern High-Performance JavaScript Runtime

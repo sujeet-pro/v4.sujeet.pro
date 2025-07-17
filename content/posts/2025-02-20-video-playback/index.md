@@ -2,11 +2,14 @@
 lastUpdatedOn: 2025-07-18
 tags:
   - video-streaming
-  # - video-playback
-  # - hls
-  # - dash
-  # - codecs
-  # - drm
+  - video-playback
+  - hls
+  - dash
+  - codecs
+  - drm
+  - architecture
+  - performance
+  - frontend
 ---
 
 # The Modern Video Playback Stack: An End-to-End Technical Deep Dive
