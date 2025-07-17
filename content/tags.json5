@@ -61,4 +61,5 @@
   monads: { name: "Monads" },
   unicode: { name: "Unicode" },
   encoding: { name: "Encoding" },
+  algorithms: { name: "Algorithms" },
 }
