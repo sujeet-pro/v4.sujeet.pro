@@ -145,11 +145,11 @@ table {
   @apply whitespace-nowrap;
 }
 
-thead,
+/* thead,
 tbody {
   @apply w-full;
   @apply block;
-}
+} */
 
 /* ==========================================================================
    INTERACTIVE ELEMENTS
