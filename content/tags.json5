@@ -59,4 +59,6 @@
   "stress-testing": { name: "Stress Testing" },
   fp: { name: "Functional Programming" },
   monads: { name: "Monads" },
+  unicode: { name: "Unicode" },
+  encoding: { name: "Encoding" },
 }
