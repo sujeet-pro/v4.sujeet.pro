@@ -14,8 +14,8 @@
         <div data-drawio-colors="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);"
           style="box-sizing:border-box;font-size:0;text-align:center">
           <div
-            style="display:inline-block;font-size:11px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;background-color:#fff;white-space:nowrap">
-            Update Header buildVersion <br /> for the S3 origin </div>
+            style="display:inline-block;font-size:11px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;background-color:#fff;white-space:pre">
+            Update Header buildVersion &#10; for the S3 origin </div>
         </div>
       </div>
     </foreignObject>
@@ -60,9 +60,9 @@
         <div data-drawio-colors="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);"
           style="box-sizing:border-box;font-size:0;text-align:center">
           <div
-            style="display:inline-block;font-size:11px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;background-color:#fff;white-space:nowrap">
-            SSG Build for both mobile and desktop: <br /> [build_number]/mobile <br />
-            [build_number]/desktop <br /> Precompress for Gzip and Brotli and Sync Everything </div>
+            style="display:inline-block;font-size:11px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;background-color:#fff;white-space:pre">
+            SSG Build for both mobile and desktop: &#10; [build_number]/mobile &#10;
+            [build_number]/desktop &#10; Precompress for Gzip and Brotli and Sync Everything </div>
         </div>
       </div>
     </foreignObject>
@@ -154,9 +154,9 @@
         <div data-drawio-colors="color: rgb(0, 0, 0);"
           style="box-sizing:border-box;font-size:0;text-align:center">
           <div
-            style="display:inline-block;font-size:12px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;white-space:nowrap">
-            Based on the buildVersion and <br /> Cloudfront-Is-Mobile-Viewer <br /> Update the
-            request URI (prefix) <br /> And using Accept-Encoding, <br /> add prefix for .gzip/.br </div>
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;white-space:pre">
+            Based on the buildVersion and &#10; Cloudfront-Is-Mobile-Viewer &#10; Update the
+            request URI (prefix) &#10; And using Accept-Encoding, &#10; add prefix for .gzip/.br </div>
         </div>
       </div>
     </foreignObject>
@@ -228,8 +228,8 @@
         <div data-drawio-colors="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);"
           style="box-sizing:border-box;font-size:0;text-align:center">
           <div
-            style="display:inline-block;font-size:11px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;background-color:#fff;white-space:nowrap">
-            For Rollback: <br /> Update buildVersion </div>
+            style="display:inline-block;font-size:11px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;background-color:#fff;white-space:pre">
+            For Rollback: &#10; Update buildVersion </div>
         </div>
       </div>
     </foreignObject>
@@ -270,8 +270,8 @@
         <div data-drawio-colors="color: rgb(0, 0, 0);"
           style="box-sizing:border-box;font-size:0;text-align:center">
           <div
-            style="display:inline-block;font-size:12px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;white-space:nowrap">
-            Origin Request <br /> Interceptor Repo </div>
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;white-space:pre">
+            Origin Request &#10; Interceptor Repo </div>
         </div>
       </div>
     </foreignObject>
@@ -294,8 +294,8 @@
         <div data-drawio-colors="color: rgb(0, 0, 0); background-color: rgb(255, 255, 255);"
           style="box-sizing:border-box;font-size:0;text-align:center">
           <div
-            style="display:inline-block;font-size:11px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;background-color:#fff;white-space:nowrap">
-            Deploy <br /> Lambda </div>
+            style="display:inline-block;font-size:11px;font-family:Helvetica;color:#000;line-height:1.2;pointer-events:all;background-color:#fff;white-space:pre">
+            Deploy &#10; Lambda </div>
         </div>
       </div>
     </foreignObject>
@@ -317,8 +317,8 @@
         <div data-drawio-colors="color: #999999;"
           style="box-sizing:border-box;font-size:0;text-align:left">
           <div
-            style="display:inline-block;font-size:12px;font-family:Helvetica;color:#999;line-height:1.2;pointer-events:all;white-space:nowrap">
-            Build Lambda <br /> Inlined Redirect <br /> Data </div>
+            style="display:inline-block;font-size:12px;font-family:Helvetica;color:#999;line-height:1.2;pointer-events:all;white-space:pre">
+            Build Lambda &#10; Inlined Redirect &#10; Data </div>
         </div>
       </div>
     </foreignObject>

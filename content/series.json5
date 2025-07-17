@@ -30,8 +30,8 @@
       // "features/ssg-serving-pre-compressed",
     ],
   },
-  // "interview-js": {
-  //   name: "JS Interview Preparations",
-  //   blogs: ["programming/js-pub-sub"],
-  // },
+  caching: {
+    name: "Caching",
+    blogs: ["2025-07-17-caching", "2023-03-21-lru-caching"],
+  },
 }

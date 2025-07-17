@@ -6,6 +6,7 @@ import Item from "@/components/item.astro"
 import { getAllSeries } from "@/utils/content-series.utils"
 import Frontmatter from "@/components/frontmatter.astro"
 import Link from "@/components/link.astro"
+import Accordion from "@/components/accordion.astro"
 
 // Generate static paths for all blog posts
 export async function getStaticPaths() {
@@ -91,7 +92,26 @@ if (series) {
 
 <Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft}>
   <Frontmatter {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} />
-  <Article {title} noIndex={isDraft} {series} as="article">
+  {
+    series && (
+      <Accordion title={`Part of Series: ${series.name}`} open={true} noIndex={true}>
+        <ol class="list-inside list-decimal space-y-2 p-0">
+          {series.blogs.map((blog) => (
+            <li class="pl-2">
+              {blog.title === title ? (
+                <span class="font-medium text-primary-600 dark:text-primary-400">{blog.title}</span>
+              ) : (
+                <Link href={blog.href} class="hover:underline">
+                  {blog.title}
+                </Link>
+              )}
+            </li>
+          ))}
+        </ol>
+      </Accordion>
+    )
+  }
+  <Article {title} noIndex={isDraft} as="article">
     <Content />
   </Article>
 
