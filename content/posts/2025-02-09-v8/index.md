@@ -8,6 +8,8 @@ tags:
 
 # The V8 Engine: A Deep Architectural Analysis of a Modern High-Performance JavaScript Runtime
 
+V8 is Google's open-source JavaScript and WebAssembly engine that powers Chrome, Node.js, and other modern JavaScript runtimes. This comprehensive analysis explores V8's sophisticated multi-tiered compilation pipeline, from the Ignition interpreter through Sparkplug, Maglev, and TurboFan optimizers, revealing how it achieves near-native performance while maintaining JavaScript's dynamic nature.
+
 ## Table of Contents
 
 ## Introduction
@@ -501,66 +503,7 @@ To avoid slow dictionary-like lookups for object properties, V8 associates every
 
 Hidden classes form a transition tree. As properties are added to an object, V8 follows a transition to a new Map that describes the new shape.
 
-```mermaid
-graph TD
-    subgraph "Object Memory Layout"
-        A[Object Instance] --> B[Map Pointer]
-        A --> C[Property Values]
-    end
-
-    subgraph "Hidden Class (Map)"
-        B --> D[Map]
-        D --> E[DescriptorArray]
-        D --> F[TransitionArray]
-    end
-
-    subgraph "Property Descriptors"
-        E --> G[name: x, offset: 0, attributes: ...]
-        E --> H[name: y, offset: 1, attributes: ...]
-    end
-
-    subgraph "Property Access"
-        I[Property Access: obj.x] --> J[Check Map Pointer]
-        J --> K{Map Match?}
-        K -->|Yes| L[Load from offset 0]
-        K -->|No| M[Slow path lookup]
-    end
-
-    style A fill:#e3f2fd
-    style D fill:#f1f8e9
-    style L fill:#e8f5e8
-    style M fill:#ffebee
-```
-
 A crucial takeaway is that the order of property addition matters. The code `p1.x=1; p1.y=2;` results in a different final Map than `p2.y=2; p2.x=1;`. To ensure optimal performance, objects should be initialized with all properties at once, in a consistent order.
-
-```mermaid
-graph TD
-    A[Empty Object] --> B["Map: {}"]
-    B --> C[Add property a]
-    C --> D["Map: a"]
-    D --> E[Add property b]
-    E --> F["Map: a, b"]
-
-    G[Empty Object] --> H[Map: empty]
-    H --> I[Add property b]
-    I --> J["Map: b"]
-    J --> K[Add property a]
-    K --> L["Map: b, a"]
-
-    subgraph "Optimization Impact"
-        M[Objects with same Map] --> N[Can be optimized together]
-        O[Objects with different Maps] --> P[Cannot be optimized together]
-    end
-
-    F -.-> M
-    L -.-> O
-
-    style F fill:#e8f5e8
-    style L fill:#ffebee
-    style N fill:#e8f5e8
-    style P fill:#ffebee
-```
 
 ### 6.2 Inline Caching (IC) and the FeedbackVector
 
@@ -571,39 +514,6 @@ The state of an IC quantifies the predictability of a code location:
 - **Monomorphic**: The IC has only ever seen a single hidden class. This is the ideal state for optimization.
 - **Polymorphic**: The IC has seen a small number of different hidden classes (typically 2-4). This is still fast and optimizable.
 - **Megamorphic**: The IC has seen too many different hidden classes. V8 gives up on local optimization for this site and uses a slower, global cache. This state often prevents TurboFan from optimizing the function.
-
-```mermaid
-flowchart TD
-    subgraph "Function Execution"
-        A[Function Call] --> B[Ignition Interpreter]
-        B --> C[Property Access Site]
-    end
-
-    subgraph "Inline Cache"
-        C --> D[Check IC State]
-        D --> E{IC State}
-        E -->|Uninitialized| F[Record Map]
-        E -->|Monomorphic| G[Check Map Match]
-        E -->|Polymorphic| H[Check Multiple Maps]
-        E -->|Megamorphic| I[Global Cache Lookup]
-    end
-
-    subgraph "FeedbackVector"
-        J[FeedbackVector Array]
-        K[Slot 0: Map A]
-        L[Slot 1: Map B]
-        M[Slot 2: Map C]
-    end
-
-    F --> J
-    G --> J
-    H --> J
-
-    style F fill:#e8f5e8
-    style G fill:#e8f5e8
-    style H fill:#fff3e0
-    style I fill:#ffebee
-```
 
 | State Name    | Number of Shapes Seen | Performance Characteristic                                                      | TurboFan Optimizability                                                           |
 | ------------- | --------------------- | ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
@@ -820,41 +730,6 @@ flowchart TD
     style G fill:#e3f2fd
 ```
 
-```mermaid
-flowchart TD
-    subgraph "Major GC Phases"
-        A[Marking Phase] --> B[Sweeping Phase]
-        B --> C[Compaction Phase]
-    end
-
-    subgraph "Concurrent Operations"
-        D[Main Thread<br/>JavaScript Execution] --> E[Helper Threads<br/>Background Work]
-        E --> F[Concurrent Marking]
-        E --> G[Concurrent Sweeping]
-    end
-
-    subgraph "Parallel Operations"
-        H[Stop-the-World Pause] --> I[Parallel Compaction]
-        I --> J[Main Thread and Helpers]
-        J --> K[Resume Application]
-    end
-
-    subgraph "Write Barriers"
-        L[New Object Pointers] --> M[Track Changes]
-        M --> N[Update GC View]
-    end
-
-    A --> F
-    B --> G
-    C --> H
-    D --> L
-
-    style H fill:#ffebee
-    style K fill:#e8f5e8
-    style F fill:#e3f2fd
-    style G fill:#e3f2fd
-```
-
 ### 8.4 Advanced GC Techniques
 
 **Black Allocation**: This is an optimization where objects that are expected to be long-lived (e.g., those being promoted to the Old Generation) are immediately marked "black" (live) and placed on special "black pages". The GC can then skip scanning these pages entirely during the next marking cycle, reducing the overall workload based on the strong assumption that these objects will survive.
@@ -939,3 +814,7 @@ V8 is more than just a JavaScript engine; it is a living embodiment of decades o
 - [The Sea of Nodes](https://darksi.de/d.sea-of-nodes/)
 - [Hidden Classes](https://v8.dev/docs/hidden-classes)
 - [TurboFan](https://v8.dev/docs/turbofan)
+
+```
+
+```
