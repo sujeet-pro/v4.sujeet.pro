@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "postinstall": "npm install -D @playwright/test@latest &&npx playwright install --with-deps",
+    "postinstallx": "npm install -D @playwright/test@latest &&npx playwright install --with-deps",
     "dev": "npm run clean && astro dev",
     "prod": "npm run clean && astro build && npm run preview",
     "dev:cf": "astro dev -- --site https://sujeet.pro --base /",
