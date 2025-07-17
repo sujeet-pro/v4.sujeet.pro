@@ -72,14 +72,15 @@ export default defineConfig({
   },
   markdown: {
     remarkPlugins: [
+      [remarkFrontmatterPlugin, { defaultLayout: "@/layout/layout-markdown.astro" }],
+      remarkCodeTitleUsingFile,
       [remarkInlineSvg, { className: "md-inline-svg", suffix: ".inline.svg" }],
       [remarkCodeImport, { removeRedundantIndentations: true }] as any,
       remarkMath,
       remarkNormalizeHeadings,
       remarkEmoji,
-      [remarkFrontmatterPlugin, { defaultLayout: "@/layout/layout-markdown.astro" }],
+
       [remarkToc, { heading: "Table of Contents", maxDepth: 3, tight: true }],
-      remarkCodeTitleUsingFile,
     ],
     rehypePlugins: [
       rehypeKatex,
