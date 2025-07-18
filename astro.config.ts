@@ -35,8 +35,8 @@ import { remarkFrontmatterPlugin } from "./plugins/remark-frontmatter-plugin"
 // https://astro.build/config
 
 export default defineConfig({
-  site: "https://projects.sujeet.pro",
-  base: "/v4.sujeet.pro/",
+  site: "https://sujeet.pro",
+  base: "/",
   trailingSlash: "ignore",
   output: "static",
   scopedStyleStrategy: "where",

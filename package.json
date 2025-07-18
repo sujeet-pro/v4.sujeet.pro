@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "npm run clean && astro dev",
     "prod": "npm run clean && astro build && npm run preview",
-    "dev:cf": "astro dev -- --site https://sujeet.pro --base /",
-    "build:cf": "astro build -- --site https://sujeet.pro --base /",
+    "dev:gh": "astro dev -- --site https://projects.sujeet.pro --base /v4.sujeet.pro/",
+    "build:gh": "astro build -- --site https://projects.sujeet.pro --base /v4.sujeet.pro/",
     "build": "astro build",
     "setup": "node --experimental-strip-types scripts/setup.ts",
     "preview": "astro preview",
@@ -19,7 +19,10 @@
     "check-unused-images": "tsx scripts/check-unused-images.ts",
     "remove-unused-images": "tsx scripts/remove-unused-images.ts",
     "all": "npm run setup && npm run build && npm run check-unused-images && npm run remove-unused-images",
-    "test": "vitest run"
+    "test": "vitest run",
+    "deploy": "npm run build && wrangler deploy",
+    "deploy:dry-run": "npm run build && wrangler deploy --dry-run",
+    "dev:worker": "wrangler dev"
   },
   "devDependencies": {
     "@eslint/css": "^0.10.0",
@@ -44,7 +47,8 @@
     "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.37.0",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "wrangler": "^4.25.0"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",

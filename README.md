@@ -1,6 +1,17 @@
 # Personal Portfolio & Blog
 
-This repository contains my personal portfolio website and a collection of blogs written over time. Built with Astro for fast, modern web development.
+This repository contains my personal portfolio website and a collection of blogs written over time. Built with Astro for fast, modern web development and deployed on Cloudflare Workers.
+
+## Deployment
+
+This project is deployed on Cloudflare Workers using the modern Workers Assets format. The migration from Cloudflare Pages to Workers was completed to leverage the latest Cloudflare infrastructure.
+
+### Deployment Commands
+
+- `npm run build` - Build the static site
+- `npm run deploy` - Build and deploy to Cloudflare Workers
+- `npm run deploy:dry-run` - Test deployment configuration without deploying
+- `npm run dev:worker` - Start local Workers development server
 
 ## Supported Features (Tech)
 

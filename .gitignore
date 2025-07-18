@@ -27,3 +27,6 @@ pnpm-debug.log*
 # katex files
 
 public/katex-v1
+
+# wrangler
+.wrangler

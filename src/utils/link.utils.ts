@@ -25,7 +25,12 @@ export function getLinkProps({
   if (href === "/") {
     href = "/" + base.replace(/^\//, "")
   } else {
-    href = "/" + replaceLeadingAndTrailingSlashes(base) + "/" + href.replace(/^\//, "")
+    const basePart = replaceLeadingAndTrailingSlashes(base)
+    if (basePart) {
+      href = "/" + basePart + "/" + href.replace(/^\//, "")
+    } else {
+      href = "/" + href.replace(/^\//, "")
+    }
   }
 
   if (trailingSlash === "always" && !href.endsWith("/") && href !== "/") {
