@@ -16,8 +16,6 @@
     "format": "prettier . --write --ignore-unknown",
     "sync": "astro sync",
     "clean": "rm -rf .astro dist",
-    "check-unused-images": "tsx scripts/check-unused-images.ts",
-    "remove-unused-images": "tsx scripts/remove-unused-images.ts",
     "all": "npm run setup && npm run build && npm run check-unused-images && npm run remove-unused-images",
     "test": "vitest run",
     "deploy": "npm run build && wrangler deploy",
