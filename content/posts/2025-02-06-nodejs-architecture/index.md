@@ -132,7 +132,6 @@ To capitalize on this behavior, V8 divides its memory heap into distinct generat
 **Garbage Collection Algorithms**:
 
 - **Scavenge (Minor GC)**: This algorithm operates exclusively on the New Space and is a type of "copying collector." The process works as follows:
-
   1. New objects are allocated sequentially in the active semi-space (let's call it From-Space).
   2. When From-Space fills up, a Scavenge cycle is triggered. This is a "stop-the-world" event, but it is extremely fast.
   3. The collector starts from the root set (global objects, stack variables) and traverses the object graph to identify all live objects within From-Space.

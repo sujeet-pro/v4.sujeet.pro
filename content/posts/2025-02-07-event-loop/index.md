@@ -10,6 +10,7 @@ tags:
   - architecture
   - backend
   - frontend
+featuredRank: 30
 ---
 
 # The JavaScript Event Loop: A Unified, Cross-Environment Technical Analysis

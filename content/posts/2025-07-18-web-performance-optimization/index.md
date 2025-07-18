@@ -14,6 +14,7 @@ tags:
   - js
   - css
   - html
+featuredRank: 20
 ---
 
 # A Systematic Guide to Full-Stack Web Performance Optimization

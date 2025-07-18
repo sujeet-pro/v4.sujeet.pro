@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sujeet Kumar Jaiswal - Principal Engineer | Frontend Architecture & Infrastructure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f5f5f5;
+        color: #242424;
+      }
+      .chart-container {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        height: 300px;
+        max-height: 400px;
+      }
+      @media (min-width: 768px) {
+        .chart-container {
+          height: 350px;
+        }
+      }
+      .kpi-card {
+        background-color: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        box-shadow:
+          0 4px 6px -1px rgb(0 0 0 / 0.1),
+          0 2px 4px -2px rgb(0 0 0 / 0.1);
+        text-align: center;
+        transition:
+          transform 0.3s ease,
+          box-shadow 0.3s ease;
+      }
+      .kpi-card:hover {
+        transform: translateY(-5px);
+        box-shadow:
+          0 10px 15px -3px rgb(0 0 0 / 0.1),
+          0 4px 6px -4px rgb(0 0 0 / 0.1);
+      }
+      .timeline::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background-color: #004aad;
+        border-radius: 2px;
+      }
+      .timeline-item {
+        position: relative;
+        width: 50%;
+        padding: 20px 40px;
+        box-sizing: border-box;
+      }
+      .timeline-item:nth-child(odd) {
+        left: 0;
+        padding-left: 20px;
+      }
+      .timeline-item:nth-child(even) {
+        left: 50%;
+        padding-right: 20px;
+      }
+      .timeline-item-content {
+        padding: 1.5rem;
+        background: white;
+        border-radius: 0.5rem;
+        box-shadow:
+          0 4px 6px -1px rgb(0 0 0 / 0.1),
+          0 2px 4px -2px rgb(0 0 0 / 0.1);
+      }
+      .timeline-item::after {
+        content: "";
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        right: -10px;
+        background-color: white;
+        border: 4px solid #004aad;
+        top: 25px;
+        border-radius: 50%;
+        z-index: 1;
+      }
+      .timeline-item:nth-child(even)::after {
+        left: -10px;
+      }
+      @media screen and (max-width: 768px) {
+        .timeline::before {
+          left: 10px;
+        }
+        .timeline-item {
+          width: 100%;
+          padding-left: 50px;
+          padding-right: 10px;
+        }
+        .timeline-item:nth-child(even) {
+          left: 0;
+        }
+        .timeline-item::after {
+          left: 1px;
+        }
+      }
+      .flow-chart-node {
+        border: 2px solid #004aad;
+        color: #004aad;
+        background-color: #ffffff;
+      }
+      .flow-chart-arrow {
+        color: #004aad;
+        font-size: 2rem;
+        line-height: 1;
+      }
+    </style>
+  </head>
+  <body class="antialiased">
+    <div class="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+      <header class="mb-12 text-center">
+        <h1 class="text-4xl font-extrabold text-[#004AAD] md:text-5xl">Sujeet Kumar Jaiswal</h1>
+        <p class="mt-2 text-xl text-gray-700 md:text-2xl">
+          Principal Engineer | Frontend Architecture & Infrastructure Expert
+        </p>
+        <div class="mt-4 flex items-center justify-center gap-x-4 text-sm text-gray-600">
+          <a href="mailto:sujeet.profession@gmail.com" class="hover:text-[#009FFD]">📧 sujeet.profession@gmail.com</a>
+          <span>|</span>
+          <a href="https://sujeet.pro" target="_blank" class="hover:text-[#009FFD]">🌐 sujeet.pro</a>
+          <span>|</span>
+          <a href="https://sujeet.pro/post/" target="_blank" class="hover:text-[#009FFD]">📝 Blog</a>
+          <span>|</span>
+          <a href="https://www.linkedin.com/in/sujeetkrjaiswal/" target="_blank" class="hover:text-[#009FFD]"
+            >💼 LinkedIn</a
+          >
+        </div>
+      </header>
+
+      <main>
+        <section id="summary" class="mb-16">
+          <div class="rounded-lg bg-white p-8 shadow-md">
+            <h2 class="mb-4 text-2xl font-bold text-[#004AAD]">Professional Summary</h2>
+            <p class="text-lg leading-relaxed text-gray-700">
+              Results-driven Principal Engineer with 11+ years of experience architecting and developing
+              high-performance, scalable web applications. Proven expertise in frontend infrastructure, server-side
+              rendering, observability, and AI-powered development tools. Demonstrated leadership in technical
+              decision-making, performance optimization, and cross-functional team management. Passionate about
+              developer experience (DX) improvements and implementing cutting-edge technologies to drive business
+              growth.
+            </p>
+          </div>
+        </section>
+
+        <section id="key-metrics" class="mb-16">
+          <h2 class="mb-8 text-center text-3xl font-bold text-[#004AAD]">Career Impact & Key Achievements</h2>
+          <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
+            <div class="kpi-card">
+              <div class="text-5xl font-extrabold text-[#009FFD]">20%</div>
+              <div class="mt-2 text-lg font-semibold">Core Web Vitals Boost</div>
+              <p class="mt-1 text-sm text-gray-600">across multiple platforms through advanced performance tuning.</p>
+            </div>
+            <div class="kpi-card">
+              <div class="text-5xl font-extrabold text-[#009FFD]">25%</div>
+              <div class="mt-2 text-lg font-semibold">Dev Efficiency Gain</div>
+              <p class="mt-1 text-sm text-gray-600">
+                by integrating AI-powered tools like GitHub Copilot into workflows.
+              </p>
+            </div>
+            <div class="kpi-card">
+              <div class="text-5xl font-extrabold text-[#009FFD]">70%</div>
+              <div class="mt-2 text-lg font-semibold">MTTR Reduction</div>
+              <p class="mt-1 text-sm text-gray-600">
+                by deploying comprehensive observability stacks with Datadog & Sentry.
+              </p>
+            </div>
+            <div class="kpi-card">
+              <div class="text-5xl font-extrabold text-[#009FFD]">30%</div>
+              <div class="mt-2 text-lg font-semibold">Infrastructure Cost Cut</div>
+              <p class="mt-1 text-sm text-gray-600">by architecting a resilient, failover-ready AWS Image Service.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="competencies" class="mb-16">
+          <h2 class="mb-8 text-center text-3xl font-bold text-[#004AAD]">Core Technical Competencies</h2>
+          <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <div class="rounded-lg bg-white p-6 shadow-md">
+              <h3 class="mb-4 text-xl font-bold text-[#004AAD]">Frontend & Architecture</h3>
+              <div class="chart-container h-80"><canvas id="frontendChart"></canvas></div>
+              <p class="mt-4 text-sm text-gray-600">
+                Expertise in building scalable user interfaces, from SSR/SSG frameworks to complex
+                <a
+                  href="https://sujeet.pro/post/the-architects-guide-to-modern-microfrontends"
+                  target="_blank"
+                  class="text-[#009FFD] hover:underline"
+                  >Micro-frontend Architectures</a
+                >.
+              </p>
+            </div>
+            <div class="rounded-lg bg-white p-6 shadow-md">
+              <h3 class="mb-4 text-xl font-bold text-[#004AAD]">Infrastructure & Observability</h3>
+              <div class="chart-container h-80"><canvas id="infraChart"></canvas></div>
+              <p class="mt-4 text-sm text-gray-600">
+                Deep knowledge in cloud services, CDN optimization, and establishing robust monitoring systems for
+                high-traffic applications.
+              </p>
+            </div>
+            <div class="rounded-lg bg-white p-6 shadow-md">
+              <h3 class="mb-4 text-xl font-bold text-[#004AAD]">AI & Developer Experience</h3>
+              <div class="chart-container h-80"><canvas id="dxChart"></canvas></div>
+              <p class="mt-4 text-sm text-gray-600">
+                Focused on enhancing team productivity through AI tooling, automation, and creating streamlined
+                development environments.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section id="experience" class="mb-16">
+          <h2 class="mb-12 text-center text-3xl font-bold text-[#004AAD]">Professional Experience</h2>
+          <div class="timeline relative mx-auto max-w-4xl">
+            <div class="timeline-item">
+              <div class="timeline-item-content">
+                <span class="text-sm font-semibold text-[#009FFD]">July 2024 - Present</span>
+                <h3 class="mt-1 text-xl font-bold">Principal Engineer @ Quince</h3>
+                <p class="mb-2 text-sm text-gray-500">E-commerce, B2C</p>
+                <ul class="list-inside list-disc space-y-1 text-sm text-gray-700">
+                  <li>Led migration to Next.js SSR, enabling personalization and A/B testing at scale.</li>
+                  <li>
+                    Architected a high-performance Node.js BFF with Redis, achieving
+                    <strong>p99 latency of 38.5ms</strong>.
+                  </li>
+                  <li>Deployed Datadog & Sentry monitoring, cutting issue resolution time to &lt;30 mins.</li>
+                  <li>
+                    Improved Core Web Vitals by 20% and SEO by 20%. Read about my approach to
+                    <a
+                      href="https://sujeet.pro/post/a-systematic-guide-to-full-stack-web-performance-optimization"
+                      target="_blank"
+                      class="text-[#009FFD] hover:underline"
+                      >Full-Stack Performance</a
+                    >.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-item-content">
+                <span class="text-sm font-semibold text-[#009FFD]">Aug 2020 - May 2023</span>
+                <h3 class="mt-1 text-xl font-bold">Lead Software Engineer @ Vistaprint</h3>
+                <p class="mb-2 text-sm text-gray-500">E-commerce, B2C</p>
+                <ul class="list-inside list-disc space-y-1 text-sm text-gray-700">
+                  <li>Led and managed a team of 6 developers, handling hiring, and performance.</li>
+                  <li>
+                    Built the <strong>SWAN design system</strong>, ensuring brand consistency and a 90+ Lighthouse
+                    score.
+                  </li>
+                  <li>Implemented headers/footers at the edge (Cloudflare), saving 50+ hours per deployment.</li>
+                  <li>
+                    Developed Marketing Landing Pages with Gatsby and Builder.io using
+                    <a
+                      href="https://sujeet.pro/post/the-ultimate-guide-to-high-performance-static-site-generation-on-aws"
+                      target="_blank"
+                      class="text-[#009FFD] hover:underline"
+                      >SSG patterns</a
+                    >.
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-item-content">
+                <span class="text-sm font-semibold text-[#009FFD]">Feb 2020 - Aug 2020</span>
+                <h3 class="mt-1 text-xl font-bold">Lead Software Engineer @ Cure.fit</h3>
+                <p class="mb-2 text-sm text-gray-500">Health & Business, B2C</p>
+                <ul class="list-inside list-disc space-y-1 text-sm text-gray-700">
+                  <li>Built an end-to-end audit platform with a React Native app and admin dashboard.</li>
+                  <li>
+                    Developed a time-stamped video review tool. See my principles on the
+                    <a
+                      href="https://sujeet.pro/post/the-modern-video-playback-stack"
+                      target="_blank"
+                      class="text-[#009FFD] hover:underline"
+                      >Video Playback Stack</a
+                    >.
+                  </li>
+                  <li>Reduced page load time by 20% by optimizing a React SPA with 12.5k input elements.</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-item-content">
+                <span class="text-sm font-semibold text-[#009FFD]">Oct 2014 - Nov 2019</span>
+                <h3 class="mt-1 text-xl font-bold">Specialist Programmer @ Infosys</h3>
+                <p class="mb-2 text-sm text-gray-500">Multi-tenant Enterprise EdTech, B2C</p>
+                <ul class="list-inside list-disc space-y-1 text-sm text-gray-700">
+                  <li>Built a content recommendation system using Association Rule Learning.</li>
+                  <li>Developed a plugin-based page framework, reducing tenant onboarding from 3 weeks to 1.</li>
+                  <li>Authored a video ingestion pipeline with HLS/DASH transcoding using FFmpeg.</li>
+                  <li>
+                    Gained deep insights into the
+                    <a
+                      href="https://sujeet.pro/post/the-v8-engine-a-deep-architectural-analysis"
+                      target="_blank"
+                      class="text-[#009FFD] hover:underline"
+                      >V8 Engine</a
+                    >
+                    and
+                    <a
+                      href="https://sujeet.pro/post/the-javascript-event-loop-a-unified-cross-environment-technical-analysis"
+                      target="_blank"
+                      class="text-[#009FFD] hover:underline"
+                      >Event Loop</a
+                    >.
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="architecture-flow" class="mb-16">
+          <h2 class="mb-8 text-center text-3xl font-bold text-[#004AAD]">
+            Architectural Showcase: Resilient Image Service
+          </h2>
+          <div class="rounded-lg bg-white p-8 shadow-md">
+            <p class="mx-auto mb-8 max-w-3xl text-center text-gray-700">
+              This diagram illustrates the high-level architecture for an AWS-based image optimization service I
+              designed. It focuses on cost-efficiency, high availability, and performance by using a multi-layered
+              caching and fallback strategy, resulting in a 30% cost reduction.
+            </p>
+            <div class="flex flex-col items-center justify-center gap-4 text-center md:flex-row">
+              <div class="flow-chart-node rounded-lg p-4 font-semibold">User Request</div>
+              <div class="flow-chart-arrow">→</div>
+              <div class="flow-chart-node rounded-lg p-4 font-semibold">
+                AWS CloudFront<br /><span class="text-xs font-normal">(Primary Cache)</span>
+              </div>
+              <div class="flow-chart-arrow">→</div>
+              <div class="flex flex-col items-center gap-2">
+                <div class="flow-chart-node rounded-lg p-4 font-semibold">
+                  S3 Origin 1<br /><span class="text-xs font-normal">(Primary Storage)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="flow-chart-arrow -rotate-90 transform md:rotate-0">↓</div>
+                  <span class="text-sm font-medium text-gray-600">On Failure</span>
+                  <div class="flow-chart-arrow -rotate-90 transform md:rotate-0">↓</div>
+                </div>
+                <div class="flow-chart-node rounded-lg p-4 font-semibold">
+                  Lambda@Edge<br /><span class="text-xs font-normal">(Failover Logic)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="flow-chart-arrow -rotate-90 transform md:rotate-0">↓</div>
+                  <span class="text-sm font-medium text-gray-600">Redirects To</span>
+                  <div class="flow-chart-arrow -rotate-90 transform md:rotate-0">↓</div>
+                </div>
+                <div class="flow-chart-node rounded-lg p-4 font-semibold">
+                  S3 Origin 2<br /><span class="text-xs font-normal">(Backup Storage)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="education" class="text-center">
+          <h2 class="mb-4 text-center text-3xl font-bold text-[#004AAD]">Education</h2>
+          <div class="inline-block rounded-lg bg-white p-6 shadow-md">
+            <p class="text-lg font-semibold">B.Tech in Mechanical Engineering</p>
+            <p class="text-gray-600">Uttar Pradesh Technical University, 2014</p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const brilliantBlues = {
+        primary: "#004AAD",
+        secondary: "#009FFD",
+        text: "#242424",
+      }
+
+      const chartDefaultOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              color: brilliantBlues.text,
+              boxWidth: 20,
+              padding: 20,
+            },
+          },
+          tooltip: {
+            callbacks: {
+              title: function (tooltipItems) {
+                const item = tooltipItems[0]
+                let label = item.chart.data.labels[item.dataIndex]
+                if (Array.isArray(label)) {
+                  return label.join(" ")
+                } else {
+                  return label
+                }
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: brilliantBlues.text,
+            },
+            grid: {
+              display: false,
+            },
+          },
+          y: {
+            ticks: {
+              color: brilliantBlues.text,
+            },
+            grid: {
+              color: "#E0E0E0",
+            },
+          },
+        },
+      }
+
+      function wrapLabel(label) {
+        const maxLength = 16
+        if (label.length <= maxLength) return label
+        const words = label.split(" ")
+        let lines = []
+        let currentLine = ""
+        words.forEach((word) => {
+          if ((currentLine + word).length > maxLength) {
+            lines.push(currentLine.trim())
+            currentLine = ""
+          }
+          currentLine += word + " "
+        })
+        lines.push(currentLine.trim())
+        return lines
+      }
+
+      const frontendData = {
+        labels: [
+          "Next.js SSR",
+          "React",
+          "TypeScript",
+          "Gatsby SSG",
+          "Micro-frontends",
+          wrapLabel("Core Web Vitals Perf"),
+        ].map((l) => (typeof l === "string" ? wrapLabel(l) : l)),
+        datasets: [
+          {
+            label: "Expertise Level",
+            data: [95, 98, 95, 85, 90, 97],
+            backgroundColor: brilliantBlues.secondary,
+            borderColor: brilliantBlues.primary,
+            borderWidth: 1,
+          },
+        ],
+      }
+
+      const infraData = {
+        labels: ["AWS (CloudFront, S3, Lambda)", "Datadog", "Sentry", "New Relic", "Docker", "K6 Load Testing"].map(
+          (l) => (typeof l === "string" ? wrapLabel(l) : l),
+        ),
+        datasets: [
+          {
+            label: "Expertise Level",
+            data: [90, 85, 90, 75, 80, 88],
+            backgroundColor: brilliantBlues.secondary,
+            borderColor: brilliantBlues.primary,
+            borderWidth: 1,
+          },
+        ],
+      }
+
+      const dxData = {
+        labels: ["GitHub Copilot", "ChatGPT Integration", "ESLint & Prettier", "CI/CD Pipelines", "Design Systems"].map(
+          (l) => (typeof l === "string" ? wrapLabel(l) : l),
+        ),
+        datasets: [
+          {
+            label: "Expertise Level",
+            data: [90, 85, 95, 88, 92],
+            backgroundColor: brilliantBlues.secondary,
+            borderColor: brilliantBlues.primary,
+            borderWidth: 1,
+          },
+        ],
+      }
+
+      const chartConfigBase = {
+        type: "bar",
+        options: {
+          ...chartDefaultOptions,
+          indexAxis: "y",
+          scales: {
+            x: { ...chartDefaultOptions.scales.x, max: 100 },
+            y: { ...chartDefaultOptions.scales.y },
+          },
+        },
+      }
+
+      new Chart(document.getElementById("frontendChart"), { ...chartConfigBase, data: frontendData })
+      new Chart(document.getElementById("infraChart"), { ...chartConfigBase, data: infraData })
+      new Chart(document.getElementById("dxChart"), { ...chartConfigBase, data: dxData })
+    </script>
+  </body>
+</html>

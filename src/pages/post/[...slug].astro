@@ -91,7 +91,7 @@ if (series) {
 ---
 
 <Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft}>
-  <Frontmatter {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} />
+  <Frontmatter {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} class="my-4" />
   {
     series && (
       <Accordion title={`Part of Series: ${series.name}`} open={true} noIndex={true}>

@@ -1,22 +1,9 @@
 {
-  v8: {
-    name: "V8 Deep dive",
-    blogs: ["2025-02-09-v8"],
-  },
   "node-js": {
     name: "Node.js Deep dive",
-    blogs: [
-      "2025-02-06-nodejs-architecture",
-      "2025-02-07-event-loop",
-      "2025-02-08-libuv",
-      "2025-01-24-async-queue",
-      "2025-01-23-exponential-backoff",
-    ],
+    blogs: ["2025-02-06-nodejs-architecture", "2025-02-09-v8", "2025-02-07-event-loop", "2025-02-08-libuv"],
   },
-  ssg: {
-    name: "Statically Generated Sites",
-    blogs: ["2024-01-20-ssg-optimizations"],
-  },
+
   caching: {
     name: "Caching",
     blogs: ["2025-07-17-caching", "2023-03-21-lru"],
@@ -37,13 +24,13 @@
     name: "Performance & Load Testing",
     blogs: ["2025-02-19-k6"],
   },
-  microfrontends: {
-    name: "Microfrontends & Frontend Architecture",
-    blogs: ["2024-01-27-microfrontends"],
+  "frontend-architecture": {
+    name: "Frontend Architecture",
+    blogs: ["2024-01-27-microfrontends", "2024-01-20-ssg-optimizations"],
   },
   "js-fundamentals": {
     name: "JavaScript Fundamentals",
-    blogs: ["2023-03-20-string-length", "2023-03-11-error-handling", "2023-03-01-pub-sub"],
+    blogs: ["2023-03-20-string-length", "2023-03-11-error-handling"],
   },
   "design-patterns": {
     name: "Design Patterns & Distributed Systems",

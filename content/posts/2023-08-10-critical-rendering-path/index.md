@@ -11,7 +11,7 @@ tags:
   - frontend
   - architecture
   - cls
-featuredRank: 1
+featuredRank: 10
 ---
 
 # Critical Rendering Path: A Modern, Comprehensive Guide
@@ -1033,47 +1033,38 @@ import debounce from "lodash/debounce"
 Use this checklist to audit and optimize your Critical Rendering Path:
 
 - [ ] **Critical CSS extracted & inlined?**
-
   - Above-the-fold styles inlined in `<head>`
   - Non-critical CSS loaded non-blocking
 
 - [ ] **All render-blocking JS deferred?**
-
   - Scripts use `async`, `defer`, or `type="module"`
   - No blocking scripts in `<head>`
 
 - [ ] **Largest image preloaded with correct dimensions?**
-
   - Hero/LCP image preloaded with `rel="preload"`
   - Responsive images with proper `srcset` and `sizes`
 
 - [ ] **DOM ≤ 1,500 nodes above the fold?**
-
   - Minimal DOM complexity for initial render
   - Complex content deferred below the fold
 
 - [ ] **Long tasks broken below 50 ms?**
-
   - JavaScript tasks split into smaller chunks
   - Use `requestIdleCallback` for non-critical work
 
 - [ ] **No forced reflows in hot loops?**
-
   - DOM reads and writes batched separately
   - Layout thrashing eliminated
 
 - [ ] **Layer count under GPU budget?**
-
   - Reasonable number of compositor layers
   - `will-change` used sparingly
 
 - [ ] **Continuous animations use only transform/opacity?**
-
   - No layout-triggering properties in animations
   - GPU-accelerated animations only
 
 - [ ] **contain and content-visibility applied where safe?**
-
   - CSS containment for isolated components
   - `content-visibility: auto` for off-screen content
 

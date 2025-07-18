@@ -8,6 +8,7 @@ tags:
   - architecture
   - backend
   - frontend
+featuredRank: 40
 ---
 
 # The V8 Engine: A Deep Architectural Analysis of a Modern High-Performance JavaScript Runtime
@@ -361,7 +362,6 @@ Unlike traditional compilers that use a Control-Flow Graph (CFG) of basic blocks
 - **Graph Structure**: In SoN, nodes represent individual instructions or values, not blocks of code. Edges between these nodes represent dependencies, forming a single graph that combines data-flow and control-flow information.
 
 - **Edge Types**: The graph's structure is defined by three types of edges:
-
   - **Value Edges**: Represent data dependencies (e.g., an Add node is connected by value edges to its two numeric inputs).
   - **Control Edges**: Impose a sequential ordering on control-flow operations like If, Loop, and Return, which may not have direct data dependencies.
   - **Effect Edges**: Impose an ordering on operations with side effects, such as memory loads and stores (`o.x = 1`) or function calls. This is essential for maintaining program correctness when operations lack direct value or control dependencies.
