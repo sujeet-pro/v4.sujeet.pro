@@ -24,11 +24,11 @@ import remarkToc from "remark-toc"
 import { rehypeAccessibleEmojis } from "rehype-accessible-emojis"
 import rehypeAutolinkHeadings from "rehype-autolink-headings"
 import rehypeKatex from "rehype-katex"
-import rehypeMermaid from "rehype-mermaid"
 import rehypeImgClass from "./plugins/rehype-img-class"
 // import rehypeSlug from "rehype-slug";
 
 // Custom Plugins
+import rehypeMermaid from "rehype-mermaid"
 import { remarkCodeTitleUsingFile } from "./plugins/remark-code-title-using-file"
 import { remarkFrontmatterPlugin } from "./plugins/remark-frontmatter-plugin"
 
@@ -94,7 +94,8 @@ export default defineConfig({
           properties: { ariaHidden: true, tabIndex: -1, class: "deep-link" },
         },
       ],
-      [rehypeMermaid, { colorScheme: "light", dark: true, strategy: "img-svg" }],
+      // [rehypeMermaid, { colorScheme: "light", dark: true, strategy: "img-svg" }],
+      [rehypeMermaid, { colorScheme: "light", dark: true, strategy: "pre-mermaid" }],
       rehypeImgClass,
     ],
     gfm: true,
