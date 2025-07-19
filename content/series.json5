@@ -11,8 +11,8 @@
   "web-performance": {
     name: "Web Performance Optimization",
     blogs: [
-      "2023-08-10-critical-rendering-path",
       "2025-07-18-web-performance-optimization",
+      "2023-08-10-critical-rendering-path",
       "2023-09-01-http-versions",
     ],
   },
