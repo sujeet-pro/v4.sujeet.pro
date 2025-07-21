@@ -59,7 +59,11 @@ async function pageContentGeneric(
   itemsWithContent.sort((a, b) => {
     const dateA = new Date(a.publishedOn).getTime()
     const dateB = new Date(b.publishedOn).getTime()
-    return dateB - dateA
+    if (dateB !== dateA) {
+      return dateB - dateA
+    }
+    // If dates are equal, compare titles alphabetically
+    return a.title.localeCompare(b.title)
   })
   return itemsWithContent
 }

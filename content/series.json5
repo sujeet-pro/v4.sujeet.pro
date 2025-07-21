@@ -8,12 +8,26 @@
     name: "Caching",
     blogs: ["2025-07-17-caching", "2023-03-21-lru"],
   },
+  "web-fundamentals": {
+    name: "Web Fundamentals",
+    blogs: [
+      "web-fundamentals/2023-08-10-critical-rendering-path",
+      "web-fundamentals/2023-09-01-http-versions",
+      "web-fundamentals/2024-01-27-microfrontends",
+      "web-fundamentals/2025-07-20-security",
+      "web-fundamentals/2025-07-20-image-formats",
+      "web-fundamentals/2025-07-20-web-accessibility",
+    ],
+  },
   "web-performance": {
     name: "Web Performance Optimization",
     blogs: [
-      "2025-07-18-web-performance-optimization",
-      "2023-08-10-critical-rendering-path",
-      "2023-09-01-http-versions",
+      "web-performance-optimization/2025-07-19-image-optimization",
+      "web-performance-optimization/2025-07-19-css-optimization",
+      "web-performance-optimization/2025-07-19-font-optimization",
+      "web-performance-optimization/2025-07-19-js-optimization",
+      "web-performance-optimization/2025-07-19-infra-optimization",
+      "web-performance-optimization/2025-07-18-web-performance-patterns",
     ],
   },
   "video-streaming": {
@@ -26,7 +40,7 @@
   },
   "frontend-architecture": {
     name: "Frontend Architecture",
-    blogs: ["2024-01-27-microfrontends", "2024-01-20-ssg-optimizations"],
+    blogs: ["web-fundamentals/2024-01-27-microfrontends", "2024-01-20-ssg-optimizations"],
   },
   "js-fundamentals": {
     name: "JavaScript Fundamentals",
