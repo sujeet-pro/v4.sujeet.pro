@@ -12,9 +12,9 @@ tags:
   - frontend
 ---
 
-# The Modern Video Playback Stack: An End-to-End Technical Deep Dive
+# Modern Video Playback Stack
 
-The delivery of video over the internet has evolved from a rudimentary file transfer into one of the most sophisticated and demanding applications of distributed systems engineering. The simple HTML `<video>` tag, while the final point of presentation, belies a vast and complex infrastructure designed to deliver a high-quality, uninterrupted viewing experience to a global audience across a heterogeneous landscape of devices and network conditions.
+Learn the complete video delivery pipeline from codecs and compression to adaptive streaming protocols, DRM systems, and ultra-low latency technologies for building modern video applications.
 
 ## Table of Contents
 

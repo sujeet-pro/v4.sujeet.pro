@@ -7,9 +7,9 @@ tags:
   - performance
 ---
 
-# Image formats Analysis
+# Image Formats for Web Performance
 
-Comprehensive analysis of modern image formats including JPEG, PNG, WebP, AVIF, JPEG XL, and HEIF. Learn compression algorithms, color spaces, HDR support, and optimal deployment strategies for web performance.
+Master modern image formats including JPEG, WebP, AVIF, and PNG, understanding compression algorithms, color spaces, HDR support, and optimal deployment strategies.
 
 ## Table of Contents
 

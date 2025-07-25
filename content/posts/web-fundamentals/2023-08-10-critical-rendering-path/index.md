@@ -14,9 +14,9 @@ tags:
 featuredRank: 10
 ---
 
-# Critical Rendering Path: Understanding How Browsers Render Web Pages
+# Critical Rendering Path
 
-The Critical Rendering Path (CRP) is the sequence of steps browsers execute to convert HTML, CSS, and JavaScript into the pixels users see. Understanding this process is fundamental to web development, as it explains why certain resources block rendering and how browsers handle different types of content.
+Learn how browsers convert HTML, CSS, and JavaScript into pixels, understanding DOM construction, CSSOM building, layout calculations, and paint operations for optimal web performance.
 
 ## Table of Contents
 

@@ -15,9 +15,9 @@ tags:
   - protocol-negotiation
 ---
 
-# HTTP Protocol Evolution: Version Comparison, TLS Handshake Mechanics, and Performance Optimization
+# HTTP Evolution: HTTP/1.1 to HTTP/3
 
-A comprehensive technical deep-dive into HTTP protocol evolution, TLS handshake mechanics, head-of-line blocking analysis, DNS-based protocol discovery, and browser decision algorithms for optimal protocol selection.
+Master HTTP protocol evolution from HTTP/1.1 through HTTP/2 to HTTP/3, understanding TLS handshakes, head-of-line blocking, and browser protocol selection algorithms.
 
 ## Table of Contents
 

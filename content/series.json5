@@ -22,6 +22,7 @@
   "web-performance": {
     name: "Web Performance Optimization",
     blogs: [
+      "web-performance-optimization/2025-07-20-index",
       "web-performance-optimization/2025-07-19-image-optimization",
       "web-performance-optimization/2025-07-19-css-optimization",
       "web-performance-optimization/2025-07-19-font-optimization",

@@ -8,9 +8,9 @@ tags:
   - optimization
 ---
 
-# CSS Performance Optimization: Critical Path Rendering, Animation Performance, and Runtime Optimization
+# CSS Performance Optimization
 
-Modern web experiences demand sub-second rendering, fluid interaction, and maximal battery efficiency. CSS—though declarative—plays a decisive role in meeting (or missing) these goals. This guide catalogues current-generation optimization techniques, from load-time delivery to runtime rendering and animation primitives, with precise explanations, code patterns, trade-offs, and limitations.
+Master CSS optimization techniques including critical CSS extraction, animation performance, containment properties, and delivery strategies for faster rendering and better user experience.
 
 ## Table of Contents
 

@@ -111,11 +111,13 @@
   github: { name: "GitHub" },
   gitlab: { name: "GitLab" },
   bitbucket: { name: "Bitbucket" },
+  infrastructure: { name: "Infrastructure" },
 
   // Performance & Optimization
   performance: { name: "Performance" },
   "web-performance": { name: "Web Performance" },
   "performance-testing": { name: "Performance Testing" },
+  "performance-optimization": { name: "Performance Optimization" },
   caching: { name: "Caching" },
   optimization: { name: "Optimization" },
   compression: { name: "Compression" },
@@ -191,6 +193,10 @@
 
   // Security
   security: { name: "Security" },
+  owasp: { name: "OWASP" },
+  cryptography: { name: "Cryptography" },
+  injection: { name: "Injection Attacks" },
+  "access-control": { name: "Access Control" },
   authentication: { name: "Authentication" },
   authorization: { name: "Authorization" },
   encryption: { name: "Encryption" },
@@ -219,6 +225,7 @@
   drm: { name: "Digital Rights Management" },
   ffmpeg: { name: "FFmpeg" },
   media: { name: "Media" },
+  images: { name: "Images" },
 
   // Text & Encoding
   unicode: { name: "Unicode" },
@@ -264,6 +271,7 @@
   "transport-protocols": { name: "Transport Protocols" },
   "protocol-negotiation": { name: "Protocol Negotiation" },
   typography: { name: "Typography" },
+  fonts: { name: "Fonts" },
   "core-web-vitals": { name: "Core Web Vitals" },
   "network-optimization": { name: "Network Optimization" },
   http3: { name: "HTTP/3" },
@@ -277,4 +285,8 @@
   "edge-computing": { name: "Edge Computing" },
   vpc: { name: "VPC" },
   nextjs: { name: "Next.js" },
+  "web-security": { name: "Web Security" },
+  "http-headers": { name: "HTTP Headers" },
+  csp: { name: "Content Security Policy" },
+  hooks: { name: "React Hooks" },
 }

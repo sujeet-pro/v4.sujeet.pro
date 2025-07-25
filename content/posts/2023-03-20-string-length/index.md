@@ -9,9 +9,9 @@ tags:
   - performance
 ---
 
-# Deconstructing JavaScript String Length: Unicode, UTF-16, and the Grapheme Cluster
+# JavaScript String Length and Unicode
 
-When `'👨‍👩‍👧‍👦'.length` returns 11 instead of 1, it reveals a fundamental misalignment between developer intuition and the computer's representation of text. This isn't a JavaScript quirk—it's a window into the complex history of character encoding, from the economic constraints of 1960s teleprinters to the global demands of modern computing.
+Understand why `'👨‍👩‍👧‍👦'.length` returns 11 instead of 1, and learn how to properly handle Unicode characters, grapheme clusters, and international text in JavaScript applications.
 
 <figure>
 

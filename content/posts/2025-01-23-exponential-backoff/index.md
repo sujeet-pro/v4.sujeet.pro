@@ -12,9 +12,9 @@ tags:
   - performance
 ---
 
-# The Art of Resilience: A Deep Dive into Exponential Backoff, Jitter, and Modern Retry Strategies
+# Exponential Backoff and Retry Strategies
 
-In the landscape of modern distributed systems, transient failures are not an exception but an operational certainty. The intricate web of microservices, network links, and cloud infrastructure that underpins contemporary applications is inherently susceptible to momentary disruptions. These can manifest as temporary network partitions, service throttling in response to load (429 Too Many Requests), brief service unavailability during deployments, or ephemeral resource contention on a downstream dependency.
+Learn how to build resilient distributed systems using exponential backoff, jitter, and modern retry strategies to handle transient failures and prevent cascading outages.
 
 ## Table of Contents
 

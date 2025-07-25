@@ -13,7 +13,7 @@ tags:
 
 # Libuv Internals
 
-libuv is a multi-platform support library with a focus on asynchronous I/O
+Explore libuv's event loop architecture, asynchronous I/O capabilities, thread pool management, and how it enables Node.js's non-blocking, event-driven programming model.
 
 ![Libuv Design Overview from libuv.org](./libuv-architecture.webp)
 

@@ -15,9 +15,9 @@ tags:
   - backend
 ---
 
-# Architecting Asynchronous Workloads in Node.js: From In-Process Queues to Distributed Systems
+# Asynchronous Task Processing in Node.js
 
-A comprehensive guide to building resilient, scalable asynchronous task processing systems in Node.js, covering everything from basic in-memory queues to advanced distributed patterns.
+Build resilient, scalable asynchronous task processing systems from basic in-memory queues to advanced distributed patterns using Node.js.
 
 ```mermaid
 graph LR
@@ -429,7 +429,6 @@ graph LR
 **Saga Implementation Types:**
 
 1. **Choreography**: Services communicate via events without central controller
-
    - Highly decoupled
    - Harder to debug (workflow logic distributed)
 

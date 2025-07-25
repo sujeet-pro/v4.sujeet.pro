@@ -13,9 +13,9 @@ tags:
 featuredRank: 30
 ---
 
-# The JavaScript Event Loop: A Unified, Cross-Environment Technical Analysis
+# JavaScript Event Loop
 
-A comprehensive deep-dive into the JavaScript event loop architecture across browser and Node.js environments, examining the abstract concurrency model, implementation differences, and performance implications for expert developers.
+Master the JavaScript event loop architecture across browser and Node.js environments, understanding task scheduling, microtasks, and performance optimization techniques.
 
 ![Node.js Event Loop Phases](./nodejs-event-loop-with-example.png)
 
