@@ -1,54 +1,71 @@
 {
-  "node-js": {
-    name: "Node.js Deep dive",
-    blogs: ["2025-02-06-nodejs-architecture", "2025-02-09-v8", "2025-02-07-event-loop", "2025-02-08-libuv"],
-  },
-
-  caching: {
-    name: "Caching",
-    blogs: ["2025-07-17-caching", "2023-03-21-lru"],
-  },
-  "web-fundamentals": {
-    name: "Web Fundamentals",
+  "javascript-deep-dive": {
+    name: "JavaScript Deep Dive",
     blogs: [
-      "web-fundamentals/2023-08-10-critical-rendering-path",
-      "web-fundamentals/2023-09-01-http-versions",
-      "web-fundamentals/2024-01-27-microfrontends",
-      "web-fundamentals/2025-07-20-security",
-      "web-fundamentals/2025-07-20-image-formats",
-      "web-fundamentals/2025-07-20-web-accessibility",
+      "javascript/patterns/2023-03-20-string-length",
+      "javascript/error-handling/2023-03-11-error-handling",
+      "javascript/patterns/2023-03-01-pub-sub",
+      "javascript/patterns/2023-03-21-lru",
+      "javascript/patterns/2025-01-23-exponential-backoff",
+      "javascript/patterns/2025-01-24-async-queue",
     ],
   },
+
+  "nodejs-internals": {
+    name: "Node.js Internals & Runtime",
+    blogs: [
+      "javascript/runtime/2025-02-06-nodejs-architecture",
+      "javascript/runtime/2025-02-07-event-loop",
+      "javascript/runtime/2025-02-08-libuv",
+      "javascript/runtime/2025-02-09-v8",
+    ],
+  },
+
+  "web-fundamentals": {
+    name: "Web Fundamentals & Standards",
+    blogs: [
+      "web-development/fundamentals/2023-09-01-http-versions",
+      "web-development/fundamentals/2025-07-17-caching",
+      "web-development/fundamentals/2025-07-20-image-formats",
+      "web-development/fundamentals/2025-07-20-web-accessibility",
+      "web-development/fundamentals/2025-07-20-security",
+    ],
+  },
+
   "web-performance": {
     name: "Web Performance Optimization",
     blogs: [
-      "web-performance-optimization/2025-07-20-index",
-      "web-performance-optimization/2025-07-19-image-optimization",
-      "web-performance-optimization/2025-07-19-css-optimization",
-      "web-performance-optimization/2025-07-19-font-optimization",
-      "web-performance-optimization/2025-07-19-js-optimization",
-      "web-performance-optimization/2025-07-19-infra-optimization",
-      "web-performance-optimization/2025-07-18-web-performance-patterns",
+      "web-development/performance/2025-07-18-web-performance-patterns",
+      "web-development/performance/2025-07-19-image-optimization",
+      "web-development/performance/2025-07-19-css-optimization",
+      "web-development/performance/2025-07-19-font-optimization",
+      "web-development/performance/2025-07-19-js-optimization",
+      "web-development/performance/2025-07-19-infra-optimization",
+      "web-development/performance/2025-07-20-index",
     ],
   },
-  "video-streaming": {
-    name: "Video Streaming & Playback",
-    blogs: ["2025-02-20-video-playback"],
-  },
-  "performance-testing": {
-    name: "Performance & Load Testing",
-    blogs: ["2025-02-19-k6"],
-  },
+
   "frontend-architecture": {
-    name: "Frontend Architecture",
-    blogs: ["web-fundamentals/2024-01-27-microfrontends", "2024-01-20-ssg-optimizations"],
+    name: "Frontend Architecture & Patterns",
+    blogs: [
+      "web-development/architecture/2023-08-10-critical-rendering-path",
+      "web-development/architecture/2024-01-27-microfrontends",
+      "architecture/rendering/2024-01-20-ssg-optimizations",
+    ],
   },
-  "js-fundamentals": {
-    name: "JavaScript Fundamentals",
-    blogs: ["2023-03-20-string-length", "2023-03-11-error-handling"],
+
+  "react-ecosystem": {
+    name: "React Ecosystem",
+    blogs: ["frameworks/react/2025-07-25-hooks"],
   },
-  "design-patterns": {
-    name: "Design Patterns & Distributed Systems",
-    blogs: ["2025-01-23-exponential-backoff", "2025-01-24-async-queue", "2023-03-01-pub-sub"],
+
+  "devops-testing": {
+    name: "DevOps & Testing",
+    blogs: ["devops/testing/2025-02-19-k6"],
+  },
+
+  "media-streaming": {
+    name: "Media & Streaming",
+    blogs: ["media/streaming/2025-02-20-video-playback"],
   },
 }
