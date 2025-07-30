@@ -63,7 +63,13 @@ At the heart of every Node.js process is the V8 engine, the open-source, high-pe
 
 This includes parsing JavaScript source into an Abstract Syntax Tree (AST), compiling that code into optimized machine code via its Just-In-Time (JIT) compiler, managing the call stack for function execution, and handling memory allocation and reclamation through its sophisticated garbage collector. Critically, V8 has no intrinsic knowledge of concepts outside the JavaScript language itself; it is unaware of file systems, network sockets, or any other form of I/O. Its world begins and ends with JavaScript execution.
 
+<figure>
+
 ![V8 Compiler pipeline from the blog Understanding V8's Bytecode by Franziska Hinkelmann](./v8-flow.webp)
+
+<figcaption>V8 compiler pipeline showing the multi-tiered compilation process from JavaScript source to optimized machine code</figcaption>
+
+</figure>
 
 ### Libuv
 
@@ -148,7 +154,13 @@ The core of Node.js's concurrency model is the event loop. It is a semi-infinite
 
 A common misconception is that the event loop manages a single callback queue. In reality, the loop is a multi-stage process. Within each "tick" or iteration of the loop, it progresses through a series of distinct phases in a strict order. Each phase has its own FIFO (First-In, First-Out) queue of callbacks to execute.
 
+<figure>
+
 ![Node.js Event Loop Example Diagram by Tyler Hawkins as presented in UtahJS Conf](./nodejs-event-loop-with-example.png)
+
+<figcaption>Node.js event loop phases diagram showing the complete lifecycle of a single event loop iteration</figcaption>
+
+</figure>
 
 The phases of a single event loop iteration are as follows:
 
@@ -181,7 +193,13 @@ While libuv uses the OS's native non-blocking mechanisms for network I/O, many o
 
 To solve this, libuv implements a thread pool. When a Node.js API that corresponds to a blocking system call is invoked (e.g., `fs.readFile`), the request is not handled on the main event loop thread. Instead, the Node.js C++ binding passes the request to libuv, which then delegates the blocking task to one of the worker threads in its pool.
 
+<figure>
+
 ![Async Operations Slide by Bert Belder at Node Interactive - 2016](./async-operations.jpg)
+
+<figcaption>Async operations diagram showing how Node.js handles non-blocking I/O operations through the event loop</figcaption>
+
+</figure>
 
 **Size and Configuration**: By default, the libuv thread pool consists of 4 threads. This number is intentionally small to limit resource consumption but can be a bottleneck for applications performing many concurrent blocking operations. The size can be configured via the `UV_THREADPOOL_SIZE` environment variable.
 

@@ -17,7 +17,13 @@ featuredRank: 30
 
 Master the JavaScript event loop architecture across browser and Node.js environments, understanding task scheduling, microtasks, and performance optimization techniques.
 
+<figure>
+
 ![Node.js Event Loop Phases](./nodejs-event-loop-with-example.png)
+
+<figcaption>Detailed diagram showing the phases of the Node.js event loop and their execution order</figcaption>
+
+</figure>
 
 ## Table of Contents
 
@@ -34,6 +40,8 @@ Master the JavaScript event loop architecture across browser and Node.js environ
 JavaScript's characterization as a "single-threaded, non-blocking, asynchronous, concurrent language" obscures the sophisticated interplay between the JavaScript engine and its host environment. The event loop is not a language feature but the central mechanism provided by the host to orchestrate asynchronous operations around the engine's single-threaded execution.
 
 ### Runtime Architecture
+
+<figure>
 
 ```mermaid
 graph TB
@@ -71,6 +79,10 @@ graph TB
     K --> F
 ```
 
+<figcaption>JavaScript runtime architecture showing the relationship between the engine, host environment, and bridge layer components</figcaption>
+
+</figure>
+
 ### Core Execution Primitives
 
 The ECMAScript specification defines three fundamental primitives:
@@ -78,6 +90,8 @@ The ECMAScript specification defines three fundamental primitives:
 1. **Call Stack**: LIFO data structure tracking execution context
 2. **Heap**: Unstructured memory region for object allocation
 3. **Run-to-Completion Guarantee**: Functions execute without preemption
+
+<figure>
 
 ```mermaid
 graph LR
@@ -93,7 +107,13 @@ graph LR
     end
 ```
 
+<figcaption>Core execution model showing the flow between task queue, event loop, and call stack</figcaption>
+
+</figure>
+
 ### Specification Hierarchy
+
+<figure>
 
 ```mermaid
 graph TD
@@ -112,11 +132,17 @@ graph TD
     C --> I
 ```
 
+<figcaption>Specification hierarchy showing how ECMAScript, HTML standards, and Node.js/libuv define the event loop architecture</figcaption>
+
+</figure>
+
 ## Universal Priority System: Tasks and Microtasks
 
 All modern JavaScript environments implement a two-tiered priority system governing asynchronous operation scheduling.
 
 ### Queue Processing Model
+
+<figure>
 
 ```mermaid
 graph TD
@@ -132,7 +158,13 @@ graph TD
     H --> A
 ```
 
+<figcaption>Queue processing model showing the priority system between macrotasks and microtasks in the event loop</figcaption>
+
+</figure>
+
 ### Priority Hierarchy
+
+<figure>
 
 ```mermaid
 graph TD
@@ -165,6 +197,10 @@ graph TD
     L --> C
 ```
 
+<figcaption>Priority hierarchy showing the execution order from synchronous code through microtasks to macrotasks</figcaption>
+
+</figure>
+
 ### Microtask Starvation Pattern
 
 ```javascript
@@ -186,6 +222,8 @@ The browser event loop is optimized for UI responsiveness, integrating directly 
 
 ### WHATWG Processing Model
 
+<figure>
+
 ```mermaid
 graph TD
     A[Event Loop Iteration] --> B[Select Task from Queue]
@@ -206,7 +244,13 @@ graph TD
     N --> A
 ```
 
+<figcaption>WHATWG processing model showing the browser event loop integration with the rendering pipeline</figcaption>
+
+</figure>
+
 ### Rendering Pipeline Integration
+
+<figure>
 
 ```mermaid
 graph LR
@@ -227,7 +271,13 @@ graph LR
     end
 ```
 
+<figcaption>Rendering pipeline integration showing frame budget allocation and requestAnimationFrame timing</figcaption>
+
+</figure>
+
 ### Task Source Prioritization
+
+<figure>
 
 ```mermaid
 graph TD
@@ -244,11 +294,17 @@ graph TD
     end
 ```
 
+<figcaption>Task source prioritization showing how browsers prioritize different types of tasks for responsive UI</figcaption>
+
+</figure>
+
 ## Node.js Event Loop: libuv Integration
 
 Node.js implements a phased event loop architecture optimized for high-throughput I/O operations.
 
 ### libuv Architecture
+
+<figure>
 
 ```mermaid
 graph TB
@@ -277,7 +333,13 @@ graph TB
     end
 ```
 
+<figcaption>libuv architecture showing the integration between V8 engine, libuv event loop, and OS-specific I/O mechanisms</figcaption>
+
+</figure>
+
 ### Phased Event Loop Structure
+
+<figure>
 
 ```mermaid
 graph TD
@@ -298,7 +360,13 @@ graph TD
     end
 ```
 
+<figcaption>Phased event loop structure showing the six phases of the Node.js event loop and their execution order</figcaption>
+
+</figure>
+
 ### Poll Phase Logic
+
+<figure>
 
 ```mermaid
 graph TD
@@ -316,7 +384,13 @@ graph TD
     H --> I
 ```
 
+<figcaption>Poll phase logic showing the decision tree for blocking vs non-blocking behavior in the poll phase</figcaption>
+
+</figure>
+
 ### Thread Pool vs Direct I/O
+
+<figure>
 
 ```mermaid
 graph LR
@@ -337,11 +411,17 @@ graph LR
     G --> K[Event Loop Direct]
 ```
 
+<figcaption>Thread pool vs direct I/O showing the distinction between blocking operations that use the thread pool and non-blocking operations that use the event loop directly</figcaption>
+
+</figure>
+
 ## Node.js-Specific Scheduling
 
 Node.js provides unique scheduling primitives with distinct priority levels.
 
 ### Priority Hierarchy
+
+<figure>
 
 ```mermaid
 graph TD
@@ -362,7 +442,13 @@ graph TD
     end
 ```
 
+<figcaption>Node.js priority system showing the execution order from synchronous code through nextTick, microtasks, and event loop phases</figcaption>
+
+</figure>
+
 ### nextTick vs setImmediate Execution
+
+<figure>
 
 ```mermaid
 graph TD
@@ -378,7 +464,13 @@ graph TD
     J --> K[Next Tick]
 ```
 
+<figcaption>nextTick vs setImmediate execution showing the timing difference between these two Node.js-specific scheduling mechanisms</figcaption>
+
+</figure>
+
 ### setTimeout vs setImmediate Ordering
+
+<figure>
 
 ```mermaid
 graph LR
@@ -393,11 +485,17 @@ graph LR
     end
 ```
 
+<figcaption>setTimeout vs setImmediate ordering showing the deterministic behavior within I/O cycles vs non-deterministic behavior outside I/O cycles</figcaption>
+
+</figure>
+
 ## True Parallelism: Worker Threads
 
 Worker threads provide true parallelism by creating independent event loops.
 
 ### Worker Architecture
+
+<figure>
 
 ```mermaid
 graph TB
@@ -424,7 +522,13 @@ graph TB
     M --> D
 ```
 
+<figcaption>Worker architecture showing the communication between main thread and worker threads through message passing and shared memory</figcaption>
+
+</figure>
+
 ### Memory Sharing Patterns
+
+<figure>
 
 ```mermaid
 graph TD
@@ -441,9 +545,15 @@ graph TD
     end
 ```
 
+<figcaption>Memory sharing patterns showing different communication methods and safety mechanisms for worker thread coordination</figcaption>
+
+</figure>
+
 ## Best Practices and Performance Optimization
 
 ### Environment-Agnostic Principles
+
+<figure>
 
 ```mermaid
 graph TD
@@ -458,7 +568,13 @@ graph TD
     end
 ```
 
+<figcaption>Environment-agnostic principles showing best practices and anti-patterns for event loop optimization</figcaption>
+
+</figure>
+
 ### Browser-Specific Optimization
+
+<figure>
 
 ```mermaid
 graph LR
@@ -473,7 +589,13 @@ graph LR
     end
 ```
 
+<figcaption>Browser-specific optimization showing animation best practices and computation offloading strategies</figcaption>
+
+</figure>
+
 ### Node.js-Specific Optimization
+
+<figure>
 
 ```mermaid
 graph TD
@@ -490,7 +612,13 @@ graph TD
     end
 ```
 
+<figcaption>Node.js-specific optimization showing scheduling choices and performance tuning strategies</figcaption>
+
+</figure>
+
 ### Performance Monitoring
+
+<figure>
 
 ```mermaid
 graph LR
@@ -506,6 +634,10 @@ graph LR
         K[CPU Profiling] --> L[Hot Paths]
     end
 ```
+
+<figcaption>Performance monitoring showing bottleneck identification strategies and monitoring tools for event loop optimization</figcaption>
+
+</figure>
 
 ## Conclusion
 

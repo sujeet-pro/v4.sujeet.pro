@@ -48,6 +48,8 @@ The generator then programmatically combines the content and templates to produc
 
 This fundamental architectural shift from request-time to build-time computation is the defining characteristic of SSG. The workflow can be visualized as follows:
 
+<figure>
+
 ```mermaid
 graph TD
     A[Content Sources] --> B{Static Site Generator}
@@ -57,6 +59,10 @@ graph TD
     F[User Request] --> E
     E -- Serves Cached Asset --> F
 ```
+
+<figcaption>Static site generation workflow showing the build process from content sources to CDN deployment</figcaption>
+
+</figure>
 
 ### 1.2 The Modern SSG Ecosystem
 
@@ -151,6 +157,8 @@ A far more effective and reliable strategy leverages the atomic deployment princ
 
 **Rollback Flow:** A rollback is simply a reversal of the release step. To revert to a previous version, the pipeline re-executes the CloudFront update, pointing the Origin Path back to a known-good directory, and issues another cache invalidation.
 
+<figure>
+
 ```mermaid
 sequenceDiagram
     participant CI/CD Pipeline
@@ -170,11 +178,21 @@ sequenceDiagram
     Amazon CloudFront-->>CI/CD Pipeline: Invalidation Acknowledged
 ```
 
+<figcaption>Deployment and rollback sequence showing the interaction between CI/CD pipeline, S3, and CloudFront for atomic deployments</figcaption>
+
+</figure>
+
 ### 3.4 Strategy 3: Lambda@Edge-Based Rollback with Build Version Headers
 
 For more sophisticated rollback scenarios, we can implement a Lambda@Edge function that dynamically routes requests based on a build version header. This approach provides granular control and enables advanced deployment patterns.
 
+<figure>
+
 ![SSG CloudFront Architecture with Build Version Management](./ssg-cloudfront-arch.inline.svg)
+
+<figcaption>Architecture diagram showing SSG deployment with CloudFront and build version management for zero-downtime deployments</figcaption>
+
+</figure>
 
 **S3 Bucket Structure:**
 
@@ -201,7 +219,13 @@ S3 Bucket
 **CloudFront Configuration:**
 Add a custom origin header in CloudFront's origin configuration that is always updated with the new release post syncing all files to S3. This header contains the current build version.
 
+<figure>
+
 ![Adding Build Version Header in CloudFront](./add-build-version.jpg)
+
+<figcaption>Screenshot showing CloudFront configuration for adding build version headers to enable dynamic routing</figcaption>
+
+</figure>
 
 **Lambda@Edge Function:**
 
@@ -392,6 +416,8 @@ When enabling automatic compression in CloudFront:
 
 Implementing a pre-compression strategy involves coordinating the build process, S3 object metadata, a Lambda@Edge function, and CloudFront cache policies.
 
+<figure>
+
 ```mermaid
 graph TD
     subgraph Build Process
@@ -412,6 +438,10 @@ graph TD
         H -- Serves to Browser --> G
     end
 ```
+
+<figcaption>Pre-compression architecture showing the build process, S3 deployment, and Lambda@Edge content negotiation flow</figcaption>
+
+</figure>
 
 **Build Step**: Integrate a compression step into your CI/CD pipeline's build script. After your assets are bundled, use tools to create both Gzip (.gz) and Brotli (.br) versions of each text-based asset (JS, CSS, HTML, SVG).
 

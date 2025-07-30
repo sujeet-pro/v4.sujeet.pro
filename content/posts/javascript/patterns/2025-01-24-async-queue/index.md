@@ -19,6 +19,8 @@ tags:
 
 Build resilient, scalable asynchronous task processing systems from basic in-memory queues to advanced distributed patterns using Node.js.
 
+<figure>
+
 ```mermaid
 graph LR
     %% Task Queue
@@ -51,6 +53,10 @@ graph LR
     class E1,E2,E3 executorClass
 ```
 
+<figcaption>Asynchronous task queue architecture showing task distribution across multiple executors</figcaption>
+
+</figure>
+
 ## Table of Contents
 
 - [Part 1: The Foundation of Asynchronous Execution](#part-1-the-foundation-of-asynchronous-execution)
@@ -74,6 +80,8 @@ graph LR
 ### 1.1 The Event Loop and In-Process Concurrency
 
 At the core of Node.js is a single-threaded, event-driven architecture. This model is highly efficient for I/O-bound operations but presents a challenge for long-running or CPU-intensive tasks, which can block the main thread and render an application unresponsive.
+
+<figure>
 
 ```mermaid
 graph TD
@@ -99,6 +107,10 @@ graph TD
     class MQ,TQ queueClass
     class EL loopClass
 ```
+
+<figcaption>Event loop architecture showing the relationship between call stack, event loop, and various queues</figcaption>
+
+</figure>
 
 The Event Loop orchestrates execution between the Call Stack, where synchronous code runs, and various queues that hold callbacks for asynchronous operations. When an async operation completes, its callback is placed in a queue. The Event Loop monitors the Call Stack and processes tasks from these queues when it becomes empty.
 
@@ -126,6 +138,8 @@ This implementation provides basic control over local asynchronous operations. H
 To build scalable and reliable Node.js applications, especially in a microservices architecture, tasks must be offloaded from the main application thread and managed by a system that is both persistent and distributed.
 
 ### 2.1 Distributed Architecture Components
+
+<figure>
 
 ```mermaid
 graph LR
@@ -160,6 +174,10 @@ graph LR
     class MB brokerClass
     class W1,W2,W3 workerClass
 ```
+
+<figcaption>Distributed architecture components showing the relationship between producers, message broker, and consumers</figcaption>
+
+</figure>
 
 A distributed task queue system consists of three main components:
 
@@ -233,6 +251,8 @@ In any distributed system, failures are not an exception but an expected part of
 
 When a task fails due to a transient issue, the simplest solution is to retry it. However, naive immediate retries can create a "thundering herd" problem that worsens the situation.
 
+<figure>
+
 ```mermaid
 graph LR
     subgraph "Exponential Backoff with Jitter"
@@ -249,6 +269,10 @@ graph LR
     classDef timeClass fill:#ffcc00,stroke:#000,stroke-width:2px
     class T1,T2,T3,T4 timeClass
 ```
+
+<figcaption>Exponential backoff with jitter showing progressive delay increases with randomization to prevent thundering herd</figcaption>
+
+</figure>
 
 **Exponential Backoff Strategy:**
 
@@ -281,6 +305,8 @@ await apiCallQueue.add(
 
 Some messages are inherently unprocessable due to malformed data or persistent bugs in consumer logic. These "poison messages" can get stuck in infinite retry loops.
 
+<figure>
+
 ```mermaid
 graph LR
     subgraph "Main Queue"
@@ -307,6 +333,10 @@ graph LR
     class W workerClass
     class DLQ dlqClass
 ```
+
+<figcaption>Dead letter queue pattern showing how failed messages are moved to a separate queue after maximum retry attempts</figcaption>
+
+</figure>
 
 The Dead Letter Queue (DLQ) pattern moves messages to a separate queue after a configured number of processing attempts have failed. This isolates problematic messages, allowing the main queue to continue functioning.
 
@@ -351,6 +381,8 @@ const idempotentWorker = new Worker("user-registration", async (job) => {
 
 A common challenge in event-driven architectures is ensuring that database updates and event publishing happen atomically.
 
+<figure>
+
 ```mermaid
 graph TD
     subgraph "Application"
@@ -377,6 +409,10 @@ graph TD
     class DB,OT dbClass
     class MR,MB relayClass
 ```
+
+<figcaption>Transactional outbox pattern showing how database transactions and event publishing are coordinated atomically</figcaption>
+
+</figure>
 
 The Transactional Outbox pattern writes events to an "outbox" table within the same database transaction as business data. A separate message relay process then reads from this table and publishes events to the message broker.
 
@@ -406,6 +442,8 @@ async function createUserWithEvent(userData: UserData) {
 
 In microservices architecture, coordinating updates across multiple services requires the Saga pattern.
 
+<figure>
+
 ```mermaid
 graph LR
     subgraph "Choreography Saga"
@@ -425,6 +463,10 @@ graph LR
     classDef serviceClass fill:#ffcc99,stroke:#000,stroke-width:2px
     class S1,S2,S3,S4 serviceClass
 ```
+
+<figcaption>Choreography saga pattern showing event-driven communication between services with compensation events for rollback</figcaption>
+
+</figure>
 
 **Saga Implementation Types:**
 
@@ -471,6 +513,8 @@ class OrderSagaOrchestrator {
 
 For applications requiring full audit history, Event Sourcing stores immutable sequences of state-changing events.
 
+<figure>
+
 ```mermaid
 graph TD
     subgraph "Write Side"
@@ -499,6 +543,10 @@ graph TD
     class Q,R readClass
     class ES,MV storeClass
 ```
+
+<figcaption>Event sourcing and CQRS architecture showing the separation between write and read sides with event store as the source of truth</figcaption>
+
+</figure>
 
 Apache Kafka's durable, replayable log is ideal for event stores. Key features include log compaction, which retains the last known value for each message key.
 

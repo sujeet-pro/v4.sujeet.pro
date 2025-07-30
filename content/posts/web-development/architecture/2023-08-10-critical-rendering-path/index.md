@@ -61,7 +61,13 @@ The browser begins by parsing the raw HTML bytes it receives from the network. T
 </html>
 ```
 
+<figure>
+
 ![DOM Construction Example](./dom-construction-example.invert.png)
+
+<figcaption>Visual representation of DOM tree construction from HTML parsing showing parent-child relationships</figcaption>
+
+</figure>
 
 ### 2. CSSOM Construction (Parsing CSS)
 
@@ -97,7 +103,13 @@ img {
 }
 ```
 
+<figure>
+
 ![CSSOM Construction](./cssom-construction.inline.svg)
+
+<figcaption>CSSOM tree structure showing how CSS rules are organized and cascaded during parsing</figcaption>
+
+</figure>
 
 **Non-Render-Blocking CSS:**
 
@@ -140,7 +152,13 @@ JavaScript can be loaded in several modes, each affecting how and when scripts a
 - **Executed after the DOM is parsed** and after all dependencies are loaded.
 - **Order is not guaranteed** for multiple modules unless imported explicitly.
 
+<figure>
+
 ![Async, Defer, Module Diagram](./asyncdefer.inline.svg)
+
+<figcaption>Timeline diagram showing how different JavaScript loading modes affect HTML parsing and execution</figcaption>
+
+</figure>
 
 | Script Mode | Blocks Parser | Order Preserved | Executes After DOM | Blocks on CSS   | Notes                          |
 | ----------- | ------------- | --------------- | ------------------ | --------------- | ------------------------------ |
@@ -165,7 +183,13 @@ With the DOM and CSSOM ready, the browser combines them to create the Render Tre
 - **Excludes**: Non-visual nodes (like `<head>`, `<script>`, `<meta>`) and nodes with `display: none`.
 - **Difference**: `display: none` removes nodes from the render tree; `visibility: hidden` keeps them in the tree but makes them invisible (they still occupy space).
 
+<figure>
+
 ![Render Tree](./render-tree.invert.png)
+
+<figcaption>Render tree showing the combination of DOM and CSSOM trees with only visible elements included</figcaption>
+
+</figure>
 
 ### 4. Layout (Reflow)
 
@@ -427,7 +451,13 @@ The CRP is not a simple linear process—it involves multiple threads, speculati
 
 - Downloaded from [Alex Xu](https://twitter.com/alexxubyte/status/1534201523713867777) Twitter post.
 
+<figure>
+
 ![CRP from Bytebytego](./crp-bytebytego.jpeg)
+
+<figcaption>Comprehensive critical rendering path diagram from Bytebytego showing the complete browser rendering pipeline</figcaption>
+
+</figure>
 
 <iframe
   width='560'

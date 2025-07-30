@@ -220,3 +220,4 @@ Your content here...
 ![Diagram](./diagram.inline.svg)
 <figcaption>SVG diagram that supports currentColor</figcaption>
 </figure>
+```

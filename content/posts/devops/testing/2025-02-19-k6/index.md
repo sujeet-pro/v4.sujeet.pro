@@ -32,7 +32,13 @@ The tool is explicitly designed for and adopted by a new generation of technical
 
 This methodology is the primary enabler of "shift-left" testing, a strategic imperative that involves embedding performance validation early and frequently throughout the development process to identify and mitigate regressions before they can impact production environments.
 
+<figure>
+
 ![Performance Testing Patterns Overview](./smoke-test.png)
+
+<figcaption>Overview of different performance testing patterns including smoke, load, stress, soak, and spike testing methodologies</figcaption>
+
+</figure>
 
 ## The Architectural Foundation: Go and Goroutines
 
@@ -147,7 +153,13 @@ Each property within the scenarios object defines a unique scenario that can:
 
 The behavior of each scenario is dictated by its assigned executor. k6 provides a variety of executors that can be broadly categorized into two fundamental workload models:
 
+<figure>
+
 ![Load Testing Patterns](./avg-load-test.png)
+
+<figcaption>Average load testing pattern showing consistent user load over time to measure system performance under normal conditions</figcaption>
+
+</figure>
 
 #### Closed Models (VU-based)
 
@@ -290,7 +302,13 @@ export default function () {
 
 Smoke tests have minimal load and are used to verify that the system works well under minimal load and to gather baseline performance values.
 
+<figure>
+
 ![Smoke Testing Pattern](./smoke-test.png)
+
+<figcaption>Smoke testing pattern demonstrating minimal load to verify basic system functionality</figcaption>
+
+</figure>
 
 ```js
 import http from "k6/http"
@@ -321,7 +339,13 @@ export default function () {
 
 Load testing assesses how the system performs under typical load conditions.
 
+<figure>
+
 ![Average Load Testing Pattern](./avg-load-test.png)
+
+<figcaption>Average load testing pattern showing consistent user load over time to measure system performance under normal conditions</figcaption>
+
+</figure>
 
 ```js
 import http from "k6/http"
@@ -349,7 +373,13 @@ export default function () {
 
 Stress testing subjects the application to extreme loads to identify its breaking point and assess its behavior under stress.
 
+<figure>
+
 ![Stress Testing Pattern](./stress-test.png)
+
+<figcaption>Stress testing pattern showing increasing load until system failure to identify breaking points</figcaption>
+
+</figure>
 
 ```js
 import http from "k6/http"
@@ -377,7 +407,13 @@ export default function () {
 
 Soak testing focuses on extended periods to analyze performance degradation and resource consumption over time.
 
+<figure>
+
 ![Soak Testing Pattern](./soak-testing.png)
+
+<figcaption>Soak testing pattern showing sustained load over extended periods to detect memory leaks and performance degradation</figcaption>
+
+</figure>
 
 ```js
 import http from "k6/http"
@@ -405,7 +441,13 @@ export default function () {
 
 Spike testing verifies whether the system survives and performs under sudden and massive rushes of utilization.
 
+<figure>
+
 ![Spike Testing Pattern](./spike-testing.png)
+
+<figcaption>Spike testing pattern showing sudden load increases to test system resilience and recovery capabilities</figcaption>
+
+</figure>
 
 ```js
 import http from "k6/http"
