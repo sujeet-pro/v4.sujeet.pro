@@ -25,6 +25,60 @@ Master the JavaScript event loop architecture across browser and Node.js environ
 
 </figure>
 
+## TLDR
+
+**JavaScript Event Loop** is the core concurrency mechanism that enables single-threaded JavaScript to handle asynchronous operations through a sophisticated task scheduling system with microtasks and macrotasks.
+
+### Core Architecture Principles
+
+- **Single-threaded Execution**: JavaScript runs on one thread with a call stack and run-to-completion guarantee
+- **Event Loop**: Central mechanism orchestrating asynchronous operations around the engine
+- **Two-tier Priority System**: Microtasks (high priority) and macrotasks (lower priority) with strict execution order
+- **Host Environment Integration**: Different implementations for browsers (UI-focused) and Node.js (I/O-focused)
+
+### Universal Priority System
+
+- **Synchronous Code**: Executes immediately on the call stack
+- **Microtasks**: Promise callbacks, queueMicrotask, MutationObserver (processed after each macrotask)
+- **Macrotasks**: setTimeout, setInterval, I/O operations, user events (processed in event loop phases)
+- **Execution Order**: Synchronous → nextTick → Microtasks → Macrotasks → Event Loop Phases
+
+### Browser Event Loop
+
+- **Rendering Integration**: Integrated with 16.7ms frame budget for 60fps
+- **Task Source Prioritization**: User interaction (high) → DOM manipulation (medium) → networking (medium) → timers (low)
+- **requestAnimationFrame**: Executes before repaint for smooth animations
+- **Microtask Starvation**: Potential issue where microtasks block macrotasks indefinitely
+
+### Node.js Event Loop (libuv)
+
+- **Phased Architecture**: Six phases (timers → pending → idle → poll → check → close)
+- **Poll Phase Logic**: Blocks for I/O or timers, exits early for setImmediate
+- **Thread Pool**: CPU-intensive operations (fs, crypto, DNS) use worker threads
+- **Direct I/O**: Network operations handled asynchronously on main thread
+- **Node.js-specific APIs**: process.nextTick (highest priority), setImmediate (check phase)
+
+### Performance Optimization
+
+- **Keep Tasks Short**: Avoid blocking the event loop with long synchronous operations
+- **Proper Scheduling**: Choose microtasks vs macrotasks based on priority needs
+- **Avoid Starvation**: Prevent microtask flooding that blocks macrotasks
+- **Environment-specific**: Use requestAnimationFrame for animations, worker_threads for CPU-intensive tasks
+
+### True Parallelism
+
+- **Worker Threads**: Independent event loops for CPU-bound tasks
+- **Memory Sharing**: Structured clone, transferable objects, SharedArrayBuffer
+- **Communication**: Message passing with explicit coordination
+- **Safety**: Thread isolation prevents race conditions
+
+### Monitoring & Debugging
+
+- **Event Loop Lag**: Measure time between event loop iterations
+- **Bottleneck Identification**: CPU-bound vs I/O-bound vs thread pool issues
+- **Performance Tools**: Event loop metrics, memory usage, CPU profiling
+- **Best Practices**: Environment-aware scheduling, proper error handling, resource management
+
 ## Table of Contents
 
 1. [The Abstract Concurrency Model](#the-abstract-concurrency-model)

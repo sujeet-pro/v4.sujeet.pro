@@ -18,6 +18,68 @@ featuredRank: 10
 
 Learn how browsers convert HTML, CSS, and JavaScript into pixels, understanding DOM construction, CSSOM building, layout calculations, and paint operations for optimal web performance.
 
+## TLDR
+
+**Critical Rendering Path (CRP)** is the browser's six-stage process of converting HTML, CSS, and JavaScript into visual pixels, with each stage potentially creating performance bottlenecks that impact user experience metrics.
+
+### Six-Stage Rendering Pipeline
+
+- **DOM Construction**: HTML parsing into tree structure with incremental parsing for early resource discovery
+- **CSSOM Construction**: CSS parsing into style tree with cascading and render-blocking behavior
+- **Render Tree**: Combination of DOM and CSSOM with only visible elements included
+- **Layout (Reflow)**: Calculating exact size and position of each element (expensive operation)
+- **Paint (Rasterization)**: Drawing pixels for each element onto layers in memory
+- **Compositing**: Assembling layers into final image using separate compositor thread
+
+### Blocking Behaviors
+
+- **CSS Render Blocking**: CSS blocks rendering to prevent FOUC and ensure correct cascading
+- **JavaScript Parser Blocking**: Scripts block HTML parsing when accessing DOM or styles
+- **JavaScript CSS Blocking**: Scripts accessing computed styles must wait for CSS to load
+- **Layout Thrashing**: Repeated layout calculations caused by JavaScript reading/writing layout properties
+
+### JavaScript Loading Strategies
+
+- **Default (Parser-blocking)**: Blocks HTML parsing until script downloads and executes
+- **Async**: Non-blocking, executes immediately when downloaded (order not preserved)
+- **Defer**: Non-blocking, executes after DOM parsing (order preserved)
+- **Module**: Deferred by default, supports imports/exports and top-level await
+
+### Performance Optimization
+
+- **Preload Scanner**: Parallel resource discovery for declarative resources in HTML
+- **Compositor Thread**: GPU-accelerated animations using transform/opacity properties
+- **Layer Management**: Separate layers for transform, opacity, will-change, 3D transforms
+- **Network Protocols**: HTTP/2 multiplexing and HTTP/3 QUIC for faster resource delivery
+
+### Common Performance Issues
+
+- **Layout Thrashing**: JavaScript forcing repeated layout calculations in loops
+- **Style Recalculation**: Large CSS selectors and high-level style changes
+- **Render-blocking Resources**: CSS and JavaScript delaying First Contentful Paint
+- **Main Thread Blocking**: Long JavaScript tasks preventing layout and paint operations
+
+### Browser Threading Model
+
+- **Main Thread**: Handles parsing, styling, layout, painting, and JavaScript execution
+- **Compositor Thread**: Handles layer assembly, scrolling, and GPU-accelerated animations
+- **Thread Separation**: Enables smooth scrolling and animations even with main thread work
+
+### Diagnostic Tools
+
+- **Chrome DevTools Performance Panel**: Visualizes main thread work and bottlenecks
+- **Network Panel Waterfall**: Shows resource dependencies and blocking
+- **Lighthouse**: Identifies render-blocking resources and critical request chains
+- **Layers Panel**: Diagnoses compositor layer issues and explosions
+
+### Best Practices
+
+- **Declarative Resources**: Use `<img>` tags and SSR/SSG for critical content
+- **CSS Optimization**: Minimize render-blocking CSS with media attributes
+- **JavaScript Loading**: Use defer/async appropriately for script dependencies
+- **Layout Optimization**: Avoid layout thrashing with batched DOM operations
+- **Animation Performance**: Use transform/opacity for GPU-accelerated animations
+
 ## Table of Contents
 
 ## Introduction: What is the Critical Rendering Path?
@@ -172,6 +234,8 @@ JavaScript can be loaded in several modes, each affecting how and when scripts a
 - Use `defer` for scripts that depend on the DOM and should execute in order.
 - Use `async` for independent scripts (e.g., analytics) that do not depend on DOM or other scripts.
 - Use `type="module"` for modern, modular JavaScript.
+- If both `async` and `defer` attributes are present, `async` has a higher precedence and it wins.
+- use `fetchpriority="low"` (values: `low`, `high`, `auto`), for loading non-essential 3rd party scripts like pixels.
 
 ---
 

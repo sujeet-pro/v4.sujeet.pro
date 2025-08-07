@@ -23,6 +23,68 @@ Explore libuv's event loop architecture, asynchronous I/O capabilities, thread p
 
 </figure>
 
+## TLDR
+
+**Libuv** is a cross-platform asynchronous I/O library that provides Node.js with its event-driven, non-blocking architecture through a sophisticated event loop, thread pool, and platform abstraction layer.
+
+### Core Architecture Components
+
+- **Event Loop**: Central orchestrator managing all I/O operations and event notifications in phases
+- **Handles**: Long-lived objects representing persistent resources (TCP sockets, timers, file watchers)
+- **Requests**: Short-lived operations for one-shot tasks (file I/O, DNS resolution, custom work)
+- **Thread Pool**: Worker threads for blocking operations that can't be made asynchronous
+
+### Event Loop Phases
+
+- **Timers**: Execute expired setTimeout/setInterval callbacks
+- **Pending**: Handle deferred I/O callbacks from previous iteration
+- **Idle/Prepare**: Low-priority background tasks and pre-I/O preparation
+- **Poll**: Block for I/O events or timers (most critical phase)
+- **Check**: Execute setImmediate callbacks and post-I/O tasks
+- **Close**: Handle cleanup for closed resources
+
+### Asynchronous I/O Strategies
+
+- **Network I/O**: True kernel-level asynchronicity using epoll (Linux), kqueue (macOS), IOCP (Windows)
+- **File I/O**: Thread pool emulation for blocking filesystem operations
+- **DNS Resolution**: Thread pool for getaddrinfo/getnameinfo calls
+- **Custom Work**: User-defined CPU-intensive tasks via uv_queue_work
+
+### Platform Abstraction Layer
+
+- **Linux (epoll)**: Readiness-based model with efficient file descriptor polling
+- **macOS/BSD (kqueue)**: Expressive event notification for files, signals, timers
+- **Windows (IOCP)**: Completion-based model with native async file I/O support
+- **Unified API**: Consistent callback-based interface across all platforms
+
+### Thread Pool Architecture
+
+- **Global Shared Pool**: Single pool shared across all event loops in a process
+- **Configurable Size**: UV_THREADPOOL_SIZE environment variable (default: 4, max: 1024)
+- **Work Distribution**: Automatic load balancing across worker threads
+- **Performance Tuning**: Size optimization based on CPU cores and workload characteristics
+
+### Advanced Features
+
+- **Inter-thread Communication**: uv_async_send for thread-safe event loop wakeup
+- **Synchronization Primitives**: Mutexes, read-write locks, semaphores, condition variables
+- **Signal Handling**: Cross-platform signal abstraction with event loop integration
+- **Memory Management**: Reference counting with uv_ref/uv_unref for loop lifecycle control
+
+### Performance Characteristics
+
+- **Network Scalability**: Single thread can handle thousands of concurrent connections
+- **File I/O Bottlenecks**: Thread pool saturation can limit disk-bound applications
+- **Context Switching**: Minimal overhead for network operations, higher for file operations
+- **Memory Efficiency**: External buffer allocation to reduce V8 GC pressure
+
+### Future Evolution
+
+- **Dynamic Thread Pool**: Runtime resizing capabilities for better resource management
+- **io_uring Integration**: Linux completion-based I/O for unified network and file operations
+- **Performance Optimization**: Continued platform-specific enhancements and optimizations
+- **API Extensions**: New primitives for emerging use cases and requirements
+
 ## Table of Contents
 
 ## What is Libuv

@@ -23,6 +23,73 @@ tags:
 
 Master production-grade SSG architecture with deployment strategies, performance optimization techniques, and advanced AWS patterns for building fast, scalable static sites.
 
+## TLDR
+
+**Static Site Generation (SSG)** is a build-time rendering approach that pre-generates HTML, CSS, and JavaScript files for exceptional performance, security, and scalability when deployed on AWS with CloudFront CDN.
+
+### Core SSG Principles
+
+- **Build-Time Rendering**: All pages generated at build time, not request time
+- **Static Assets**: Pure HTML, CSS, JS files served from CDN edge locations
+- **Content Sources**: Markdown files, headless CMS APIs, or structured data
+- **Templates/Components**: React, Vue, or templating languages for page generation
+- **Global CDN**: Deployed to edge locations worldwide for instant delivery
+
+### Rendering Spectrum Comparison
+
+- **SSG**: Fastest TTFB, excellent SEO, stale data, lowest infrastructure complexity
+- **SSR**: Slower TTFB, excellent SEO, real-time data, highest infrastructure complexity
+- **CSR**: Slowest TTFB, poor SEO, real-time data, low infrastructure complexity
+- **Hybrid**: Per-page rendering decisions for optimal performance and functionality
+
+### Advanced AWS Architecture
+
+- **Atomic Deployments**: Versioned directories in S3 (e.g., `/build_001/`, `/build_002/`)
+- **Instant Rollbacks**: CloudFront origin path updates for zero-downtime rollbacks
+- **Lambda@Edge**: Dynamic routing, redirects, and content negotiation at the edge
+- **Blue-Green Deployments**: Parallel environments with traffic switching via cookies
+- **Canary Releases**: Gradual traffic shifting for risk mitigation
+
+### Performance Optimization
+
+- **Pre-Compression**: Brotli (Q11) and Gzip (-9) compression during build process
+- **Content Negotiation**: Lambda@Edge function serving optimal compression format
+- **CLS Prevention**: Image dimensions, font optimization, responsive component rendering
+- **Asset Delivery**: Organized S3 structure with proper metadata and cache headers
+- **Edge Caching**: CloudFront cache policies with optimal TTL values
+
+### Deployment Strategies
+
+- **Versioned Deployments**: Each build in unique S3 directory with build version headers
+- **Rollback Mechanisms**: Instant rollbacks via CloudFront origin path updates
+- **Cache Invalidation**: Strategic cache purging for new deployments
+- **Zero-Downtime**: Atomic deployments with instant traffic switching
+- **A/B Testing**: Lambda@Edge routing based on user cookies or IP hashing
+
+### Advanced Patterns
+
+- **Dual Build Strategy**: Separate mobile/desktop builds for optimal CLS prevention
+- **Edge Redirects**: High-performance redirects handled at CloudFront edge
+- **Pre-Compressed Assets**: Build-time compression with content negotiation
+- **Responsive Rendering**: Device-specific builds with user agent detection
+- **Gradual Rollouts**: Canary releases with percentage-based traffic routing
+
+### Performance Benefits
+
+- **TTFB**: <50ms (vs 200-500ms for SSR)
+- **Compression Ratios**: 85-90% bandwidth savings with pre-compression
+- **Global Delivery**: Edge locations worldwide for instant access
+- **Scalability**: CDN handles unlimited traffic without server scaling
+- **Security**: Reduced attack surface with no server-side code execution
+
+### Best Practices
+
+- **Build Optimization**: Parallel builds, incremental generation, asset optimization
+- **Cache Strategy**: Aggressive caching with proper cache invalidation
+- **Monitoring**: Real-time metrics, performance monitoring, error tracking
+- **SEO Optimization**: Static sitemaps, meta tags, structured data
+- **Security**: HTTPS enforcement, security headers, CSP policies
+
 ## Table of Contents
 
 - [Part 1: Deconstructing Static Site Generation (SSG)](#part-1-deconstructing-static-site-generation-ssg)

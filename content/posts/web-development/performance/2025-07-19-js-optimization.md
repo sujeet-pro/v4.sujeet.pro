@@ -97,20 +97,33 @@ gantt
     axisFormat %s
 
     section Normal Script
-    Download & Execute    :crit, normal, 0, 200
+    DOM Parsing           :active, normal, 0, 10
+    Download              :crit, normal, 10, 100
+    Execute               :crit, normal, 100, 160
+    DOM Parsing           :active, normal, 160, 300
 
     section Async Script
-    Download              :active, async, 0, 150
-    Execute               :crit, async, 150, 200
+    DOM Parsing           :active, normal, 0, 100
+    Download              :active, normal, 10, 100
+    Execute               :crit, async, 100, 160
+    DOM Parsing           :active, normal, 160, 210
 
     section Defer Script
-    Download              :active, defer, 0, 100
-    Execute               :defer, 100, 200
+    DOM Parsing           :active, normal, 0, 150
+    Download              :active, normal, 10, 100
+    Execute               :exec, 150, 190
 
     section Module Script
-    Download              :active, module, 0, 80
-    Execute               :module, 80, 200
+    DOM Parsing           :active, normal, 0, 150
+    Download              :active, normal, 10, 100
+    Execute               :module, 150, 210
 ```
+
+<figcaption>
+
+**Figure 1:** Script loading strategies timeline comparison showing how different script loading methods affect HTML parsing and execution timing. Normal, async, and module scripts execute before DOM Load Complete, while defer scripts execute after DOM Load Complete.
+
+</figcaption>
 
 ### Standard `<script>`
 
@@ -233,6 +246,12 @@ graph TD
     K -->|Yes| E
     K -->|No| L[Task Complete]
 ```
+
+<figcaption>
+
+**Figure 2:** Long task management workflow showing how tasks exceeding 50ms are detected, split into chunks, and processed using scheduler.yield() to maintain responsive user experience.
+
+</figcaption>
 
 ## Code Splitting and Dynamic Loading
 
@@ -898,6 +917,12 @@ graph TD
     style U fill:#c8e6c9
     style V fill:#ffcdd2
 ```
+
+<figcaption>
+
+**Figure 3:** Performance optimization decision tree providing a systematic approach to selecting the most appropriate optimization techniques based on the type of performance issue encountered.
+
+</figcaption>
 
 ## Conclusion
 

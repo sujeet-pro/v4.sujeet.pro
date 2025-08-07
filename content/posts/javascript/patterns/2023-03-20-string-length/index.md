@@ -22,8 +22,6 @@ Photo by <a href="https://unsplash.com/@rikku72?utm_content=creditCopyText&utm_m
 </figcaption>
 </figure>
 
-## Table of Contents
-
 ## TL;DR
 
 JavaScript's `string.length` property counts UTF-16 code units, not user-perceived characters. Modern Unicode text—especially emoji and combining characters—requires multiple code units per visual character. Use `Intl.Segmenter` for grapheme-aware operations.
@@ -32,6 +30,8 @@ JavaScript's `string.length` property counts UTF-16 code units, not user-perceiv
 console.log("👨‍👩‍👧‍👦".length) // 11 - UTF-16 code units
 console.log(getGraphemeLength("👨‍👩‍👧‍👦")) // 1 - User-perceived characters
 ```
+
+## Table of Contents
 
 ## The Problem: What You See vs. What You Get
 

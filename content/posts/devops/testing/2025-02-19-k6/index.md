@@ -20,6 +20,77 @@ tags:
 
 Master k6's Go-based architecture, JavaScript scripting capabilities, and advanced workload modeling for modern DevOps and CI/CD performance testing workflows.
 
+## TLDR
+
+**k6** is a modern, developer-centric performance testing framework built on Go's goroutines and JavaScript scripting, designed for DevOps and CI/CD workflows with exceptional resource efficiency and scalability.
+
+### Core Architecture
+
+- **Go-based Engine**: High-performance execution using goroutines (lightweight threads) instead of OS threads
+- **JavaScript Scripting**: ES6-compatible scripting with embedded goja runtime (no Node.js dependency)
+- **Resource Efficiency**: Single binary with minimal memory footprint (256MB vs 760MB for JMeter)
+- **Scalability**: Single instance can handle 30,000-40,000 concurrent virtual users
+
+### Performance Testing Patterns
+
+- **Smoke Testing**: Minimal load (3 VUs) to verify basic functionality and establish baselines
+- **Load Testing**: Average load assessment with ramping stages to measure normal performance
+- **Stress Testing**: Extreme loads to identify breaking points and system behavior under stress
+- **Soak Testing**: Extended periods (8+ hours) to detect memory leaks and performance degradation
+- **Spike Testing**: Sudden traffic bursts to test system resilience and recovery capabilities
+
+### Workload Modeling
+
+- **Closed Models (VU-based)**: Fixed number of virtual users, throughput as output
+- **Open Models (Arrival-rate)**: Fixed request rate, VUs as output
+- **Scenarios API**: Multiple workload profiles in single test with parallel/sequential execution
+- **Executors**: Constant VUs, ramping VUs, constant arrival rate, ramping arrival rate
+
+### Advanced Features
+
+- **Metrics Framework**: Built-in HTTP metrics, custom metrics (Counter, Gauge, Rate, Trend)
+- **Thresholds**: Automated pass/fail analysis with SLOs codified in test scripts
+- **Asynchronous Execution**: Per-VU event loops for complex user behavior simulation
+- **Data-driven Testing**: CSV/JSON data loading with SharedArray for realistic scenarios
+- **Environment Configuration**: Environment variables for multi-environment testing
+
+### CI/CD Integration
+
+- **Tests as Code**: JavaScript scripts version-controlled in Git with peer review
+- **Automated Workflows**: Seamless integration with GitHub Actions, Jenkins, GitLab CI
+- **Shift-left Testing**: Early performance validation in development pipeline
+- **Threshold Validation**: Automated performance regression detection
+
+### Extensibility (xk6)
+
+- **Custom Extensions**: Native Go extensions for new protocols and integrations
+- **Popular Extensions**: Kafka, MQTT, PostgreSQL, MySQL, browser testing
+- **Output Extensions**: Custom metric streaming to Prometheus, Elasticsearch, AWS
+- **Build System**: xk6 tool for compiling custom k6 binaries with extensions
+
+### Developer Experience
+
+- **JavaScript API**: Familiar ES6 syntax with built-in modules (k6/http, k6/check)
+- **CLI-first Design**: Command-line interface optimized for automation
+- **Real-time Output**: Live metrics and progress during test execution
+- **Comprehensive Documentation**: Extensive guides and examples
+
+### Best Practices
+
+- **Incremental Complexity**: Start with smoke tests, gradually increase load
+- **Realistic Scenarios**: Model actual user behavior patterns
+- **Environment Parity**: Test against production-like environments
+- **Monitoring Integration**: Real-time metrics with external monitoring tools
+- **Performance Baselines**: Establish and maintain performance thresholds
+
+### Competitive Advantages
+
+- **Resource Efficiency**: 10x better memory usage compared to JMeter
+- **Developer Productivity**: JavaScript scripting with modern tooling
+- **CI/CD Native**: Designed for automated testing workflows
+- **Scalability**: Single instance handles enterprise-scale loads
+- **Extensibility**: Custom extensions for specialized requirements
+
 ## Table of Contents
 
 ## Introduction: A Paradigm Shift in Performance Engineering

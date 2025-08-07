@@ -24,7 +24,7 @@
   "web-fundamentals": {
     name: "Web Fundamentals & Standards",
     blogs: [
-      "web-development/fundamentals/2023-09-01-http-versions",
+      "web-development/fundamentals/2023-09-01-web-protocol-evolution",
       "web-development/fundamentals/2025-07-17-caching",
       "web-development/fundamentals/2025-07-20-image-formats",
       "web-development/fundamentals/2025-07-20-web-accessibility",

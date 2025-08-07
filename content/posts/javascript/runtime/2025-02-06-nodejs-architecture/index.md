@@ -14,6 +14,45 @@ tags:
 
 Explore Node.js's event-driven architecture, V8 engine integration, libuv's asynchronous I/O capabilities, and how these components work together to create a high-performance JavaScript runtime.
 
+## TLDR
+
+**Node.js** is a composite system built on four core pillars: V8 engine for JavaScript execution, libuv for asynchronous I/O, C++ bindings for integration, and Node.js Core API for developer interface.
+
+### Core Architecture Components
+
+- **V8 Engine**: High-performance JavaScript execution with multi-tiered JIT compilation (Ignition → Sparkplug → Maglev → TurboFan)
+- **Libuv**: Cross-platform asynchronous I/O engine with event loop, thread pool, and native I/O abstraction
+- **C++ Bindings**: Glue layer translating JavaScript calls to native system APIs
+- **Node.js Core API**: High-level JavaScript modules (fs, http, crypto, etc.) built on the underlying components
+
+### Event Loop & Concurrency Model
+
+- **Single-threaded Event Loop**: Processes events in phases (timers → pending → poll → check → close)
+- **Non-blocking I/O**: Network operations handled asynchronously on main thread
+- **Thread Pool**: CPU-intensive operations (fs, crypto, DNS) delegated to worker threads
+- **Microtasks**: Promise resolutions and process.nextTick processed between phases
+
+### Memory Management & Performance
+
+- **Generational Garbage Collection**: New Space (Scavenge) and Old Space (Mark-Sweep-Compact)
+- **Buffer Management**: Binary data allocated outside V8 heap to reduce GC pressure
+- **Stream Backpressure**: Automatic flow control preventing memory overflow
+- **Performance Optimization**: V8's JIT compilation and libuv's efficient I/O handling
+
+### Evolution & Modern Features
+
+- **Worker Threads**: True multithreading for CPU-bound tasks with SharedArrayBuffer
+- **Node-API**: ABI-stable native addon interface independent of V8
+- **ES Modules**: Modern JavaScript module system with async loading
+- **Web Standards**: Native implementation of web APIs for cross-platform compatibility
+
+### Concurrency Models Comparison
+
+- **vs Thread-per-Request**: Superior for I/O-bound workloads, inferior for CPU-intensive tasks
+- **vs Lightweight Threads**: Different programming models (cooperative vs preemptive)
+- **Resource Efficiency**: Handles thousands of concurrent connections with minimal overhead
+- **Scalability**: Event-driven model scales horizontally for I/O-heavy applications
+
 ## Table of Contents
 
 - [The Pillars of the Node.js Runtime](#the-pillars-of-the-nodejs-runtime)
@@ -67,7 +106,42 @@ This includes parsing JavaScript source into an Abstract Syntax Tree (AST), comp
 
 ![V8 Compiler pipeline from the blog Understanding V8's Bytecode by Franziska Hinkelmann](./v8-flow.webp)
 
-<figcaption>V8 compiler pipeline showing the multi-tiered compilation process from JavaScript source to optimized machine code</figcaption>
+<figcaption>Previous V8 compiler pipeline showing the multi-tiered compilation process from JavaScript source to optimized machine code</figcaption>
+
+</figure>
+
+<figure>
+
+```mermaid
+graph TD
+    A[JavaScript Source] --> B[Parser]
+    B --> C["Abstract Syntax Tree (AST)"]
+    C --> D[Ignition Interpreter]
+    D -- Tier Up --> E[Sparkplug JIT]
+    E -- Tier Up --> F[Maglev JIT]
+    F -- Tier Up --> G[TurboFan JIT]
+
+    subgraph "Feedback Loop"
+        D -- Collects Type Feedback --> F
+        D -- Collects Type Feedback --> G
+    end
+
+    subgraph "Deoptimization"
+        G -- Assumption Failed --> D
+        F -- Assumption Failed --> D
+    end
+
+    E --> H[Fast Machine Code]
+    F --> I[Faster Machine Code]
+    G --> J[Fastest Machine Code]
+
+    style D fill:#e1f5fe
+    style E fill:#f3e5f5
+    style F fill:#fff3e0
+    style G fill:#e8f5e8
+```
+
+<figcaption>Latest V8 execution pipeline showing the four-tier compilation strategy from source code to optimized machine code</figcaption>
 
 </figure>
 

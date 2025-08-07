@@ -68,6 +68,7 @@
 
   // Core Technologies
   node: { name: "Node.js" },
+  nodejs: { name: "Node.js" },
   "v8-engine": { name: "V8 Engine" },
   "event-loop": { name: "Event Loop" },
   libuv: { name: "Libuv" },
@@ -155,6 +156,8 @@
   "ci-cd": { name: "CI/CD" },
   sre: { name: "Site Reliability Engineering" },
   concurrency: { name: "Concurrency" },
+  "feature-flags": { name: "Feature Flags" },
+  experimentation: { name: "Experimentation" },
   // Data Structures & Algorithms
   dsa: { name: "Data Structures & Algorithms" },
   "data-structures": { name: "Data Structures" },

@@ -18,6 +18,51 @@ tags:
 
 Learn how to scale frontend development with microfrontends, enabling team autonomy, independent deployments, and domain-driven boundaries for large-scale applications.
 
+## TLDR
+
+**Microfrontends** break large frontend applications into smaller, independent pieces that can be developed, deployed, and scaled separately.
+
+### Key Benefits
+
+- **Team Autonomy**: Each team owns their microfrontend end-to-end
+- **Technology Freedom**: Teams can choose different frameworks (React, Vue, Angular, Svelte)
+- **Independent Deployments**: Deploy without coordinating with other teams
+- **Domain-Driven Design**: Organized around business domains, not technical layers
+
+### Composition Strategies
+
+- **Client-Side**: Browser assembly using Module Federation, Web Components, iframes
+- **Server-Side**: Server assembly using SSR frameworks, Server-Side Includes
+- **Edge-Side**: CDN assembly using Cloudflare Workers, ESI, Lambda@Edge
+
+### Integration Techniques
+
+- **Iframes**: Maximum isolation, complex communication via postMessage
+- **Web Components**: Framework-agnostic, encapsulated UI widgets
+- **Module Federation**: Dynamic code sharing, dependency optimization
+- **Custom Events**: Simple publish-subscribe communication
+
+### Deployment & State Management
+
+- **Independent CI/CD pipelines** for each microfrontend
+- **Local state first** - each microfrontend manages its own state
+- **URL-based state** for sharing ephemeral data
+- **Custom events** for cross-microfrontend communication
+
+### When to Choose
+
+- **Client-Side**: High interactivity, complex state sharing, SPA requirements
+- **Edge-Side**: Global performance, low latency, high availability needs
+- **Server-Side**: SEO-critical, initial load performance priority
+- **Iframes**: Legacy integration, security sandboxing requirements
+
+### Challenges
+
+- **Cross-cutting concerns**: State management, routing, user experience
+- **Performance overhead**: Multiple JavaScript bundles, network requests
+- **Complexity**: Requires mature CI/CD, automation, and tooling
+- **Team coordination**: Shared dependencies, versioning, integration testing
+
 ## Table of Contents
 
 ## Core Principles of Microfrontend Architecture
@@ -40,6 +85,8 @@ A cornerstone of the architecture is the ability for each team to deploy their m
 
 Microfrontends should be modeled around business domains, not technical layers. This ensures that teams are focused on delivering business value and that the boundaries between components are logical and clear.
 
+<figure>
+
 ```mermaid
 graph TB
     title[Monolithic Frontend Architecture]
@@ -54,6 +101,12 @@ graph TB
     style C fill:#ffcccc
     style D fill:#ffcccc
 ```
+
+<figcaption>Monolithic frontend architecture showing the tight coupling and coordinated deployments that microfrontends aim to solve</figcaption>
+
+</figure>
+
+<figure>
 
 ```mermaid
 graph TB
@@ -79,6 +132,10 @@ graph TB
     style L fill:#ccffcc
 ```
 
+<figcaption>Microfrontend architecture showing independent deployments, domain boundaries, technology freedom, and team autonomy</figcaption>
+
+</figure>
+
 ## The Composition Conundrum: Where to Assemble the Puzzle?
 
 The method by which independent microfrontends are stitched together into a cohesive user experience is known as composition. The location of this assembly process is a primary architectural decision, leading to three distinct models.
@@ -88,6 +145,8 @@ The method by which independent microfrontends are stitched together into a cohe
 | **Client-Side**      | User's Browser     | Module Federation, iframes, Web Components, single-spa     | Highly interactive, complex Single-Page Applications (SPAs) where teams are familiar with the frontend ecosystem                                      |
 | **Server-Side**      | Origin Server      | Server-Side Includes (SSI), SSR Frameworks (e.g., Next.js) | SEO-critical applications where initial load performance is paramount and state-sharing complexity is high                                            |
 | **Edge-Side**        | CDN / Edge Network | ESI, Cloudflare Workers, AWS Lambda@Edge                   | Applications with global audiences that require high availability, low latency, and the ability to offload scalability challenges to the CDN provider |
+
+<figure>
 
 ```mermaid
 graph LR
@@ -113,6 +172,10 @@ graph LR
     M --> F
     M --> I
 ```
+
+<figcaption>Three composition strategies showing client-side, server-side, and edge-side approaches for assembling microfrontends</figcaption>
+
+</figure>
 
 ## A Deep Dive into Integration Techniques
 
@@ -413,6 +476,8 @@ A core tenet of microfrontends is independent deployability, which necessitates 
 
 Each microfrontend must have its own dedicated CI/CD pipeline, allowing its owning team to build, test, and deploy without coordinating with others. This is fundamental to achieving team autonomy.
 
+<figure>
+
 ```mermaid
 graph TB
     subgraph "Team A - Product Catalog"
@@ -440,6 +505,10 @@ graph TB
     B5 -.-> D
     C5 -.-> D
 ```
+
+<figcaption>Independent deployment pipelines showing how each team can build, test, and deploy their microfrontend without coordinating with others</figcaption>
+
+</figure>
 
 ### Repository Strategy
 
@@ -829,6 +898,8 @@ The "best" microfrontend approach is context-dependent. The decision should be d
 - The unparalleled security sandboxing of iframes is required
 - You need complete isolation between different parts of the application
 
+<figure>
+
 ```mermaid
 flowchart TD
     A[Start: Choose Microfrontend Strategy] --> B{"What's your primary goal?"}
@@ -857,6 +928,10 @@ flowchart TD
     style E fill:#e8f5e8
     style F fill:#fff3e0
 ```
+
+<figcaption>Decision tree for choosing the right microfrontend composition strategy based on primary goals and requirements</figcaption>
+
+</figure>
 
 ## Conclusion
 

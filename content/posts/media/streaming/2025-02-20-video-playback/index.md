@@ -16,6 +16,81 @@ tags:
 
 Learn the complete video delivery pipeline from codecs and compression to adaptive streaming protocols, DRM systems, and ultra-low latency technologies for building modern video applications.
 
+## TLDR
+
+**Modern Video Playback** is a sophisticated pipeline combining codecs, adaptive streaming protocols, DRM systems, and ultra-low latency technologies to deliver high-quality video experiences across all devices and network conditions.
+
+### Core Video Stack Components
+
+- **Codecs**: H.264 (universal), H.265/HEVC (4K/HDR), AV1 (royalty-free, best compression)
+- **Audio Codecs**: AAC (high-quality), Opus (low-latency, real-time)
+- **Container Formats**: MPEG-TS (HLS), Fragmented MP4 (DASH), CMAF (unified)
+- **Adaptive Streaming**: HLS (Apple ecosystem), MPEG-DASH (open standard)
+- **DRM Systems**: Widevine (Google), FairPlay (Apple), PlayReady (Microsoft)
+
+### Video Codecs Comparison
+
+- **H.264 (AVC)**: Universal compatibility, baseline compression, licensed
+- **H.265 (HEVC)**: 50% better compression than H.264, 4K/HDR support, complex licensing
+- **AV1**: 30% better than HEVC, royalty-free, slow encoding, growing hardware support
+- **VP9**: Google's codec, good compression, limited hardware support
+
+### Adaptive Bitrate Streaming
+
+- **ABR Principles**: Multiple quality variants, dynamic segment selection, network-aware switching
+- **HLS Protocol**: Apple's standard, .m3u8 manifests, MPEG-TS segments, universal compatibility
+- **MPEG-DASH**: Open standard, XML manifests, codec-agnostic, flexible representation
+- **CMAF**: Unified container format for both HLS and DASH, reduces storage costs
+
+### Streaming Protocols
+
+- **HLS (HTTP Live Streaming)**: Apple ecosystem, .m3u8 manifests, MPEG-TS/fMP4 segments
+- **MPEG-DASH**: Open standard, XML manifests, codec-agnostic, flexible
+- **Low-Latency HLS**: 2-5 second latency, partial segments, blocking playlist reloads
+- **WebRTC**: Sub-500ms latency, UDP-based, peer-to-peer, interactive applications
+
+### Digital Rights Management (DRM)
+
+- **Multi-DRM Strategy**: Widevine (Chrome/Android), FairPlay (Apple), PlayReady (Windows)
+- **Encryption Process**: AES-128 encryption, Content Key generation, license acquisition
+- **Common Encryption (CENC)**: Single encrypted file compatible with multiple DRM systems
+- **License Workflow**: Secure handshake, key exchange, content decryption
+
+### Ultra-Low Latency Technologies
+
+- **Low-Latency HLS**: 2-5 second latency, HTTP-based, scalable, broadcast applications
+- **WebRTC**: <500ms latency, UDP-based, interactive, conferencing applications
+- **Partial Segments**: Smaller chunks for faster delivery and reduced latency
+- **Preload Hints**: Server guidance for optimal content delivery
+
+### Video Pipeline Architecture
+
+- **Content Preparation**: Encoding, transcoding, segmentation, packaging
+- **Storage Strategy**: Origin servers, CDN distribution, edge caching
+- **Delivery Network**: Global CDN, edge locations, intelligent routing
+- **Client Playback**: Adaptive selection, buffer management, quality switching
+
+### Performance Optimization
+
+- **Compression Efficiency**: Codec selection, bitrate optimization, quality ladder design
+- **Network Adaptation**: Real-time bandwidth monitoring, quality switching, buffer management
+- **CDN Optimization**: Edge caching, intelligent routing, geographic distribution
+- **Quality of Experience**: Smooth playback, minimal buffering, optimal quality selection
+
+### Production Considerations
+
+- **Scalability**: CDN distribution, origin offloading, global reach
+- **Reliability**: Redundancy, fault tolerance, monitoring, analytics
+- **Cost Optimization**: Storage efficiency, bandwidth management, encoding strategies
+- **Compatibility**: Multi-device support, browser compatibility, DRM integration
+
+### Future Trends
+
+- **Open Standards**: Royalty-free codecs, standardized containers, interoperable protocols
+- **Ultra-Low Latency**: Sub-second streaming, interactive applications, real-time communication
+- **Quality Focus**: QoE optimization, intelligent adaptation, personalized experiences
+- **Hybrid Systems**: Dynamic protocol selection, adaptive architectures, intelligent routing
+
 ## Table of Contents
 
 - [Introduction](#introduction)

@@ -15,9 +15,9 @@ tags:
   - protocol-negotiation
 ---
 
-# HTTP Evolution: HTTP/1.1 to HTTP/3
+# Web Protocol Evolution: HTTP/1.1 to HTTP/3 and TLS Handshake Optimization
 
-Master HTTP protocol evolution from HTTP/1.1 through HTTP/2 to HTTP/3, understanding TLS handshakes, head-of-line blocking, and browser protocol selection algorithms.
+A comprehensive analysis of web protocol evolution revealing how HTTP/1.1's application-layer bottlenecks led to HTTP/2's transport-layer constraints, ultimately driving the adoption of HTTP/3 with QUIC. This exploration examines TLS handshake optimization, protocol negotiation mechanisms, DNS-based discovery, and the sophisticated browser algorithms that determine optimal protocol selection based on network conditions and server capabilities.
 
 ## Table of Contents
 
