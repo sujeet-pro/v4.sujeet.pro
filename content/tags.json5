@@ -1,6 +1,6 @@
 {
   // Domains
-  ecom: { name: "E-commerce" },
+  ecomm: { name: "E-commerce" },
   ads: { name: "Ad Tech" },
   edu: { name: "Ed Tech" },
   fin: { name: "Fin Tech" },
@@ -143,11 +143,13 @@
   cypress: { name: "Cypress" },
   playwright: { name: "Playwright" },
   selenium: { name: "Selenium" },
+  "quality-assurance": { name: "Quality Assurance" },
 
   // Architecture & Design
   architecture: { name: "Architecture" },
   "system-design": { name: "System Design" },
   "design-patterns": { name: "Design Patterns" },
+  "design-system": { name: "Design System" },
   "micro-frontends": { name: "Micro Frontends" },
   microservices: { name: "Microservices" },
   "distributed-systems": { name: "Distributed Systems" },
@@ -258,6 +260,7 @@
   redirection: { name: "URL Redirection" },
   versioning: { name: "Versioning" },
   migration: { name: "Migration" },
+  "technology-migration": { name: "Technology Migration" },
 
   // Development Tools
   git: { name: "Git" },
@@ -270,6 +273,10 @@
   formatter: { name: "Code Formatter" },
   bundler: { name: "Bundler" },
   transpiler: { name: "Transpiler" },
+  "change-management": { name: "Change Management" },
+  governance: { name: "Governance" },
+  "team-management": { name: "Team Management" },
+  "organizational-change": { name: "Organizational Change" },
   tls: { name: "Transport Layer Security" },
   "transport-protocols": { name: "Transport Protocols" },
   "protocol-negotiation": { name: "Protocol Negotiation" },
@@ -292,4 +299,12 @@
   "http-headers": { name: "HTTP Headers" },
   csp: { name: "Content Security Policy" },
   hooks: { name: "React Hooks" },
+  "ui-consistency": { name: "UI Consistency" },
+  "component-library": { name: "Component Library" },
+  "design-tokens": { name: "Design Tokens" },
+  "frontend-architecture": { name: "Frontend Architecture" },
+  "migration-strategy": { name: "Migration Strategy" },
+  "roi-analysis": { name: "ROI Analysis" },
+  "stakeholder-management": { name: "Stakeholder Management" },
+  "executive-sponsorship": { name: "Executive Sponsorship" },
 }
