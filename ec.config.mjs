@@ -11,12 +11,12 @@ export default defineEcConfig({
   useDarkModeMediaQuery: false,
   defaultProps: {
     // Disable line numbers by default
-    showLineNumbers: false,
+    showLineNumbers: true,
     collapseStyle: "collapsible-auto",
     // But enable line numbers for certain languages
     overridesByLang: {
-      "js,ts,html,css": {
-        showLineNumbers: true,
+      "txt,bash,ascii": {
+        showLineNumbers: false,
       },
       bash: {
         frame: "terminal",
@@ -26,5 +26,8 @@ export default defineEcConfig({
 
   shiki: {
     langs: [import("./plugins/m3u8-grammar.js")],
+    langAlias: {
+      dns: "text",
+    },
   },
 })
