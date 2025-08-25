@@ -11,6 +11,7 @@ export interface Series {
   id: string
   name: string
   blogs: PageContent[]
+  featured: boolean
   href: string
 }
 

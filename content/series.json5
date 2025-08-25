@@ -1,71 +1,96 @@
-{
-  "javascript-deep-dive": {
-    name: "JavaScript Deep Dive",
+[
+  {
+    id: "organizational",
+    name: "Engineering Leadership & Organization",
     blogs: [
-      "javascript/patterns/2023-03-20-string-length",
-      "javascript/error-handling/2023-03-11-error-handling",
-      "javascript/patterns/2023-03-01-pub-sub",
-      "javascript/patterns/2023-03-21-lru",
-      "javascript/patterns/2025-01-23-exponential-backoff",
-      "javascript/patterns/2025-01-24-async-queue",
+      "organizational/design-systems/2024-05-15-design-system-adoption-guide",
+      "organizational/technology-migrations/2024-06-01-ssg-to-ssr",
     ],
+    featured: true,
   },
-
-  "nodejs-internals": {
-    name: "Node.js Internals & Runtime",
+  {
+    id: "javascript-runtime",
+    name: "JavaScript Runtime & Engine Internals",
     blogs: [
-      "javascript/runtime/2025-02-06-nodejs-architecture",
-      "javascript/runtime/2025-02-07-event-loop",
-      "javascript/runtime/2025-02-08-libuv",
-      "javascript/runtime/2025-02-09-v8",
+      "javascript/runtime/2023-08-01-nodejs-architecture",
+      "javascript/runtime/2023-08-15-event-loop",
+      "javascript/runtime/2023-09-01-libuv",
+      "javascript/runtime/2023-09-15-v8",
     ],
+    featured: false,
   },
-
-  "web-fundamentals": {
+  {
+    id: "web-fundamentals",
     name: "Web Fundamentals & Standards",
     blogs: [
-      "web-development/fundamentals/2023-09-01-web-protocol-evolution",
-      "web-development/fundamentals/2025-07-17-caching",
-      "web-development/fundamentals/2025-07-20-image-formats",
-      "web-development/fundamentals/2025-07-20-web-accessibility",
-      "web-development/fundamentals/2025-07-20-security",
+      "web-development/fundamentals/2023-01-15-web-protocol-evolution",
+      "web-development/fundamentals/2023-02-01-caching",
+      "web-development/fundamentals/2023-02-15-security",
+      "web-development/fundamentals/2023-03-01-web-accessibility",
+      "web-development/fundamentals/2023-03-15-image-formats",
+      "web-development/fundamentals/2023-04-01-auth",
     ],
+    featured: true,
   },
 
-  "web-performance": {
+  {
+    id: "web-performance",
     name: "Web Performance Optimization",
     blogs: [
-      "web-development/performance/2025-07-18-web-performance-patterns",
-      "web-development/performance/2025-07-19-image-optimization",
-      "web-development/performance/2025-07-19-css-optimization",
-      "web-development/performance/2025-07-19-font-optimization",
-      "web-development/performance/2025-07-19-js-optimization",
-      "web-development/performance/2025-07-19-infra-optimization",
-      "web-development/performance/2025-07-20-index",
+      "web-development/performance/2023-11-15-web-performance-patterns",
+      "web-development/performance/2023-12-01-image-optimization",
+      "web-development/performance/2023-12-15-css-optimization",
+      "web-development/performance/2024-01-01-font-optimization",
+      "web-development/performance/2024-01-15-js-optimization",
+      "web-development/performance/2024-02-01-infra-optimization",
+      "web-development/performance/2024-02-15-index",
     ],
+    featured: true,
   },
 
-  "frontend-architecture": {
-    name: "Frontend Architecture & Patterns",
+  {
+    id: "javascript-fundamentals",
+    name: "JavaScript Fundamentals & Patterns",
     blogs: [
-      "web-development/architecture/2023-08-10-critical-rendering-path",
-      "web-development/architecture/2024-01-27-microfrontends",
-      "architecture/rendering/2024-01-20-ssg-optimizations",
+      "javascript/patterns/2023-05-01-pub-sub",
+      "javascript/error-handling/2023-05-15-error-handling",
+      "javascript/patterns/2023-06-01-string-length",
+      "javascript/patterns/2023-06-15-lru",
+      "javascript/patterns/2023-07-01-exponential-backoff",
+      "javascript/patterns/2023-07-15-async-queue",
     ],
+    featured: true,
   },
 
-  "react-ecosystem": {
-    name: "React Ecosystem",
-    blogs: ["frameworks/react/2025-07-25-hooks"],
+  {
+    id: "web-architecture",
+    name: "Web Architecture & System Design",
+    blogs: [
+      "web-development/architecture/2023-10-01-critical-rendering-path",
+      "architecture/rendering/2023-10-15-ssg-optimizations",
+      "web-development/architecture/2023-11-01-microfrontends",
+    ],
+    featured: true,
   },
 
-  "devops-testing": {
-    name: "DevOps & Testing",
-    blogs: ["devops/testing/2025-02-19-k6"],
+  {
+    id: "react-ecosystem",
+    name: "React Development & Architecture",
+    blogs: ["frameworks/react/2024-03-01-hooks", "frameworks/react/2024-03-15-react-architecture"],
+    featured: false,
   },
 
-  "media-streaming": {
-    name: "Media & Streaming",
-    blogs: ["media/streaming/2025-02-20-video-playback"],
+  {
+    id: "devops-testing",
+    name: "DevOps & Performance Testing",
+    blogs: ["devops/testing/2024-04-01-k6"],
+    featured: false,
   },
-}
+
+  {
+    id: "advanced-topics",
+    name: "Advanced Development Topics",
+    blogs: ["frameworks/2024-04-15-statsig", "media/streaming/2024-05-01-video-playback"],
+    featured: false,
+  },
+]

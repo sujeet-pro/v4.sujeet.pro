@@ -1,10 +1,11 @@
 ---
 import Layout from "@/layout/layout.astro"
 import Profile from "@/components/profile.astro"
-import Item from "@/components/item.astro"
-import { getFeaturedBlogs } from "@/utils/content-blogs.utils"
+import SeriesItem from "@/components/series-item.astro"
+import Link from "@/components/link.astro"
+import { getFeaturedSeries } from "@/utils/content-series.utils"
 
-const featuredBlogs = await getFeaturedBlogs()
+const featuredSeries = await getFeaturedSeries()
 ---
 
 <Layout
@@ -16,16 +17,19 @@ const featuredBlogs = await getFeaturedBlogs()
   <Profile />
 
   {
-    featuredBlogs.length > 0 && (
+    featuredSeries.length > 0 && (
       <section class="my-16 md:my-24">
-        <div class="mx-auto max-w-4xl">
-          <h2 class="mb-8 text-center text-3xl font-light md:text-4xl">Featured Posts</h2>
-          <ul class="space-y-4">
-            {featuredBlogs.map((blog) => (
-              <Item item={blog} />
-            ))}
-          </ul>
+        <div class="mb-8 flex items-center justify-between gap-4">
+          <h2 class="text-3xl font-light md:text-4xl">Featured Series</h2>
+          <Link href="/series" class="text-sm font-medium">
+            View All →
+          </Link>
         </div>
+        <ul class="space-y-4">
+          {featuredSeries.map((series) => (
+            <SeriesItem series={series} />
+          ))}
+        </ul>
       </section>
     )
   }

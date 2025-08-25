@@ -28,8 +28,10 @@ const series = defineCollection({
     },
   }),
   schema: z.object({
+    id: z.string(),
     name: z.string(),
     blogs: z.array(z.string()),
+    featured: z.boolean(),
   }),
 })
 

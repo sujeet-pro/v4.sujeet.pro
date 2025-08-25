@@ -208,6 +208,7 @@
   ssl: { name: "SSL/TLS" },
   oauth: { name: "OAuth" },
   jwt: { name: "JWT" },
+  saml: { name: "SAML" },
   "penetration-testing": { name: "Penetration Testing" },
 
   // Networking & Protocols

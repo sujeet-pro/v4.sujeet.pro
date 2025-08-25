@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2025-07-20
+lastUpdatedOn: 2023-03-15
 tags:
   - web-performance
   - caching
