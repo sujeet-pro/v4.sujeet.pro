@@ -1,5 +1,11 @@
 [
   {
+    id: "platform",
+    name: "Platform Services",
+    blogs: ["platform/image-service/2025-11-12-image-service"],
+    featured: false,
+  },
+  {
     id: "organizational",
     name: "Engineering Leadership & Organization",
     blogs: [
