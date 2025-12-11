@@ -13,6 +13,13 @@
       "organizational/technology-migrations/2024-06-01-ssg-to-ssr",
     ],
     featured: true,
+  },{
+    id: "technical-design-docs",
+    name: "Technical Design Docs",
+    blogs: [
+      "technical-design-docs/2025-12-11-csp-sentinel",
+    ],
+    featured: true,
   },
   {
     id: "javascript-runtime",

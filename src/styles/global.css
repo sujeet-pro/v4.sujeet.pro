@@ -164,16 +164,8 @@ button {
    MERMAID DIAGRAMS
    ========================================================================== */
 
-@media (prefers-color-scheme: light) {
-  [data-theme="dark"] img[id^="mermaid-"] {
-    @apply invert;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  [data-theme="light"] img[id^="mermaid-"] {
-    @apply invert;
-  }
+[data-theme="dark"] svg[id^="mermaid-"] {
+  @apply invert;
 }
 
 /* ==========================================================================

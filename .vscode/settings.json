@@ -31,6 +31,7 @@
     "editor.defaultFormatter": "redhat.vscode-xml"
   },
   "files.associations": {
-    "*.css": "tailwindcss"
+    "*.css": "tailwindcss",
+    "*.json5": "jsonc"
   }
 }
