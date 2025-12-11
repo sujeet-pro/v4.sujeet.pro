@@ -11,6 +11,8 @@ tags:
 **Target Build:** Q1 2026  
 **Version:** 1.0
 
+## Table of Contents
+
 ## 1. Executive Summary
 
 CSP-Sentinel is a centralized, high-throughput system designed to collect, process, and analyze Content Security Policy (CSP) violation reports from web browsers. As our web properties serve tens of thousands of requests per second, the system must handle significant burst traffic (baseline 50k RPS, scaling to 100k+ RPS) while maintaining near-zero impact on client browsers.
