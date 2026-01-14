@@ -1,10 +1,10 @@
 ---
-import type { PageContentItem } from "@/utils/content.type"
+import type { ContentItem } from "@/utils/content.type"
 import Link from "./link.astro"
 import Frontmatter from "./frontmatter.astro"
 
 type Props = {
-  item: PageContentItem
+  item: ContentItem
   textHeading?: string
 }
 const { item, textHeading } = Astro.props as Props

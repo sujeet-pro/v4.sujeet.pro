@@ -1,0 +1,56 @@
+[
+  {
+    id: "system-design",
+    name: "System Design",
+    description: "Notes on designing scalable and reliable systems",
+    featured: true,
+    subcategories: [
+      {
+        id: "foundations",
+        name: "Foundations",
+        description: "Core concepts and building blocks",
+      },
+      {
+        id: "design-problems",
+        name: "Design Problems",
+        description: "Real-world system design problems and solutions",
+      },
+    ],
+  },
+  {
+    id: "leadership",
+    name: "Engineering Leadership",
+    description: "Notes on technical leadership and management",
+    featured: true,
+    subcategories: [
+      {
+        id: "team-building",
+        name: "Team Building",
+        description: "Building and growing engineering teams",
+      },
+      {
+        id: "technical-strategy",
+        name: "Technical Strategy",
+        description: "Aligning technical decisions with business goals",
+      },
+    ],
+  },
+  {
+    id: "dsa",
+    name: "Data Structures & Algorithms",
+    description: "Notes on DSA concepts and patterns",
+    featured: true,
+    subcategories: [
+      {
+        id: "data-structures",
+        name: "Data Structures",
+        description: "Common data structures and implementations",
+      },
+      {
+        id: "algorithms",
+        name: "Algorithms",
+        description: "Algorithm patterns and problem-solving",
+      },
+    ],
+  },
+]

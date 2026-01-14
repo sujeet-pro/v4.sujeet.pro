@@ -15,6 +15,49 @@ export interface Series {
   href: string
 }
 
+export interface Subcategory {
+  id: string
+  name: string
+  description: string
+  deepDives: DeepDiveContent[]
+  href: string
+}
+
+export interface Category {
+  id: string
+  name: string
+  description: string
+  featured: boolean
+  subcategories: Subcategory[]
+  href: string
+  totalDeepDives: number
+}
+
+export interface DeepDiveContent {
+  id: string
+  pageSlug: string
+  title: string
+  minutesRead: string
+  description: string
+  publishedOn: Date
+  lastUpdatedOn: Date
+  isDraft: boolean
+  tags: Tag[]
+  Content: RenderResult["Content"]
+  href: string
+  type: "deep-dive"
+  category: {
+    id: string
+    name: string
+    href: string
+  }
+  subcategory: {
+    id: string
+    name: string
+    href: string
+  }
+}
+
 export interface PageContent {
   id: string
   pageSlug: string
@@ -32,6 +75,11 @@ export interface PageContent {
 }
 
 export type PageContentItem = Omit<PageContent, "Content" | "tags">
+
+export type DeepDiveContentItem = Omit<DeepDiveContent, "Content" | "tags">
+
+// Generic content item that can be used for any content type
+export type ContentItem = PageContentItem | DeepDiveContentItem
 
 export const remarkPluginFrontmatterSchema = z.object({
   title: z

@@ -1,0 +1,45 @@
+---
+import Item from "@/components/item.astro"
+import Link from "@/components/link.astro"
+import Layout from "@/layout/layout.astro"
+import { getAllCategories } from "@/utils/content-categories.utils"
+
+export async function getStaticPaths() {
+  const categories = await getAllCategories()
+
+  return categories.map((category) => ({
+    params: { category: category.id },
+    props: { category },
+  }))
+}
+
+const { category } = Astro.props
+const crumbs = [{ title: "Categories", href: "/category" }]
+---
+
+<Layout title={category.name} description={category.description} {crumbs} pageType="default">
+  <h1>{category.name}</h1>
+  <p class="mb-8">{category.description}</p>
+
+  {
+    category.subcategories.map((subcategory) => (
+      <section class="mb-12">
+        <h2 class="mb-4 text-xl font-light">
+          <Link href={subcategory.href} class="hover:underline">
+            {subcategory.name}
+          </Link>
+          <span class="text-muted-foreground ml-2 text-sm">({subcategory.deepDives.length} notes)</span>
+        </h2>
+        {subcategory.deepDives.length > 0 ? (
+          <ul class="flex flex-col">
+            {subcategory.deepDives.map((dd) => (
+              <Item item={dd} />
+            ))}
+          </ul>
+        ) : (
+          <p class="text-muted-foreground">No notes yet in this subcategory.</p>
+        )}
+      </section>
+    ))
+  }
+</Layout>

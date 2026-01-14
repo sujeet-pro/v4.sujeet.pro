@@ -1,0 +1,96 @@
+---
+import Accordion from "@/components/accordion.astro"
+import Article from "@/components/article.astro"
+import Frontmatter from "@/components/frontmatter.astro"
+import Item from "@/components/item.astro"
+import Link from "@/components/link.astro"
+import Layout from "@/layout/layout.astro"
+import { getDeepDives } from "@/utils/content-deep-dives.utils"
+
+export async function getStaticPaths() {
+  const deepDives = await getDeepDives()
+
+  return deepDives.map((dd, index) => {
+    const nextDeepDive = index < deepDives.length - 1 ? deepDives[index + 1] : null
+    const prevDeepDive = index > 0 ? deepDives[index - 1] : null
+
+    // Get related deep-dives in the same subcategory
+    const relatedInSubcategory = deepDives
+      .filter((d) => d.subcategory.id === dd.subcategory.id && d.category.id === dd.category.id && d.id !== dd.id)
+      .slice(0, 5)
+
+    return {
+      params: { slug: dd.pageSlug },
+      props: {
+        deepDive: dd,
+        relatedInSubcategory,
+        nextDeepDive,
+        prevDeepDive,
+      },
+    }
+  })
+}
+
+const { deepDive, relatedInSubcategory, nextDeepDive, prevDeepDive } = Astro.props
+const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft, category, subcategory } =
+  deepDive
+
+const crumbs = [
+  { title: "Deep Dives", href: "/deep-dives" },
+  { title: category.name, href: category.href },
+  { title: subcategory.name, href: subcategory.href },
+]
+---
+
+<Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft}>
+  <Frontmatter {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} class="my-4" />
+
+  {
+    relatedInSubcategory.length > 0 && (
+      <Accordion title={`Related in: ${subcategory.name}`} open={false} noIndex={true}>
+        <ol class="list-inside list-decimal space-y-2 p-0">
+          {relatedInSubcategory.map((dd) => (
+            <li class="pl-2">
+              <Link href={dd.href} class="hover:underline">
+                {dd.title}
+              </Link>
+            </li>
+          ))}
+        </ol>
+      </Accordion>
+    )
+  }
+
+  <Article {title} noIndex={isDraft} as="article">
+    <Content />
+  </Article>
+
+  <!-- Tags -->
+  {
+    tags.length > 0 && (
+      <section class="sp-border-muted mt-12 border-t pt-12">
+        <h2 class="mb-6 text-2xl font-light">Tags</h2>
+        <div class="flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <Link href={tag.href} class="px-3 py-1 text-sm">
+              #{tag.name}
+            </Link>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- Navigation -->
+  {
+    (prevDeepDive || nextDeepDive) && (
+      <section class="mt-12">
+        <h2 class="mb-6 text-2xl font-light">Read more</h2>
+        <ul class="flex flex-col">
+          {prevDeepDive && <Item textHeading="Next" item={prevDeepDive} />}
+          {nextDeepDive && <Item textHeading="Previous" item={nextDeepDive} />}
+        </ul>
+      </section>
+    )
+  }
+</Layout>

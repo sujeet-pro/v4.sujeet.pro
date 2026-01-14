@@ -1,0 +1,36 @@
+---
+import type { Category } from "@/utils/content.type"
+import Link from "./link.astro"
+
+type Props = {
+  category: Category
+}
+const { category } = Astro.props
+---
+
+<li class="sp-border-muted relative flex flex-col gap-4 border-b py-6 last:border-b-0">
+  <div>
+    <h2 class="text-xl font-light">
+      <Link href={category.href} class="category-link no-underline hover:underline">
+        {category.name}
+      </Link>
+    </h2>
+    <p class="text-muted-foreground text-sm">{category.description}</p>
+    <span class="text-muted-foreground text-sm"
+      >{category.totalDeepDives} {category.totalDeepDives === 1 ? "note" : "notes"}</span
+    >
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    {
+      category.subcategories.map((sub) => (
+        <Link
+          href={sub.href}
+          class="rounded-full bg-gray-100 px-3 py-1 text-sm no-underline hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+        >
+          {sub.name} ({sub.deepDives.length})
+        </Link>
+      ))
+    }
+  </div>
+</li>

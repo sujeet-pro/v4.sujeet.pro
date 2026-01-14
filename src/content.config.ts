@@ -35,10 +35,33 @@ const series = defineCollection({
   }),
 })
 
+const categories = defineCollection({
+  loader: file("./content/categories.json5", {
+    parser: (fileContent) => json5.parse(fileContent),
+  }),
+  schema: z.object({
+    id: z.string(),
+    name: z.string(),
+    description: z.string(),
+    featured: z.boolean(),
+    subcategories: z.array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        description: z.string(),
+      })
+    ),
+  }),
+})
+
 const contentSchema = z.object({
   lastUpdatedOn: z.coerce.date(),
   tags: z.array(reference("tags")),
   featuredRank: z.number().optional(),
+})
+
+const deepDiveSchema = contentSchema.extend({
+  category: z.string(),
 })
 
 const posts = defineCollection({
@@ -57,10 +80,20 @@ const pages = defineCollection({
   schema: contentSchema,
 })
 
+const deepDives = defineCollection({
+  loader: glob({
+    pattern: "**/[^_]*.md",
+    base: "./content/deep-dives",
+  }),
+  schema: deepDiveSchema,
+})
+
 export const collections = {
   posts,
   pages,
   tags,
   vanity,
   series,
+  categories,
+  deepDives,
 }

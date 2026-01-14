@@ -1,0 +1,16 @@
+---
+import CategoryItem from "@/components/category-item.astro"
+import Layout from "@/layout/layout.astro"
+import { getAllCategories } from "@/utils/content-categories.utils"
+
+const categories = await getAllCategories()
+const crumbs: { title: string; href: string }[] = []
+---
+
+<Layout title="Categories" description="Browse deep-dives by category" {crumbs} pageType="default">
+  <h1 class="mb-6">Categories</h1>
+
+  <ul class="space-y-0">
+    {categories.map((category) => <CategoryItem {category} />)}
+  </ul>
+</Layout>
