@@ -1,223 +1,263 @@
 # Personal Portfolio & Blog
 
-This repository contains my personal portfolio website and a collection of blogs written over time. Built with Astro for fast, modern web development and deployed on Cloudflare Workers.
+Technical blog for experienced software professionals. Built with Astro, deployed on Cloudflare Workers.
 
-## Deployment
+## Documentation
 
-This project is deployed on Cloudflare Workers using the modern Workers Assets format. The migration from Cloudflare Pages to Workers was completed to leverage the latest Cloudflare infrastructure.
+- [Project Implementation](./docs/project-implementation.md) - Architecture, content collections, search, and deployment
+- [Markdown Features](./docs/markdown-features.md) - Complete markdown reference including code blocks, math, and diagrams
 
-### Deployment Commands
+## Quick Start
 
-- `npm run build` - Build the static site
-- `npm run deploy` - Build and deploy to Cloudflare Workers
-- `npm run deploy:dry-run` - Test deployment configuration without deploying
-- `npm run dev:worker` - Start local Workers development server
-
-## Blog Posts Structure
-
-The blog posts are organized into logical categories for better discoverability and content management. Each category contains related topics and follows a coherent learning progression.
-
-### Posts Directory Structure
-
-```
-content/posts/
-├── javascript/                    # JavaScript-related content
-│   ├── patterns/                  # Design patterns, algorithms, data structures
-│   ├── runtime/                   # Node.js internals, V8, libuv, event loop
-│   └── error-handling/            # Error handling patterns and strategies
-├── web-development/               # Web development content
-│   ├── fundamentals/              # HTTP, caching, security, accessibility
-│   ├── performance/               # Performance optimization techniques
-│   └── architecture/              # Critical rendering path, microfrontends
-├── frameworks/                    # Framework-specific content
-│   └── react/                     # React hooks, patterns, best practices
-├── devops/                        # DevOps and tooling
-│   ├── testing/                   # Load testing, unit testing
-│   ├── deployment/                # CI/CD, deployment strategies
-│   └── monitoring/                # Observability, logging, metrics
-├── media/                         # Media-related content
-│   └── streaming/                 # Video/audio streaming, HLS, WebRTC
-└── architecture/                  # Architectural patterns
-    ├── rendering/                 # SSG, SSR, CSR patterns
-    ├── patterns/                  # Design patterns, architectural decisions
-    └── scalability/               # Scaling strategies, performance patterns
+```bash
+npm install          # Install dependencies
+npm run dev          # Development server
+npm run build        # Production build
+npm run deploy       # Deploy to Cloudflare Workers
 ```
 
-### Blog Series Organization
+## Content Structure
 
-Blogs are grouped into meaningful series that provide coherent learning paths:
+```
+content/
+├── writing/         # Main technical articles
+├── deep-dives/      # Educational content (with category/subcategory)
+├── work/            # Design docs, architecture, case studies
+├── uses/            # Tools, setup, productivity
+├── drafts/          # Draft workflow for article generation
+├── tags.jsonc       # Tag definitions
+├── categories.jsonc # Deep-dive categories
+└── series.jsonc     # Content series
+```
 
-1. **JavaScript Deep Dive** - Progressive learning from fundamentals to advanced patterns
-2. **Node.js Internals & Runtime** - Bottom-up approach from architecture to engine details
-3. **Web Fundamentals & Standards** - Core web standards in logical order
-4. **Web Performance Optimization** - From specific optimizations to comprehensive overview
-5. **Frontend Architecture & Patterns** - From rendering fundamentals to modern patterns
-6. **React Ecosystem** - React-specific patterns and best practices
-7. **DevOps & Testing** - Testing strategies and DevOps practices
-8. **Media & Streaming** - Media processing and streaming technologies
+## Writing Content
 
-### Adding New Blog Posts
+### File Naming
 
-When adding new blog posts:
+```
+YYYY-MM-DD-slug-name.md
+2024-03-15-event-loop.md
+```
 
-1. **Choose the appropriate category** based on the content type
-2. **Follow the naming convention**: `YYYY-MM-DD-post-title.md`
-3. **Use date folders for multi-file posts**: `YYYY-MM-DD/post-title/`
-4. **Update the series.json5** file if the post belongs to an existing series
-5. **Create new series** if the content doesn't fit existing categories
+### Document Structure
 
-### Empty Folders in Git
-
-Empty folders are intentionally kept in the repository to maintain the organized structure. Each category folder contains a `.gitkeep` file to ensure the folder structure is preserved in version control.
-
-## Supported Features (Tech)
-
-The blogs are intended to be written in Markdown(.md) files.
-
-Below functionality are extended.
-
-### Frontmatter
-
-#### Automatic Frontmatter Extraction
-
-- **Title**: Extracted from the first H1 heading in the markdown
-- **Description**: Extracted from content between H1 and "Table of Contents" heading
-- **Published On**: Extracted from the file path (YYYY-MM-DD-slug-path or YYYY-MM-DD/slug-path)
-- **Slug**: Generated from the file path structure
-
-#### Automatic Frontmatter Generation
-
-- **Minutes Read**: Automatically calculated based on content length
-
-#### Required Explicit Frontmatter
-
-```yaml
+```markdown
 ---
-lastUpdatedOn: 2024-01-22
+lastUpdatedOn: 2024-01-15
 tags:
   - js
-  - ts
   - design-patterns
 ---
+
+# Article Title
+
+Description paragraph(s) - becomes meta description.
+
+## Table of Contents
+
+## Section One
+
+...
 ```
 
-#### Optional Explicit Frontmatter
+### Auto-Extracted Fields
 
-```yaml
----
-lastUpdatedOn: 2024-01-22
-tags:
-  - js
-  - ts
-  - design-patterns
-featuredRank: 1 # Optional: Makes post appear on home page (lower numbers = higher priority)
----
-```
+| Field         | Source                                        |
+| ------------- | --------------------------------------------- |
+| `title`       | First H1 heading                              |
+| `description` | Paragraphs between H1 and "Table of Contents" |
+| `publishedOn` | Filename date (YYYY-MM-DD)                    |
+| `minutesRead` | Calculated from content                       |
 
 ### Draft Posts
 
-To create a draft post, prefix the title with "Draft:" in the H1 heading:
+Prefix title with "Draft:" to mark as draft:
 
 ```markdown
-# Draft: My Work in Progress Post
-
-This post will be marked as a draft and won't appear in public listings.
+# Draft: Work in Progress
 ```
 
 ### Featured Posts
 
-To feature a post on the home page, add `featuredRank` to the frontmatter:
+Add `featuredRank` to frontmatter (lower = higher priority):
 
 ```yaml
 ---
-lastUpdatedOn: 2024-01-22
-tags:
-  - js
-  - ts
-featuredRank: 1 # Lower numbers = higher priority (appear first)
+featuredRank: 1
 ---
 ```
 
-- Posts with `featuredRank` defined will appear in the "Featured Posts" section on the home page
-- Posts are sorted by `featuredRank` in ascending order (1 appears before 2)
-- Only non-draft posts with `featuredRank` are displayed
-- If no posts have `featuredRank`, the section won't appear
+## Content Collections
+
+| Collection | Path                  | Special Fields                                          |
+| ---------- | --------------------- | ------------------------------------------------------- |
+| writing    | `content/writing/`    | `featuredRank` (optional)                               |
+| deep-dives | `content/deep-dives/` | `subcategory` (required)                                |
+| work       | `content/work/`       | `type` (optional: design-doc, architecture, case-study) |
+| uses       | `content/uses/`       | -                                                       |
+
+### Deep Dives Subcategories
+
+```yaml
+subcategory: system-design/foundations
+subcategory: leadership/team-building
+subcategory: dsa/algorithms
+```
+
+## Markdown Features
+
+### Code Blocks (Expressive Code)
+
+````markdown
+```ts title="file.ts" collapse={1-3} {5-7}
+// Lines 1-3 collapsed (imports)
+import { a } from "a"
+import { b } from "b"
+
+// Lines 5-7 highlighted
+function main() {
+  return "hello"
+}
+```
+````
+
+**Key features:**
+
+- `title="filename"` - Add file context
+- `collapse={1-5}` - Collapse boilerplate lines
+- `{2-4}` - Highlight lines
+- `+` / `-` - Diff syntax
+- Line numbers shown by default (except bash/txt)
+
+### Mermaid Diagrams
+
+````markdown
+```mermaid
+flowchart LR
+    A[Start] --> B[End]
+```
+````
+
+### Math (KaTeX)
+
+```markdown
+Inline: $E = mc^2$
+Block: $$\int_0^1 x^2 dx$$
+```
 
 ### Images
 
-#### PNG Images (Auto-inverted for Dark Mode)
-
-PNG images are automatically inverted in dark mode for better visibility:
-
 ```markdown
-![Image description](./my-image.png)
+![Alt text](./image.png) # Standard
+![Diagram](./diagram.invert.png) # Inverts in dark mode
+![Icon](./icon.inline.svg) # Inlined SVG
 ```
 
-#### SVG Images
-
-##### Inline SVGs (Recommended for Diagrams)
-
-SVG files ending with `.inline.svg` will be inlined into the HTML, allowing:
-
-- `currentColor` attribute to work with theme colors
-- Tailwind classes (though not recommended)
-- Proper dark/light mode support for text-based diagrams
-
-```markdown
-![Diagram](./my-diagram.inline.svg)
-```
-
-##### Regular SVGs
-
-Regular SVG files are treated as regular images:
-
-```markdown
-![SVG Image](./my-image.svg)
-```
-
-### File Structure
-
-Posts should follow this naming convention:
-
-```
-content/posts/category/YYYY-MM-DD-post-title.md
-```
-
-Or with date folder structure:
-
-```
-content/posts/category/YYYY-MM-DD/post-title.md
-```
-
-### Example Complete Post
-
-```markdown
 ---
-lastUpdatedOn: 2024-01-22
+
+## Using LLM Agents
+
+This repo includes documentation for LLM agents (Claude, Cursor, Gemini, Codex) to assist with content creation and code review.
+
+### Agent Configuration Files
+
+| Agent  | Config File        |
+| ------ | ------------------ |
+| Claude | `.claude/rules.md` |
+| Cursor | `.cursor/rules.md` |
+| Gemini | `.gemini/rules.md` |
+| Codex  | `codex.md`         |
+
+All agents reference detailed docs in `llm_docs/`.
+
+### Commands
+
+#### Review an Article
+
+```
+Review article: content/writing/javascript/patterns/2023-05-01-pub-sub.md
+```
+
+Reviews for:
+
+- Structure (H1, description, Table of Contents)
+- Code blocks (collapsed boilerplate, proper highlighting)
+- Technical accuracy
+- Accessibility
+
+#### Generate an Article
+
+```
+Generate article: Understanding Event Sourcing
+```
+
+Or with reference files:
+
+```
+Generate article: React Server Components
+ref: content/writing/frameworks/react/2024-03-15-react-architecture.md
+```
+
+#### Draft Workflow
+
+For complex articles, use the draft workflow:
+
+1. **Create draft folder:**
+
+   ```
+   Create draft: distributed-consensus
+   ```
+
+2. **Add research notes** to `content/drafts/distributed-consensus/`:
+   - `_meta.yaml` - Target collection, tags, status
+   - `notes.md` - Research notes from various sources
+   - `outline.md` - Planned structure
+
+3. **Generate article:**
+   ```
+   Generate article from draft: distributed-consensus
+   ```
+
+The agent reads all files, synthesizes content, and places the article in the correct location.
+
+### Draft Metadata (`_meta.yaml`)
+
+```yaml
+target: writing # writing | deep-dives | work | uses
+folder: javascript/patterns # Optional: target folder
 tags:
   - js
-  - ts
   - design-patterns
-featuredRank: 1
+workingTitle: My Article
+status: research # research | outlining | drafting | review | ready
+```
+
+### Key Guidelines for Agents
+
+1. **Code blocks**: Always collapse imports/boilerplate with `collapse={lines}`
+2. **TypeScript**: Strictest mode, use `import type` for types
+3. **CSS**: Minimalistic - prefer Tailwind utilities
+4. **Structure**: Each section should lead naturally to the next
+5. **Audience**: Experienced professionals, highly technical
+
 ---
 
-# My Awesome Blog Post
+## Development
 
-This is the description that will appear in listings and meta tags.
+```bash
+npm run check        # TypeScript type checking
+npm run lint         # ESLint
+npm run format       # Prettier
+npm run test         # Vitest
+```
 
-<figure>
-![Cover Image](./cover-image.png)
-<figcaption>Image description</figcaption>
-</figure>
+### TypeScript
 
-## Table of Contents
+Uses `astro/tsconfigs/strictest` - no implicit any, strict null checks.
 
-## Introduction
+### Path Aliases
 
-Your content here...
-
-<figure>
-![Diagram](./diagram.inline.svg)
-<figcaption>SVG diagram that supports currentColor</figcaption>
-</figure>
+```typescript
+import { helper } from "@/utils/helper"
+import { SITE } from "@constants/site"
 ```

@@ -1,6 +1,3 @@
-import css from "@eslint/css"
-import { tailwindSyntax } from "@eslint/css/syntax"
-
 import js from "@eslint/js"
 import json from "@eslint/json"
 import markdown from "@eslint/markdown"
@@ -53,40 +50,6 @@ const jsTsAstroConfigs = defineConfig([
   })),
 ])
 
-// CSS configurations
-const cssConfigs = defineConfig([
-  {
-    files: ["**/*.css"],
-    plugins: {
-      css,
-    },
-    language: "css/css",
-    languageOptions: {
-      tolerant: true,
-      customSyntax: {
-        ...tailwindSyntax,
-        atrules: {
-          ...tailwindSyntax.atrules,
-          plugin: {
-            prelude: "<string>",
-          },
-          theme: {
-            prelude: "<string>",
-          },
-          "custom-variant": {
-            prelude: "<string>",
-          },
-        },
-      },
-    },
-    rules: {
-      ...css.configs.recommended.rules,
-      "css/no-invalid-at-rules": "off",
-      "css/use-baseline": ["error", { available: "newly" }],
-    },
-  },
-])
-
 // JSON configurations
 const jsonConfigs = defineConfig([
   {
@@ -109,12 +72,9 @@ const jsonConfigs = defineConfig([
     files: ["**/*.jsonc"],
     plugins: { json },
     language: "json/jsonc",
-    extends: ["json/recommended"],
-  },
-  {
-    files: ["**/*.json5"],
-    plugins: { json },
-    language: "json/json5",
+    languageOptions: {
+      allowTrailingCommas: true,
+    },
     extends: ["json/recommended"],
   },
 ])
@@ -136,7 +96,6 @@ const markdownConfig = defineConfig([
 const config = defineConfig([
   globalIgnores([".astro", ".vscode", "node_modules", "dist", "public"]),
   // ...jsTsAstroConfigs,
-  ...cssConfigs,
   // ...jsonConfigs,
   // ...markdownConfig,
 ])

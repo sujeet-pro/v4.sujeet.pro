@@ -1,0 +1,179 @@
+---
+import { Icon } from "astro-icon/components"
+
+interface Props {
+  class?: string
+}
+
+const { class: className } = Astro.props
+---
+
+<!-- Mobile: Collapsible TOC -->
+<details class:list={["toc-mobile lg:hidden", className]}>
+  <summary class="sp-border-muted flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-3">
+    <Icon name="carbon:list" class="h-5 w-5" />
+    <span class="font-medium">Table of Contents</span>
+    <Icon name="carbon:chevron-down" class="toc-chevron ml-auto h-4 w-4 transition-transform" />
+  </summary>
+  <nav class="toc-nav sp-border-muted mt-2 rounded-lg border p-4" aria-label="Table of contents">
+    <ul class="toc-list space-y-2 text-sm">
+      <!-- Populated by JS -->
+    </ul>
+  </nav>
+</details>
+
+<!-- Desktop: Sticky sidebar TOC -->
+<aside class:list={["toc-desktop hidden lg:block", className]}>
+  <div class="toc-sticky">
+    <h2 class="mb-4 text-sm font-medium tracking-wide uppercase opacity-60">On this page</h2>
+    <nav class="toc-nav" aria-label="Table of contents">
+      <ul class="toc-list space-y-2 text-sm">
+        <!-- Populated by JS -->
+      </ul>
+    </nav>
+  </div>
+</aside>
+
+<script>
+  function initTOC() {
+    // Find all headings in the article
+    const article = document.querySelector("article")
+    if (!article) return
+
+    const headings = article.querySelectorAll("h2, h3, h4")
+    if (headings.length === 0) return
+
+    // Build TOC HTML
+    const tocItems = Array.from(headings).map((heading) => {
+      const id = heading.id
+      const text = heading.textContent?.trim() || ""
+      const level = parseInt(heading.tagName[1] ?? "2")
+
+      return { id, text, level }
+    })
+
+    // Generate list HTML
+    function generateTocHtml(items: typeof tocItems): string {
+      return items
+        .map((item) => {
+          const indent = item.level === 2 ? "" : item.level === 3 ? "pl-4" : "pl-8"
+          return `
+          <li class="${indent}">
+            <a href="#${item.id}" class="toc-link text-muted hover:text-current block py-1 transition-colors">
+              ${item.text}
+            </a>
+          </li>
+        `
+        })
+        .join("")
+    }
+
+    const tocHtml = generateTocHtml(tocItems)
+
+    // Populate both mobile and desktop TOC
+    document.querySelectorAll(".toc-list").forEach((list) => {
+      list.innerHTML = tocHtml
+    })
+
+    // Highlight active section on scroll
+    const tocLinks = document.querySelectorAll<HTMLAnchorElement>(".toc-link")
+    const headingElements = Array.from(headings) as HTMLElement[]
+
+    function updateActiveLink() {
+      const scrollPosition = window.scrollY + 100
+
+      let activeIndex = 0
+      for (let i = 0; i < headingElements.length; i++) {
+        const element = headingElements[i]
+        if (element && element.offsetTop <= scrollPosition) {
+          activeIndex = i
+        }
+      }
+
+      tocLinks.forEach((link, index) => {
+        if (index === activeIndex) {
+          link.classList.remove("text-muted")
+          link.classList.add("text-accent", "font-medium")
+        } else {
+          link.classList.add("text-muted")
+          link.classList.remove("text-accent", "font-medium")
+        }
+      })
+    }
+
+    // Initial highlight
+    updateActiveLink()
+
+    // Update on scroll (throttled)
+    let ticking = false
+    window.addEventListener("scroll", () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          updateActiveLink()
+          ticking = false
+        })
+        ticking = true
+      }
+    })
+
+    // Smooth scroll on click
+    tocLinks.forEach((link) => {
+      link.addEventListener("click", (e) => {
+        e.preventDefault()
+        const targetId = link.getAttribute("href")?.slice(1)
+        if (targetId) {
+          const target = document.getElementById(targetId)
+          if (target) {
+            target.scrollIntoView({ behavior: "smooth", block: "start" })
+            // Update URL without scrolling
+            history.pushState(null, "", `#${targetId}`)
+          }
+        }
+      })
+    })
+  }
+
+  // Initialize on DOM ready
+  document.addEventListener("DOMContentLoaded", initTOC)
+
+  // Re-initialize on Astro page navigation (for View Transitions)
+  document.addEventListener("astro:page-load", initTOC)
+</script>
+
+<style>
+  /* Mobile TOC chevron rotation */
+  details[open] .toc-chevron {
+    transform: rotate(180deg);
+  }
+
+  /* Desktop TOC sticky positioning */
+  .toc-sticky {
+    position: sticky;
+    top: 2rem;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+  }
+
+  /* Scrollbar styling for TOC */
+  .toc-sticky::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .toc-sticky::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .toc-sticky::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 2px;
+  }
+
+  .toc-sticky::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
+  }
+
+  /* Active link styling */
+  .toc-link.text-accent {
+    color: var(--color-accent);
+  }
+</style>

@@ -1,42 +1,33 @@
 ---
-import type { ContentItem } from "@/utils/content.type"
+import type { ContentItemWithoutContent } from "@/utils/content.type"
 import Link from "./link.astro"
 import Frontmatter from "./frontmatter.astro"
 
 type Props = {
-  item: ContentItem
+  item: ContentItemWithoutContent
   textHeading?: string
+  showType?: boolean
 }
-const { item, textHeading } = Astro.props as Props
-const { minutesRead, publishedOn, lastUpdatedOn, isDraft } = item
+
+const { item, textHeading, showType = false } = Astro.props as Props
+const { minutesRead, publishedOn, lastUpdatedOn, isDraft, type } = item
+
+// Get subcategory for deep-dives
+const subcategory = type === "deep-dive" && "subcategory" in item ? item.subcategory : null
 ---
 
-<li class="sp-border-muted relative z-10 flex cursor-pointer flex-col gap-2 border-b py-6 last:border-b-0">
-  <!-- Text heading (if provided) -->
-  {textHeading && <p class="text-muted-foreground mb-1 text-sm font-light">{textHeading}</p>}
+<li class="content-item cursor-pointer">
+  {textHeading && <p class="text-muted mb-1 text-sm">{textHeading}</p>}
 
-  <!-- Title with link -->
-  <h2 class="text-xl font-light">
-    <Link href={item.href} class="item-link no-underline hover:underline">
+  <h2 class="content-item-title">
+    <Link href={item.href} class="content-item-link">
       {item.title}
     </Link>
   </h2>
-  <!-- Meta information -->
-  <Frontmatter {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} />
 
-  <!-- Description -->
-  <p class="line-clamp-2">
+  <Frontmatter {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} {showType} {type} {subcategory} />
+
+  <p class="content-item-excerpt">
     {item.description}
   </p>
 </li>
-
-<style>
-  .item-link::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-  }
-</style>

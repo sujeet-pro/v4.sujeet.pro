@@ -2,13 +2,12 @@
 interface Props {
   title: string
   as?: "article" | "section"
-  noIndex?: boolean
 }
 
-const { as, noIndex } = Astro.props as Props
+const { as } = Astro.props as Props
 const Element = as === "article" ? "article" : "section"
 ---
 
-<Element data-pagefind-body={noIndex ? null : ""} class="mx-auto my-8 prose prose-base max-w-none dark:prose-invert">
+<Element class="mx-auto my-8 prose prose-base max-w-none">
   <slot />
 </Element>

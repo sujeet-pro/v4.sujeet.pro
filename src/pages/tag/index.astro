@@ -1,86 +1,64 @@
 ---
 import Link from "@/components/link.astro"
 import Layout from "@/layout/layout.astro"
-import { getAllTags } from "@/utils/content-tags.utils"
-import { getBlogs } from "@/utils/content-blogs.utils"
-import { isNonNullish } from "@/utils/function.utils"
+import { getAllUsedTags } from "@/utils/content-tags.utils"
+import { getAllContentItems } from "@/utils/content.utils"
 
-const tags = await getAllTags()
-const allBlogs = await getBlogs()
+const allContent = await getAllContentItems()
+const tags = await getAllUsedTags()
 
-// Get blog count for each tag
+// Get content count for each tag
 const tagsWithCount = tags
   .map((tag) => {
-    const blogCount = allBlogs.filter((blog) => blog.tags.some((blogTag) => blogTag.id === tag.id)).length
-    if (blogCount === 0) return null
+    const contentCount = allContent.filter((item) => item.tags.some((itemTag) => itemTag.id === tag.id)).length
+    if (contentCount === 0) return null
     return {
       ...tag,
-      blogCount,
+      contentCount,
     }
   })
-  .filter(isNonNullish)
+  .filter((tag): tag is NonNullable<typeof tag> => tag !== null)
 
-// Sort tags by blog count (descending) and then alphabetically
+// Sort tags by content count (descending) and then alphabetically
 const sortedTags = tagsWithCount.sort((a, b) => {
-  if (b.blogCount !== a.blogCount) {
-    return b.blogCount - a.blogCount
+  if (b.contentCount !== a.contentCount) {
+    return b.contentCount - a.contentCount
   }
   return a.name.localeCompare(b.name)
 })
 
 const totalTags = tagsWithCount.length
-const totalBlogs = allBlogs.length
+const totalContent = allContent.length
 const crumbs: { title: string; href: string }[] = []
 ---
 
 <Layout title="Tags" description="All tags" {crumbs} pageType="default">
   <div class="mx-auto max-w-4xl">
-    <!-- Header Section -->
     <div class="mb-12 text-center">
-      <h1 class="mb-4 text-4xl font-light md:text-5xl">Tags</h1>
-      <p class="mx-auto max-w-2xl text-lg text-primary-600 dark:text-primary-400">
-        Explore {totalTags} tags across {totalBlogs} blog posts
+      <h1 class="mb-4">Tags</h1>
+      <p class="text-muted text-lg">
+        Explore {totalTags} tags across {totalContent} items
       </p>
     </div>
 
-    <!-- Tags List -->
-    <ul class="space-y-2">
+    <ul class="content-list">
       {
         sortedTags.map((tag) => (
-          <li>
-            <Link
-              href={tag.href}
-              class="group flex items-center justify-between rounded px-3 py-2 transition-colors hover:bg-primary-50 dark:hover:bg-primary-900/20"
-            >
-              <span class="font-medium group-hover:underline">#{tag.name}</span>
-              <span class="text-sm text-primary-600 dark:text-primary-400">{tag.blogCount}</span>
+          <li class="content-item">
+            <Link href={tag.href} class="nav-link flex items-center justify-between">
+              <span>#{tag.name}</span>
+              <span class="text-muted text-sm">{tag.contentCount}</span>
             </Link>
           </li>
         ))
       }
     </ul>
 
-    <!-- Empty State -->
     {
       sortedTags.length === 0 && (
         <div class="mt-12 text-center">
-          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-800">
-            <svg
-              class="h-8 w-8 text-primary-600 dark:text-primary-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-              />
-            </svg>
-          </div>
-          <h3 class="mb-2 text-lg font-medium">No tags found</h3>
-          <p class="text-primary-600 dark:text-primary-400">Tags will appear here once blog posts are added.</p>
+          <h3 class="heading-3 mb-2">No tags found</h3>
+          <p class="text-muted">Tags will appear here once content is added.</p>
         </div>
       )
     }

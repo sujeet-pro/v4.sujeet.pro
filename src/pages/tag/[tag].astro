@@ -1,46 +1,50 @@
 ---
 import Item from "@/components/item.astro"
 import Layout from "@/layout/layout.astro"
-import { getBlogs } from "@/utils/content-blogs.utils"
-import { getAllTags } from "@/utils/content-tags.utils"
-import { isNonNullish } from "@/utils/function.utils"
+import { getAllUsedTags } from "@/utils/content-tags.utils"
+import { getAllContentItems } from "@/utils/content.utils"
 
 export async function getStaticPaths() {
-  const tags = await getAllTags()
-  const allBlogs = await getBlogs()
+  const allContent = await getAllContentItems()
+  const usedTags = await getAllUsedTags()
 
-  const tagAndBlogs = tags
+  const tagAndContent = usedTags
     .map((tag) => {
-      const blogs = allBlogs.filter((blog) => blog.tags.find((blogTag) => blogTag.id === tag.id))
-      if (blogs.length === 0) return null
+      const content = allContent.filter((item) => item.tags.some((itemTag) => itemTag.id === tag.id))
+      if (content.length === 0) return null
       return {
         tag,
-        blogs,
+        content,
       }
     })
-    .filter(isNonNullish)
+    .filter((item): item is NonNullable<typeof item> => item !== null)
 
-  return tagAndBlogs.map(({ tag, blogs }) => ({
+  return tagAndContent.map(({ tag, content }) => ({
     params: { tag: tag.id },
     props: {
       tag,
-      blogs,
+      content,
     },
   }))
 }
 
-const { tag, blogs } = Astro.props
+const { tag, content } = Astro.props
 const crumbs = [
   {
-    title: "Tag",
+    title: "Tags",
     href: "/tag",
   },
 ]
+
+// Sort content by publishedOn date (newest first)
+const sortedContent = [...content].sort((a, b) => b.publishedOn.getTime() - a.publishedOn.getTime())
 ---
 
-<Layout title={`Tag: ${tag.name}`} description={`Blog posts tagged with ${tag.name}`} {crumbs} pageType="default">
+<Layout title={`Tag: ${tag.name}`} description={`Content tagged with ${tag.name}`} {crumbs} pageType="default">
   <h1 class="text-center">#{tag.name}</h1>
-  <ul class="flex flex-col gap-4">
-    {blogs.map((blog) => <Item item={blog} />)}
+  <p class="text-muted mb-8 text-center">{sortedContent.length} items</p>
+
+  <ul class="content-list">
+    {sortedContent.map((item) => <Item item={item} showType={true} />)}
   </ul>
 </Layout>

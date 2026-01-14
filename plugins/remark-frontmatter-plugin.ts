@@ -18,7 +18,7 @@ export const remarkFrontmatterPlugin: RemarkPlugin = (options: { defaultLayout: 
     }
     file.data.astro.frontmatter.minutesRead ??= getReadingTime(toString(tree)).text
     const title = getTitle(tree, file) ?? file.data.astro.frontmatter.title
-    file.data.astro.frontmatter.title ??= title.replace(/^draft:\s*/i, "")
+    file.data.astro.frontmatter.title ??= title?.replace(/^draft:\s*/i, "") ?? ""
     file.data.astro.frontmatter.isDraft ??= title?.toLowerCase().trim().startsWith("draft:") ?? false
     file.data.astro.frontmatter.publishedOn ??= getPublishedDate(file.path)
     file.data.astro.frontmatter.description ??= getDescription(tree, file)
@@ -61,36 +61,41 @@ function getTitle(tree: mdast.Root, file: VFile) {
 }
 
 function getDescription(tree: mdast.Root, file: VFile) {
-  // get h1 index
+  // Get h1 index
   const h1Idx = tree.children.findIndex((child) => child.type === "heading" && child.depth === 1)
   if (h1Idx === -1 && !import.meta.env.DEV) {
     throw new Error(`Missing h1 heading in ${file.path}`)
   }
-  // Ensure we have a table of contents, after h1
-  const tableOfContentsIndex = tree.children.findIndex(
-    (child, idx) =>
-      idx > h1Idx && child.type === "heading" && child.depth === 2 && toString(child) === "Table of Contents",
+
+  // Find the first H2 heading after H1
+  const firstH2Index = tree.children.findIndex(
+    (child, idx) => idx > h1Idx && child.type === "heading" && child.depth === 2,
   )
-  if (tableOfContentsIndex === -1 && !import.meta.env.DEV) {
-    throw new Error(`Missing "Table of Contents" heading in ${file.path}`)
+
+  // Strategy 1: Get text between H1 and first H2
+  if (firstH2Index > h1Idx) {
+    const descBetweenH1AndH2 = toTextString(tree.children.slice(h1Idx + 1, firstH2Index))
+    if (descBetweenH1AndH2.trim()) {
+      return descBetweenH1AndH2.trim()
+    }
   }
 
-  const firstNonParaIndex = tree.children.findIndex((child, idx) => idx > h1Idx && child.type !== "paragraph")
-  if (firstNonParaIndex === -1 && !import.meta.env.DEV) {
-    throw new Error(`Missing non-paragraph content in ${file.path}`)
-  } else if (firstNonParaIndex === -1 && import.meta.env.DEV) {
+  // Strategy 2: Find first paragraph anywhere after H1 (handles "Abstract" sections etc.)
+  const firstParaIndex = tree.children.findIndex(
+    (child, idx) => idx > h1Idx && child.type === "paragraph",
+  )
+  if (firstParaIndex > h1Idx) {
+    const firstPara = tree.children[firstParaIndex]
+    if (firstPara) {
+      const desc = toTextString([firstPara])
+      if (desc.trim()) {
+        return desc.trim()
+      }
+    }
+  }
+
+  if (import.meta.env.DEV) {
     return "Draft: Add description"
   }
-
-  const endIdx = tableOfContentsIndex > h1Idx ? tableOfContentsIndex : firstNonParaIndex
-
-  // Setting description from text between h1 and "Table of Contents"
-  const description = toTextString(tree.children.slice(h1Idx + 1, endIdx))
-  if (!description) {
-    if (import.meta.env.DEV) {
-      return "Draft: Add description"
-    }
-    throw new Error(`Missing description in ${file.path}`)
-  }
-  return description
+  throw new Error(`Missing description in ${file.path}`)
 }

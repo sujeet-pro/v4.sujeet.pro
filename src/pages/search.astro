@@ -1,34 +1,971 @@
 ---
 import Layout from "@/layout/layout.astro"
-import PageFindSearch from "astro-pagefind/components/Search"
+import { getSearchFacets } from "@/utils/search.utils"
+import { SEARCH_SCHEMA } from "@/utils/search.types"
+import { CONTENT_TYPE_LABELS } from "@constants/site"
+import { Icon } from "astro-icon/components"
+
+// Get facet options at build time (now with counts, sorted by count)
+const { categories, subcategories, tags } = await getSearchFacets()
+
+// Top 10 tags for initial display (configurable limit)
+const TOP_TAGS_LIMIT = 10
+const topTags = tags.slice(0, TOP_TAGS_LIMIT)
+
+// Serialize data for client-side script
+const allTagsJson = JSON.stringify(tags)
+const searchSchemaJson = JSON.stringify(SEARCH_SCHEMA)
+const contentTypeLabelsJson = JSON.stringify(CONTENT_TYPE_LABELS)
 ---
 
 <Layout title="Search" description="Search for posts on Sujeet's blog" crumbs={[]} pageType="default">
-  <PageFindSearch
-    id="pagefind-ui-search"
-    uiOptions={{
-      showImages: false,
-      openFilters: [], //['Category', 'Tag'],
-      autofocus: true,
-      pageSize: 10,
-      showSubResults: false,
-      showEmptyFilters: false,
-    }}
-  />
+  <div class="search-page py-8">
+    <!-- Search Input (always on top) -->
+    <div class="search-input-wrapper mb-6">
+      <input
+        type="text"
+        id="search-query"
+        placeholder="Search..."
+        class="search-input sp-border-muted w-full rounded-lg border px-4 py-3 text-lg focus:outline-none"
+        autocomplete="off"
+      />
+      <p id="search-hint" class="text-muted mt-2 text-sm">Press Enter to search</p>
+    </div>
+
+    <!-- Main layout: sidebar + results -->
+    <div class="search-layout flex flex-col gap-6 lg:flex-row lg:gap-12">
+      <!-- Mobile: Filter button -->
+      <button
+        id="open-filters-btn"
+        class="sp-border-muted flex items-center gap-2 rounded-lg border px-4 py-2 lg:hidden"
+      >
+        <Icon name="carbon:filter" class="h-5 w-5" />
+        <span>Filters</span>
+        <span id="active-filter-count" class="badge-accent hidden rounded-full px-2 py-0.5 text-xs"></span>
+      </button>
+
+      <!-- Mobile: Filter Modal -->
+      <dialog id="filter-modal" class="search-filter-modal">
+        <div class="modal-content">
+          <div class="modal-header flex items-center justify-between border-b pb-4">
+            <h2 class="text-lg font-medium">Filters</h2>
+            <button id="close-filters-btn" class="p-2" aria-label="Close filters">
+              <Icon name="carbon:close" class="h-5 w-5" />
+            </button>
+          </div>
+          <div class="modal-body py-4">
+            <div class="search-filters-content flex flex-col gap-6">
+              <!-- Categories (OR logic) -->
+              {
+                categories.length > 0 && (
+                  <div class="filter-group">
+                    <h3 class="mb-2 text-sm font-medium">Categories</h3>
+                    <div class="flex flex-wrap gap-2">
+                      {categories.map((cat) => (
+                        <label class="filter-chip cursor-pointer">
+                          <input type="checkbox" name="category-mobile" value={cat.id} class="peer sr-only" />
+                          <span class="tag peer-checked:badge-accent">
+                            {cat.name} <span class="text-muted-foreground">({cat.count})</span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )
+              }
+
+              <!-- Subcategories (OR logic) -->
+              {
+                subcategories.length > 0 && (
+                  <div class="filter-group">
+                    <h3 class="mb-2 text-sm font-medium">Topics</h3>
+                    <div class="flex flex-wrap gap-2">
+                      {subcategories.map((subcat) => (
+                        <label class="filter-chip cursor-pointer">
+                          <input type="checkbox" name="subcategory-mobile" value={subcat.id} class="peer sr-only" />
+                          <span class="tag peer-checked:badge-accent">
+                            {subcat.name} <span class="text-muted-foreground">({subcat.count})</span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )
+              }
+
+              <!-- Tags with search (AND logic) -->
+              {
+                tags.length > 0 && (
+                  <div class="filter-group">
+                    <h3 class="mb-2 text-sm font-medium">Tags</h3>
+                    <!-- Tag search input -->
+                    <div class="tag-typeahead-wrapper relative mb-3">
+                      <input
+                        type="text"
+                        id="tag-search-mobile"
+                        placeholder="Search tags..."
+                        class="tag-search-input sp-border-muted w-full rounded border px-3 py-2 text-sm"
+                        autocomplete="off"
+                      />
+                      <div id="tag-suggestions-mobile" class="tag-suggestions hidden" />
+                    </div>
+                    <!-- Selected tags -->
+                    <div id="selected-tags-mobile" class="mb-2 flex flex-wrap gap-2" />
+                    <!-- Top tags -->
+                    <div class="flex flex-wrap gap-2" id="top-tags-mobile">
+                      {topTags.map((tag) => (
+                        <label class="filter-chip cursor-pointer" data-tag-id={tag.id}>
+                          <input type="checkbox" name="tag-mobile" value={tag.id} class="peer sr-only" />
+                          <span class="tag peer-checked:badge-accent">
+                            {tag.name} <span class="text-muted-foreground">({tag.count})</span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )
+              }
+            </div>
+          </div>
+          <div class="modal-footer flex gap-4 border-t pt-4">
+            <button id="modal-clear-filters" class="text-muted text-sm underline">Clear all</button>
+            <button id="modal-apply-filters" class="bg-accent ml-auto rounded px-4 py-2 text-white"> Apply </button>
+          </div>
+        </div>
+      </dialog>
+
+      <!-- Desktop: Sidebar -->
+      <aside class="search-sidebar hidden w-64 shrink-0 lg:block">
+        <div class="sticky top-20">
+          <!-- Sort Control -->
+          <div class="sort-control mb-6 flex items-center">
+            <label for="sort-select" class="text-muted text-sm">Sort by:</label>
+            <select id="sort-select" class="sp-border-muted ml-2 rounded border px-2 py-1">
+              <option value="relevance">Relevance</option>
+              <option value="date">Newest first</option>
+            </select>
+          </div>
+
+          <!-- Faceted Filters -->
+          <div id="desktop-filters" class="search-filters flex flex-col gap-6">
+            <!-- Categories (OR logic) -->
+            {
+              categories.length > 0 && (
+                <div class="filter-group">
+                  <h3 class="mb-2 text-sm font-medium">Categories</h3>
+                  <div class="flex flex-wrap gap-2" id="category-filters">
+                    {categories.map((cat) => (
+                      <label class="filter-chip cursor-pointer">
+                        <input type="checkbox" name="category" value={cat.id} class="peer sr-only" />
+                        <span class="tag peer-checked:badge-accent">
+                          {cat.name} <span class="text-muted-foreground">({cat.count})</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )
+            }
+
+            <!-- Subcategories (OR logic) -->
+            {
+              subcategories.length > 0 && (
+                <div class="filter-group">
+                  <h3 class="mb-2 text-sm font-medium">Topics</h3>
+                  <div class="flex flex-wrap gap-2" id="subcategory-filters">
+                    {subcategories.map((subcat) => (
+                      <label class="filter-chip cursor-pointer">
+                        <input type="checkbox" name="subcategory" value={subcat.id} class="peer sr-only" />
+                        <span class="tag peer-checked:badge-accent">
+                          {subcat.name} <span class="text-muted-foreground">({subcat.count})</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )
+            }
+
+            <!-- Tags with typeahead (AND logic) -->
+            {
+              tags.length > 0 && (
+                <div class="filter-group">
+                  <h3 class="mb-2 text-sm font-medium">Tags</h3>
+                  <!-- Tag search input -->
+                  <div class="tag-typeahead-wrapper relative mb-3">
+                    <input
+                      type="text"
+                      id="tag-search-desktop"
+                      placeholder="Search tags..."
+                      class="tag-search-input sp-border-muted w-full rounded border px-3 py-2 text-sm"
+                      autocomplete="off"
+                    />
+                    <div id="tag-suggestions-desktop" class="tag-suggestions hidden" />
+                  </div>
+                  <!-- Selected tags (shown when selected from typeahead) -->
+                  <div id="selected-tags-desktop" class="mb-2 flex flex-wrap gap-2" />
+                  <!-- Top 10 tags -->
+                  <div class="flex flex-wrap gap-2" id="top-tags-desktop">
+                    {topTags.map((tag) => (
+                      <label class="filter-chip cursor-pointer" data-tag-id={tag.id}>
+                        <input type="checkbox" name="tag" value={tag.id} class="peer sr-only" />
+                        <span class="tag peer-checked:badge-accent">
+                          {tag.name} <span class="text-muted-foreground">({tag.count})</span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )
+            }
+          </div>
+
+          <!-- Clear filters button -->
+          <button id="clear-filters" class="text-muted mt-6 hidden text-sm underline hover:text-current">
+            Clear all filters
+          </button>
+        </div>
+      </aside>
+
+      <!-- Results area -->
+      <div class="search-results-area min-w-0 flex-1">
+        <!-- Mobile sort control -->
+        <div class="sort-control mb-4 flex items-center lg:hidden">
+          <label for="sort-select-mobile" class="text-muted text-sm">Sort by:</label>
+          <select id="sort-select-mobile" class="sp-border-muted ml-2 rounded border px-2 py-1">
+            <option value="relevance">Relevance</option>
+            <option value="date">Newest first</option>
+          </select>
+        </div>
+
+        <!-- Result count -->
+        <p id="result-count" class="text-muted mb-4 hidden"></p>
+
+        <!-- Results -->
+        <ul id="search-results" class="content-list">
+          <li id="search-placeholder" class="content-item">
+            <p class="text-muted">Enter a search term or select filters to find content.</p>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pass data to client via JSON script tags -->
+  <script id="all-tags-data" type="application/json" set:html={allTagsJson} />
+  <script id="search-schema-data" type="application/json" set:html={searchSchemaJson} />
+  <script id="content-type-labels-data" type="application/json" set:html={contentTypeLabelsJson} />
 </Layout>
 
 <script>
-  function onLoadQueryParamHandlerForSearch() {
-    const el = document.querySelector(`#pagefind-ui-search`)
-    const query = new URLSearchParams(window.location.search).get("q")
-    console.log(query)
-    if (el && query) {
-      const input = el.querySelector<HTMLInputElement>(`input[type="text"]`)
-      if (input) {
-        input.value = query
-        input.dispatchEvent(new Event("input", { bubbles: true }))
+  import { create, load, search } from "@orama/orama"
+
+  // Load shared constants from server-rendered JSON
+  const CONTENT_TYPE_LABELS: Record<string, string> = JSON.parse(
+    document.getElementById("content-type-labels-data")?.textContent ?? "{}"
+  )
+  const searchSchema = JSON.parse(
+    document.getElementById("search-schema-data")?.textContent ?? "{}"
+  )
+
+  interface SearchParams {
+    q: string
+    sortBy: "relevance" | "date"
+    categories: string[]
+    subcategories: string[]
+    tags: string[]
+  }
+
+  interface TagItem {
+    id: string
+    name: string
+    count: number
+  }
+
+  let db: Awaited<ReturnType<typeof create<typeof searchSchema>>> | null = null
+  let allTags: TagItem[] = []
+
+  // Load all tags from embedded JSON
+  function loadAllTags() {
+    const script = document.getElementById("all-tags-data")
+    if (script) {
+      try {
+        allTags = JSON.parse(script.textContent || "[]")
+      } catch (e) {
+        console.error("Failed to parse tags data:", e)
       }
     }
   }
-  document.addEventListener("DOMContentLoaded", onLoadQueryParamHandlerForSearch)
+
+  // Load search index
+  async function loadIndex() {
+    if (db) return
+    try {
+      const response = await fetch("/search/index.json")
+      const data = await response.json()
+      db = await create({ schema: searchSchema })
+      await load(db, data)
+    } catch (e) {
+      console.error("Failed to load search index:", e)
+    }
+  }
+
+  // Parse URL params
+  function getUrlParams(): SearchParams {
+    const params = new URLSearchParams(window.location.search)
+    return {
+      q: params.get("q") || "",
+      sortBy: (params.get("sortBy") || "relevance") as "relevance" | "date",
+      categories: params.get("categories")?.split(",").filter(Boolean) || [],
+      subcategories: params.get("subcategories")?.split(",").filter(Boolean) || [],
+      tags: params.get("tags")?.split(",").filter(Boolean) || [],
+    }
+  }
+
+  // Update URL and trigger search via pushState
+  function updateUrl(params: SearchParams) {
+    const url = new URL(window.location.href)
+
+    if (params.q) url.searchParams.set("q", params.q)
+    else url.searchParams.delete("q")
+
+    if (params.sortBy !== "relevance") url.searchParams.set("sortBy", params.sortBy)
+    else url.searchParams.delete("sortBy")
+
+    if (params.categories.length) url.searchParams.set("categories", params.categories.join(","))
+    else url.searchParams.delete("categories")
+
+    if (params.subcategories.length) url.searchParams.set("subcategories", params.subcategories.join(","))
+    else url.searchParams.delete("subcategories")
+
+    if (params.tags.length) url.searchParams.set("tags", params.tags.join(","))
+    else url.searchParams.delete("tags")
+
+    // Use pushState to enable back/forward navigation
+    window.history.pushState({}, "", url.toString())
+    // Dispatch popstate to trigger search
+    window.dispatchEvent(new PopStateEvent("popstate"))
+  }
+
+  // Toggle a value in an array (add if not present, remove if present)
+  function toggleArrayValue(arr: string[], value: string): string[] {
+    const index = arr.indexOf(value)
+    if (index === -1) {
+      return [...arr, value]
+    } else {
+      return arr.filter((v) => v !== value)
+    }
+  }
+
+  // Check if any filters are active
+  function hasActiveFilters(params: SearchParams) {
+    return params.q || params.categories.length || params.subcategories.length || params.tags.length
+  }
+
+  // Update selected tags display (for tags selected via typeahead that aren't in top 10)
+  function updateSelectedTagsDisplay(params: SearchParams, containerId: string, inputName: string) {
+    const container = document.getElementById(containerId)
+    if (!container) return
+
+    // Find tags that are selected but not in top 10
+    const topTagIds = new Set(
+      Array.from(document.querySelectorAll(`[data-tag-id]`)).map((el) => el.getAttribute("data-tag-id")),
+    )
+
+    const extraSelectedTags = params.tags
+      .filter((tagId) => !topTagIds.has(tagId))
+      .map((tagId) => allTags.find((t) => t.id === tagId))
+      .filter(Boolean) as TagItem[]
+
+    container.innerHTML = extraSelectedTags
+      .map(
+        (tag) => `
+      <label class="filter-chip cursor-pointer" data-extra-tag="${tag.id}">
+        <input type="checkbox" name="${inputName}" value="${tag.id}" class="peer sr-only" checked />
+        <span class="tag peer-checked:badge-accent">${tag.name} <span class="text-muted-foreground">(${tag.count})</span></span>
+      </label>
+    `,
+      )
+      .join("")
+
+    // Add event listeners to extra tags
+    container.querySelectorAll("input").forEach((cb) => {
+      cb.addEventListener("change", () => {
+        const params = getUrlParams()
+        params.tags = toggleArrayValue(params.tags, cb.value)
+        updateUrl(params)
+      })
+    })
+  }
+
+  // Sync UI with current URL params
+  function syncUIWithParams(params: SearchParams) {
+    const queryInput = document.getElementById("search-query") as HTMLInputElement
+    const sortSelect = document.getElementById("sort-select") as HTMLSelectElement
+    const sortSelectMobile = document.getElementById("sort-select-mobile") as HTMLSelectElement
+    const hintEl = document.getElementById("search-hint") as HTMLParagraphElement
+    const clearBtn = document.getElementById("clear-filters") as HTMLButtonElement
+
+    queryInput.value = params.q
+    if (sortSelect) sortSelect.value = params.sortBy
+    if (sortSelectMobile) sortSelectMobile.value = params.sortBy
+
+    // Sync filter checkboxes (desktop)
+    document.querySelectorAll<HTMLInputElement>('input[name="category"]').forEach((cb) => {
+      cb.checked = params.categories.includes(cb.value)
+    })
+    document.querySelectorAll<HTMLInputElement>('input[name="subcategory"]').forEach((cb) => {
+      cb.checked = params.subcategories.includes(cb.value)
+    })
+    document.querySelectorAll<HTMLInputElement>('input[name="tag"]').forEach((cb) => {
+      cb.checked = params.tags.includes(cb.value)
+    })
+
+    // Sync filter checkboxes (mobile)
+    document.querySelectorAll<HTMLInputElement>('input[name="category-mobile"]').forEach((cb) => {
+      cb.checked = params.categories.includes(cb.value)
+    })
+    document.querySelectorAll<HTMLInputElement>('input[name="subcategory-mobile"]').forEach((cb) => {
+      cb.checked = params.subcategories.includes(cb.value)
+    })
+    document.querySelectorAll<HTMLInputElement>('input[name="tag-mobile"]').forEach((cb) => {
+      cb.checked = params.tags.includes(cb.value)
+    })
+
+    // Update selected tags display for typeahead selections
+    updateSelectedTagsDisplay(params, "selected-tags-desktop", "tag")
+    updateSelectedTagsDisplay(params, "selected-tags-mobile", "tag-mobile")
+
+    // Show/hide hint and clear button
+    if (params.q) {
+      hintEl.classList.add("hidden")
+    } else {
+      hintEl.classList.remove("hidden")
+    }
+
+    if (hasActiveFilters(params)) {
+      clearBtn.classList.remove("hidden")
+    } else {
+      clearBtn.classList.add("hidden")
+    }
+  }
+
+  // Setup typeahead for tag search
+  function setupTagTypeahead(inputId: string, suggestionsId: string) {
+    const input = document.getElementById(inputId) as HTMLInputElement
+    const suggestions = document.getElementById(suggestionsId) as HTMLDivElement
+    if (!input || !suggestions) return
+
+    let selectedIndex = -1
+
+    function showSuggestions(query: string) {
+      const params = getUrlParams()
+      const lowerQuery = query.toLowerCase()
+      const filtered = allTags
+        .filter((tag) => tag.name.toLowerCase().includes(lowerQuery) && !params.tags.includes(tag.id))
+        .slice(0, 8)
+
+      if (filtered.length === 0 || !query) {
+        suggestions.classList.add("hidden")
+        return
+      }
+
+      suggestions.innerHTML = filtered
+        .map(
+          (tag, i) => `
+        <div class="tag-suggestion ${i === selectedIndex ? "selected" : ""}" data-tag-id="${tag.id}" data-index="${i}">
+          <span>${tag.name}</span>
+          <span class="text-muted text-xs">(${tag.count})</span>
+        </div>
+      `,
+        )
+        .join("")
+
+      suggestions.classList.remove("hidden")
+
+      // Add click handlers
+      suggestions.querySelectorAll(".tag-suggestion").forEach((el) => {
+        el.addEventListener("click", () => {
+          const tagId = el.getAttribute("data-tag-id")
+          if (tagId) {
+            selectTag(tagId)
+          }
+        })
+      })
+    }
+
+    function selectTag(tagId: string) {
+      const params = getUrlParams()
+      if (!params.tags.includes(tagId)) {
+        params.tags = [...params.tags, tagId]
+        updateUrl(params)
+      }
+      input.value = ""
+      suggestions.classList.add("hidden")
+      selectedIndex = -1
+    }
+
+    input.addEventListener("input", () => {
+      selectedIndex = -1
+      showSuggestions(input.value)
+    })
+
+    input.addEventListener("keydown", (e) => {
+      const items = suggestions.querySelectorAll(".tag-suggestion")
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault()
+        selectedIndex = Math.min(selectedIndex + 1, items.length - 1)
+        showSuggestions(input.value)
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault()
+        selectedIndex = Math.max(selectedIndex - 1, 0)
+        showSuggestions(input.value)
+      } else if (e.key === "Enter") {
+        e.preventDefault()
+        const selectedItem = selectedIndex >= 0 ? items[selectedIndex] : undefined
+        if (selectedItem) {
+          const tagId = selectedItem.getAttribute("data-tag-id")
+          if (tagId) selectTag(tagId)
+        }
+      } else if (e.key === "Escape") {
+        suggestions.classList.add("hidden")
+        selectedIndex = -1
+      }
+    })
+
+    input.addEventListener("blur", () => {
+      // Delay to allow click on suggestion
+      setTimeout(() => {
+        suggestions.classList.add("hidden")
+        selectedIndex = -1
+      }, 200)
+    })
+
+    input.addEventListener("focus", () => {
+      if (input.value) {
+        showSuggestions(input.value)
+      }
+    })
+  }
+
+  // Execute search
+  async function executeSearch(params: SearchParams) {
+    await loadIndex()
+    if (!db) {
+      console.error("Search index not loaded")
+      return
+    }
+
+    const resultsEl = document.getElementById("search-results") as HTMLUListElement
+    const countEl = document.getElementById("result-count") as HTMLParagraphElement
+
+    // Show placeholder if no search query and no filters
+    if (!params.q && !params.categories.length && !params.subcategories.length && !params.tags.length) {
+      resultsEl.innerHTML = `
+        <li id="search-placeholder" class="content-item">
+          <p class="text-muted">Enter a search term or select filters to find content.</p>
+        </li>
+      `
+      countEl.classList.add("hidden")
+      return
+    }
+
+    // Execute search (use empty term if only filtering)
+    const results = await search(db, {
+      term: params.q || "",
+      limit: 100,
+    })
+
+    // Filter results using proper schema fields
+    let filteredHits = results.hits as any[]
+
+    // Category filter (OR) - uses category field directly
+    if (params.categories.length > 0) {
+      filteredHits = filteredHits.filter((hit) => {
+        const category = hit.document.category || ""
+        return params.categories.includes(category)
+      })
+    }
+
+    // Subcategory filter (OR) - uses subcategory field directly
+    if (params.subcategories.length > 0) {
+      filteredHits = filteredHits.filter((hit) => {
+        const subcategory = hit.document.subcategory || ""
+        return params.subcategories.includes(subcategory)
+      })
+    }
+
+    // Tag filter (AND) - uses tags array directly
+    if (params.tags.length > 0) {
+      filteredHits = filteredHits.filter((hit) => {
+        const docTags: string[] = hit.document.tags || []
+        return params.tags.every((tag) => docTags.includes(tag))
+      })
+    }
+
+    // Sort by date if requested (using publishedOn timestamp)
+    if (params.sortBy === "date") {
+      filteredHits.sort((a, b) => {
+        const dateA = a.document.publishedOn || 0
+        const dateB = b.document.publishedOn || 0
+        return dateB - dateA
+      })
+    }
+
+    // Render results
+    renderResults({ hits: filteredHits, count: filteredHits.length }, resultsEl, countEl)
+  }
+
+  // Format date from timestamp
+  function formatDate(timestamp: number) {
+    if (!timestamp) return ""
+    const date = new Date(timestamp)
+    return date.toLocaleDateString("en-us", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    })
+  }
+
+  // Render search results
+  function renderResults(
+    results: { hits: any[]; count: number },
+    resultsEl: HTMLUListElement,
+    countEl: HTMLParagraphElement,
+  ) {
+    if (results.count === 0) {
+      resultsEl.innerHTML = `
+        <li class="content-item">
+          <p class="text-muted">No results found. Try different search terms or filters.</p>
+        </li>
+      `
+      countEl.classList.add("hidden")
+      return
+    }
+
+    countEl.textContent = `${results.count} result${results.count === 1 ? "" : "s"} found`
+    countEl.classList.remove("hidden")
+
+    resultsEl.innerHTML = results.hits
+      .map((hit) => {
+        const doc = hit.document
+        const href = doc.href || ""
+        const title = doc.title || "Untitled"
+        const description = doc.description || ""
+        const type = doc.type || "writing"
+        const typeLabel = CONTENT_TYPE_LABELS[type] || type
+        const publishedOn = doc.publishedOn || 0
+        const formattedDate = formatDate(publishedOn)
+        const minutesRead = doc.minutesRead || ""
+
+        return `
+          <li class="content-item cursor-pointer">
+            <div class="content-item-badges">
+              <span class="badge">${typeLabel}</span>
+            </div>
+            <h2 class="content-item-title">
+              <a href="${href}" class="content-item-link">${title}</a>
+            </h2>
+            ${
+              formattedDate || minutesRead
+                ? `
+            <div class="frontmatter">
+              ${
+                minutesRead
+                  ? `<span class="inline-flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></svg>
+                <span>${minutesRead}</span>
+              </span>`
+                  : ""
+              }
+              ${
+                formattedDate
+                  ? `<span class="inline-flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 32 32"><path fill="currentColor" d="M26 4h-4V2h-2v2h-8V2h-2v2H6c-1.1 0-2 .9-2 2v20c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 22H6V12h20zm0-16H6V6h4v2h2V6h8v2h2V6h4z"/></svg>
+                <time>${formattedDate}</time>
+              </span>`
+                  : ""
+              }
+            </div>
+            `
+                : ""
+            }
+            <p class="content-item-excerpt">${description}</p>
+          </li>
+        `
+      })
+      .join("")
+  }
+
+  // Update filter count badge
+  function updateFilterCountBadge(params: SearchParams) {
+    const countEl = document.getElementById("active-filter-count")
+    if (!countEl) return
+
+    const count = params.categories.length + params.subcategories.length + params.tags.length
+    if (count > 0) {
+      countEl.textContent = String(count)
+      countEl.classList.remove("hidden")
+    } else {
+      countEl.classList.add("hidden")
+    }
+  }
+
+  // Handle URL change (the single source of truth for search)
+  async function handleUrlChange() {
+    const params = getUrlParams()
+    syncUIWithParams(params)
+    updateFilterCountBadge(params)
+    await executeSearch(params)
+  }
+
+  // Initialize
+  document.addEventListener("DOMContentLoaded", async () => {
+    // Load all tags data
+    loadAllTags()
+
+    const queryInput = document.getElementById("search-query") as HTMLInputElement
+    const sortSelect = document.getElementById("sort-select") as HTMLSelectElement
+    const sortSelectMobile = document.getElementById("sort-select-mobile") as HTMLSelectElement
+    const clearBtn = document.getElementById("clear-filters") as HTMLButtonElement
+    const filterModal = document.getElementById("filter-modal") as HTMLDialogElement
+    const openFiltersBtn = document.getElementById("open-filters-btn") as HTMLButtonElement
+    const closeFiltersBtn = document.getElementById("close-filters-btn") as HTMLButtonElement
+    const modalClearBtn = document.getElementById("modal-clear-filters") as HTMLButtonElement
+    const modalApplyBtn = document.getElementById("modal-apply-filters") as HTMLButtonElement
+
+    // Setup typeahead for both desktop and mobile
+    setupTagTypeahead("tag-search-desktop", "tag-suggestions-desktop")
+    setupTagTypeahead("tag-search-mobile", "tag-suggestions-mobile")
+
+    // Listen for URL changes (back/forward navigation and programmatic changes)
+    window.addEventListener("popstate", handleUrlChange)
+
+    // Initial sync and search based on current URL
+    await handleUrlChange()
+
+    // Query input: update URL on Enter
+    queryInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const params = getUrlParams()
+        params.q = queryInput.value.trim()
+        updateUrl(params)
+      }
+    })
+
+    // Sort select: update URL on change (desktop)
+    sortSelect?.addEventListener("change", () => {
+      const params = getUrlParams()
+      params.sortBy = sortSelect.value as "relevance" | "date"
+      if (sortSelectMobile) sortSelectMobile.value = sortSelect.value
+      updateUrl(params)
+    })
+
+    // Sort select: update URL on change (mobile)
+    sortSelectMobile?.addEventListener("change", () => {
+      const params = getUrlParams()
+      params.sortBy = sortSelectMobile.value as "relevance" | "date"
+      if (sortSelect) sortSelect.value = sortSelectMobile.value
+      updateUrl(params)
+    })
+
+    // Category filters: toggle value in URL (desktop)
+    document.querySelectorAll<HTMLInputElement>('input[name="category"]').forEach((cb) => {
+      cb.addEventListener("change", () => {
+        const params = getUrlParams()
+        params.categories = toggleArrayValue(params.categories, cb.value)
+        updateUrl(params)
+      })
+    })
+
+    // Category filters: toggle value in URL (mobile)
+    document.querySelectorAll<HTMLInputElement>('input[name="category-mobile"]').forEach((cb) => {
+      cb.addEventListener("change", () => {
+        const params = getUrlParams()
+        params.categories = toggleArrayValue(params.categories, cb.value)
+        // Sync desktop checkbox
+        const desktopCb = document.querySelector<HTMLInputElement>(`input[name="category"][value="${cb.value}"]`)
+        if (desktopCb) desktopCb.checked = cb.checked
+        updateUrl(params)
+      })
+    })
+
+    // Subcategory filters: toggle value in URL (desktop)
+    document.querySelectorAll<HTMLInputElement>('input[name="subcategory"]').forEach((cb) => {
+      cb.addEventListener("change", () => {
+        const params = getUrlParams()
+        params.subcategories = toggleArrayValue(params.subcategories, cb.value)
+        updateUrl(params)
+      })
+    })
+
+    // Subcategory filters: toggle value in URL (mobile)
+    document.querySelectorAll<HTMLInputElement>('input[name="subcategory-mobile"]').forEach((cb) => {
+      cb.addEventListener("change", () => {
+        const params = getUrlParams()
+        params.subcategories = toggleArrayValue(params.subcategories, cb.value)
+        // Sync desktop checkbox
+        const desktopCb = document.querySelector<HTMLInputElement>(`input[name="subcategory"][value="${cb.value}"]`)
+        if (desktopCb) desktopCb.checked = cb.checked
+        updateUrl(params)
+      })
+    })
+
+    // Tag filters: toggle value in URL (desktop)
+    document.querySelectorAll<HTMLInputElement>('input[name="tag"]').forEach((cb) => {
+      cb.addEventListener("change", () => {
+        const params = getUrlParams()
+        params.tags = toggleArrayValue(params.tags, cb.value)
+        updateUrl(params)
+      })
+    })
+
+    // Tag filters: toggle value in URL (mobile)
+    document.querySelectorAll<HTMLInputElement>('input[name="tag-mobile"]').forEach((cb) => {
+      cb.addEventListener("change", () => {
+        const params = getUrlParams()
+        params.tags = toggleArrayValue(params.tags, cb.value)
+        // Sync desktop checkbox
+        const desktopCb = document.querySelector<HTMLInputElement>(`input[name="tag"][value="${cb.value}"]`)
+        if (desktopCb) desktopCb.checked = cb.checked
+        updateUrl(params)
+      })
+    })
+
+    // Clear all filters: reset URL
+    clearBtn?.addEventListener("click", () => {
+      const emptyParams: SearchParams = { q: "", sortBy: "relevance", categories: [], subcategories: [], tags: [] }
+      updateUrl(emptyParams)
+    })
+
+    // Mobile filter modal
+    openFiltersBtn?.addEventListener("click", () => {
+      filterModal?.showModal()
+    })
+
+    closeFiltersBtn?.addEventListener("click", () => {
+      filterModal?.close()
+    })
+
+    modalApplyBtn?.addEventListener("click", () => {
+      filterModal?.close()
+    })
+
+    modalClearBtn?.addEventListener("click", () => {
+      const params = getUrlParams()
+      params.categories = []
+      params.subcategories = []
+      params.tags = []
+      updateUrl(params)
+      filterModal?.close()
+    })
+
+    // Close modal on backdrop click
+    filterModal?.addEventListener("click", (e) => {
+      if (e.target === filterModal) {
+        filterModal.close()
+      }
+    })
+
+    // Focus input on load
+    queryInput.focus()
+  })
 </script>
+
+<style>
+  .search-input:focus {
+    border-color: var(--color-accent);
+  }
+
+  .filter-group {
+    min-width: 200px;
+  }
+
+  /* Active filter chip styling */
+  .filter-chip input:checked + .tag {
+    background: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  .filter-chip input:checked + .tag .text-muted-foreground {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  /* Modal styles */
+  .search-filter-modal {
+    padding: 0;
+    border: none;
+    border-radius: 0.5rem;
+    max-width: 90vw;
+    max-height: 90vh;
+    width: 100%;
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .search-filter-modal::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .search-filter-modal .modal-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+  }
+
+  .search-filter-modal .modal-body {
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .search-filter-modal .modal-header {
+    border-color: var(--color-border);
+  }
+
+  .search-filter-modal .modal-footer {
+    border-color: var(--color-border);
+  }
+
+  /* Sidebar scrolling */
+  .search-sidebar .sticky {
+    max-height: calc(100vh - 6rem);
+    overflow-y: auto;
+  }
+
+  /* Tag search input */
+  .tag-search-input:focus {
+    border-color: var(--color-accent);
+    outline: none;
+  }
+
+  /* Tag suggestions dropdown */
+  .tag-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .tag-suggestion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+  }
+
+  .tag-suggestion:hover,
+  .tag-suggestion.selected {
+    background: var(--color-bg-alt);
+  }
+</style>

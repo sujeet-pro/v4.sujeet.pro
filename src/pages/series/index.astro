@@ -11,6 +11,10 @@ const crumbs: { title: string; href: string }[] = []
   <h1 class="mb-6">Series</h1>
 
   <ul class="space-y-0">
-    {series.filter((seriesItem) => seriesItem.blogs.length > 0).map((seriesItem) => <SeriesItem series={seriesItem} />)}
+    {
+      series
+        .filter((seriesItem) => seriesItem.items && seriesItem.items.length > 0)
+        .map((seriesItem) => <SeriesItem series={seriesItem} />)
+    }
   </ul>
 </Layout>

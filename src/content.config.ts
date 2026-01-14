@@ -1,99 +1,149 @@
 import { file, glob } from "astro/loaders"
-import { defineCollection, reference, z } from "astro:content"
-import json5 from "json5"
+import { defineCollection, z } from "astro:content"
 
+// =============================================================================
+// JSONC Parser (JSON with Comments)
+// =============================================================================
+
+type JsoncResult = Record<string, Record<string, unknown>> | Record<string, unknown>[]
+
+function parseJsonc(content: string): JsoncResult {
+  // Remove comments while preserving strings containing //
+  // Match strings first to skip them, then match comments to remove
+  const cleaned = content.replace(/"(?:[^"\\]|\\.)*"|\/\/[^\n]*|\/\*[\s\S]*?\*/g, (match) => {
+    // If it's a string (starts with "), keep it
+    if (match.startsWith('"')) return match
+    // Otherwise it's a comment, remove it
+    return ""
+  })
+  // Remove trailing commas
+  const noTrailingCommas = cleaned.replace(/,(\s*[}\]])/g, "$1")
+  return JSON.parse(noTrailingCommas) as JsoncResult
+}
+
+// =============================================================================
+// JSONC Config Collections
+// =============================================================================
+
+// Tags config (optional display names - tags can exist without being in this file)
 const tags = defineCollection({
-  loader: file("./content/tags.json5", {
-    parser: (fileContent) => json5.parse(fileContent),
-  }),
-  schema: z.object({
-    name: z.string(),
-  }),
-})
-
-const vanity = defineCollection({
-  loader: file("./content/vanity.json5", {
-    parser: (fileContent) => json5.parse(fileContent),
-  }),
-  schema: z.object({
-    target: z.string().url(),
-  }),
-})
-
-const series = defineCollection({
-  loader: file("./content/series.json5", {
-    parser: (fileContent) => {
-      const data = json5.parse(fileContent)
-      return data
-    },
+  loader: file("./content/tags.jsonc", {
+    parser: (fileContent) => parseJsonc(fileContent),
   }),
   schema: z.object({
     id: z.string(),
     name: z.string(),
-    blogs: z.array(z.string()),
-    featured: z.boolean(),
   }),
 })
 
+// Vanity URLs
+const vanity = defineCollection({
+  loader: file("./content/vanity.jsonc", {
+    parser: (fileContent) => parseJsonc(fileContent),
+  }),
+  schema: z.object({
+    id: z.string(),
+    target: z.string().url(),
+  }),
+})
+
+// Series config - items array can reference any content type
+const series = defineCollection({
+  loader: file("./content/series.jsonc", {
+    parser: (fileContent) => parseJsonc(fileContent),
+  }),
+  schema: z.object({
+    id: z.string(),
+    name: z.string(),
+    items: z.array(z.string()), // Array of content IDs (any type)
+    featured: z.boolean().optional().default(false),
+  }),
+})
+
+// Deep dive categories
 const categories = defineCollection({
-  loader: file("./content/categories.json5", {
-    parser: (fileContent) => json5.parse(fileContent),
+  loader: file("./content/categories.jsonc", {
+    parser: (fileContent) => parseJsonc(fileContent),
   }),
   schema: z.object({
     id: z.string(),
     name: z.string(),
     description: z.string(),
-    featured: z.boolean(),
+    featured: z.boolean().optional().default(false),
     subcategories: z.array(
       z.object({
         id: z.string(),
         name: z.string(),
         description: z.string(),
-      })
+      }),
     ),
   }),
 })
 
-const contentSchema = z.object({
-  lastUpdatedOn: z.coerce.date(),
-  tags: z.array(reference("tags")),
-  featuredRank: z.number().optional(),
+// =============================================================================
+// Content Collections - Markdown
+// =============================================================================
+
+// Shared schema for all content types
+const baseContentSchema = z.object({
+  lastUpdatedOn: z.coerce.date().optional(),
+  tags: z.array(z.string()).optional().default([]),
+  series: z.string().optional(), // series ID if part of a series
 })
 
-const deepDiveSchema = contentSchema.extend({
-  category: z.string(),
-})
-
-const posts = defineCollection({
+// Writing collection (replaces posts)
+const writing = defineCollection({
   loader: glob({
     pattern: "**/[^_]*.md",
-    base: "./content/posts",
+    base: "./content/writing",
   }),
-  schema: contentSchema,
+  schema: baseContentSchema.extend({
+    featuredRank: z.number().optional(),
+  }),
 })
 
-const pages = defineCollection({
-  loader: glob({
-    pattern: "**/[^_]*.md",
-    base: "./content/pages",
-  }),
-  schema: contentSchema,
-})
-
+// Deep dives collection
 const deepDives = defineCollection({
   loader: glob({
     pattern: "**/[^_]*.md",
     base: "./content/deep-dives",
   }),
-  schema: deepDiveSchema,
+  schema: baseContentSchema.extend({
+    subcategory: z.string(), // Format: "category/subcategory"
+  }),
 })
 
+// Work collection (design docs, case studies)
+const work = defineCollection({
+  loader: glob({
+    pattern: "**/[^_]*.md",
+    base: "./content/work",
+  }),
+  schema: baseContentSchema.extend({
+    type: z.enum(["design-doc", "architecture", "case-study"]).optional(),
+  }),
+})
+
+// Uses collection (tools, setup, productivity)
+const uses = defineCollection({
+  loader: glob({
+    pattern: "**/[^_]*.md",
+    base: "./content/uses",
+  }),
+  schema: baseContentSchema,
+})
+
+// =============================================================================
+// Exports
+// =============================================================================
+
 export const collections = {
-  posts,
-  pages,
+  writing,
+  "deep-dives": deepDives,
+  work,
+  uses,
   tags,
-  vanity,
   series,
+  vanity,
   categories,
-  deepDives,
 }

@@ -1,62 +1,70 @@
-import { getCollection, render } from "astro:content"
-import { getTagsByRefs } from "./content-tags.utils"
-import { remarkPluginFrontmatterSchema, type DeepDiveContent } from "./content.type"
+/**
+ * Deep dives content utilities
+ * Handles educational content with category/subcategory organization
+ */
 
-export async function getDeepDives(): Promise<DeepDiveContent[]> {
-  const deepDives = await getCollection("deepDives")
+import { getCollection } from "astro:content"
+import { renderContentItem, sortByDateDescending } from "./content.helpers"
+import type { DeepDiveContent } from "./content.type"
+import { filterDrafts } from "./draft.utils"
+
+/**
+ * Category/subcategory lookup entry
+ */
+interface CategoryLookupEntry {
+  category: { id: string; name: string }
+  subcategory: { id: string; name: string }
+}
+
+/**
+ * Build a lookup map for category/subcategory paths
+ */
+async function buildCategoryLookup(): Promise<Map<string, CategoryLookupEntry>> {
   const categories = await getCollection("categories")
-
-  // Build category/subcategory lookup
-  const categoryLookup = new Map<
-    string,
-    {
-      category: { id: string; name: string }
-      subcategory: { id: string; name: string }
-    }
-  >()
+  const lookup = new Map<string, CategoryLookupEntry>()
 
   for (const cat of categories) {
     for (const subcat of cat.data.subcategories) {
       const key = `${cat.id}/${subcat.id}`
-      categoryLookup.set(key, {
+      lookup.set(key, {
         category: { id: cat.id, name: cat.data.name },
         subcategory: { id: subcat.id, name: subcat.name },
       })
     }
   }
 
+  return lookup
+}
+
+/**
+ * Get all deep dive content, excluding drafts in production
+ */
+export async function getDeepDives(): Promise<DeepDiveContent[]> {
+  const deepDives = await getCollection("deep-dives")
+  const categoryLookup = await buildCategoryLookup()
   const items: DeepDiveContent[] = []
 
   for (const item of deepDives) {
-    const { Content, remarkPluginFrontmatter } = await render(item)
-    const { title, minutesRead, description, isDraft, publishedOn, pageSlug } = remarkPluginFrontmatterSchema.parse(
-      remarkPluginFrontmatter,
-      {
-        errorMap: (error) => ({
-          message: `Error parsing frontmatter for ${item.id}: ${error.message}: ${JSON.stringify(error)}`,
-        }),
-      },
-    )
-    const { lastUpdatedOn, category: categoryPath } = item.data
-    const tags = await getTagsByRefs(item.data.tags)
+    const { frontmatter, Content, tags } = await renderContentItem(item)
+    const { subcategory: subcategoryPath, lastUpdatedOn } = item.data
 
-    const lookup = categoryLookup.get(categoryPath)
+    const lookup = categoryLookup.get(subcategoryPath)
     if (!lookup) {
-      throw new Error(`Invalid category path: ${categoryPath} for deep-dive ${item.id}`)
+      throw new Error(`Invalid subcategory path: ${subcategoryPath} for deep-dive ${item.id}`)
     }
 
     items.push({
       id: item.id,
-      pageSlug,
-      title,
-      minutesRead,
-      description,
-      publishedOn,
+      pageSlug: frontmatter.pageSlug,
+      title: frontmatter.title,
+      minutesRead: frontmatter.minutesRead,
+      description: frontmatter.description,
+      publishedOn: frontmatter.publishedOn,
       lastUpdatedOn,
-      isDraft,
+      isDraft: frontmatter.isDraft,
       tags,
       Content,
-      href: `/deep-dives/${pageSlug}`,
+      href: `/deep-dives/${frontmatter.pageSlug}`,
       type: "deep-dive",
       category: {
         id: lookup.category.id,
@@ -71,16 +79,5 @@ export async function getDeepDives(): Promise<DeepDiveContent[]> {
     })
   }
 
-  // Sort by publishedOn descending
-  items.sort((a, b) => {
-    const dateA = new Date(a.publishedOn).getTime()
-    const dateB = new Date(b.publishedOn).getTime()
-    if (dateB !== dateA) {
-      return dateB - dateA
-    }
-    return a.title.localeCompare(b.title)
-  })
-
-  // Filter drafts in production
-  return items.filter((item) => !item.isDraft || import.meta.env.DEV)
+  return filterDrafts(sortByDateDescending(items))
 }

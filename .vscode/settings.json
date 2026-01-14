@@ -7,7 +7,6 @@
   "eslint.validate": [
     "json",
     "jsonc",
-    "json5",
     "markdown",
     "css",
     "javascript",
@@ -16,17 +15,7 @@
     "typescript",
     "typescriptreact"
   ],
-  "cSpell.words": [
-    "daisyui",
-    "devicon",
-    "favicons",
-    "fontsource",
-    "frontmatter",
-    "iconify",
-    "katex",
-    "pagefind",
-    "prefersdark"
-  ],
+  "cSpell.words": ["devicon", "favicons", "fontsource", "frontmatter", "iconify", "katex", "pagefind", "prefersdark"],
   "[xml]": {
     "editor.defaultFormatter": "redhat.vscode-xml"
   },

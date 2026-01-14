@@ -1,40 +1,48 @@
 ---
 import { Icon } from "astro-icon/components"
+import { CONTENT_TYPE_LABELS } from "@constants/site"
+import type { ContentItem } from "@/utils/content.type"
+import Link from "./link.astro"
 
 interface Props {
   minutesRead: string
   publishedOn: Date
-  lastUpdatedOn: Date
+  lastUpdatedOn?: Date | undefined
   isDraft: boolean
   class?: string
+  /** Show content type badge (Writing, Deep Dive, etc.) */
+  showType?: boolean
+  type?: ContentItem["type"]
+  /** Subcategory for deep-dives */
+  subcategory?: { name: string; href: string } | null
 }
-const { minutesRead, publishedOn, lastUpdatedOn, isDraft, class: className } = Astro.props as Props
-const hasUpdates = publishedOn.toDateString() !== lastUpdatedOn.toDateString()
+
+const { minutesRead, publishedOn, lastUpdatedOn, isDraft, class: className, showType, type, subcategory } =
+  Astro.props as Props
+const hasUpdates = lastUpdatedOn && publishedOn.toDateString() !== lastUpdatedOn.toDateString()
 ---
 
-<div class:list={["flex flex-wrap items-center gap-2 text-sm font-light", className]}>
-  {
-    isDraft ? (
-      <>
-        <span>Draft</span>
-        <span>•</span>
-      </>
-    ) : null
-  }
-  <span class="flex items-center gap-1">
-    <Icon name="carbon:time" />
+<div class:list={["frontmatter", className]}>
+  {isDraft && <span class="badge">Draft</span>}
+  {showType && type && <span class="badge">{CONTENT_TYPE_LABELS[type]}</span>}
+  {subcategory && (
+    <Link href={subcategory.href} class="tag">
+      {subcategory.name}
+    </Link>
+  )}
+
+  <span class="inline-flex items-center gap-1">
+    <Icon name="carbon:time" class="h-4 w-4" />
     {minutesRead}
   </span>
 
-  <span>•</span>
-  <span class="flex items-center gap-1" title="Published on">
-    <span class="hidden md:inline">Published on</span>
-    <Icon name="carbon:calendar" />
+  <span class="inline-flex items-center gap-1" title="Published on">
+    <Icon name="carbon:calendar" class="h-4 w-4" />
     <time datetime={publishedOn.toISOString()}>
       {
         publishedOn.toLocaleDateString("en-us", {
           year: "numeric",
-          month: "long",
+          month: "short",
           day: "numeric",
         })
       }
@@ -42,21 +50,17 @@ const hasUpdates = publishedOn.toDateString() !== lastUpdatedOn.toDateString()
   </span>
 
   {
-    hasUpdates && (
-      <>
-        <span>•</span>
-        <span class="flex items-center gap-1" title="Last Updated On">
-          <span class="hidden md:inline">Last Updated On</span>
-          <Icon name="carbon:update-now" />
-          <time datetime={lastUpdatedOn.toISOString()}>
-            {lastUpdatedOn.toLocaleDateString("en-us", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </time>
-        </span>
-      </>
+    hasUpdates && lastUpdatedOn && (
+      <span class="inline-flex items-center gap-1" title="Last Updated">
+        <Icon name="carbon:update-now" class="h-4 w-4" />
+        <time datetime={lastUpdatedOn.toISOString()}>
+          {lastUpdatedOn.toLocaleDateString("en-us", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })}
+        </time>
+      </span>
     )
   }
 </div>

@@ -1,11 +1,48 @@
 ---
 import Layout from "@/layout/layout.astro"
 import Profile from "@/components/profile.astro"
-import SeriesItem from "@/components/series-item.astro"
+import Item from "@/components/item.astro"
 import Link from "@/components/link.astro"
-import { getFeaturedSeries } from "@/utils/content-series.utils"
+import { getWriting } from "@/utils/content-writing.utils"
+import { getDeepDives } from "@/utils/content-deep-dives.utils"
+import { getWork } from "@/utils/content-work.utils"
+import { getUses } from "@/utils/content-uses.utils"
 
-const featuredSeries = await getFeaturedSeries()
+// Get recent items from each category (limit to 3 each)
+const [writing, deepDives, work, uses] = await Promise.all([getWriting(), getDeepDives(), getWork(), getUses()])
+
+const recentWriting = writing.slice(0, 3)
+const recentDeepDives = deepDives.slice(0, 3)
+const recentWork = work.slice(0, 3)
+const recentUses = uses.slice(0, 3)
+
+// Define sections with their data
+const sections = [
+  {
+    title: "Writing",
+    description: "Technical articles and tutorials",
+    href: "/writing",
+    items: recentWriting,
+  },
+  {
+    title: "Deep Dives",
+    description: "In-depth explorations and notes",
+    href: "/deep-dives",
+    items: recentDeepDives,
+  },
+  {
+    title: "Work",
+    description: "Design docs and case studies",
+    href: "/work",
+    items: recentWork,
+  },
+  {
+    title: "Uses",
+    description: "Tools and setup",
+    href: "/uses",
+    items: recentUses,
+  },
+].filter((section) => section.items.length > 0)
 ---
 
 <Layout
@@ -17,20 +54,23 @@ const featuredSeries = await getFeaturedSeries()
   <Profile />
 
   {
-    featuredSeries.length > 0 && (
-      <section class="my-16 md:my-24">
-        <div class="mb-8 flex items-center justify-between gap-4">
-          <h2 class="text-3xl font-light md:text-4xl">Featured Series</h2>
-          <Link href="/series" class="text-sm font-medium">
-            View All →
+    sections.map((section) => (
+      <section class="my-12 md:my-16">
+        <div class="mb-6 flex items-baseline justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-semibold">{section.title}</h2>
+            <p class="text-muted text-sm">{section.description}</p>
+          </div>
+          <Link href={section.href} class="nav-link shrink-0 text-sm">
+            View all &rarr;
           </Link>
         </div>
-        <ul class="space-y-4">
-          {featuredSeries.map((series) => (
-            <SeriesItem series={series} />
+        <ul class="content-list">
+          {section.items.map((item) => (
+            <Item item={item} />
           ))}
         </ul>
       </section>
-    )
+    ))
   }
 </Layout>

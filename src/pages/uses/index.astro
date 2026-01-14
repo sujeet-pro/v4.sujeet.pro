@@ -1,0 +1,16 @@
+---
+import Item from "@/components/item.astro"
+import Layout from "@/layout/layout.astro"
+import { getUses } from "@/utils/content-uses.utils"
+
+const uses = await getUses()
+const crumbs: { title: string; href: string }[] = []
+---
+
+<Layout title="Uses" description="Setup, tools, and productivity systems" {crumbs} pageType="default">
+  <h1>Uses</h1>
+  <p class="text-muted-foreground mb-8">Setup, tools, and productivity systems</p>
+  <ul class="flex flex-col">
+    {uses.map((item) => <Item item={item} />)}
+  </ul>
+</Layout>

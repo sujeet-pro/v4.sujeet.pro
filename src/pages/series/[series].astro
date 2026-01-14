@@ -25,14 +25,14 @@ const crumbs = [
   <h1>{series.name}</h1>
 
   {
-    series.blogs.length > 0 ? (
+    series.items && series.items.length > 0 ? (
       <ul class="flex flex-col">
-        {series.blogs.map((blog) => (
+        {series.items.map((blog) => (
           <Item item={blog} />
         ))}
       </ul>
     ) : (
-      <p class="text-gray-600">No blog posts found in this series.</p>
+      <p class="text-muted">No blog posts found in this series.</p>
     )
   }
 </Layout>

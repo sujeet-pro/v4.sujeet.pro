@@ -130,14 +130,13 @@ async function validateLinksInFile(filePath: string): Promise<void> {
 // Main execution
 async function main() {
   const args = process.argv.slice(2)
+  const filePath = args[0]
 
-  if (args.length === 0) {
+  if (!filePath) {
     console.error("Usage: npx tsx scripts/validate-links.ts <markdown-file-path>")
     console.error("Example: npx tsx scripts/validate-links.ts content/raw/resume.md")
     process.exit(1)
   }
-
-  const filePath = args[0]
 
   // Convert relative path to absolute if needed
   const absolutePath = filePath.startsWith("/") ? filePath : join(process.cwd(), filePath)

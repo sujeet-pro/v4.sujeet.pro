@@ -3,12 +3,12 @@ import { pluginLineNumbers } from "@expressive-code/plugin-line-numbers"
 import { defineEcConfig } from "astro-expressive-code"
 
 export default defineEcConfig({
-  themes: ["github-dark", "github-light"],
+  themes: ["github-light"],
   plugins: [pluginCollapsibleSections(), pluginLineNumbers()],
   defaultLocale: "en",
-  removeUnusedThemes: false,
-  themeCssSelector: (theme) => `[data-theme='${theme.type}']`,
-  useDarkModeMediaQuery: false,
+  styleOverrides: {
+    codeFontFamily: "'JetBrains Mono', monospace",
+  },
   defaultProps: {
     // Disable line numbers by default
     showLineNumbers: true,

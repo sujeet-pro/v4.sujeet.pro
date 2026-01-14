@@ -6,33 +6,31 @@ type Props = {
   series: Series
   textHeading?: string
 }
+
 const { series, textHeading } = Astro.props as Props
+const items = series.items || []
 ---
 
-<li class="sp-border-muted relative z-10 flex cursor-pointer flex-col gap-2 border-b py-6 last:border-b-0">
-  <!-- Text heading (if provided) -->
-  {textHeading && <p class="text-muted-foreground mb-1 text-sm font-light">{textHeading}</p>}
+<li class="content-item cursor-pointer">
+  {textHeading && <p class="text-muted mb-1 text-sm">{textHeading}</p>}
 
-  <!-- Title with link -->
-  <h2 class="text-xl font-light">
-    <Link href={series.href} class="series-link no-underline hover:underline">
+  <h2 class="content-item-title">
+    <Link href={series.href} class="nav-link">
       {series.name}
     </Link>
   </h2>
 
-  <!-- Series meta information -->
-  <div class="text-muted-foreground text-sm">
-    <span>{series.blogs.length} {series.blogs.length === 1 ? "post" : "posts"}</span>
-    {series.featured && <span class="ml-2 rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">Featured</span>}
+  <div class="text-muted mb-2 text-sm">
+    <span>{items.length} {items.length === 1 ? "post" : "posts"}</span>
+    {series.featured && <span class="badge-accent ml-2">Featured</span>}
   </div>
 
-  <!-- Blog list -->
   {
-    series.blogs.length > 0 && (
+    items.length > 0 && (
       <ul class="mt-2 flex flex-col gap-2 pl-4">
-        {series.blogs.map((blog) => (
+        {items.map((item) => (
           <li class="list-disc">
-            <Link href={blog.href}>{blog.title}</Link>
+            <Link href={item.href}>{item.title}</Link>
           </li>
         ))}
       </ul>

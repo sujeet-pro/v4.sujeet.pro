@@ -1,0 +1,16 @@
+---
+import Item from "@/components/item.astro"
+import Layout from "@/layout/layout.astro"
+import { getWriting } from "@/utils/content-writing.utils"
+
+const writing = await getWriting()
+const crumbs: { title: string; href: string }[] = []
+---
+
+<Layout title="Writing" description="Technical blogs, reviews, and adoption stories" {crumbs} pageType="default">
+  <h1>Writing</h1>
+  <p class="text-muted mb-8">Technical blogs, reviews, and adoption stories</p>
+  <ul class="content-list">
+    {writing.map((item) => <Item item={item} />)}
+  </ul>
+</Layout>

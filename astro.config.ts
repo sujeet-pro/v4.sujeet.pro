@@ -1,5 +1,4 @@
 import tailwindcss from "@tailwindcss/vite"
-import pagefind from "astro-pagefind"
 import { defineConfig, envField } from "astro/config"
 
 import icon from "astro-icon"
@@ -19,7 +18,6 @@ import remarkEmoji from "remark-emoji"
 import remarkInlineSvg from "remark-inline-svg"
 import remarkMath from "remark-math"
 import remarkNormalizeHeadings from "remark-normalize-headings"
-import remarkToc from "remark-toc"
 // Rehype Markdown Plugins
 import { rehypeAccessibleEmojis } from "rehype-accessible-emojis"
 import rehypeAutolinkHeadings from "rehype-autolink-headings"
@@ -35,9 +33,21 @@ import { remarkFrontmatterPlugin } from "./plugins/remark-frontmatter-plugin"
 
 // https://astro.build/config
 
+// Helper to get env with fallback (runs at config time)
+const getConfigEnv = (key: string, fallback: string): string => {
+  return process.env[key] ?? fallback
+}
+
+const siteOrigin = getConfigEnv("SITE_ORIGIN", "https://sujeet.pro")
+const siteBasePath = getConfigEnv("SITE_BASE_PATH", "/")
+
 export default defineConfig({
-  site: "https://sujeet.pro",
-  base: "/",
+  // Full site URL (used for sitemap, canonical URLs)
+  site: siteOrigin,
+
+  // Base path for assets and links
+  base: siteBasePath,
+
   trailingSlash: "ignore",
   output: "static",
   scopedStyleStrategy: "where",
@@ -52,22 +62,47 @@ export default defineConfig({
     fonts: [],
     headingIdCompat: true,
   },
+
+  // Redirects for old routes
+  redirects: {
+    "/post": "/writing",
+    "/post/[...slug]": "/writing/[...slug]",
+  },
+
+  // Define environment schema for type safety
   env: {
     schema: {
-      SITE_CANONICAL_ORIGIN: envField.string({ context: "client", access: "public", optional: false }),
-      SITE_CANONICAL_PATH: envField.string({ context: "client", access: "public", optional: false }),
+      SITE_ORIGIN: envField.string({
+        context: "client",
+        access: "public",
+        optional: true,
+        default: "https://sujeet.pro",
+      }),
+      SITE_BASE_PATH: envField.string({
+        context: "client",
+        access: "public",
+        optional: true,
+        default: "/",
+      }),
+      SITE_CANONICAL_ORIGIN: envField.string({
+        context: "client",
+        access: "public",
+        optional: true,
+        default: "https://sujeet.pro",
+      }),
+      // Controls draft content visibility
+      // - true: Show drafts (for GitHub builds and local dev)
+      // - false: Hide drafts (for production/Cloudflare)
+      // Defaults to false for production builds
+      SHOW_DRAFTS: envField.boolean({
+        context: "server",
+        access: "public",
+        optional: true,
+        default: false,
+      }),
     },
   },
-  integrations: [
-    icon(),
-    pagefind({
-      indexConfig: {
-        verbose: true,
-      },
-    }),
-    sitemap(),
-    expressiveCode({}),
-  ],
+  integrations: [icon(), expressiveCode({}), sitemap()],
   vite: {
     plugins: [tailwindcss() as any],
   },
@@ -80,8 +115,6 @@ export default defineConfig({
       remarkMath,
       remarkNormalizeHeadings,
       remarkEmoji,
-
-      [remarkToc, { heading: "Table of Contents", maxDepth: 3, tight: true }],
     ],
     rehypePlugins: [
       rehypeKatex,
@@ -95,8 +128,7 @@ export default defineConfig({
           properties: { ariaHidden: true, tabIndex: -1, class: "deep-link" },
         },
       ],
-      // [rehypeMermaid, { colorScheme: "light", dark: true, strategy: "img-svg" }],
-      [rehypeMermaid, { colorScheme: "light", dark: true, strategy: "pre-mermaid" }],
+      [rehypeMermaid, { colorScheme: "light", strategy: "pre-mermaid", mermaidConfig: { theme: "default" } }],
       rehypeImgClass,
       rehypeTable,
     ],

@@ -1,0 +1,108 @@
+[
+  {
+    "id": "productivity",
+    "name": "Productivity & Workflow",
+    "items": ["uses/productivity/2026-01-13-chrome-setup"],
+    "featured": false,
+  },
+  {
+    "id": "platform",
+    "name": "Platform Services",
+    "items": ["writing/platform/image-service/2025-11-12-image-service"],
+    "featured": false,
+  },
+  {
+    "id": "organizational",
+    "name": "Engineering Leadership & Organization",
+    "items": [
+      "writing/organizational/design-systems/2024-05-15-design-system-adoption-guide",
+      "writing/organizational/technology-migrations/2024-06-01-ssg-to-ssr",
+    ],
+    "featured": true,
+  },
+  {
+    "id": "technical-design-docs",
+    "name": "Technical Design Docs",
+    "items": ["work/design-docs/2025-12-11-csp-sentinel", "work/design-docs/2026-01-06-component-architecture"],
+    "featured": true,
+  },
+  {
+    "id": "javascript-runtime",
+    "name": "JavaScript Runtime & Engine Internals",
+    "items": [
+      "writing/javascript/runtime/2023-08-01-nodejs-architecture",
+      "writing/javascript/runtime/2023-08-15-event-loop",
+      "writing/javascript/runtime/2023-09-01-libuv",
+      "writing/javascript/runtime/2023-09-15-v8",
+    ],
+    "featured": false,
+  },
+  {
+    "id": "web-fundamentals",
+    "name": "Web Fundamentals & Standards",
+    "items": [
+      "writing/web-development/fundamentals/2023-01-15-web-protocol-evolution",
+      "writing/web-development/fundamentals/2023-02-01-caching",
+      "writing/web-development/fundamentals/2023-02-15-security",
+      "writing/web-development/fundamentals/2023-03-01-web-accessibility",
+      "writing/web-development/fundamentals/2023-03-15-image-formats",
+      "writing/web-development/fundamentals/2023-04-01-auth",
+    ],
+    "featured": true,
+  },
+  {
+    "id": "web-performance",
+    "name": "Web Performance Optimization",
+    "items": [
+      "writing/web-development/performance/2023-11-15-web-performance-patterns",
+      "writing/web-development/performance/2023-12-01-image-optimization",
+      "writing/web-development/performance/2023-12-15-css-optimization",
+      "writing/web-development/performance/2024-01-01-font-optimization",
+      "writing/web-development/performance/2024-01-15-js-optimization",
+      "writing/web-development/performance/2024-02-01-infra-optimization",
+      "writing/web-development/performance/2024-02-15-index",
+    ],
+    "featured": true,
+  },
+  {
+    "id": "javascript-fundamentals",
+    "name": "JavaScript Fundamentals & Patterns",
+    "items": [
+      "writing/javascript/patterns/2023-05-01-pub-sub",
+      "writing/javascript/error-handling/2023-05-15-error-handling",
+      "writing/javascript/patterns/2023-06-01-string-length",
+      "writing/javascript/patterns/2023-06-15-lru",
+      "writing/javascript/patterns/2023-07-01-exponential-backoff",
+      "writing/javascript/patterns/2023-07-15-async-queue",
+    ],
+    "featured": true,
+  },
+  {
+    "id": "web-architecture",
+    "name": "Web Architecture & System Design",
+    "items": [
+      "writing/web-development/architecture/2023-10-01-critical-rendering-path",
+      "writing/architecture/rendering/2023-10-15-ssg-optimizations",
+      "writing/web-development/architecture/2023-11-01-microfrontends",
+    ],
+    "featured": true,
+  },
+  {
+    "id": "react-ecosystem",
+    "name": "React Development & Architecture",
+    "items": ["writing/frameworks/react/2024-03-01-hooks", "writing/frameworks/react/2024-03-15-react-architecture"],
+    "featured": false,
+  },
+  {
+    "id": "devops-testing",
+    "name": "DevOps & Performance Testing",
+    "items": ["writing/devops/testing/2024-04-01-k6"],
+    "featured": false,
+  },
+  {
+    "id": "advanced-topics",
+    "name": "Advanced Development Topics",
+    "items": ["writing/frameworks/2024-04-15-statsig", "writing/media/streaming/2024-05-01-video-playback"],
+    "featured": false,
+  },
+]

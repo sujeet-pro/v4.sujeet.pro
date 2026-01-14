@@ -4,14 +4,13 @@ tags:
   - system-design
   - distributed-systems
   - architecture
-category: system-design/foundations
+subcategory: system-design/foundations
 ---
 
 # CAP Theorem
 
 The CAP theorem states that a distributed data store cannot simultaneously provide more than two of the following three guarantees: Consistency, Availability, and Partition Tolerance.
 
-## Table of Contents
 
 ## The Three Guarantees
 
@@ -36,11 +35,11 @@ In a distributed system, network partitions are inevitable. When a partition occ
 
 ## Real-World Examples
 
-| System | Type | Reason |
-|--------|------|--------|
-| MongoDB | CP | Prioritizes consistency over availability during partitions |
-| Cassandra | AP | Prioritizes availability, eventual consistency |
-| Redis | CP | Single-master architecture ensures consistency |
+| System    | Type | Reason                                                      |
+| --------- | ---- | ----------------------------------------------------------- |
+| MongoDB   | CP   | Prioritizes consistency over availability during partitions |
+| Cassandra | AP   | Prioritizes availability, eventual consistency              |
+| Redis     | CP   | Single-master architecture ensures consistency              |
 
 ## Key Takeaways
 

@@ -1,11 +1,11 @@
-import { getBlogs } from "@/utils/content-blogs.utils"
+import { getWriting } from "@/utils/content-writing.utils"
 import { getFilePath, getLinkProps } from "@/utils/link.utils"
 import rss, { type RSSOptions } from "@astrojs/rss"
 import type { APIRoute } from "astro"
 import { site } from "astro:config/server"
 export const GET: APIRoute = async () => {
-  // Get all blog posts and pages, excluding drafts
-  const blogs = await getBlogs()
+  // Get all writing content, excluding drafts
+  const writing = await getWriting()
 
   // Use Astro's site and base config for URLs
   const rssOptions: RSSOptions = {
@@ -13,19 +13,18 @@ export const GET: APIRoute = async () => {
     description: "Personal blog and thoughts on technology, development, and life.",
     site: site + getLinkProps({ href: "/" }).href,
     stylesheet: getFilePath("rss", "styles.xsl"),
-    items: blogs
-      // .filter((blog) => !blog.isDraft)
-      .map((item) => {
-        const postUrl = getLinkProps({ href: item.href }).href
-        return {
-          title: item.title,
-          description: item.description,
-          link: postUrl,
-          pubDate: item.publishedOn,
-          categories: item.tags.map((tag) => tag.name),
-          customData: [`<lastmod>${new Date(item.lastUpdatedOn).toDateString()}</lastmod>`].join("\n"),
-        }
-      }),
+    items: writing.map((item) => {
+      const postUrl = getLinkProps({ href: item.href }).href
+      const lastModDate = item.lastUpdatedOn ?? item.publishedOn
+      return {
+        title: item.title,
+        description: item.description,
+        link: postUrl,
+        pubDate: item.publishedOn,
+        categories: item.tags.map((tag) => tag.name),
+        customData: [`<lastmod>${lastModDate.toDateString()}</lastmod>`].join("\n"),
+      }
+    }),
     customData: [
       `<language>en</language>`,
       `<generator>Astro</generator>`,

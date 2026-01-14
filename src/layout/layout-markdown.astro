@@ -34,8 +34,7 @@ if (!validationResult.success) {
 }
 
 // Resolve tags from references to actual tag names
-const tagRefs = (tagIds ?? []).map((tagId) => ({ collection: "tags", id: tagId }) as const)
-const tags = await getTagsByRefs(tagRefs)
+const tags = await getTagsByRefs(tagIds)
 
 const crumbs: { title: string; href: string }[] = []
 ---

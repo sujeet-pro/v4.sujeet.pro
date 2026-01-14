@@ -1,6 +1,6 @@
 ---
 import Accordion from "@/components/accordion.astro"
-import Article from "@/components/article.astro"
+import ArticleWithTOC from "@/components/article-with-toc.astro"
 import Frontmatter from "@/components/frontmatter.astro"
 import Item from "@/components/item.astro"
 import Link from "@/components/link.astro"
@@ -47,7 +47,7 @@ const crumbs = [
 
   {
     relatedInSubcategory.length > 0 && (
-      <Accordion title={`Related in: ${subcategory.name}`} open={false} noIndex={true}>
+      <Accordion title={`Related in: ${subcategory.name}`} open={false}>
         <ol class="list-inside list-decimal space-y-2 p-0">
           {relatedInSubcategory.map((dd) => (
             <li class="pl-2">
@@ -61,9 +61,9 @@ const crumbs = [
     )
   }
 
-  <Article {title} noIndex={isDraft} as="article">
+  <ArticleWithTOC>
     <Content />
-  </Article>
+  </ArticleWithTOC>
 
   <!-- Tags -->
   {
