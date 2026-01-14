@@ -29,6 +29,7 @@ import rehypeImgClass from "./plugins/rehype-img-class"
 
 // Custom Plugins
 import rehypeMermaid from "rehype-mermaid"
+import rehypeTable from "./plugins/rehype-table"
 import { remarkCodeTitleUsingFile } from "./plugins/remark-code-title-using-file"
 import { remarkFrontmatterPlugin } from "./plugins/remark-frontmatter-plugin"
 
@@ -68,7 +69,7 @@ export default defineConfig({
     expressiveCode({}),
   ],
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss() as any],
   },
   markdown: {
     remarkPlugins: [
@@ -97,6 +98,7 @@ export default defineConfig({
       // [rehypeMermaid, { colorScheme: "light", dark: true, strategy: "img-svg" }],
       [rehypeMermaid, { colorScheme: "light", dark: true, strategy: "pre-mermaid" }],
       rehypeImgClass,
+      rehypeTable,
     ],
     gfm: true,
   },

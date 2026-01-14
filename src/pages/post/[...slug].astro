@@ -35,32 +35,58 @@ export async function getStaticPaths() {
     }
 
     // Create navigation items with deduplication
-    const navigationItems = []
+    // Order: prev in series, next in series, prev chronological, next chronological
+    // If an item appears in both series and chronological, combine the titles
+    const navigationItems: Array<{ title: string; item: (typeof blogs)[0] }> = []
 
-    // Add previous items (prev in series takes precedence)
+    // Track which items we've added (by id) to handle deduplication
+    const addedItems = new Map<string, number>() // id -> index in navigationItems
+
+    // Add series navigation first (prev then next)
     if (prevInSeries && currentSeries) {
       navigationItems.push({
         title: `Previous in series: ${currentSeries.name}`,
         item: prevInSeries,
       })
-    } else if (prevBlog) {
-      navigationItems.push({
-        title: "Previous",
-        item: prevBlog,
-      })
+      addedItems.set(prevInSeries.id, navigationItems.length - 1)
     }
 
-    // Add next items (next in series takes precedence)
     if (nextInSeries && currentSeries) {
       navigationItems.push({
         title: `Next in series: ${currentSeries.name}`,
         item: nextInSeries,
       })
-    } else if (nextBlog) {
-      navigationItems.push({
-        title: "Next",
-        item: nextBlog,
-      })
+      addedItems.set(nextInSeries.id, navigationItems.length - 1)
+    }
+
+    // Add chronological navigation (with deduplication)
+    // Note: blogs are sorted newest-first, so:
+    // - prevBlog (lower index) = newer = "Next"
+    // - nextBlog (higher index) = older = "Previous"
+    if (prevBlog) {
+      const existingIndex = addedItems.get(prevBlog.id)
+      if (existingIndex !== undefined) {
+        // Same item exists in series nav - combine titles
+        navigationItems[existingIndex].title += " · Next"
+      } else {
+        navigationItems.push({
+          title: "Next",
+          item: prevBlog,
+        })
+      }
+    }
+
+    if (nextBlog) {
+      const existingIndex = addedItems.get(nextBlog.id)
+      if (existingIndex !== undefined) {
+        // Same item exists in series nav - combine titles
+        navigationItems[existingIndex].title += " · Previous"
+      } else {
+        navigationItems.push({
+          title: "Previous",
+          item: nextBlog,
+        })
+      }
     }
 
     return {

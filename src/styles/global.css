@@ -139,17 +139,14 @@ figure {
   }
 }
 
-table {
-  @apply block w-full max-w-full overflow-x-auto;
-  @apply min-w-0;
-  @apply whitespace-nowrap;
+.table-container {
+  @apply max-w-full overflow-auto;
 }
 
-/* thead,
-tbody {
-  @apply w-full;
-  @apply block;
-} */
+th,
+td {
+  @apply max-w-[60ch] min-w-[20ch];
+}
 
 /* ==========================================================================
    INTERACTIVE ELEMENTS

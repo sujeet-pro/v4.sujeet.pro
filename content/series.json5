@@ -1,5 +1,11 @@
 [
   {
+    id: "productivity",
+    name: "Productivity & Workflow",
+    blogs: ["productivity/2026-01-13-chrome-setup"],
+    featured: false,
+  },
+  {
     id: "platform",
     name: "Platform Services",
     blogs: ["platform/image-service/2025-11-12-image-service"],
@@ -18,6 +24,7 @@
     name: "Technical Design Docs",
     blogs: [
       "technical-design-docs/2025-12-11-csp-sentinel",
+      "technical-design-docs/2026-01-06-component-architecture",
     ],
     featured: true,
   },

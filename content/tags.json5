@@ -1,5 +1,6 @@
 {
   // Domains
+  productivity: { name: "Productivity" },
   ecomm: { name: "E-commerce" },
   ads: { name: "Ad Tech" },
   edu: { name: "Ed Tech" },
