@@ -10,22 +10,32 @@
    ========================================================================== */
 
 @theme {
-  /* Typography - Open Sans for everything, JetBrains Mono for code */
+  /* Typography - Open Sans for body/headings, JetBrains Mono for code */
   --font-sans: "Open Sans", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
 
-  /* Light theme colors - warm, professional, easy on the eyes */
+  /* Light theme colors - warm, eye-friendly palette for long-form reading */
   /* All colors meet WCAG 2.1 AA contrast requirements */
-  --color-bg: #fefefe;
-  --color-bg-alt: #f5f5f4;
-  --color-text: #1f2937;
-  --color-text-muted: #6b7280;
-  --color-border: #e5e7eb;
-  --color-accent: #2563eb;
-  --color-accent-hover: #1d4ed8;
+  --color-bg: #fafaf9; /* warm off-white, easier than pure white */
+  --color-bg-alt: #f3f3f1; /* secondary surfaces, code blocks */
+  --color-text: #1f1f1f; /* near-black, not harsh #000 */
+  --color-text-secondary: #4a4a4a; /* body paragraphs */
+  --color-text-muted: #717171; /* meta info, captions, dates */
+  --color-border: #e5e5e3; /* subtle dividers */
+  --color-accent: #2563eb; /* links - accessible blue */
+  --color-accent-hover: #1d4ed8; /* link hover state */
 
-  /* Layout dimensions - 80ch content width for accessibility */
-  --content-width: 80ch;
+  /* Code colors */
+  --color-code-bg: #f5f5f4; /* inline code background */
+  --color-code-text: #d97706; /* inline code text - amber */
+
+  /* Blockquote colors */
+  --color-blockquote-border: #cbd5e1; /* slate-300 */
+  --color-blockquote-bg: #f8fafc; /* slate-50 */
+
+  /* Layout dimensions - 680px optimal for ~75 chars/line */
+  --content-width: 680px;
+  --content-width-wide: 80ch;
   --sidebar-width-min: 30ch;
   --sidebar-width-max: 45ch;
   --sidebar-gap: 3rem;
@@ -62,7 +72,7 @@ body {
   @apply font-sans antialiased;
   @apply flex min-h-screen flex-col;
   background: var(--color-bg);
-  color: var(--color-text);
+  color: var(--color-text-secondary);
 }
 
 /* Base heading styles */
@@ -72,59 +82,187 @@ h3,
 h4,
 h5,
 h6 {
-  @apply font-sans font-normal;
+  @apply font-sans;
+  color: var(--color-text);
 }
 
 h1 {
-  @apply text-3xl md:text-4xl;
+  @apply font-semibold;
+  font-size: clamp(32px, 5vw, 42px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 h2 {
-  @apply text-2xl md:text-3xl;
+  @apply font-semibold;
+  font-size: 26px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
 }
 
 h3 {
-  @apply text-xl md:text-2xl;
+  @apply font-medium;
+  font-size: 20px;
+  line-height: 1.4;
 }
 
 /* ==========================================================================
    TYPOGRAPHY CLASSES
    ========================================================================== */
 
+/* === HEADINGS === */
 .heading-1 {
-  @apply font-sans text-4xl leading-tight font-light tracking-tight md:text-5xl;
+  @apply font-sans font-semibold;
+  font-size: clamp(32px, 5vw, 42px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
 }
 
 .heading-2 {
-  @apply font-sans text-2xl leading-snug font-normal md:text-3xl;
+  @apply font-sans font-semibold mt-14 mb-5;
+  font-size: 26px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--color-text);
+}
+
+.heading-3 {
+  @apply font-sans font-medium mt-10 mb-4;
+  font-size: 20px;
+  line-height: 1.4;
+  color: var(--color-text);
 }
 
 /* Page title - h1 on index/listing pages */
 .page-title {
-  @apply mt-8 mb-2 font-sans text-3xl leading-tight font-light tracking-tight md:text-4xl;
+  @apply mt-8 mb-2 font-sans font-semibold;
+  font-size: clamp(28px, 4vw, 36px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
 }
 
 /* Page description - subtitle under page title */
 .page-description {
   @apply mb-8;
+  font-size: 18px;
+  line-height: 1.6;
   color: var(--color-text-muted);
 }
 
 /* Section title - smaller h2 for "Browse by Category", "All Articles" etc. */
 .section-title {
-  @apply mb-4 font-sans text-lg font-medium uppercase tracking-wide;
+  @apply mb-4 font-mono text-xs font-normal uppercase;
+  letter-spacing: 0.1em;
   color: var(--color-text-muted);
 }
 
-.heading-3 {
-  @apply font-sans text-xl font-normal md:text-2xl;
+/* === BODY TEXT === */
+.body-text {
+  @apply font-sans font-normal;
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
 }
 
-.body-text {
-  @apply font-sans text-lg leading-relaxed;
+/* Prose body - for article content */
+.prose-body {
+  @apply font-sans font-normal;
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+
+/* Lead paragraph - intro text */
+.prose-lead {
+  @apply font-sans font-normal;
+  font-size: 19px;
+  line-height: 1.7;
+  color: var(--color-text);
+}
+
+/* === META & SMALL TEXT === */
+.meta-text {
+  @apply font-mono uppercase;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+}
+
+.caption {
+  @apply italic;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+/* === ARTICLE SUBTITLE === */
+.article-subtitle {
+  @apply italic;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
 }
 
 .text-muted {
+  color: var(--color-text-muted);
+}
+
+/* === LINKS === */
+.prose-link {
+  @apply underline underline-offset-[3px] decoration-1;
+  color: var(--color-accent);
+  transition: text-decoration-color 200ms ease;
+}
+
+.prose-link:hover {
+  text-decoration-color: transparent;
+}
+
+/* === BLOCKQUOTES === */
+.prose-blockquote {
+  @apply my-8 py-5 px-6 italic;
+  background: var(--color-blockquote-bg);
+  border-left: 3px solid var(--color-blockquote-border);
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--color-text);
+}
+
+/* === CODE === */
+.code-inline {
+  @apply font-mono rounded;
+  font-size: 15px;
+  background: var(--color-code-bg);
+  color: var(--color-code-text);
+  padding: 2px 6px;
+}
+
+.code-block {
+  @apply font-mono rounded-lg overflow-x-auto my-7;
+  font-size: 14px;
+  line-height: 1.7;
+  background: var(--color-bg-alt);
+  color: var(--color-text-secondary);
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+}
+
+/* === LISTS === */
+.prose-list {
+  @apply my-5 pl-5 space-y-2;
+}
+
+.prose-list li {
+  font-size: 17px;
+  line-height: 1.75;
+  color: var(--color-text-secondary);
+}
+
+/* === SECTION DIVIDER === */
+.section-divider {
+  @apply my-12 text-center;
+  letter-spacing: 0.5em;
   color: var(--color-text-muted);
 }
 
@@ -139,6 +277,12 @@ h3 {
 }
 
 .content-container {
+  @apply mx-auto w-full px-4 md:px-6;
+  max-width: var(--content-width-wide);
+}
+
+/* Narrower container for article content */
+.content-container-narrow {
   @apply mx-auto w-full px-4 md:px-6;
   max-width: var(--content-width);
 }
@@ -167,7 +311,7 @@ h3 {
 
 .layout-3col-content {
   @apply w-full;
-  max-width: var(--content-width);
+  max-width: var(--content-width-wide);
 }
 
 /* Sidebars hidden on mobile */
@@ -185,11 +329,11 @@ h3 {
      * - Content is max 80ch centered
      * - Total max-width caps the layout at sidebar + content + sidebar + gaps
      */
-    grid-template-columns: minmax(0, 1fr) minmax(0, var(--content-width)) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, var(--content-width-wide)) minmax(0, 1fr);
     gap: var(--sidebar-gap);
     /* Cap total width: sidebars (45ch each) + content (80ch) + 2 gaps */
     max-width: calc(
-      var(--sidebar-width-max) + var(--content-width) + var(--sidebar-width-max) + var(--sidebar-gap) * 2
+      var(--sidebar-width-max) + var(--content-width-wide) + var(--sidebar-width-max) + var(--sidebar-gap) * 2
     );
     padding: 0 2rem;
     margin: 0 auto;
@@ -397,20 +541,36 @@ h3 {
 }
 
 .article-header {
-  @apply mb-8 text-center md:mb-12;
+  @apply mb-12;
 }
 
 .article-title {
-  @apply mb-4 font-sans text-4xl leading-tight font-normal tracking-tight md:text-5xl;
+  @apply mb-4 font-sans font-semibold;
+  font-size: clamp(32px, 5vw, 42px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
 }
 
 .article-meta {
-  @apply flex flex-wrap justify-center gap-4 text-sm;
+  @apply flex flex-wrap gap-4;
   color: var(--color-text-muted);
+}
+
+.article-meta-item {
+  @apply font-mono uppercase;
+  font-size: 12px;
+  letter-spacing: 0.1em;
 }
 
 .article-content {
   @apply mx-auto prose prose-lg max-w-none;
+}
+
+/* Article container - optimal reading width */
+.article-container {
+  @apply mx-auto px-6;
+  max-width: 680px;
 }
 
 /* ==========================================================================
@@ -438,15 +598,29 @@ button {
   @apply inline-flex items-center gap-2;
 }
 
-/* Nav link - no underline by default */
+/* Nav link - no underline by default, animated underline on hover */
 .nav-link {
-  @apply no-underline;
-  color: var(--color-text);
-  transition: color 150ms ease;
+  @apply relative no-underline;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  transition: color 200ms ease;
+}
+
+.nav-link::after {
+  content: "";
+  @apply absolute left-0 w-0;
+  bottom: -4px;
+  height: 1px;
+  background: var(--color-accent);
+  transition: width 300ms ease;
 }
 
 .nav-link:hover {
-  color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.nav-link:hover::after {
+  width: 100%;
 }
 
 /* Logo link */
@@ -719,47 +893,135 @@ button {
    ========================================================================== */
 
 .prose {
-  --tw-prose-body: var(--color-text);
+  --tw-prose-body: var(--color-text-secondary);
   --tw-prose-headings: var(--color-text);
-  --tw-prose-lead: var(--color-text-muted);
+  --tw-prose-lead: var(--color-text);
   --tw-prose-links: var(--color-accent);
   --tw-prose-bold: var(--color-text);
   --tw-prose-counters: var(--color-text-muted);
   --tw-prose-bullets: var(--color-text-muted);
   --tw-prose-hr: var(--color-border);
   --tw-prose-quotes: var(--color-text);
-  --tw-prose-quote-borders: var(--color-border);
+  --tw-prose-quote-borders: var(--color-blockquote-border);
   --tw-prose-captions: var(--color-text-muted);
-  --tw-prose-code: var(--color-text);
-  --tw-prose-pre-code: var(--color-text);
+  --tw-prose-code: var(--color-code-text);
+  --tw-prose-pre-code: var(--color-text-secondary);
   --tw-prose-pre-bg: var(--color-bg-alt);
   --tw-prose-th-borders: var(--color-border);
   --tw-prose-td-borders: var(--color-border);
 }
 
+/* Base prose font settings */
+.prose {
+  font-size: 17px;
+  line-height: 1.8;
+}
+
+/* Paragraph spacing */
+.prose p {
+  @apply mb-6;
+}
+
 /* Heading styles in prose */
 .prose h1 {
-  @apply font-sans font-light;
+  @apply font-sans font-semibold;
+  font-size: clamp(32px, 5vw, 42px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
-.prose h2,
-.prose h3,
+.prose h2 {
+  @apply font-sans font-semibold mt-14 mb-5;
+  font-size: 26px;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.prose h3 {
+  @apply font-sans font-medium mt-10 mb-4;
+  font-size: 20px;
+  line-height: 1.4;
+}
+
 .prose h4 {
-  @apply font-sans font-normal;
+  @apply font-sans font-medium mt-8 mb-3;
+  font-size: 18px;
+  line-height: 1.4;
 }
 
-/* Link hover in prose */
+/* Link styles in prose */
+.prose a {
+  @apply underline underline-offset-[3px] decoration-1;
+  transition: text-decoration-color 200ms ease;
+}
+
 .prose a:hover {
-  color: var(--color-accent-hover);
+  text-decoration-color: transparent;
+}
+
+/* Blockquote styles in prose */
+.prose blockquote {
+  @apply my-8 py-5 px-6 not-italic;
+  background: var(--color-blockquote-bg);
+  border-left-width: 3px;
+  font-size: 17px;
+  line-height: 1.7;
+  font-style: italic;
+}
+
+.prose blockquote p {
+  @apply mb-0;
 }
 
 /* Code styling in prose */
 .prose code {
-  @apply font-mono;
+  @apply font-mono rounded;
+  font-size: 15px;
+  background: var(--color-code-bg);
+  padding: 2px 6px;
+}
+
+.prose code::before,
+.prose code::after {
+  content: none;
 }
 
 .prose pre {
-  @apply font-mono;
+  @apply font-mono rounded-lg my-7;
+  font-size: 14px;
+  line-height: 1.7;
+  border: 1px solid var(--color-border);
+}
+
+.prose pre code {
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* List styles in prose */
+.prose ul,
+.prose ol {
+  @apply my-5 space-y-2;
+}
+
+.prose li {
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+/* Figure captions */
+.prose figcaption {
+  @apply text-center italic;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+/* Lead paragraph (first paragraph after heading) */
+.prose > p:first-of-type {
+  font-size: 19px;
+  line-height: 1.7;
+  color: var(--color-text);
 }
 
 /* ==========================================================================
@@ -1134,6 +1396,17 @@ td {
 
 .modal-apply-btn:hover {
   background: var(--color-accent-hover);
+}
+
+/* ==========================================================================
+   READING PROGRESS BAR
+   ========================================================================== */
+
+.reading-progress {
+  @apply fixed top-0 left-0 z-50;
+  height: 2px;
+  background: var(--color-accent);
+  transition: width 100ms ease;
 }
 
 /* ==========================================================================

@@ -1,44 +1,9 @@
 [
-  // JavaScript - patterns, idioms, and best practices (10 items)
+  // Programming - patterns, idioms, and best practices
   {
-    "id": "javascript",
-    "name": "JavaScript",
-    "description": "JavaScript patterns, idioms, and best practices - design patterns, error handling, async programming, and runtime concepts",
+    "id": "programming",
+    "name": "Programming",
+    "description": "Programming patterns, idioms, and best practices - design patterns, error handling, async programming, and language concepts",
     "featured": true
-  },
-  // Web Performance - optimization techniques (7 items)
-  {
-    "id": "web-performance",
-    "name": "Web Performance",
-    "description": "Web performance optimization - critical rendering path, image optimization, CSS/JS optimization, fonts, and infrastructure",
-    "featured": true
-  },
-  // Web Fundamentals - core web concepts and protocols (6 items)
-  {
-    "id": "web-fundamentals",
-    "name": "Web Fundamentals",
-    "description": "Core web concepts and protocols - HTTP evolution, caching, security, accessibility, authentication, and browser APIs",
-    "featured": true
-  },
-  // Frameworks - framework-specific guides (3 items)
-  {
-    "id": "frameworks",
-    "name": "Frameworks",
-    "description": "Framework guides and patterns - React hooks, architecture patterns, state management, and ecosystem tools",
-    "featured": true
-  },
-  // Web Architecture - architecture patterns (3 items)
-  {
-    "id": "web-architecture",
-    "name": "Web Architecture",
-    "description": "Web architecture patterns - microfrontends, SSG/SSR strategies, rendering optimization, and scalability patterns",
-    "featured": false
-  },
-  // Infrastructure - devops, platform, and media (3 items combined)
-  {
-    "id": "infrastructure",
-    "name": "Infrastructure",
-    "description": "Infrastructure and platform engineering - testing strategies, CI/CD, image services, CDN, media delivery, and deployment",
-    "featured": false
   }
 ]

@@ -6,6 +6,7 @@ import TOC from "@/components/toc.astro"
 import Item from "@/components/item.astro"
 import Frontmatter from "@/components/frontmatter.astro"
 import Link from "@/components/link.astro"
+import ReadingProgress from "@/components/reading-progress.astro"
 
 // Generate static paths for all writing
 export async function getStaticPaths() {
@@ -36,6 +37,8 @@ const crumbs = [
 ---
 
 <Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft} layout="3col">
+  <ReadingProgress />
+
   <!-- TOC in right sidebar -->
   <TOC slot="sidebar-right" />
 

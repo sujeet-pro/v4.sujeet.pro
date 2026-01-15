@@ -108,6 +108,19 @@ Content uses Astro's Content Layer API with `glob` and `file` loaders:
 - Work: `content/work/`
 - Uses: `content/uses/`
 
+### LLM-Friendly Endpoints
+
+The site provides LLM-optimized content for AI consumption:
+
+| Endpoint | Purpose |
+|----------|---------|
+| `/llms.txt` | Index file with site overview and links to all content |
+| `/llms-full.txt` | Complete site content in a single file (~1.2MB) |
+
+These follow the [llms.txt standard](https://llmstxt.org/) for making websites LLM-friendly.
+
+**Usage**: Point an LLM to `https://sujeet.pro/llms-full.txt` to enable it to answer questions about any article on the site.
+
 ### Environment Variables
 
 No environment variables are required. The site defaults to `https://sujeet.pro`.

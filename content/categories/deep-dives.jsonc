@@ -1,9 +1,9 @@
 [
-  // System Design - foundational concepts and design problems
+  // System Design Fundamentals - foundational concepts and design problems
   {
-    "id": "system-design",
-    "name": "System Design",
-    "description": "System design foundations and real-world problems - CAP theorem, consistency models, URL shorteners, social networks, and more",
+    "id": "system-design-fundamentals",
+    "name": "System Design Fundamentals",
+    "description": "System design foundations and real-world problems - caching strategies, consistency models, URL shorteners, and more",
     "featured": true
   },
   // DSA - data structures and algorithms
@@ -23,8 +23,15 @@
   // Tools - development tools, services, and tech internals
   {
     "id": "tools",
-    "name": "Tools & Services",
+    "name": "Tools",
     "description": "Deep dives into development tools, third-party services, language runtimes, and technology internals",
+    "featured": true
+  },
+  // Web Fundamentals - core web concepts, performance, and protocols
+  {
+    "id": "web-fundamentals",
+    "name": "Web Fundamentals",
+    "description": "Core web concepts - performance optimization, HTTP protocols, security, accessibility, authentication, and rendering",
     "featured": true
   }
 ]

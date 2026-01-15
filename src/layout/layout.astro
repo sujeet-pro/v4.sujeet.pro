@@ -10,6 +10,7 @@ import { getFilePath } from "@/utils/link.utils"
 import Breadcrumb from "@/components/breadcrumb.astro"
 import type { Props as BreadcrumbProps } from "@/components/breadcrumb.astro"
 import ImageModal from "@/components/image-modal.astro"
+import GoogleAnalytics from "./google-analytics.astro"
 
 interface Props extends SeoProps {
   noIndex?: boolean | undefined | null
@@ -67,6 +68,9 @@ const searchIndexPath = getFilePath("search/index.json")
     <Seo {...seoProps} />
     <link rel="alternate" type="application/rss+xml" href={getFilePath("rss.xml")} />
     <link rel="sitemap" href={getFilePath("sitemap-index.xml")} />
+    <!-- LLM-friendly content -->
+    <link rel="alternate" type="text/plain" href={getFilePath("llms.txt")} title="LLM Index" />
+    <link rel="alternate" type="text/plain" href={getFilePath("llms-full.txt")} title="LLM Full Content" />
   </head>
   <body>
     <Header />
@@ -103,5 +107,6 @@ const searchIndexPath = getFilePath("search/index.json")
     <Footer />
     <ImageModal />
     <KatexCSS />
+    <GoogleAnalytics />
   </body>
 </html>

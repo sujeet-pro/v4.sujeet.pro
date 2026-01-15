@@ -6,6 +6,7 @@ import Frontmatter from "@/components/frontmatter.astro"
 import Item from "@/components/item.astro"
 import Link from "@/components/link.astro"
 import Layout from "@/layout/layout.astro"
+import ReadingProgress from "@/components/reading-progress.astro"
 import { getDeepDives } from "@/utils/content-deep-dives.utils"
 
 export async function getStaticPaths() {
@@ -42,6 +43,8 @@ const crumbs = [
 ---
 
 <Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft} layout="3col">
+  <ReadingProgress />
+
   <!-- TOC in right sidebar -->
   <TOC slot="sidebar-right" />
 
