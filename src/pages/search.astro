@@ -4,6 +4,7 @@ import { getSearchFacets } from "@/utils/search.utils"
 import { SEARCH_SCHEMA } from "@/utils/search.types"
 import { CONTENT_TYPE_LABELS } from "@constants/site"
 import { Icon } from "astro-icon/components"
+import { getFilePath } from "@/utils/link.utils"
 
 // Get facet options at build time (now with counts, sorted by count)
 const { categories, subcategories, tags } = await getSearchFacets()
@@ -16,6 +17,7 @@ const topTags = tags.slice(0, TOP_TAGS_LIMIT)
 const allTagsJson = JSON.stringify(tags)
 const searchSchemaJson = JSON.stringify(SEARCH_SCHEMA)
 const contentTypeLabelsJson = JSON.stringify(CONTENT_TYPE_LABELS)
+const searchIndexPath = getFilePath("search/index.json")
 ---
 
 <Layout title="Search" description="Search for posts on Sujeet's blog" crumbs={[]} pageType="default">
@@ -255,6 +257,7 @@ const contentTypeLabelsJson = JSON.stringify(CONTENT_TYPE_LABELS)
   <script id="all-tags-data" type="application/json" set:html={allTagsJson} />
   <script id="search-schema-data" type="application/json" set:html={searchSchemaJson} />
   <script id="content-type-labels-data" type="application/json" set:html={contentTypeLabelsJson} />
+  <script id="search-index-path" type="application/json" set:html={JSON.stringify(searchIndexPath)} />
 </Layout>
 
 <script>
@@ -297,11 +300,16 @@ const contentTypeLabelsJson = JSON.stringify(CONTENT_TYPE_LABELS)
     }
   }
 
+  // Get search index path from server-rendered data
+  const searchIndexPath = JSON.parse(
+    document.getElementById("search-index-path")?.textContent ?? '"/search/index.json"'
+  )
+
   // Load search index
   async function loadIndex() {
     if (db) return
     try {
-      const response = await fetch("/search/index.json")
+      const response = await fetch(searchIndexPath)
       const data = await response.json()
       db = await create({ schema: searchSchema })
       await load(db, data)

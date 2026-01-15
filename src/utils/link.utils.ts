@@ -1,9 +1,32 @@
 /**
  * Link utility functions
  * Handles URL building with base path support for subdirectory deployments
+ *
+ * Base path handling:
+ * - Input can be: "/", "", undefined, "/path/", "path", "/path"
+ * - Output is normalized to: "" (for root) or "/path" (no trailing slash)
+ *
+ * Examples:
+ *   base="/"           -> normalizedBase=""           -> "/writing" stays "/writing"
+ *   base=""            -> normalizedBase=""           -> "/writing" stays "/writing"
+ *   base="/v4/"        -> normalizedBase="/v4"        -> "/writing" becomes "/v4/writing"
+ *   base="v4.sujeet.pro" -> normalizedBase="/v4.sujeet.pro" -> "/writing" becomes "/v4.sujeet.pro/writing"
  */
 
 import { base, trailingSlash as trailingSlashConfig } from "astro:config/client"
+
+/**
+ * Normalize base path to "" (root) or "/path" format (no trailing slash)
+ * Handles: "/", "", undefined, "/path/", "path", "/path"
+ */
+function normalizeBasePath(basePath: string | undefined): string {
+  if (!basePath || basePath === "/") return ""
+  // Strip leading/trailing slashes, then add single leading slash
+  const stripped = basePath.replace(/^\/|\/$/g, "")
+  return stripped ? "/" + stripped : ""
+}
+
+const normalizedBase = normalizeBasePath(base)
 
 /**
  * Link properties for anchor elements
@@ -16,23 +39,6 @@ interface LinkProps {
 
 /**
  * Get link properties with proper base path and external link handling
- *
- * @param options - Link configuration
- * @param options.href - The href to process
- * @param options.trailingSlash - Trailing slash behavior (default: from astro config)
- * @param options.target - Link target attribute
- * @param options.rel - Link rel attribute
- * @returns Processed link properties
- *
- * @example
- * // Internal link with base path
- * getLinkProps({ href: "/writing" })
- * // Returns: { href: "/base/writing", target: undefined, rel: undefined }
- *
- * @example
- * // External link with security defaults
- * getLinkProps({ href: "https://example.com" })
- * // Returns: { href: "https://example.com", target: "_blank", rel: "noopener noreferrer" }
  */
 export function getLinkProps({
   href,
@@ -52,65 +58,43 @@ export function getLinkProps({
   // External links: add security defaults
   if (href.startsWith("https://")) {
     return {
-      href: href,
+      href,
       target: target ?? "_blank",
       rel: rel ?? "noopener noreferrer",
     }
   }
 
-  // Internal links: apply base path
-  if (href === "/") {
-    href = "/" + base.replace(/^\//, "")
-  } else {
-    const basePart = stripSlashes(base)
-    if (basePart) {
-      href = "/" + basePart + "/" + href.replace(/^\//, "")
-    } else {
-      href = "/" + href.replace(/^\//, "")
+  // Internal links: prepend base path
+  // Ensure href starts with / for consistent concatenation
+  const normalizedHref = href.startsWith("/") ? href : "/" + href
+  let result = normalizedBase + normalizedHref
+
+  // Apply trailing slash preference
+  if (result !== "/") {
+    if (trailingSlash === "always" && !result.endsWith("/")) {
+      result = result + "/"
+    } else if (trailingSlash === "never" && result.endsWith("/")) {
+      result = result.slice(0, -1)
     }
   }
 
-  // Apply trailing slash preference
-  if (trailingSlash === "always" && !href.endsWith("/") && href !== "/") {
-    href = href + "/"
-  } else if (trailingSlash === "never" && href.endsWith("/") && href !== "/") {
-    href = href.replace(/\/$/, "")
-  }
-
-  return { href, target, rel }
+  return { href: result, target, rel }
 }
 
 /**
- * Build a file path with base path support
- *
- * @param pathFragments - Path segments to join
- * @returns Full path with base prefix
- *
- * @example
- * getFilePath("rss", "styles.xsl")
- * // Returns: "/base/rss/styles.xsl"
+ * Build a file path with base path support (no trailing slash)
  */
 export function getFilePath(...pathFragments: string[]): string {
-  const path = pathFragments.map(stripSlashes).join("/")
-  return getLinkProps({
-    href: "/" + path,
-    trailingSlash: "never",
-  }).href
+  const path = pathFragments
+    .map((s) => s.replace(/^\/|\/$/g, ""))
+    .filter(Boolean)
+    .join("/")
+  return normalizedBase + "/" + path
 }
 
 /**
  * Build a favicon path
- *
- * @param filename - Favicon filename
- * @returns Full path to favicon
  */
 export function getFaviconPath(filename: string): string {
   return getFilePath("favicons", filename)
-}
-
-/**
- * Remove leading and trailing slashes from a string
- */
-function stripSlashes(str: string): string {
-  return str.replace(/^\//, "").replace(/\/$/, "")
 }

@@ -33,13 +33,28 @@ import { remarkFrontmatterPlugin } from "./plugins/remark-frontmatter-plugin"
 
 // https://astro.build/config
 
-// Helper to get env with fallback (runs at config time)
-const getConfigEnv = (key: string, fallback: string): string => {
-  return process.env[key] ?? fallback
-}
-
-const siteOrigin = getConfigEnv("SITE_ORIGIN", "https://sujeet.pro")
-const siteBasePath = getConfigEnv("SITE_BASE_PATH", "/")
+/**
+ * Site Configuration
+ *
+ * These values can be overridden via CLI args or environment variables:
+ *
+ * CLI (recommended for builds):
+ *   astro build --site https://example.com --base /subpath/
+ *   astro dev --site https://example.com --base /subpath/
+ *
+ * Environment variables:
+ *   SITE_ORIGIN - Full origin URL (e.g., "https://sujeet.pro")
+ *   SITE_BASE_PATH - Base path for subdirectory deployments
+ *                    Format: Can be "/" or "/path/" or "path" - all are normalized
+ *                    Examples: "/v4.sujeet.pro/", "v4.sujeet.pro", "/" (root)
+ *
+ * Defaults (no env needed):
+ *   - Site: https://sujeet.pro
+ *   - Base: / (root)
+ *   - Canonical: https://sujeet.pro (always points to production)
+ */
+const siteOrigin = process.env.SITE_ORIGIN || "https://sujeet.pro"
+const siteBasePath = process.env.SITE_BASE_PATH || "/"
 
 export default defineConfig({
   // Full site URL (used for sitemap, canonical URLs)
@@ -48,7 +63,10 @@ export default defineConfig({
   // Base path for assets and links
   base: siteBasePath,
 
-  trailingSlash: "ignore",
+  trailingSlash: "never",
+  build: {
+    format: "file", // Generate writing.html instead of writing/index.html
+  },
   output: "static",
   scopedStyleStrategy: "where",
   prefetch: {

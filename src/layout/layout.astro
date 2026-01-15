@@ -16,6 +16,11 @@ interface Props extends SeoProps {
 }
 
 const { noIndex, crumbs, ...seoProps } = Astro.props
+
+// Font paths with base path support
+const openSansFontPath = getFilePath("fonts/open-sans-latin-wght-normal.woff2")
+const jetBrainsMonoFontPath = getFilePath("fonts/jetbrains-mono-latin-400-normal.woff2")
+const searchIndexPath = getFilePath("search/index.json")
 ---
 
 <!doctype html>
@@ -25,27 +30,36 @@ const { noIndex, crumbs, ...seoProps } = Astro.props
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
     {noIndex ? <meta name="robots" content="noindex" /> : null}
+    <!-- Inline font-face declarations with base path -->
+    <style set:html={`
+      @font-face {
+        font-family: "Open Sans";
+        font-style: normal;
+        font-weight: 300 800;
+        font-display: swap;
+        src: url("${openSansFontPath}") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("${jetBrainsMonoFontPath}") format("woff2");
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+          U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    `} />
     <!-- Preload local fonts -->
-    <link
-      rel="preload"
-      as="font"
-      type="font/woff2"
-      href="/fonts/open-sans-latin-wght-normal.woff2"
-      crossorigin="anonymous"
-    />
-    <link
-      rel="preload"
-      as="font"
-      type="font/woff2"
-      href="/fonts/jetbrains-mono-latin-400-normal.woff2"
-      crossorigin="anonymous"
-    />
+    <link rel="preload" as="font" type="font/woff2" href={openSansFontPath} crossorigin="anonymous" />
+    <link rel="preload" as="font" type="font/woff2" href={jetBrainsMonoFontPath} crossorigin="anonymous" />
     <!-- Prefetch search index in background -->
-    <link rel="prefetch" href="/search/index.json" />
+    <link rel="prefetch" href={searchIndexPath} />
     <Favicons />
     <Seo {...seoProps} />
     <link rel="alternate" type="application/rss+xml" href={getFilePath("rss.xml")} />
-    <link rel="sitemap" href={getFilePath("sitemap.xml")} />
+    <link rel="sitemap" href={getFilePath("sitemap-index.xml")} />
   </head>
   <body>
     <Header />
