@@ -33,35 +33,9 @@ import { remarkFrontmatterPlugin } from "./plugins/remark-frontmatter-plugin"
 
 // https://astro.build/config
 
-/**
- * Site Configuration
- *
- * These values can be overridden via CLI args or environment variables:
- *
- * CLI (recommended for builds):
- *   astro build --site https://example.com --base /subpath/
- *   astro dev --site https://example.com --base /subpath/
- *
- * Environment variables:
- *   SITE_ORIGIN - Full origin URL (e.g., "https://sujeet.pro")
- *   SITE_BASE_PATH - Base path for subdirectory deployments
- *                    Format: Can be "/" or "/path/" or "path" - all are normalized
- *                    Examples: "/v4.sujeet.pro/", "v4.sujeet.pro", "/" (root)
- *
- * Defaults (no env needed):
- *   - Site: https://sujeet.pro
- *   - Base: / (root)
- *   - Canonical: https://sujeet.pro (always points to production)
- */
-const siteOrigin = process.env.SITE_ORIGIN || "https://sujeet.pro"
-const siteBasePath = process.env.SITE_BASE_PATH || "/"
-
 export default defineConfig({
   // Full site URL (used for sitemap, canonical URLs)
-  site: siteOrigin,
-
-  // Base path for assets and links
-  base: siteBasePath,
+  site: "https://sujeet.pro",
 
   trailingSlash: "never",
   build: {
@@ -90,27 +64,9 @@ export default defineConfig({
   // Define environment schema for type safety
   env: {
     schema: {
-      SITE_ORIGIN: envField.string({
-        context: "client",
-        access: "public",
-        optional: true,
-        default: "https://sujeet.pro",
-      }),
-      SITE_BASE_PATH: envField.string({
-        context: "client",
-        access: "public",
-        optional: true,
-        default: "/",
-      }),
-      SITE_CANONICAL_ORIGIN: envField.string({
-        context: "client",
-        access: "public",
-        optional: true,
-        default: "https://sujeet.pro",
-      }),
       // Controls draft content visibility
-      // - true: Show drafts (for GitHub builds and local dev)
-      // - false: Hide drafts (for production/Cloudflare)
+      // - true: Show drafts (for local dev)
+      // - false: Hide drafts (for production)
       // Defaults to false for production builds
       SHOW_DRAFTS: envField.boolean({
         context: "server",

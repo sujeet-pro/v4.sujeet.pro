@@ -1,32 +1,8 @@
 /**
- * Link utility functions
- * Handles URL building with base path support for subdirectory deployments
- *
- * Base path handling:
- * - Input can be: "/", "", undefined, "/path/", "path", "/path"
- * - Output is normalized to: "" (for root) or "/path" (no trailing slash)
- *
- * Examples:
- *   base="/"           -> normalizedBase=""           -> "/writing" stays "/writing"
- *   base=""            -> normalizedBase=""           -> "/writing" stays "/writing"
- *   base="/v4/"        -> normalizedBase="/v4"        -> "/writing" becomes "/v4/writing"
- *   base="v4.sujeet.pro" -> normalizedBase="/v4.sujeet.pro" -> "/writing" becomes "/v4.sujeet.pro/writing"
+ * Link utility functions for consistent link handling
  */
 
-import { base, trailingSlash as trailingSlashConfig } from "astro:config/client"
-
-/**
- * Normalize base path to "" (root) or "/path" format (no trailing slash)
- * Handles: "/", "", undefined, "/path/", "path", "/path"
- */
-function normalizeBasePath(basePath: string | undefined): string {
-  if (!basePath || basePath === "/") return ""
-  // Strip leading/trailing slashes, then add single leading slash
-  const stripped = basePath.replace(/^\/|\/$/g, "")
-  return stripped ? "/" + stripped : ""
-}
-
-const normalizedBase = normalizeBasePath(base)
+import { trailingSlash as trailingSlashConfig } from "astro:config/client"
 
 /**
  * Link properties for anchor elements
@@ -38,7 +14,7 @@ interface LinkProps {
 }
 
 /**
- * Get link properties with proper base path and external link handling
+ * Get link properties with proper external link handling
  */
 export function getLinkProps({
   href,
@@ -64,10 +40,8 @@ export function getLinkProps({
     }
   }
 
-  // Internal links: prepend base path
-  // Ensure href starts with / for consistent concatenation
-  const normalizedHref = href.startsWith("/") ? href : "/" + href
-  let result = normalizedBase + normalizedHref
+  // Internal links: ensure starts with /
+  let result = href.startsWith("/") ? href : "/" + href
 
   // Apply trailing slash preference
   if (result !== "/") {
@@ -82,14 +56,14 @@ export function getLinkProps({
 }
 
 /**
- * Build a file path with base path support (no trailing slash)
+ * Build a file path for assets (fonts, images, etc.)
  */
 export function getFilePath(...pathFragments: string[]): string {
   const path = pathFragments
     .map((s) => s.replace(/^\/|\/$/g, ""))
     .filter(Boolean)
     .join("/")
-  return normalizedBase + "/" + path
+  return "/" + path
 }
 
 /**

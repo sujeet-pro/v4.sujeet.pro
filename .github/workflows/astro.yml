@@ -71,12 +71,8 @@ jobs:
       - name: Build with Astro
         run: |
           ${{ steps.detect-package-manager.outputs.runner }} astro build \
-            --site "${{ steps.pages.outputs.origin }}" \
-            --base "${{ steps.pages.outputs.base_path }}"
+            --site "${{ steps.pages.outputs.origin }}"
         working-directory: ${{ env.BUILD_PATH }}
-        env:
-          SITE_CANONICAL_ORIGIN: ${{ vars.SITE_CANONICAL_ORIGIN }}
-          SITE_CANONICAL_PATH: ${{ vars.SITE_CANONICAL_PATH }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

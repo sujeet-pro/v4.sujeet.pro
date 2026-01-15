@@ -4,7 +4,6 @@
  * Validates a running/deployed site by crawling from a landing page:
  * - Checks all asset URLs return 200 (fonts, CSS, JS, images)
  * - Checks all internal page links return 200
- * - Validates paths respect the configured base path
  *
  * Usage:
  *   npx tsx scripts/validation/validate-live.ts
@@ -132,7 +131,7 @@ async function checkUrl(url: string): Promise<{ status: number | string; ok: boo
   }
 }
 
-function extractLinks(html: string, baseUrl: string, basePath: string): { assets: Set<string>; pages: Set<string> } {
+function extractLinks(html: string, baseUrl: string): { assets: Set<string>; pages: Set<string> } {
   const assets = new Set<string>()
   const pages = new Set<string>()
   const origin = new URL(baseUrl).origin
@@ -162,11 +161,7 @@ function extractLinks(html: string, baseUrl: string, basePath: string): { assets
     if (href.match(/\.(css|woff2?|png|jpg|jpeg|gif|svg|ico|webp|json|xml|xsl|js|mjs)(\?.*)?$/i)) {
       assets.add(fullUrl)
     } else if (!href.startsWith("#")) {
-      // Internal page
-      const urlPath = new URL(fullUrl).pathname
-      if (basePath === "" || urlPath.startsWith(basePath) || urlPath === "/") {
-        pages.add(fullUrl)
-      }
+      pages.add(fullUrl)
     }
   }
 
@@ -209,7 +204,7 @@ function extractLinks(html: string, baseUrl: string, basePath: string): { assets
 async function processInBatches<T, R>(
   items: T[],
   batchSize: number,
-  processor: (item: T) => Promise<R>
+  processor: (item: T) => Promise<R>,
 ): Promise<R[]> {
   const results: R[] = []
   for (let i = 0; i < items.length; i += batchSize) {
@@ -227,27 +222,21 @@ async function main() {
   logger.log("Live Site Validation", "INFO")
   logger.log("=".repeat(60), "INFO")
 
-  // Select deployment mode
-  const modeIndex = await promptSelection("Select deployment mode to validate:", [
-    "Root path (Cloudflare) - e.g., https://sujeet.pro",
-    "Base path (GitHub Pages) - e.g., https://projects.sujeet.pro/v4.sujeet.pro/",
-    "Local preview (root) - http://localhost:4321",
-    "Local preview (base path) - http://localhost:4321/v4.sujeet.pro/",
+  // Select environment
+  const modeIndex = await promptSelection("Select environment to validate:", [
+    "Production - https://sujeet.pro",
+    "Local preview - http://localhost:4321",
   ])
 
   const presets = [
-    { url: "https://sujeet.pro", basePath: "" },
-    { url: "https://projects.sujeet.pro/v4.sujeet.pro/", basePath: "/v4.sujeet.pro" },
-    { url: "http://localhost:4321", basePath: "" },
-    { url: "http://localhost:4321/v4.sujeet.pro/", basePath: "/v4.sujeet.pro" },
+    { url: "https://sujeet.pro" },
+    { url: "http://localhost:4321" },
   ]
 
   const preset = presets[modeIndex]
   const landingPage = await promptInput("Enter landing page URL", preset.url)
-  const basePath = modeIndex % 2 === 1 ? "/v4.sujeet.pro" : ""
 
   logger.log(`\nValidating: ${landingPage}`, "INFO")
-  logger.log(`Base path: "${basePath || "/"}"`, "INFO")
   logger.log("", "INFO")
 
   // Fetch landing page
@@ -261,7 +250,7 @@ async function main() {
   logger.log("Landing page fetched successfully", "SUCCESS")
 
   // Extract links from landing page
-  const { assets, pages } = extractLinks(landingHtml, landingPage, basePath)
+  const { assets, pages } = extractLinks(landingHtml, landingPage)
 
   logger.log(`Found ${pages.size} page links`, "INFO")
   logger.log(`Found ${assets.size} asset links`, "INFO")
@@ -279,7 +268,7 @@ async function main() {
 
     const html = await fetchHtml(pageUrl)
     if (html) {
-      const { assets: pageAssets, pages: pagePages } = extractLinks(html, pageUrl, basePath)
+      const { assets: pageAssets, pages: pagePages } = extractLinks(html, pageUrl)
       pageAssets.forEach((a) => allAssets.add(a))
       pagePages.forEach((p) => {
         if (!visitedPages.has(p) && !pagesToVisit.includes(p)) {
@@ -301,7 +290,7 @@ async function main() {
     async (url) => {
       const { status, ok } = await checkUrl(url)
       return { url, status, type: "page" as const, error: ok ? undefined : `HTTP ${status}` }
-    }
+    },
   )
 
   // Validate all assets
@@ -312,7 +301,7 @@ async function main() {
     async (url) => {
       const { status, ok } = await checkUrl(url)
       return { url, status, type: "asset" as const, error: ok ? undefined : `HTTP ${status}` }
-    }
+    },
   )
 
   // Report results
@@ -334,30 +323,6 @@ async function main() {
     logger.log(`\nFailed Assets (${failedAssets.length}):`, "ERROR")
     for (const result of failedAssets) {
       logger.log(`  ${result.status} - ${result.url}`, "ERROR")
-    }
-  }
-
-  // Validate base path consistency
-  logger.log("\nBase Path Validation:", "INFO")
-  const incorrectPaths: string[] = []
-
-  for (const url of [...visitedPages, ...allAssets]) {
-    const urlPath = new URL(url).pathname
-    // Skip _astro paths as Astro handles them
-    if (urlPath.startsWith("/_astro") || urlPath.startsWith("/_")) continue
-
-    if (basePath && !urlPath.startsWith(basePath) && urlPath !== "/") {
-      incorrectPaths.push(url)
-    }
-  }
-
-  if (incorrectPaths.length > 0) {
-    logger.log(`\nPaths missing base prefix (${incorrectPaths.length}):`, "WARN")
-    for (const url of incorrectPaths.slice(0, 10)) {
-      logger.log(`  ${url}`, "WARN")
-    }
-    if (incorrectPaths.length > 10) {
-      logger.log(`  ... and ${incorrectPaths.length - 10} more`, "WARN")
     }
   }
 

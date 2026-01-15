@@ -2,9 +2,8 @@
  * Static Build Validation Script
  *
  * Validates the built HTML files in the dist folder to ensure:
- * - All asset paths (fonts, CSS, JS, images) exist and are correctly prefixed
+ * - All asset paths (fonts, CSS, JS, images) exist
  * - All internal page links point to existing files
- * - All paths respect the configured base path
  *
  * Usage:
  *   npx tsx scripts/validation/validate-static.ts
@@ -14,7 +13,6 @@
 
 import * as fs from "fs"
 import * as path from "path"
-import * as readline from "readline"
 
 // Configuration
 const DIST_DIR = path.join(process.cwd(), "dist")
@@ -62,28 +60,6 @@ class Logger {
     fs.writeFileSync(this.logFile, this.logs.join("\n"))
     console.log(`\n\x1b[36mLogs saved to: ${this.logFile}\x1b[0m`)
   }
-}
-
-async function promptSelection(question: string, options: string[]): Promise<string> {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  })
-
-  console.log(`\n${question}`)
-  options.forEach((opt, i) => console.log(`  ${i + 1}. ${opt}`))
-
-  return new Promise((resolve) => {
-    rl.question("\nEnter choice (number): ", (answer) => {
-      rl.close()
-      const index = parseInt(answer) - 1
-      if (index >= 0 && index < options.length) {
-        resolve(options[index])
-      } else {
-        resolve(options[0]) // Default to first option
-      }
-    })
-  })
 }
 
 function getAllHtmlFiles(dir: string): string[] {
@@ -146,7 +122,7 @@ function shouldSkip(url: string): boolean {
   return SKIP_PATTERNS.some((pattern) => pattern.test(url))
 }
 
-function extractLinks(html: string, basePath: string): { assets: string[]; pages: string[] } {
+function extractLinks(html: string): { assets: string[]; pages: string[] } {
   const assets: string[] = []
   const pages: string[] = []
 
@@ -158,7 +134,7 @@ function extractLinks(html: string, basePath: string): { assets: string[]; pages
     if (shouldSkip(href)) continue
     if (href.match(/\.(css|woff2?|png|jpg|jpeg|gif|svg|ico|webp|json|xml|xsl|js|mjs)$/i)) {
       assets.push(href)
-    } else if (basePath === "" ? href.startsWith("/") : href.startsWith(basePath)) {
+    } else if (href.startsWith("/")) {
       pages.push(href)
     }
   }
@@ -182,64 +158,33 @@ function extractLinks(html: string, basePath: string): { assets: string[]; pages
   return { assets: [...new Set(assets)], pages: [...new Set(pages)] }
 }
 
-function validateFile(
-  filePath: string,
-  basePath: string,
-  allFiles: Set<string>,
-  logger: Logger
-): ValidationResult {
+function validateFile(filePath: string, allFiles: Set<string>, logger: Logger): ValidationResult {
   const relativePath = path.relative(DIST_DIR, filePath)
   const errors: string[] = []
   const warnings: string[] = []
 
   const html = fs.readFileSync(filePath, "utf-8")
-  const { assets, pages } = extractLinks(html, basePath)
+  const { assets, pages } = extractLinks(html)
 
   // Validate assets
   for (const asset of assets) {
-    // Normalize the asset path for checking
-    let checkPath = asset
-
-    // Handle base path
-    if (basePath && asset.startsWith(basePath)) {
-      checkPath = asset.slice(basePath.length)
-      if (!checkPath.startsWith("/")) checkPath = "/" + checkPath
-    }
-
-    // Check if file exists
-    if (!allFiles.has(checkPath) && !allFiles.has(asset)) {
+    if (!allFiles.has(asset)) {
       // Check for .html extension for pages
-      if (!allFiles.has(checkPath + ".html") && !allFiles.has(asset + ".html")) {
+      if (!allFiles.has(asset + ".html")) {
         errors.push(`Missing asset: ${asset}`)
-      }
-    }
-
-    // Validate base path prefix
-    if (basePath && !asset.startsWith(basePath) && asset.startsWith("/") && !asset.startsWith("/_astro")) {
-      // Allow _astro paths without base prefix as Astro handles them
-      if (!asset.startsWith("/_")) {
-        warnings.push(`Asset missing base path prefix: ${asset} (expected ${basePath}${asset})`)
       }
     }
   }
 
   // Validate page links
   for (const page of pages) {
-    let checkPath = page
-
-    // Handle base path
-    if (basePath && page.startsWith(basePath)) {
-      checkPath = page.slice(basePath.length)
-      if (!checkPath.startsWith("/")) checkPath = "/" + checkPath
-    }
-
     // Check for .html file or directory with index
-    const htmlPath = checkPath.endsWith("/") ? checkPath + "index.html" : checkPath + ".html"
-    const exactPath = checkPath.endsWith(".html") ? checkPath : null
+    const htmlPath = page.endsWith("/") ? page + "index.html" : page + ".html"
+    const exactPath = page.endsWith(".html") ? page : null
 
-    if (!allFiles.has(htmlPath) && !allFiles.has(checkPath) && (!exactPath || !allFiles.has(exactPath))) {
+    if (!allFiles.has(htmlPath) && !allFiles.has(page) && (!exactPath || !allFiles.has(exactPath))) {
       // Also check without .html for flat file format
-      const flatPath = checkPath.replace(/\/$/, "") + ".html"
+      const flatPath = page.replace(/\/$/, "") + ".html"
       if (!allFiles.has(flatPath)) {
         errors.push(`Missing page: ${page}`)
       }
@@ -263,16 +208,7 @@ async function main() {
     process.exit(1)
   }
 
-  // Ask for deployment mode
-  const modeChoice = await promptSelection("Select deployment mode to validate:", [
-    "Root path (Cloudflare) - paths like /writing",
-    "Base path (GitHub Pages) - paths like /v4.sujeet.pro/writing",
-  ])
-
-  const basePath = modeChoice.includes("Root path") ? "" : "/v4.sujeet.pro"
-
-  logger.log(`\nValidating for: ${modeChoice}`, "INFO")
-  logger.log(`Base path: "${basePath || "/"}"`, "INFO")
+  logger.log(`Validating build in: ${DIST_DIR}`, "INFO")
   logger.log("", "INFO")
 
   // Get all files
@@ -292,7 +228,7 @@ async function main() {
   }
 
   for (const file of htmlFiles) {
-    const result = validateFile(file, basePath, allFiles, logger)
+    const result = validateFile(file, allFiles, logger)
     summary.results.push(result)
     summary.totalErrors += result.errors.length
     summary.totalWarnings += result.warnings.length

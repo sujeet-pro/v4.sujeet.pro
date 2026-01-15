@@ -29,7 +29,4 @@ logs/
 
 public/katex-v1
 
-# wrangler
-.wrangler
-
 content/raw

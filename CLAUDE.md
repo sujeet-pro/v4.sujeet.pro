@@ -5,15 +5,14 @@ This file provides context and instructions for AI agents working on this projec
 ## Project Overview
 
 This is a personal website/blog built with Astro, deployed to:
-- **Production**: https://sujeet.pro (Cloudflare Pages)
-- **Preview**: https://projects.sujeet.pro/v4.sujeet.pro/ (GitHub Pages)
+- **Production**: https://sujeet.pro (GitHub Pages)
 
 ## Tech Stack
 
 - **Framework**: Astro 5.x (static site generation)
 - **Styling**: Tailwind CSS 4.x
 - **Language**: TypeScript
-- **Deployment**: Cloudflare Pages (primary), GitHub Pages (preview)
+- **Deployment**: GitHub Pages
 - **Search**: Orama (client-side search)
 - **Testing**: Vitest, Playwright
 
@@ -27,8 +26,6 @@ When working on this project, refer to these LLM-optimized documentation sources
 |------|--------------|-------|
 | **Astro** | https://docs.astro.build/llms-full.txt | Complete Astro documentation - USE THIS for all Astro questions |
 | **Astro** | https://docs.astro.build/llms.txt | Index of available LLM doc variants |
-| **Cloudflare** | https://developers.cloudflare.com/llms-full.txt | Full Cloudflare platform docs (Workers, Pages, etc.) |
-| **Cloudflare** | https://developers.cloudflare.com/llms.txt | Index of Cloudflare docs |
 | **Vite** | https://vite.dev/llms.txt | Vite build tool documentation |
 | **Vitest** | https://vitest.dev/llms.txt | Testing framework docs |
 
@@ -67,7 +64,6 @@ public/                  # Static assets (fonts, favicons)
 ## Key Configuration Files
 
 - `astro.config.ts` - Astro configuration with markdown plugins
-- `wrangler.jsonc` - Cloudflare deployment config
 - `tailwind.config.ts` - Tailwind CSS configuration (if exists)
 - `.github/workflows/astro.yml` - GitHub Pages deployment
 
@@ -75,26 +71,24 @@ public/                  # Static assets (fonts, favicons)
 
 ```bash
 # Development
-npm run dev          # Local dev server (root path)
-npm run dev:gh       # Dev server with GitHub Pages base path
+npm run dev          # Local dev server
 
-# Production builds
-npm run build:cf     # Build for Cloudflare (root path)
-npm run build:gh     # Build for GitHub Pages (with base path)
+# Production build
+npm run build        # Build for production
+
+# Preview
+npm run preview      # Preview built site locally
 
 # Validation
 npm run validate:static   # Validate built HTML files
 npm run validate:live     # Validate running site
-
-# Deployment
-npm run deploy       # Deploy to Cloudflare
 ```
 
 ## Important Patterns
 
-### Base Path Handling
+### Link Utilities
 
-The site supports deployment to both root (`/`) and subdirectory (`/v4.sujeet.pro/`). Use these utilities:
+Use link utilities for consistent link handling:
 
 ```typescript
 import { getFilePath, getLinkProps } from "@/utils/link.utils"
@@ -102,7 +96,7 @@ import { getFilePath, getLinkProps } from "@/utils/link.utils"
 // For assets (fonts, images, etc.)
 const fontPath = getFilePath("fonts/my-font.woff2")
 
-// For page links
+// For page links (handles external link security)
 const { href } = getLinkProps({ href: "/writing" })
 ```
 
@@ -116,11 +110,10 @@ Content uses Astro's Content Layer API with `glob` and `file` loaders:
 
 ### Environment Variables
 
-No environment variables are required. Defaults:
-- Site origin: `https://sujeet.pro`
-- Base path: `/` (root)
+No environment variables are required. The site defaults to `https://sujeet.pro`.
 
-Override via CLI: `astro build --site https://example.com --base /path/`
+Optional:
+- `SHOW_DRAFTS=true` - Show draft content in development
 
 ## Common Tasks
 
@@ -128,21 +121,20 @@ Override via CLI: `astro build --site https://example.com --base /path/`
 
 1. Create markdown file in `content/writing/[category]/YYYY-MM-DD-slug.md`
 2. Include required frontmatter (title, description, publishedOn)
-3. Build and validate: `npm run build:cf && npm run validate:static`
+3. Build and validate: `npm run build && npm run validate:static`
 
 ### Updating Dependencies
 
 1. Check LLM docs for breaking changes (links above)
 2. Run upgrade: `npm update` or `npx @astrojs/upgrade`
-3. Test both builds: `npm run build:cf && npm run build:gh`
+3. Build and test: `npm run build`
 4. Validate: `npm run validate:static`
 
 ### Debugging Build Issues
 
 1. Check Astro docs: https://docs.astro.build/llms-full.txt
-2. For Cloudflare issues: https://developers.cloudflare.com/llms-full.txt
-3. Run validation: `npm run validate:static`
-4. Check logs in `logs/` folder
+2. Run validation: `npm run validate:static`
+3. Check logs in `logs/` folder
 
 ## Styling Conventions
 
@@ -339,9 +331,7 @@ Styles are organized in sections:
 ## Notes for AI Agents
 
 1. **Always fetch LLM docs** before making changes to framework code
-2. **Test both deployment modes** (Cloudflare and GitHub Pages)
-3. **Use validation scripts** after builds to catch broken links
-4. **Check base path handling** for all new assets and links
-5. **Logs are in `logs/`** folder (git-ignored)
-6. **Follow styling conventions** - Use custom classes with @apply, CSS variables for theming
-7. **Verify accessibility** - Check contrast ratios, touch targets, and font sizes
+2. **Use validation scripts** after builds to catch broken links
+3. **Logs are in `logs/`** folder (git-ignored)
+4. **Follow styling conventions** - Use custom classes with @apply, CSS variables for theming
+5. **Verify accessibility** - Check contrast ratios, touch targets, and font sizes
