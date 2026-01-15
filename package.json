@@ -3,6 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
+    "postinstall": "npx playwright install chromium",
     "dev": "npm run clean && astro dev",
     "dev:cf": "npm run clean && astro dev",
     "dev:gh": "npm run clean && astro dev --base /v4.sujeet.pro/",
