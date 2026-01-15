@@ -152,14 +152,22 @@ const { class: className } = Astro.props
     // Setup link click handlers for sidebar
     setupLinkHandlers(sidebarList as HTMLElement)
 
-    // Show mobile TOC button (JS is enabled)
+    // Get mobile TOC elements
     const mobileBtn = document.getElementById("toc-mobile-btn")
+    const modal = document.getElementById("toc-modal")
+
+    // Move floating button and modal to body so they're not hidden by sidebar's display:none
+    if (mobileBtn && mobileBtn.parentElement !== document.body) {
+      document.body.appendChild(mobileBtn)
+    }
+    if (modal && modal.parentElement !== document.body) {
+      document.body.appendChild(modal)
+    }
+
+    // Show mobile TOC button (JS is enabled)
     if (mobileBtn) {
       mobileBtn.classList.add("visible")
     }
-
-    // Modal elements
-    const modal = document.getElementById("toc-modal")
     const modalNav = modal?.querySelector(".toc-modal-nav")
     const closeBtn = document.getElementById("toc-modal-close")
     const backdrop = modal?.querySelector(".toc-modal-backdrop")
