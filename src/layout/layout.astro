@@ -9,13 +9,20 @@ import type { Props as SeoProps } from "./seo.astro"
 import { getFilePath } from "@/utils/link.utils"
 import Breadcrumb from "@/components/breadcrumb.astro"
 import type { Props as BreadcrumbProps } from "@/components/breadcrumb.astro"
+import ImageModal from "@/components/image-modal.astro"
 
 interface Props extends SeoProps {
   noIndex?: boolean | undefined | null
   crumbs: BreadcrumbProps["crumbs"] | null
+  /** Use "3col" for pages with sidebars (articles with TOC, search with filters) */
+  layout?: "default" | "3col"
 }
 
-const { noIndex, crumbs, ...seoProps } = Astro.props
+const { noIndex, crumbs, layout = "default", ...seoProps } = Astro.props
+
+// Check if sidebar slots are provided
+const hasSidebarLeft = Astro.slots.has("sidebar-left")
+const hasSidebarRight = Astro.slots.has("sidebar-right")
 
 // Font paths with base path support
 const openSansFontPath = getFilePath("fonts/open-sans-latin-wght-normal.woff2")
@@ -63,20 +70,38 @@ const searchIndexPath = getFilePath("search/index.json")
   </head>
   <body>
     <Header />
-    <main class="flex-1">
-      <div class="content-container">
-        {crumbs ? <Breadcrumb currentPageTitle={seoProps.title} {crumbs} /> : null}
-        <slot />
+    {layout === "3col" ? (
+      <!-- 3-column layout: sidebars outside main, content centered -->
+      <div class="layout-3col-wrapper flex-1">
+        <div class="layout-3col-grid">
+          <!-- Left sidebar column -->
+          <aside class="layout-3col-sidebar layout-3col-sidebar-left">
+            {hasSidebarLeft && <slot name="sidebar-left" />}
+          </aside>
+
+          <!-- Center content column (main) -->
+          <main class="layout-3col-content">
+            {crumbs ? <Breadcrumb {crumbs} /> : null}
+            <slot />
+          </main>
+
+          <!-- Right sidebar column -->
+          <aside class="layout-3col-sidebar layout-3col-sidebar-right">
+            {hasSidebarRight && <slot name="sidebar-right" />}
+          </aside>
+        </div>
       </div>
-    </main>
+    ) : (
+      <!-- Default layout: constrained width -->
+      <main class="flex-1">
+        <div class="content-container">
+          {crumbs ? <Breadcrumb {crumbs} /> : null}
+          <slot />
+        </div>
+      </main>
+    )}
     <Footer />
+    <ImageModal />
     <KatexCSS />
-    <script is:inline type="module">
-      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs"
-      mermaid.initialize({
-        startOnLoad: true,
-        theme: "default",
-      })
-    </script>
   </body>
 </html>

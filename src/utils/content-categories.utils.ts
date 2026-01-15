@@ -1,53 +1,44 @@
-import { getCollection } from "astro:content"
+/**
+ * Legacy Category Utilities (for deep-dives only)
+ *
+ * @deprecated Use content-categories-generic.utils.ts for new code
+ * These functions maintain backward compatibility with existing /category/* pages
+ */
+
+import { getCategoriesForType } from "./content-categories-generic.utils"
 import { getDeepDives } from "./content-deep-dives.utils"
-import type { Category, DeepDiveContent, Subcategory } from "./content.type"
+import type { Category, DeepDiveContentItem } from "./content.type"
 
+/**
+ * Get all categories for deep-dives (legacy function)
+ * @deprecated Use getCategoriesForType("deep-dives", items) instead
+ */
 export async function getAllCategories(): Promise<Category[]> {
-  const categoriesCollection = await getCollection("categories")
   const allDeepDives = await getDeepDives()
+  // Cast to DeepDiveContentItem[] (without Content) for the generic function
+  const items = allDeepDives.map(({ Content: _, ...rest }) => rest) as DeepDiveContentItem[]
+  const categories = await getCategoriesForType("deep-dives", items)
 
-  // Group deep-dives by category/subcategory
-  const deepDivesByPath = new Map<string, DeepDiveContent[]>()
-  for (const dd of allDeepDives) {
-    const key = `${dd.category.id}/${dd.subcategory.id}`
-    if (!deepDivesByPath.has(key)) {
-      deepDivesByPath.set(key, [])
-    }
-    deepDivesByPath.get(key)!.push(dd)
-  }
-
-  return categoriesCollection.map((cat) => {
-    const subcategories: Subcategory[] = cat.data.subcategories.map((subcat) => {
-      const path = `${cat.id}/${subcat.id}`
-      const deepDives = deepDivesByPath.get(path) || []
-      return {
-        id: subcat.id,
-        name: subcat.name,
-        description: subcat.description,
-        deepDives,
-        href: `/category/${cat.id}/${subcat.id}`,
-      }
-    })
-
-    const totalDeepDives = subcategories.reduce((sum, sub) => sum + sub.deepDives.length, 0)
-
-    return {
-      id: cat.id,
-      name: cat.data.name,
-      description: cat.data.description,
-      featured: cat.data.featured,
-      subcategories,
-      href: `/category/${cat.id}`,
-      totalDeepDives,
-    }
-  })
+  // Transform to legacy Category format with /category/ URLs
+  return categories.map((cat) => ({
+    ...cat,
+    href: `/category/${cat.id}`,
+  }))
 }
 
+/**
+ * Get featured categories for deep-dives (legacy function)
+ * @deprecated Use getFeaturedCategoriesForType("deep-dives", items) instead
+ */
 export async function getFeaturedCategories(): Promise<Category[]> {
   const allCategories = await getAllCategories()
   return allCategories.filter((cat) => cat.featured)
 }
 
+/**
+ * Get a specific category by ID for deep-dives (legacy function)
+ * @deprecated Use getCategoryById("deep-dives", categoryId, items) instead
+ */
 export async function getCategoryById(categoryId: string): Promise<Category | undefined> {
   const allCategories = await getAllCategories()
   return allCategories.find((cat) => cat.id === categoryId)

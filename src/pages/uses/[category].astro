@@ -1,10 +1,14 @@
 ---
 import Item from "@/components/item.astro"
 import Layout from "@/layout/layout.astro"
-import { getAllCategories } from "@/utils/content-categories.utils"
+import { getCategoriesForType } from "@/utils/content-categories-generic.utils"
+import { getContentForType } from "@/utils/content-filters.utils"
+import type { ContentItemWithoutContent } from "@/utils/content.type"
 
 export async function getStaticPaths() {
-  const categories = await getAllCategories()
+  const items = await getContentForType("uses")
+  const itemsWithoutContent = items.map(({ Content: _, ...rest }) => rest) as ContentItemWithoutContent[]
+  const categories = await getCategoriesForType("uses", itemsWithoutContent)
 
   return categories.map((category) => ({
     params: { category: category.id },
@@ -13,7 +17,7 @@ export async function getStaticPaths() {
 }
 
 const { category } = Astro.props
-const crumbs = [{ title: "Categories", href: "/category" }]
+const crumbs = [{ title: "Uses", href: "/uses" }]
 ---
 
 <Layout title={category.name} description={category.description} {crumbs} pageType="default">
@@ -24,11 +28,11 @@ const crumbs = [{ title: "Categories", href: "/category" }]
     category.items.length > 0 ? (
       <ul class="flex flex-col">
         {category.items.map((item) => (
-          <Item {item} showCategory={false} />
+          <Item {item} showCategory={false} headingLevel="h2" />
         ))}
       </ul>
     ) : (
-      <p class="text-muted">No notes yet in this category.</p>
+      <p class="text-muted">No entries yet in this category.</p>
     )
   }
 </Layout>

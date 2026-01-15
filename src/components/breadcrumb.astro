@@ -3,36 +3,28 @@ import Link from "./link.astro"
 import { Icon } from "astro-icon/components"
 
 export interface Props {
-  currentPageTitle: string
   crumbs: {
     title: string
     href: string
   }[]
 }
 
-const { currentPageTitle, crumbs } = Astro.props as Props
+const { crumbs } = Astro.props as Props
 ---
 
 <nav class="breadcrumb" aria-label="Breadcrumb">
-  <Link href="/" class="nav-link inline-flex items-center gap-1">
-    <Icon name="carbon:home" class="h-4 w-4" />
-    <span>Home</span>
-  </Link>
-
-  <Icon name="carbon:chevron-right" class="breadcrumb-separator h-4 w-4" />
-
   {
     Array.isArray(crumbs) &&
       crumbs.length > 0 &&
-      crumbs.map((crumb) => (
+      crumbs.map((crumb, index) => (
         <>
           <Link href={crumb.href} class="nav-link">
             {crumb.title}
           </Link>
-          <Icon name="carbon:chevron-right" class="breadcrumb-separator h-4 w-4" />
+          {index < crumbs.length - 1 && (
+            <Icon name="carbon:chevron-right" class="breadcrumb-separator icon-sm" />
+          )}
         </>
       ))
   }
-
-  <span class="breadcrumb-current">{currentPageTitle}</span>
 </nav>

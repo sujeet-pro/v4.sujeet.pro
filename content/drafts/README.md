@@ -75,7 +75,6 @@ status: drafting
 
 # For a deep-dive
 target: deep-dives
-subcategory: system-design/foundations
 tags:
   - system-design
   - distributed-systems

@@ -146,7 +146,7 @@ export default defineConfig({
           properties: { ariaHidden: true, tabIndex: -1, class: "deep-link" },
         },
       ],
-      [rehypeMermaid, { colorScheme: "light", strategy: "pre-mermaid", mermaidConfig: { theme: "default" } }],
+      [rehypeMermaid, { strategy: "inline-svg", mermaidConfig: { theme: "default" } }],
       rehypeImgClass,
       rehypeTable,
     ],

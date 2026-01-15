@@ -1,35 +1,30 @@
 ---
-import type { Category } from "@/utils/content.type"
+import type { CategoryWithItems } from "@/utils/content.type"
 import Link from "./link.astro"
 
+type HeadingLevel = "h2" | "h3" | "h4" | "h5" | "h6"
+
 type Props = {
-  category: Category
+  category: CategoryWithItems
+  /** Heading level for the category title. Defaults to h3 for proper semantic hierarchy. */
+  headingLevel?: HeadingLevel
 }
 
-const { category } = Astro.props
+const { category, headingLevel = "h3" } = Astro.props
+
+const HeadingTag = headingLevel
 ---
 
-<li class="content-item">
+<li class="category-item">
   <div>
-    <h2 class="content-item-title">
+    <HeadingTag class="category-item-title">
       <Link href={category.href} class="nav-link">
         {category.name}
       </Link>
-    </h2>
-    <p class="text-muted text-sm">{category.description}</p>
-    <span class="text-muted text-sm">
-      {category.totalDeepDives}
-      {category.totalDeepDives === 1 ? "note" : "notes"}
+    </HeadingTag>
+    <p class="category-item-description">{category.description}</p>
+    <span class="category-item-count">
+      {category.items.length} {category.items.length === 1 ? "article" : "articles"}
     </span>
-  </div>
-
-  <div class="mt-4 flex flex-wrap gap-2">
-    {
-      category.subcategories.map((sub) => (
-        <Link href={sub.href} class="tag">
-          {sub.name} ({sub.deepDives.length})
-        </Link>
-      ))
-    }
   </div>
 </li>

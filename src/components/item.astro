@@ -3,31 +3,45 @@ import type { ContentItemWithoutContent } from "@/utils/content.type"
 import Link from "./link.astro"
 import Frontmatter from "./frontmatter.astro"
 
+type HeadingLevel = "h2" | "h3" | "h4" | "h5" | "h6"
+
 type Props = {
   item: ContentItemWithoutContent
   textHeading?: string
   showType?: boolean
+  showCategory?: boolean
+  showTags?: boolean
+  /** Heading level for the item title. Defaults to h3 for proper semantic hierarchy. */
+  headingLevel?: HeadingLevel
 }
 
-const { item, textHeading, showType = false } = Astro.props as Props
-const { minutesRead, publishedOn, lastUpdatedOn, isDraft, type } = item
+const { item, textHeading, showType = false, showCategory = true, showTags = true, headingLevel = "h3" } = Astro.props as Props
+const { minutesRead, publishedOn, isDraft, type, tags, category } = item
 
-// Get subcategory for deep-dives
-const subcategory = type === "deep-dive" && "subcategory" in item ? item.subcategory : null
+const HeadingTag = headingLevel
 ---
 
-<li class="content-item cursor-pointer">
-  {textHeading && <p class="text-muted mb-1 text-sm">{textHeading}</p>}
+<li class="content-item">
+  {textHeading && <p class="content-item-label">{textHeading}</p>}
 
-  <h2 class="content-item-title">
+  <HeadingTag class="content-item-title">
     <Link href={item.href} class="content-item-link">
       {item.title}
     </Link>
-  </h2>
+  </HeadingTag>
 
-  <Frontmatter {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} {showType} {type} {subcategory} />
+  <Frontmatter {minutesRead} {publishedOn} {isDraft} {showType} {type} {showCategory} {category} class="content-item-frontmatter" />
 
   <p class="content-item-excerpt">
     {item.description}
   </p>
+
+  {showTags && tags && tags.length > 0 && (
+    <div class="content-item-tags">
+      {tags.slice(0, 5).map((tag) => (
+        <Link href={tag.href} class="tag">{tag.name}</Link>
+      ))}
+      {tags.length > 5 && <span class="tag">+{tags.length - 5}</span>}
+    </div>
+  )}
 </li>

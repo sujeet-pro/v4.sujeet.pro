@@ -1,0 +1,16 @@
+[
+  // Design Docs - technical design documents and RFCs
+  {
+    "id": "design-docs",
+    "name": "Design Documents",
+    "description": "Technical design documents, RFCs, and architecture proposals - CSP implementations, component systems, and security designs",
+    "featured": true
+  },
+  // Adoptions - stories of technology and process adoptions
+  {
+    "id": "adoptions",
+    "name": "Adoption Stories",
+    "description": "Real-world stories of adopting technologies, design systems, frameworks, and engineering practices at scale",
+    "featured": true
+  }
+]

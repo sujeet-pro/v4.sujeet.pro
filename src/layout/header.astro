@@ -9,10 +9,10 @@ import { Icon } from "astro-icon/components"
   <div class="content-container">
     <nav class="site-nav">
       <!-- Logo -->
-      <Link href="/" class="nav-link text-xl font-semibold"> sujeet.pro </Link>
+      <Link href="/" class="nav-link nav-logo"> sujeet.pro </Link>
 
       <!-- Desktop Navigation -->
-      <div class="hidden items-center gap-4 lg:flex">
+      <div class="nav-desktop">
         {
           NAV_ITEMS.map((item) => (
             <Link href={item.path} class="nav-link">
@@ -26,24 +26,24 @@ import { Icon } from "astro-icon/components"
       <!-- Mobile Menu Button -->
       <button
         id="mobile-menu-btn"
-        class="flex items-center p-2 lg:hidden"
+        class="mobile-menu-btn"
         aria-label="Open menu"
         aria-expanded="false"
         aria-controls="mobile-menu"
       >
-        <Icon name="carbon:menu" class="h-6 w-6" />
+        <Icon name="carbon:menu" class="icon-lg" />
       </button>
     </nav>
   </div>
 </header>
 
 <!-- Mobile Sidebar -->
-<div id="mobile-menu-overlay" class="mobile-menu-overlay hidden"></div>
+<div id="mobile-menu-overlay" class="mobile-menu-overlay is-hidden"></div>
 <aside id="mobile-menu" class="mobile-menu" aria-hidden="true">
   <div class="mobile-menu-header">
-    <Link href="/" class="nav-link text-xl font-semibold"> sujeet.pro </Link>
-    <button id="mobile-menu-close" class="p-2" aria-label="Close menu">
-      <Icon name="carbon:close" class="h-6 w-6" />
+    <Link href="/" class="nav-link nav-logo"> sujeet.pro </Link>
+    <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Close menu">
+      <Icon name="carbon:close" class="icon-lg" />
     </button>
   </div>
   <nav class="mobile-menu-nav">
@@ -54,8 +54,8 @@ import { Icon } from "astro-icon/components"
         </Link>
       ))
     }
-    <Link href="/search" class="mobile-menu-link mobile-menu-search">
-      <Icon name="carbon:search" class="h-5 w-5" />
+    <Link href="/search" class="mobile-menu-link mobile-menu-link--search">
+      <Icon name="carbon:search" class="icon-md" />
       <span>Search</span>
     </Link>
   </nav>
@@ -69,16 +69,16 @@ import { Icon } from "astro-icon/components"
     const menu = document.getElementById("mobile-menu")
 
     function openMenu() {
-      menu?.classList.add("open")
-      overlay?.classList.remove("hidden")
+      menu?.classList.add("is-open")
+      overlay?.classList.remove("is-hidden")
       menuBtn?.setAttribute("aria-expanded", "true")
       menu?.setAttribute("aria-hidden", "false")
       document.body.style.overflow = "hidden"
     }
 
     function closeMenu() {
-      menu?.classList.remove("open")
-      overlay?.classList.add("hidden")
+      menu?.classList.remove("is-open")
+      overlay?.classList.add("is-hidden")
       menuBtn?.setAttribute("aria-expanded", "false")
       menu?.setAttribute("aria-hidden", "true")
       document.body.style.overflow = ""
@@ -90,7 +90,7 @@ import { Icon } from "astro-icon/components"
 
     // Close menu on escape key
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && menu?.classList.contains("open")) {
+      if (e.key === "Escape" && menu?.classList.contains("is-open")) {
         closeMenu()
       }
     })
@@ -104,70 +104,3 @@ import { Icon } from "astro-icon/components"
   document.addEventListener("DOMContentLoaded", initMobileMenu)
   document.addEventListener("astro:page-load", initMobileMenu)
 </script>
-
-<style>
-  /* Mobile menu overlay */
-  .mobile-menu-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 100;
-  }
-
-  /* Mobile menu sidebar */
-  .mobile-menu {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 280px;
-    max-width: 80vw;
-    height: 100vh;
-    background: var(--color-bg);
-    z-index: 101;
-    transform: translateX(100%);
-    transition: transform 200ms ease;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .mobile-menu.open {
-    transform: translateX(0);
-  }
-
-  .mobile-menu-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem;
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .mobile-menu-nav {
-    display: flex;
-    flex-direction: column;
-    padding: 1rem 0;
-    flex: 1;
-    overflow-y: auto;
-  }
-
-  .mobile-menu-link {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.875rem 1.5rem;
-    color: var(--color-text);
-    text-decoration: none;
-    font-size: 1rem;
-    transition: background-color 150ms ease;
-  }
-
-  .mobile-menu-link:hover {
-    background: var(--color-bg-alt);
-  }
-
-  .mobile-menu-search {
-    margin-top: auto;
-    border-top: 1px solid var(--color-border);
-    padding-top: 1rem;
-  }
-</style>

@@ -1,47 +1,15 @@
 ---
-import TOC from "./toc.astro"
-
-interface Props {
-  showToc?: boolean
-}
-
-const { showToc = true } = Astro.props
+// Simple article wrapper - just renders prose content
+// Layout handles the 3-column structure, TOC is passed via slot
 ---
 
-<div class="article-layout">
-  <!-- Mobile TOC (above content) -->
-  {showToc && <TOC class="mb-6" />}
-
-  <!-- Main content area with desktop TOC sidebar -->
-  <div class="article-with-sidebar lg:flex lg:gap-12">
-    <!-- Article content -->
-    <article class="prose prose-base max-w-none flex-1 lg:min-w-0">
-      <slot />
-    </article>
-
-    <!-- Desktop TOC sidebar -->
-    {showToc && <TOC class="w-64 shrink-0" />}
-  </div>
-</div>
+<article class="prose prose-base max-w-none">
+  <slot />
+</article>
 
 <style>
   /* Ensure article doesn't overflow */
-  .article-with-sidebar article {
+  article {
     overflow-wrap: break-word;
-  }
-
-  /* Hide desktop TOC's mobile version and vice versa */
-  .article-layout > :global(.toc-desktop) {
-    display: none;
-  }
-
-  @media (min-width: 1024px) {
-    .article-layout > :global(.toc-mobile) {
-      display: none;
-    }
-
-    .article-with-sidebar > :global(.toc-desktop) {
-      display: block;
-    }
   }
 </style>

@@ -1,6 +1,7 @@
 ---
 import Accordion from "@/components/accordion.astro"
 import ArticleWithTOC from "@/components/article-with-toc.astro"
+import TOC from "@/components/toc.astro"
 import Frontmatter from "@/components/frontmatter.astro"
 import Item from "@/components/item.astro"
 import Link from "@/components/link.astro"
@@ -14,16 +15,16 @@ export async function getStaticPaths() {
     const nextDeepDive = index < deepDives.length - 1 ? deepDives[index + 1] : null
     const prevDeepDive = index > 0 ? deepDives[index - 1] : null
 
-    // Get related deep-dives in the same subcategory
-    const relatedInSubcategory = deepDives
-      .filter((d) => d.subcategory.id === dd.subcategory.id && d.category.id === dd.category.id && d.id !== dd.id)
+    // Get related deep-dives in the same category
+    const relatedInCategory = deepDives
+      .filter((d) => d.category.id === dd.category.id && d.id !== dd.id)
       .slice(0, 5)
 
     return {
       params: { slug: dd.pageSlug },
       props: {
         deepDive: dd,
-        relatedInSubcategory,
+        relatedInCategory,
         nextDeepDive,
         prevDeepDive,
       },
@@ -31,25 +32,27 @@ export async function getStaticPaths() {
   })
 }
 
-const { deepDive, relatedInSubcategory, nextDeepDive, prevDeepDive } = Astro.props
-const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft, category, subcategory } =
-  deepDive
+const { deepDive, relatedInCategory, nextDeepDive, prevDeepDive } = Astro.props
+const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft, category } = deepDive
 
 const crumbs = [
   { title: "Deep Dives", href: "/deep-dives" },
   { title: category.name, href: category.href },
-  { title: subcategory.name, href: subcategory.href },
 ]
 ---
 
-<Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft}>
+<Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft} layout="3col">
+  <!-- TOC in right sidebar -->
+  <TOC slot="sidebar-right" />
+
+  <!-- Main content -->
   <Frontmatter {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} class="my-4" />
 
   {
-    relatedInSubcategory.length > 0 && (
-      <Accordion title={`Related in: ${subcategory.name}`} open={false}>
+    relatedInCategory.length > 0 && (
+      <Accordion title={`Related in: ${category.name}`} open={false}>
         <ol class="list-inside list-decimal space-y-2 p-0">
-          {relatedInSubcategory.map((dd) => (
+          {relatedInCategory.map((dd) => (
             <li class="pl-2">
               <Link href={dd.href} class="hover:underline">
                 {dd.title}

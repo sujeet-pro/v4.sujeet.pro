@@ -7,7 +7,7 @@ import { Icon } from "astro-icon/components"
 import { getFilePath } from "@/utils/link.utils"
 
 // Get facet options at build time (now with counts, sorted by count)
-const { categories, subcategories, tags } = await getSearchFacets()
+const { categories, tags } = await getSearchFacets()
 
 // Top 10 tags for initial display (configurable limit)
 const TOP_TAGS_LIMIT = 10
@@ -20,235 +20,142 @@ const contentTypeLabelsJson = JSON.stringify(CONTENT_TYPE_LABELS)
 const searchIndexPath = getFilePath("search/index.json")
 ---
 
-<Layout title="Search" description="Search for posts on Sujeet's blog" crumbs={[]} pageType="default">
-  <div class="search-page py-8">
-    <!-- Search Input (always on top) -->
-    <div class="search-input-wrapper mb-6">
+<Layout title="Search" description="Search for posts on Sujeet's blog" crumbs={null} pageType="default" layout="3col">
+  <!-- Left sidebar: Filter panel -->
+  <div slot="sidebar-left" id="filter-sidebar" class="filter-sidebar">
+    <!-- Sort Control -->
+    <div class="sort-control">
+      <label for="sort-select" class="sort-label">Sort by:</label>
+      <select id="sort-select" class="sort-select">
+        <option value="relevance">Relevance</option>
+        <option value="date">Newest first</option>
+      </select>
+    </div>
+
+    <!-- Faceted Filters -->
+    <div id="search-filters" class="search-filters">
+      <!-- Categories (OR logic) -->
+      {
+        categories.length > 0 && (
+          <div class="filter-group">
+            <h3 class="filter-group-title">Categories</h3>
+            <div class="filter-group-list" id="category-filters">
+              {categories.map((cat) => (
+                <label class="filter-chip">
+                  <input type="checkbox" name="category" value={cat.id} class="filter-chip-input peer" />
+                  <span class="tag peer-checked:badge-accent">
+                    {cat.name} <span class="text-muted">({cat.count})</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )
+      }
+
+      <!-- Tags with typeahead (AND logic) -->
+      {
+        tags.length > 0 && (
+          <div class="filter-group">
+            <h3 class="filter-group-title">Tags</h3>
+            <!-- Tag search input -->
+            <div class="tag-typeahead-wrapper">
+              <input
+                type="text"
+                id="tag-search"
+                placeholder="Search tags..."
+                class="tag-search-input"
+                autocomplete="off"
+              />
+              <div id="tag-suggestions" class="tag-suggestions is-hidden" />
+            </div>
+            <!-- Selected tags (shown when selected from typeahead) -->
+            <div id="selected-tags" class="selected-tags" />
+            <!-- Top 10 tags -->
+            <div class="filter-group-list" id="top-tags">
+              {topTags.map((tag) => (
+                <label class="filter-chip" data-tag-id={tag.id}>
+                  <input type="checkbox" name="tag" value={tag.id} class="filter-chip-input peer" />
+                  <span class="tag peer-checked:badge-accent">
+                    {tag.name} <span class="text-muted">({tag.count})</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )
+      }
+    </div>
+
+    <!-- Clear filters button -->
+    <button id="clear-filters" class="clear-filters-btn is-hidden">
+      Clear all filters
+    </button>
+  </div>
+
+  <!-- Main content: Search results -->
+  <div class="search-page">
+    <!-- Search Input -->
+    <div class="search-input-wrapper">
       <input
         type="text"
         id="search-query"
         placeholder="Search..."
-        class="search-input sp-border-muted w-full rounded-lg border px-4 py-3 text-lg focus:outline-none"
+        class="search-input"
         autocomplete="off"
       />
-      <p id="search-hint" class="text-muted mt-2 text-sm">Press Enter to search</p>
+      <p id="search-hint" class="search-hint">Press Enter to search</p>
     </div>
 
-    <!-- Main layout: sidebar + results -->
-    <div class="search-layout flex flex-col gap-6 lg:flex-row lg:gap-12">
-      <!-- Mobile: Filter button -->
-      <button
-        id="open-filters-btn"
-        class="sp-border-muted flex items-center gap-2 rounded-lg border px-4 py-2 lg:hidden"
-      >
-        <Icon name="carbon:filter" class="h-5 w-5" />
-        <span>Filters</span>
-        <span id="active-filter-count" class="badge-accent hidden rounded-full px-2 py-0.5 text-xs"></span>
-      </button>
+    <!-- Mobile sort control (shown when sidebar is hidden) -->
+    <div id="mobile-sort-control" class="sort-control-mobile">
+      <label for="sort-select-mobile" class="sort-label">Sort by:</label>
+      <select id="sort-select-mobile" class="sort-select">
+        <option value="relevance">Relevance</option>
+        <option value="date">Newest first</option>
+      </select>
+    </div>
 
-      <!-- Mobile: Filter Modal -->
-      <dialog id="filter-modal" class="search-filter-modal">
-        <div class="modal-content">
-          <div class="modal-header flex items-center justify-between border-b pb-4">
-            <h2 class="text-lg font-medium">Filters</h2>
-            <button id="close-filters-btn" class="p-2" aria-label="Close filters">
-              <Icon name="carbon:close" class="h-5 w-5" />
-            </button>
-          </div>
-          <div class="modal-body py-4">
-            <div class="search-filters-content flex flex-col gap-6">
-              <!-- Categories (OR logic) -->
-              {
-                categories.length > 0 && (
-                  <div class="filter-group">
-                    <h3 class="mb-2 text-sm font-medium">Categories</h3>
-                    <div class="flex flex-wrap gap-2">
-                      {categories.map((cat) => (
-                        <label class="filter-chip cursor-pointer">
-                          <input type="checkbox" name="category-mobile" value={cat.id} class="peer sr-only" />
-                          <span class="tag peer-checked:badge-accent">
-                            {cat.name} <span class="text-muted-foreground">({cat.count})</span>
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )
-              }
+    <!-- Result count -->
+    <p id="result-count" class="result-count is-hidden"></p>
 
-              <!-- Subcategories (OR logic) -->
-              {
-                subcategories.length > 0 && (
-                  <div class="filter-group">
-                    <h3 class="mb-2 text-sm font-medium">Topics</h3>
-                    <div class="flex flex-wrap gap-2">
-                      {subcategories.map((subcat) => (
-                        <label class="filter-chip cursor-pointer">
-                          <input type="checkbox" name="subcategory-mobile" value={subcat.id} class="peer sr-only" />
-                          <span class="tag peer-checked:badge-accent">
-                            {subcat.name} <span class="text-muted-foreground">({subcat.count})</span>
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )
-              }
+    <!-- Results -->
+    <ul id="search-results" class="content-list">
+      <li id="search-placeholder" class="content-item">
+        <p class="text-muted">Enter a search term or select filters to find content.</p>
+      </li>
+    </ul>
+  </div>
 
-              <!-- Tags with search (AND logic) -->
-              {
-                tags.length > 0 && (
-                  <div class="filter-group">
-                    <h3 class="mb-2 text-sm font-medium">Tags</h3>
-                    <!-- Tag search input -->
-                    <div class="tag-typeahead-wrapper relative mb-3">
-                      <input
-                        type="text"
-                        id="tag-search-mobile"
-                        placeholder="Search tags..."
-                        class="tag-search-input sp-border-muted w-full rounded border px-3 py-2 text-sm"
-                        autocomplete="off"
-                      />
-                      <div id="tag-suggestions-mobile" class="tag-suggestions hidden" />
-                    </div>
-                    <!-- Selected tags -->
-                    <div id="selected-tags-mobile" class="mb-2 flex flex-wrap gap-2" />
-                    <!-- Top tags -->
-                    <div class="flex flex-wrap gap-2" id="top-tags-mobile">
-                      {topTags.map((tag) => (
-                        <label class="filter-chip cursor-pointer" data-tag-id={tag.id}>
-                          <input type="checkbox" name="tag-mobile" value={tag.id} class="peer sr-only" />
-                          <span class="tag peer-checked:badge-accent">
-                            {tag.name} <span class="text-muted-foreground">({tag.count})</span>
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )
-              }
-            </div>
-          </div>
-          <div class="modal-footer flex gap-4 border-t pt-4">
-            <button id="modal-clear-filters" class="text-muted text-sm underline">Clear all</button>
-            <button id="modal-apply-filters" class="bg-accent ml-auto rounded px-4 py-2 text-white"> Apply </button>
-          </div>
-        </div>
-      </dialog>
+  <!-- Floating filter button (shown on mobile via JS) -->
+  <button
+    type="button"
+    id="filter-mobile-btn"
+    class="filter-mobile-btn"
+    aria-label="Open filters"
+    aria-expanded="false"
+    aria-controls="filter-modal"
+  >
+    <Icon name="carbon:filter" class="icon-md" />
+    <span id="active-filter-count" class="filter-badge is-hidden">0</span>
+  </button>
 
-      <!-- Desktop: Sidebar -->
-      <aside class="search-sidebar hidden w-64 shrink-0 lg:block">
-        <div class="sticky top-20">
-          <!-- Sort Control -->
-          <div class="sort-control mb-6 flex items-center">
-            <label for="sort-select" class="text-muted text-sm">Sort by:</label>
-            <select id="sort-select" class="sp-border-muted ml-2 rounded border px-2 py-1">
-              <option value="relevance">Relevance</option>
-              <option value="date">Newest first</option>
-            </select>
-          </div>
-
-          <!-- Faceted Filters -->
-          <div id="desktop-filters" class="search-filters flex flex-col gap-6">
-            <!-- Categories (OR logic) -->
-            {
-              categories.length > 0 && (
-                <div class="filter-group">
-                  <h3 class="mb-2 text-sm font-medium">Categories</h3>
-                  <div class="flex flex-wrap gap-2" id="category-filters">
-                    {categories.map((cat) => (
-                      <label class="filter-chip cursor-pointer">
-                        <input type="checkbox" name="category" value={cat.id} class="peer sr-only" />
-                        <span class="tag peer-checked:badge-accent">
-                          {cat.name} <span class="text-muted-foreground">({cat.count})</span>
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )
-            }
-
-            <!-- Subcategories (OR logic) -->
-            {
-              subcategories.length > 0 && (
-                <div class="filter-group">
-                  <h3 class="mb-2 text-sm font-medium">Topics</h3>
-                  <div class="flex flex-wrap gap-2" id="subcategory-filters">
-                    {subcategories.map((subcat) => (
-                      <label class="filter-chip cursor-pointer">
-                        <input type="checkbox" name="subcategory" value={subcat.id} class="peer sr-only" />
-                        <span class="tag peer-checked:badge-accent">
-                          {subcat.name} <span class="text-muted-foreground">({subcat.count})</span>
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )
-            }
-
-            <!-- Tags with typeahead (AND logic) -->
-            {
-              tags.length > 0 && (
-                <div class="filter-group">
-                  <h3 class="mb-2 text-sm font-medium">Tags</h3>
-                  <!-- Tag search input -->
-                  <div class="tag-typeahead-wrapper relative mb-3">
-                    <input
-                      type="text"
-                      id="tag-search-desktop"
-                      placeholder="Search tags..."
-                      class="tag-search-input sp-border-muted w-full rounded border px-3 py-2 text-sm"
-                      autocomplete="off"
-                    />
-                    <div id="tag-suggestions-desktop" class="tag-suggestions hidden" />
-                  </div>
-                  <!-- Selected tags (shown when selected from typeahead) -->
-                  <div id="selected-tags-desktop" class="mb-2 flex flex-wrap gap-2" />
-                  <!-- Top 10 tags -->
-                  <div class="flex flex-wrap gap-2" id="top-tags-desktop">
-                    {topTags.map((tag) => (
-                      <label class="filter-chip cursor-pointer" data-tag-id={tag.id}>
-                        <input type="checkbox" name="tag" value={tag.id} class="peer sr-only" />
-                        <span class="tag peer-checked:badge-accent">
-                          {tag.name} <span class="text-muted-foreground">({tag.count})</span>
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )
-            }
-          </div>
-
-          <!-- Clear filters button -->
-          <button id="clear-filters" class="text-muted mt-6 hidden text-sm underline hover:text-current">
-            Clear all filters
-          </button>
-        </div>
-      </aside>
-
-      <!-- Results area -->
-      <div class="search-results-area min-w-0 flex-1">
-        <!-- Mobile sort control -->
-        <div class="sort-control mb-4 flex items-center lg:hidden">
-          <label for="sort-select-mobile" class="text-muted text-sm">Sort by:</label>
-          <select id="sort-select-mobile" class="sp-border-muted ml-2 rounded border px-2 py-1">
-            <option value="relevance">Relevance</option>
-            <option value="date">Newest first</option>
-          </select>
-        </div>
-
-        <!-- Result count -->
-        <p id="result-count" class="text-muted mb-4 hidden"></p>
-
-        <!-- Results -->
-        <ul id="search-results" class="content-list">
-          <li id="search-placeholder" class="content-item">
-            <p class="text-muted">Enter a search term or select filters to find content.</p>
-          </li>
-        </ul>
+  <!-- Filter Modal (populated via JS) -->
+  <div id="filter-modal" class="filter-modal" role="dialog" aria-modal="true" aria-labelledby="filter-modal-title">
+    <div class="filter-modal-backdrop"></div>
+    <div class="filter-modal-content">
+      <div class="filter-modal-header">
+        <h2 id="filter-modal-title" class="filter-modal-title">Filters</h2>
+        <button type="button" id="filter-modal-close" class="filter-modal-close" aria-label="Close filters">
+          <Icon name="carbon:close" class="icon-md" />
+        </button>
+      </div>
+      <div class="filter-modal-body">
+        <!-- Filter content cloned here via JS -->
+      </div>
+      <div class="filter-modal-footer">
+        <button id="modal-clear-filters" class="modal-clear-btn">Clear all</button>
+        <button id="modal-apply-filters" class="modal-apply-btn">Apply</button>
       </div>
     </div>
   </div>
@@ -275,7 +182,6 @@ const searchIndexPath = getFilePath("search/index.json")
     q: string
     sortBy: "relevance" | "date"
     categories: string[]
-    subcategories: string[]
     tags: string[]
   }
 
@@ -325,7 +231,6 @@ const searchIndexPath = getFilePath("search/index.json")
       q: params.get("q") || "",
       sortBy: (params.get("sortBy") || "relevance") as "relevance" | "date",
       categories: params.get("categories")?.split(",").filter(Boolean) || [],
-      subcategories: params.get("subcategories")?.split(",").filter(Boolean) || [],
       tags: params.get("tags")?.split(",").filter(Boolean) || [],
     }
   }
@@ -342,9 +247,6 @@ const searchIndexPath = getFilePath("search/index.json")
 
     if (params.categories.length) url.searchParams.set("categories", params.categories.join(","))
     else url.searchParams.delete("categories")
-
-    if (params.subcategories.length) url.searchParams.set("subcategories", params.subcategories.join(","))
-    else url.searchParams.delete("subcategories")
 
     if (params.tags.length) url.searchParams.set("tags", params.tags.join(","))
     else url.searchParams.delete("tags")
@@ -367,17 +269,17 @@ const searchIndexPath = getFilePath("search/index.json")
 
   // Check if any filters are active
   function hasActiveFilters(params: SearchParams) {
-    return params.q || params.categories.length || params.subcategories.length || params.tags.length
+    return params.q || params.categories.length || params.tags.length
   }
 
   // Update selected tags display (for tags selected via typeahead that aren't in top 10)
-  function updateSelectedTagsDisplay(params: SearchParams, containerId: string, inputName: string) {
-    const container = document.getElementById(containerId)
+  function updateSelectedTagsDisplay(params: SearchParams) {
+    const container = document.getElementById("selected-tags")
     if (!container) return
 
     // Find tags that are selected but not in top 10
     const topTagIds = new Set(
-      Array.from(document.querySelectorAll(`[data-tag-id]`)).map((el) => el.getAttribute("data-tag-id")),
+      Array.from(document.querySelectorAll(`#top-tags [data-tag-id]`)).map((el) => el.getAttribute("data-tag-id")),
     )
 
     const extraSelectedTags = params.tags
@@ -389,7 +291,7 @@ const searchIndexPath = getFilePath("search/index.json")
       .map(
         (tag) => `
       <label class="filter-chip cursor-pointer" data-extra-tag="${tag.id}">
-        <input type="checkbox" name="${inputName}" value="${tag.id}" class="peer sr-only" checked />
+        <input type="checkbox" name="tag" value="${tag.id}" class="peer sr-only" checked />
         <span class="tag peer-checked:badge-accent">${tag.name} <span class="text-muted-foreground">(${tag.count})</span></span>
       </label>
     `,
@@ -418,43 +320,28 @@ const searchIndexPath = getFilePath("search/index.json")
     if (sortSelect) sortSelect.value = params.sortBy
     if (sortSelectMobile) sortSelectMobile.value = params.sortBy
 
-    // Sync filter checkboxes (desktop)
-    document.querySelectorAll<HTMLInputElement>('input[name="category"]').forEach((cb) => {
+    // Sync filter checkboxes
+    document.querySelectorAll<HTMLInputElement>('#filter-sidebar input[name="category"]').forEach((cb) => {
       cb.checked = params.categories.includes(cb.value)
     })
-    document.querySelectorAll<HTMLInputElement>('input[name="subcategory"]').forEach((cb) => {
-      cb.checked = params.subcategories.includes(cb.value)
-    })
-    document.querySelectorAll<HTMLInputElement>('input[name="tag"]').forEach((cb) => {
-      cb.checked = params.tags.includes(cb.value)
-    })
-
-    // Sync filter checkboxes (mobile)
-    document.querySelectorAll<HTMLInputElement>('input[name="category-mobile"]').forEach((cb) => {
-      cb.checked = params.categories.includes(cb.value)
-    })
-    document.querySelectorAll<HTMLInputElement>('input[name="subcategory-mobile"]').forEach((cb) => {
-      cb.checked = params.subcategories.includes(cb.value)
-    })
-    document.querySelectorAll<HTMLInputElement>('input[name="tag-mobile"]').forEach((cb) => {
+    document.querySelectorAll<HTMLInputElement>('#filter-sidebar input[name="tag"]').forEach((cb) => {
       cb.checked = params.tags.includes(cb.value)
     })
 
     // Update selected tags display for typeahead selections
-    updateSelectedTagsDisplay(params, "selected-tags-desktop", "tag")
-    updateSelectedTagsDisplay(params, "selected-tags-mobile", "tag-mobile")
+    updateSelectedTagsDisplay(params)
 
     // Show/hide hint and clear button
     if (params.q) {
-      hintEl.classList.add("hidden")
+      hintEl.classList.add("is-hidden")
     } else {
-      hintEl.classList.remove("hidden")
+      hintEl.classList.remove("is-hidden")
     }
 
     if (hasActiveFilters(params)) {
-      clearBtn.classList.remove("hidden")
+      clearBtn.classList.remove("is-hidden")
     } else {
-      clearBtn.classList.add("hidden")
+      clearBtn.classList.add("is-hidden")
     }
   }
 
@@ -474,7 +361,7 @@ const searchIndexPath = getFilePath("search/index.json")
         .slice(0, 8)
 
       if (filtered.length === 0 || !query) {
-        suggestions.classList.add("hidden")
+        suggestions.classList.add("is-hidden")
         return
       }
 
@@ -489,7 +376,7 @@ const searchIndexPath = getFilePath("search/index.json")
         )
         .join("")
 
-      suggestions.classList.remove("hidden")
+      suggestions.classList.remove("is-hidden")
 
       // Add click handlers
       suggestions.querySelectorAll(".tag-suggestion").forEach((el) => {
@@ -509,7 +396,7 @@ const searchIndexPath = getFilePath("search/index.json")
         updateUrl(params)
       }
       input.value = ""
-      suggestions.classList.add("hidden")
+      suggestions.classList.add("is-hidden")
       selectedIndex = -1
     }
 
@@ -537,7 +424,7 @@ const searchIndexPath = getFilePath("search/index.json")
           if (tagId) selectTag(tagId)
         }
       } else if (e.key === "Escape") {
-        suggestions.classList.add("hidden")
+        suggestions.classList.add("is-hidden")
         selectedIndex = -1
       }
     })
@@ -545,7 +432,7 @@ const searchIndexPath = getFilePath("search/index.json")
     input.addEventListener("blur", () => {
       // Delay to allow click on suggestion
       setTimeout(() => {
-        suggestions.classList.add("hidden")
+        suggestions.classList.add("is-hidden")
         selectedIndex = -1
       }, 200)
     })
@@ -569,13 +456,13 @@ const searchIndexPath = getFilePath("search/index.json")
     const countEl = document.getElementById("result-count") as HTMLParagraphElement
 
     // Show placeholder if no search query and no filters
-    if (!params.q && !params.categories.length && !params.subcategories.length && !params.tags.length) {
+    if (!params.q && !params.categories.length && !params.tags.length) {
       resultsEl.innerHTML = `
         <li id="search-placeholder" class="content-item">
           <p class="text-muted">Enter a search term or select filters to find content.</p>
         </li>
       `
-      countEl.classList.add("hidden")
+      countEl.classList.add("is-hidden")
       return
     }
 
@@ -593,14 +480,6 @@ const searchIndexPath = getFilePath("search/index.json")
       filteredHits = filteredHits.filter((hit) => {
         const category = hit.document.category || ""
         return params.categories.includes(category)
-      })
-    }
-
-    // Subcategory filter (OR) - uses subcategory field directly
-    if (params.subcategories.length > 0) {
-      filteredHits = filteredHits.filter((hit) => {
-        const subcategory = hit.document.subcategory || ""
-        return params.subcategories.includes(subcategory)
       })
     }
 
@@ -648,12 +527,12 @@ const searchIndexPath = getFilePath("search/index.json")
           <p class="text-muted">No results found. Try different search terms or filters.</p>
         </li>
       `
-      countEl.classList.add("hidden")
+      countEl.classList.add("is-hidden")
       return
     }
 
     countEl.textContent = `${results.count} result${results.count === 1 ? "" : "s"} found`
-    countEl.classList.remove("hidden")
+    countEl.classList.remove("is-hidden")
 
     resultsEl.innerHTML = results.hits
       .map((hit) => {
@@ -663,22 +542,23 @@ const searchIndexPath = getFilePath("search/index.json")
         const description = doc.description || ""
         const type = doc.type || "writing"
         const typeLabel = CONTENT_TYPE_LABELS[type] || type
+        const categoryId = doc.category || ""
+        const categoryName = doc.categoryName || ""
+        const categoryHref = categoryId ? `/${type}/${categoryId}` : ""
         const publishedOn = doc.publishedOn || 0
         const formattedDate = formatDate(publishedOn)
         const minutesRead = doc.minutesRead || ""
 
         return `
           <li class="content-item cursor-pointer">
-            <div class="content-item-badges">
-              <span class="badge">${typeLabel}</span>
-            </div>
-            <h2 class="content-item-title">
+            <h3 class="content-item-title">
               <a href="${href}" class="content-item-link">${title}</a>
-            </h2>
-            ${
-              formattedDate || minutesRead
-                ? `
-            <div class="frontmatter">
+            </h3>
+            <div class="frontmatter mb-4">
+              <span class="inline-flex items-center gap-1">
+                <span class="text-muted">${typeLabel}</span>
+                ${categoryName ? `<span class="text-muted">/</span><a href="${categoryHref}" class="hover:underline text-muted">${categoryName}</a>` : ""}
+              </span>
               ${
                 minutesRead
                   ? `<span class="inline-flex items-center gap-1">
@@ -696,9 +576,6 @@ const searchIndexPath = getFilePath("search/index.json")
                   : ""
               }
             </div>
-            `
-                : ""
-            }
             <p class="content-item-excerpt">${description}</p>
           </li>
         `
@@ -711,12 +588,12 @@ const searchIndexPath = getFilePath("search/index.json")
     const countEl = document.getElementById("active-filter-count")
     if (!countEl) return
 
-    const count = params.categories.length + params.subcategories.length + params.tags.length
+    const count = params.categories.length + params.tags.length
     if (count > 0) {
       countEl.textContent = String(count)
-      countEl.classList.remove("hidden")
+      countEl.classList.remove("is-hidden")
     } else {
-      countEl.classList.add("hidden")
+      countEl.classList.add("is-hidden")
     }
   }
 
@@ -728,6 +605,123 @@ const searchIndexPath = getFilePath("search/index.json")
     await executeSearch(params)
   }
 
+  // Filter modal functions
+  function initFilterModal() {
+    const mobileBtn = document.getElementById("filter-mobile-btn")
+    const modal = document.getElementById("filter-modal")
+    const modalBody = modal?.querySelector(".filter-modal-body")
+    const closeBtn = document.getElementById("filter-modal-close")
+    const backdrop = modal?.querySelector(".filter-modal-backdrop")
+    const modalClearBtn = document.getElementById("modal-clear-filters")
+    const modalApplyBtn = document.getElementById("modal-apply-filters")
+    const filterSidebar = document.getElementById("filter-sidebar")
+    const searchFilters = document.getElementById("search-filters")
+
+    if (!mobileBtn || !modal || !modalBody || !searchFilters) return
+
+    // Show mobile button (JS is enabled)
+    mobileBtn.classList.add("is-visible")
+
+    function openModal() {
+      if (!modal || !modalBody || !searchFilters) return
+
+      // Clone filter content into modal (excluding sort control)
+      const filtersClone = searchFilters.cloneNode(true) as HTMLElement
+      filtersClone.id = "modal-filters"
+
+      // Update input names in cloned content to avoid conflicts
+      filtersClone.querySelectorAll('input[name="category"]').forEach((input) => {
+        input.setAttribute("name", "category-modal")
+      })
+      filtersClone.querySelectorAll('input[name="tag"]').forEach((input) => {
+        input.setAttribute("name", "tag-modal")
+      })
+
+      // Update IDs to avoid conflicts
+      const tagSearch = filtersClone.querySelector("#tag-search")
+      if (tagSearch) tagSearch.id = "tag-search-modal"
+      const tagSuggestions = filtersClone.querySelector("#tag-suggestions")
+      if (tagSuggestions) tagSuggestions.id = "tag-suggestions-modal"
+      const selectedTags = filtersClone.querySelector("#selected-tags")
+      if (selectedTags) selectedTags.id = "selected-tags-modal"
+      const topTags = filtersClone.querySelector("#top-tags")
+      if (topTags) topTags.id = "top-tags-modal"
+
+      modalBody.innerHTML = ""
+      modalBody.appendChild(filtersClone)
+
+      // Sync checkbox state with current params
+      const params = getUrlParams()
+      filtersClone.querySelectorAll<HTMLInputElement>('input[name="category-modal"]').forEach((cb) => {
+        cb.checked = params.categories.includes(cb.value)
+      })
+      filtersClone.querySelectorAll<HTMLInputElement>('input[name="tag-modal"]').forEach((cb) => {
+        cb.checked = params.tags.includes(cb.value)
+      })
+
+      // Add event listeners to modal checkboxes
+      filtersClone.querySelectorAll<HTMLInputElement>('input[name="category-modal"]').forEach((cb) => {
+        cb.addEventListener("change", () => {
+          const params = getUrlParams()
+          params.categories = toggleArrayValue(params.categories, cb.value)
+          // Sync sidebar checkbox
+          const sidebarCb = filterSidebar?.querySelector<HTMLInputElement>(`input[name="category"][value="${cb.value}"]`)
+          if (sidebarCb) sidebarCb.checked = cb.checked
+          updateUrl(params)
+        })
+      })
+
+      filtersClone.querySelectorAll<HTMLInputElement>('input[name="tag-modal"]').forEach((cb) => {
+        cb.addEventListener("change", () => {
+          const params = getUrlParams()
+          params.tags = toggleArrayValue(params.tags, cb.value)
+          // Sync sidebar checkbox
+          const sidebarCb = filterSidebar?.querySelector<HTMLInputElement>(`input[name="tag"][value="${cb.value}"]`)
+          if (sidebarCb) sidebarCb.checked = cb.checked
+          updateUrl(params)
+        })
+      })
+
+      // Setup typeahead for modal
+      setupTagTypeahead("tag-search-modal", "tag-suggestions-modal")
+
+      modal.classList.add("is-open")
+      mobileBtn.setAttribute("aria-expanded", "true")
+      document.body.style.overflow = "hidden"
+      closeBtn?.focus()
+    }
+
+    function closeModal() {
+      if (!modal || !modalBody) return
+      modal.classList.remove("is-open")
+      mobileBtn.setAttribute("aria-expanded", "false")
+      document.body.style.overflow = ""
+      modalBody.innerHTML = ""
+      mobileBtn.focus()
+    }
+
+    // Event listeners
+    mobileBtn.addEventListener("click", openModal)
+    closeBtn?.addEventListener("click", closeModal)
+    backdrop?.addEventListener("click", closeModal)
+    modalApplyBtn?.addEventListener("click", closeModal)
+
+    modalClearBtn?.addEventListener("click", () => {
+      const params = getUrlParams()
+      params.categories = []
+      params.tags = []
+      updateUrl(params)
+      closeModal()
+    })
+
+    // Close on Escape
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modal.classList.contains("is-open")) {
+        closeModal()
+      }
+    })
+  }
+
   // Initialize
   document.addEventListener("DOMContentLoaded", async () => {
     // Load all tags data
@@ -737,15 +731,12 @@ const searchIndexPath = getFilePath("search/index.json")
     const sortSelect = document.getElementById("sort-select") as HTMLSelectElement
     const sortSelectMobile = document.getElementById("sort-select-mobile") as HTMLSelectElement
     const clearBtn = document.getElementById("clear-filters") as HTMLButtonElement
-    const filterModal = document.getElementById("filter-modal") as HTMLDialogElement
-    const openFiltersBtn = document.getElementById("open-filters-btn") as HTMLButtonElement
-    const closeFiltersBtn = document.getElementById("close-filters-btn") as HTMLButtonElement
-    const modalClearBtn = document.getElementById("modal-clear-filters") as HTMLButtonElement
-    const modalApplyBtn = document.getElementById("modal-apply-filters") as HTMLButtonElement
 
-    // Setup typeahead for both desktop and mobile
-    setupTagTypeahead("tag-search-desktop", "tag-suggestions-desktop")
-    setupTagTypeahead("tag-search-mobile", "tag-suggestions-mobile")
+    // Setup typeahead for sidebar
+    setupTagTypeahead("tag-search", "tag-suggestions")
+
+    // Initialize filter modal
+    initFilterModal()
 
     // Listen for URL changes (back/forward navigation and programmatic changes)
     window.addEventListener("popstate", handleUrlChange)
@@ -778,8 +769,8 @@ const searchIndexPath = getFilePath("search/index.json")
       updateUrl(params)
     })
 
-    // Category filters: toggle value in URL (desktop)
-    document.querySelectorAll<HTMLInputElement>('input[name="category"]').forEach((cb) => {
+    // Category filters: toggle value in URL
+    document.querySelectorAll<HTMLInputElement>('#filter-sidebar input[name="category"]').forEach((cb) => {
       cb.addEventListener("change", () => {
         const params = getUrlParams()
         params.categories = toggleArrayValue(params.categories, cb.value)
@@ -787,103 +778,46 @@ const searchIndexPath = getFilePath("search/index.json")
       })
     })
 
-    // Category filters: toggle value in URL (mobile)
-    document.querySelectorAll<HTMLInputElement>('input[name="category-mobile"]').forEach((cb) => {
-      cb.addEventListener("change", () => {
-        const params = getUrlParams()
-        params.categories = toggleArrayValue(params.categories, cb.value)
-        // Sync desktop checkbox
-        const desktopCb = document.querySelector<HTMLInputElement>(`input[name="category"][value="${cb.value}"]`)
-        if (desktopCb) desktopCb.checked = cb.checked
-        updateUrl(params)
-      })
-    })
-
-    // Subcategory filters: toggle value in URL (desktop)
-    document.querySelectorAll<HTMLInputElement>('input[name="subcategory"]').forEach((cb) => {
-      cb.addEventListener("change", () => {
-        const params = getUrlParams()
-        params.subcategories = toggleArrayValue(params.subcategories, cb.value)
-        updateUrl(params)
-      })
-    })
-
-    // Subcategory filters: toggle value in URL (mobile)
-    document.querySelectorAll<HTMLInputElement>('input[name="subcategory-mobile"]').forEach((cb) => {
-      cb.addEventListener("change", () => {
-        const params = getUrlParams()
-        params.subcategories = toggleArrayValue(params.subcategories, cb.value)
-        // Sync desktop checkbox
-        const desktopCb = document.querySelector<HTMLInputElement>(`input[name="subcategory"][value="${cb.value}"]`)
-        if (desktopCb) desktopCb.checked = cb.checked
-        updateUrl(params)
-      })
-    })
-
-    // Tag filters: toggle value in URL (desktop)
-    document.querySelectorAll<HTMLInputElement>('input[name="tag"]').forEach((cb) => {
+    // Tag filters: toggle value in URL
+    document.querySelectorAll<HTMLInputElement>('#filter-sidebar input[name="tag"]').forEach((cb) => {
       cb.addEventListener("change", () => {
         const params = getUrlParams()
         params.tags = toggleArrayValue(params.tags, cb.value)
-        updateUrl(params)
-      })
-    })
-
-    // Tag filters: toggle value in URL (mobile)
-    document.querySelectorAll<HTMLInputElement>('input[name="tag-mobile"]').forEach((cb) => {
-      cb.addEventListener("change", () => {
-        const params = getUrlParams()
-        params.tags = toggleArrayValue(params.tags, cb.value)
-        // Sync desktop checkbox
-        const desktopCb = document.querySelector<HTMLInputElement>(`input[name="tag"][value="${cb.value}"]`)
-        if (desktopCb) desktopCb.checked = cb.checked
         updateUrl(params)
       })
     })
 
     // Clear all filters: reset URL
     clearBtn?.addEventListener("click", () => {
-      const emptyParams: SearchParams = { q: "", sortBy: "relevance", categories: [], subcategories: [], tags: [] }
+      const emptyParams: SearchParams = { q: "", sortBy: "relevance", categories: [], tags: [] }
       updateUrl(emptyParams)
-    })
-
-    // Mobile filter modal
-    openFiltersBtn?.addEventListener("click", () => {
-      filterModal?.showModal()
-    })
-
-    closeFiltersBtn?.addEventListener("click", () => {
-      filterModal?.close()
-    })
-
-    modalApplyBtn?.addEventListener("click", () => {
-      filterModal?.close()
-    })
-
-    modalClearBtn?.addEventListener("click", () => {
-      const params = getUrlParams()
-      params.categories = []
-      params.subcategories = []
-      params.tags = []
-      updateUrl(params)
-      filterModal?.close()
-    })
-
-    // Close modal on backdrop click
-    filterModal?.addEventListener("click", (e) => {
-      if (e.target === filterModal) {
-        filterModal.close()
-      }
     })
 
     // Focus input on load
     queryInput.focus()
+  })
+
+  // Re-initialize on Astro page navigation
+  document.addEventListener("astro:page-load", () => {
+    loadAllTags()
+    initFilterModal()
   })
 </script>
 
 <style>
   .search-input:focus {
     border-color: var(--color-accent);
+  }
+
+  /* Mobile sort control - hidden on desktop when sidebar is visible */
+  .sort-control-mobile {
+    display: flex;
+  }
+
+  @media (min-width: 1200px) {
+    .sort-control-mobile {
+      display: none;
+    }
   }
 
   .filter-group {
@@ -900,46 +834,148 @@ const searchIndexPath = getFilePath("search/index.json")
     color: rgba(255, 255, 255, 0.8);
   }
 
-  /* Modal styles */
-  .search-filter-modal {
-    padding: 0;
+  /* Floating filter button - hidden by default, shown via JS */
+  .filter-mobile-btn {
+    display: none;
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 40;
+    padding: 0.875rem;
+    background-color: var(--color-accent);
+    color: white;
     border: none;
-    border-radius: 0.5rem;
-    max-width: 90vw;
-    max-height: 90vh;
+    border-radius: 9999px;
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.1),
+      0 2px 4px -2px rgb(0 0 0 / 0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .filter-mobile-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .filter-mobile-btn:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  /* Show button only when sidebar is hidden (JS enabled) */
+  .filter-mobile-btn.visible {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (min-width: 1200px) {
+    .filter-mobile-btn.visible {
+      display: none;
+    }
+  }
+
+  /* Filter badge on floating button */
+  .filter-badge {
+    position: absolute;
+    top: -0.25rem;
+    right: -0.25rem;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    text-align: center;
+    background-color: var(--color-text);
+    color: var(--color-bg);
+    border-radius: 9999px;
+  }
+
+  /* Filter modal styles */
+  .filter-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+  }
+
+  .filter-modal.open {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .filter-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: rgb(0 0 0 / 0.5);
+  }
+
+  .filter-modal-content {
+    position: relative;
     width: 100%;
-    background: var(--color-bg);
+    max-width: 28rem;
+    max-height: 70vh;
+    margin: 0 1rem 1rem;
+    background-color: var(--color-bg);
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+    display: flex;
+    flex-direction: column;
+    animation: filterSlideUp 0.2s ease-out;
+  }
+
+  @keyframes filterSlideUp {
+    from {
+      transform: translateY(1rem);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .filter-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .filter-modal-close {
+    padding: 0.5rem;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+
+  .filter-modal-close:hover {
     color: var(--color-text);
   }
 
-  .search-filter-modal::backdrop {
-    background: rgba(0, 0, 0, 0.5);
+  .filter-modal-close:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
   }
 
-  .search-filter-modal .modal-content {
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    max-height: 90vh;
-  }
-
-  .search-filter-modal .modal-body {
+  .filter-modal-body {
+    padding: 1rem 1.25rem;
     overflow-y: auto;
     flex: 1;
   }
 
-  .search-filter-modal .modal-header {
-    border-color: var(--color-border);
-  }
-
-  .search-filter-modal .modal-footer {
-    border-color: var(--color-border);
-  }
-
-  /* Sidebar scrolling */
-  .search-sidebar .sticky {
-    max-height: calc(100vh - 6rem);
-    overflow-y: auto;
+  .filter-modal-footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--color-border);
   }
 
   /* Tag search input */

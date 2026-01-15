@@ -107,3 +107,43 @@ export async function getAllConfiguredTags(): Promise<Tag[]> {
     }),
   )
 }
+
+/**
+ * Tag with usage count
+ */
+export interface TagWithCount extends Tag {
+  count: number
+}
+
+/**
+ * Get all unique tags used across all content collections with counts
+ * Returns tags sorted by count (descending) then alphabetically by name
+ */
+export async function getAllTagsWithCounts(): Promise<TagWithCount[]> {
+  const [writing, deepDives, work, uses] = await Promise.all([
+    getCollection("writing"),
+    getCollection("deep-dives"),
+    getCollection("work"),
+    getCollection("uses"),
+  ])
+
+  const allContent = [...writing, ...deepDives, ...work, ...uses]
+  const tagCounts = new Map<string, number>()
+
+  allContent.forEach((item) => {
+    item.data.tags?.forEach((tag: string) => {
+      tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1)
+    })
+  })
+
+  const lookup = await getTagsLookup()
+
+  return Array.from(tagCounts.entries())
+    .map(([id, count]) => ({
+      id,
+      name: formatTagName(id, lookup),
+      href: `/tag/${id}`,
+      count,
+    }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+}

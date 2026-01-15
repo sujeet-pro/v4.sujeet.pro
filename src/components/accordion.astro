@@ -8,29 +8,51 @@ type Props = {
 const { title, open = true } = Astro.props
 ---
 
-<details open={open} class="sp-accordion p-4 bg-blend-lighten">
-  <summary class="flex cursor-pointer list-none items-center justify-between">
-    <slot name="title"><span class="font-semibold">{title}</span></slot>
+<details open={open} class="accordion">
+  <summary class="accordion-summary">
+    <slot name="title"><span class="accordion-title">{title}</span></slot>
     <Icon name="carbon:chevron-up" class="accordion-icon" />
   </summary>
-  <div class="accordion-content py-4">
+  <div class="accordion-content">
     <slot />
   </div>
 </details>
 
-<style>
-  details summary::-webkit-details-marker {
+<style is:global>
+  @reference "tailwindcss";
+
+  .accordion {
+    @apply p-4;
+    background: var(--color-bg-alt);
+  }
+
+  .accordion-summary {
+    @apply flex cursor-pointer list-none items-center justify-between;
+  }
+
+  .accordion-summary::-webkit-details-marker {
     display: none;
   }
 
-  details[open] .accordion-icon {
+  .accordion-title {
+    @apply font-semibold;
+  }
+
+  .accordion-icon {
+    @apply h-5 w-5;
+    transform: rotate(180deg);
+    transition: transform var(--transition-normal);
+  }
+
+  .accordion[open] .accordion-icon {
     transform: rotate(0deg);
   }
-  details:not([open]) .accordion-content {
-    display: none;
+
+  .accordion-content {
+    @apply py-4;
   }
-  .accordion-icon {
-    transform: rotate(180deg);
-    transition: transform 0.2s;
+
+  .accordion:not([open]) .accordion-content {
+    @apply hidden;
   }
 </style>

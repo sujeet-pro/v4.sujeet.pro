@@ -2,11 +2,10 @@
 import { getWork } from "@/utils/content-work.utils"
 import Layout from "@/layout/layout.astro"
 import ArticleWithTOC from "@/components/article-with-toc.astro"
+import TOC from "@/components/toc.astro"
 import Item from "@/components/item.astro"
-import { getSeriesNavigation } from "@/utils/content-series.utils"
 import Frontmatter from "@/components/frontmatter.astro"
 import Link from "@/components/link.astro"
-import Accordion from "@/components/accordion.astro"
 
 // Generate static paths for all work
 export async function getStaticPaths() {
@@ -28,78 +27,20 @@ export async function getStaticPaths() {
 }
 
 const { item, nextItem, prevItem } = Astro.props
-const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft, id } = item
+const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft, category } = item
 
-// Get series navigation if this item is part of a series
-const { series, prevInSeries, nextInSeries, currentIndex, totalInSeries } = await getSeriesNavigation(id)
-
-// Build navigation items
-const navigationItems: Array<{ title: string; item: typeof item }> = []
-const addedItems = new Map<string, number>()
-
-if (prevInSeries) {
-  navigationItems.push({
-    title: `Previous in series: ${series!.name}`,
-    item: prevInSeries as typeof item,
-  })
-  addedItems.set(prevInSeries.id, navigationItems.length - 1)
-}
-
-if (nextInSeries) {
-  navigationItems.push({
-    title: `Next in series: ${series!.name}`,
-    item: nextInSeries as typeof item,
-  })
-  addedItems.set(nextInSeries.id, navigationItems.length - 1)
-}
-
-if (prevItem) {
-  const existingIndex = addedItems.get(prevItem.id)
-  const existingItem = existingIndex !== undefined ? navigationItems[existingIndex] : undefined
-  if (existingItem) {
-    existingItem.title += " · Next"
-  } else {
-    navigationItems.push({ title: "Next", item: prevItem })
-  }
-}
-
-if (nextItem) {
-  const existingIndex = addedItems.get(nextItem.id)
-  const existingItem = existingIndex !== undefined ? navigationItems[existingIndex] : undefined
-  if (existingItem) {
-    existingItem.title += " · Previous"
-  } else {
-    navigationItems.push({ title: "Previous", item: nextItem })
-  }
-}
-
-const crumbs = [{ title: "Work", href: "/work" }]
-if (series) {
-  crumbs.push({ title: series.name, href: series.href })
-}
+const crumbs = [
+  { title: "Work", href: "/work" },
+  ...(category ? [{ title: category.name, href: category.href }] : []),
+]
 ---
 
-<Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft}>
+<Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft} layout="3col">
+  <!-- TOC in right sidebar -->
+  <TOC slot="sidebar-right" />
+
+  <!-- Main content -->
   <Frontmatter {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} class="my-4" />
-  {
-    series && (
-      <Accordion title={`Part of Series: ${series.name} (${currentIndex + 1}/${totalInSeries})`} open={true}>
-        <ol class="list-inside list-decimal space-y-2 p-0">
-          {series.items.map((seriesItem) => (
-            <li class="pl-2">
-              {seriesItem.id === id ? (
-                <span class="font-medium text-accent">{seriesItem.title}</span>
-              ) : (
-                <Link href={seriesItem.href} class="hover:underline">
-                  {seriesItem.title}
-                </Link>
-              )}
-            </li>
-          ))}
-        </ol>
-      </Accordion>
-    )
-  }
   <ArticleWithTOC>
     <Content />
   </ArticleWithTOC>
@@ -120,13 +61,12 @@ if (series) {
   }
 
   {
-    navigationItems.length > 0 && (
+    (prevItem || nextItem) && (
       <section class="mt-12">
         <h2 class="mb-6 text-2xl font-light">Read more</h2>
         <ul class="flex flex-col">
-          {navigationItems.map(({ title: textHeading, item: navItem }) => (
-            <Item textHeading={textHeading} item={navItem} />
-          ))}
+          {prevItem && <Item textHeading="Next" item={prevItem} />}
+          {nextItem && <Item textHeading="Previous" item={nextItem} />}
         </ul>
       </section>
     )

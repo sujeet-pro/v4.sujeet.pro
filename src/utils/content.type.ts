@@ -12,31 +12,20 @@ export interface Tag {
 }
 
 // =============================================================================
-// Category Types (for Deep Dives)
+// Content Type Enum
+// =============================================================================
+
+export type ContentType = "writing" | "deep-dives" | "work" | "uses"
+
+// =============================================================================
+// Category Reference Types (for content items)
 // =============================================================================
 
 export interface CategoryRef {
   id: string
   name: string
-  href: string
-}
-
-export interface SubcategoryRef {
-  id: string
-  name: string
-  href: string
-}
-
-export interface Subcategory extends SubcategoryRef {
   description: string
-  deepDives: DeepDiveContent[]
-}
-
-export interface Category extends CategoryRef {
-  description: string
-  featured: boolean
-  subcategories: Subcategory[]
-  totalDeepDives: number
+  href: string
 }
 
 // =============================================================================
@@ -56,6 +45,8 @@ interface BaseContentItem {
   tags: Tag[]
   Content: RenderResult["Content"]
   href: string
+  // Category derived from folder structure (content-type/category/...)
+  category?: CategoryRef | undefined
 }
 
 // Writing content (blog posts)
@@ -67,8 +58,8 @@ export interface WritingContent extends BaseContentItem {
 // Deep dive content
 export interface DeepDiveContent extends BaseContentItem {
   type: "deep-dive"
+  // Deep dives require category
   category: CategoryRef
-  subcategory: SubcategoryRef
 }
 
 // Work content (design docs, case studies, architecture)
@@ -96,6 +87,18 @@ export type UsesContentItem = Omit<UsesContent, "Content">
 
 // Union type for all content item types (for listings)
 export type ContentItemWithoutContent = WritingContentItem | DeepDiveContentItem | WorkContentItem | UsesContentItem
+
+// =============================================================================
+// Category Types with Items (for category pages)
+// =============================================================================
+
+export interface CategoryWithItems<T = ContentItemWithoutContent> extends CategoryRef {
+  featured: boolean
+  items: T[]
+}
+
+// Legacy alias for backward compatibility
+export type Category = CategoryWithItems<DeepDiveContentItem>
 
 // =============================================================================
 // Series Types

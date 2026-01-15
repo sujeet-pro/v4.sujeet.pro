@@ -9,16 +9,12 @@ export const SEARCH_SCHEMA = {
   description: "string",
   type: "string",
   category: "string",
-  subcategory: "string",
   categoryName: "string",
-  subcategoryName: "string",
   tags: "string[]",
   tagNames: "string[]",
   href: "string",
   publishedOn: "number",
   minutesRead: "string",
-  seriesId: "string",
-  seriesName: "string",
 } as const
 
 /**
@@ -31,16 +27,12 @@ export interface SearchDocument {
   description: string
   type: string // "writing" | "deep-dive" | "work" | "uses"
   category: string // empty string if not applicable
-  subcategory: string // empty string if not applicable
   categoryName: string // empty string if not applicable
-  subcategoryName: string // empty string if not applicable
   tags: string[]
   tagNames: string[]
   href: string
   publishedOn: number
   minutesRead: string
-  seriesId: string // empty string if not applicable
-  seriesName: string // empty string if not applicable
 }
 
 /**
@@ -50,7 +42,6 @@ export interface SearchParams {
   q: string
   sortBy: "relevance" | "date"
   categories: string[]
-  subcategories: string[]
   tags: string[]
 }
 
@@ -64,17 +55,9 @@ export interface FacetItem {
 }
 
 /**
- * Subcategory facet item with parent category
- */
-export interface SubcategoryFacetItem extends FacetItem {
-  categoryId: string
-}
-
-/**
  * Facet options for filter UI with counts
  */
 export interface SearchFacets {
   categories: FacetItem[]
-  subcategories: SubcategoryFacetItem[]
   tags: FacetItem[]
 }

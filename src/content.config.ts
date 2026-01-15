@@ -47,37 +47,43 @@ const vanity = defineCollection({
   }),
 })
 
-// Series config - items array can reference any content type
-const series = defineCollection({
-  loader: file("./content/series.jsonc", {
-    parser: (fileContent) => parseJsonc(fileContent),
-  }),
-  schema: z.object({
-    id: z.string(),
-    name: z.string(),
-    items: z.array(z.string()), // Array of content IDs (any type)
-    featured: z.boolean().optional().default(false),
-  }),
+// Shared category schema for all content types
+// Simplified 2-level structure: content-type/category (no subcategories in folder structure)
+// Category is derived from folder path via remark plugin
+const categorySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  featured: z.boolean().optional().default(false),
 })
 
-// Deep dive categories
-const categories = defineCollection({
-  loader: file("./content/categories.jsonc", {
+// Per-type category collections
+const categoriesWriting = defineCollection({
+  loader: file("./content/categories/writing.jsonc", {
     parser: (fileContent) => parseJsonc(fileContent),
   }),
-  schema: z.object({
-    id: z.string(),
-    name: z.string(),
-    description: z.string(),
-    featured: z.boolean().optional().default(false),
-    subcategories: z.array(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        description: z.string(),
-      }),
-    ),
+  schema: categorySchema,
+})
+
+const categoriesDeepDives = defineCollection({
+  loader: file("./content/categories/deep-dives.jsonc", {
+    parser: (fileContent) => parseJsonc(fileContent),
   }),
+  schema: categorySchema,
+})
+
+const categoriesWork = defineCollection({
+  loader: file("./content/categories/work.jsonc", {
+    parser: (fileContent) => parseJsonc(fileContent),
+  }),
+  schema: categorySchema,
+})
+
+const categoriesUses = defineCollection({
+  loader: file("./content/categories/uses.jsonc", {
+    parser: (fileContent) => parseJsonc(fileContent),
+  }),
+  schema: categorySchema,
 })
 
 // =============================================================================
@@ -85,10 +91,14 @@ const categories = defineCollection({
 // =============================================================================
 
 // Shared schema for all content types
+// Category is automatically injected from folder path by remark-frontmatter-plugin
+// Format: content/<content-type>/<category>/[optional-nesting/]<date>-<slug>.md
 const baseContentSchema = z.object({
   lastUpdatedOn: z.coerce.date().optional(),
   tags: z.array(z.string()).optional().default([]),
-  series: z.string().optional(), // series ID if part of a series
+  // Category is derived from folder structure (content-type/category/...)
+  // Can be overridden in frontmatter if needed
+  category: z.string().optional(),
 })
 
 // Writing collection (replaces posts)
@@ -108,9 +118,7 @@ const deepDives = defineCollection({
     pattern: "**/[^_]*.md",
     base: "./content/deep-dives",
   }),
-  schema: baseContentSchema.extend({
-    subcategory: z.string(), // Format: "category/subcategory"
-  }),
+  schema: baseContentSchema,
 })
 
 // Work collection (design docs, case studies)
@@ -143,7 +151,10 @@ export const collections = {
   work,
   uses,
   tags,
-  series,
   vanity,
-  categories,
+  // Per-type category collections
+  "categories-writing": categoriesWriting,
+  "categories-deep-dives": categoriesDeepDives,
+  "categories-work": categoriesWork,
+  "categories-uses": categoriesUses,
 }

@@ -1,0 +1,30 @@
+[
+  // System Design - foundational concepts and design problems
+  {
+    "id": "system-design",
+    "name": "System Design",
+    "description": "System design foundations and real-world problems - CAP theorem, consistency models, URL shorteners, social networks, and more",
+    "featured": true
+  },
+  // DSA - data structures and algorithms
+  {
+    "id": "dsa",
+    "name": "Data Structures & Algorithms",
+    "description": "Common data structures, algorithm patterns, complexity analysis, and problem-solving techniques",
+    "featured": true
+  },
+  // Leadership - engineering leadership and behavioral topics
+  {
+    "id": "leadership",
+    "name": "Engineering Leadership",
+    "description": "Technical leadership, team building, hiring, technical strategy, and behavioral interview preparation",
+    "featured": true
+  },
+  // Tools - development tools, services, and tech internals
+  {
+    "id": "tools",
+    "name": "Tools & Services",
+    "description": "Deep dives into development tools, third-party services, language runtimes, and technology internals",
+    "featured": true
+  }
+]

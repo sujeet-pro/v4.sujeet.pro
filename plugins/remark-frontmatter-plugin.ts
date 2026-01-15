@@ -7,6 +7,36 @@ import type { VFile } from "vfile"
 import { getPublishedDate } from "./utils/date.utils"
 import { getSlug } from "./utils/slug.utils"
 
+// Content types that use the 2-level folder structure (content-type/category)
+const CONTENT_TYPES = ["writing", "deep-dives", "work", "uses"] as const
+
+/**
+ * Extract category from file path
+ * Path structure: content/<content-type>/<category>/[optional-nesting/]<date>-<slug>.md
+ * Example: content/writing/javascript/2023-05-01-pub-sub.md → category: "javascript"
+ * Example: content/deep-dives/system-design/cap-theorem/2024-01-01-index.md → category: "system-design"
+ */
+function getCategoryFromPath(filePath: string): string | undefined {
+  const contentDir = path.resolve("./content")
+  if (!filePath.startsWith(contentDir)) {
+    return undefined
+  }
+
+  const relativePath = path.relative(contentDir, filePath)
+  const parts = relativePath.split(path.sep)
+
+  // parts[0] = content-type (writing, deep-dives, etc.)
+  // parts[1] = category
+  if (parts.length >= 2) {
+    const contentType = parts[0]
+    if (CONTENT_TYPES.includes(contentType as (typeof CONTENT_TYPES)[number])) {
+      return parts[1]
+    }
+  }
+
+  return undefined
+}
+
 export const remarkFrontmatterPlugin: RemarkPlugin = (options: { defaultLayout: string }) => {
   return function (tree: mdast.Root, file: VFile) {
     if (!file.data.astro?.frontmatter) {
@@ -23,11 +53,10 @@ export const remarkFrontmatterPlugin: RemarkPlugin = (options: { defaultLayout: 
     file.data.astro.frontmatter.publishedOn ??= getPublishedDate(file.path)
     file.data.astro.frontmatter.description ??= getDescription(tree, file)
     file.data.astro.frontmatter.pageSlug ??= getSlug(file.path)
-    // featuredRank is optional and should be set in the frontmatter if needed
-    // console.log(tree);
-    // console.log(
-    //   Object.fromEntries(Object.entries(file.data.astro.frontmatter).map(([key, value]) => [key, value.toString()])),
-    // );
+
+    // Inject category from path structure (content-type/category/...)
+    // This allows the folder structure to define the category without explicit frontmatter
+    file.data.astro.frontmatter.category ??= getCategoryFromPath(file.path)
   }
 }
 

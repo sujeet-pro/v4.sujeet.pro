@@ -43,7 +43,7 @@ const { href, target, rel } = getLinkProps({
 const linkClass = propsClass || "link"
 ---
 
-<a {...props} {href} {target} {rel} class:list={[linkClass, icon && "inline-flex items-center gap-2"]}>
+<a {...props} {href} {target} {rel} class:list={[linkClass, icon && "link-with-icon"]}>
   {icon && <Icon name={icon} />}
   <slot />
 </a>

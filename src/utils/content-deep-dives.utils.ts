@@ -1,56 +1,43 @@
 /**
  * Deep dives content utilities
- * Handles educational content with category/subcategory organization
+ * Handles educational content with category organization
+ * Simplified 2-level structure: deep-dives/category
  */
 
 import { getCollection } from "astro:content"
+import { buildCategoryLookup, resolveCategoryFromFrontmatter } from "./content-categories-generic.utils"
 import { renderContentItem, sortByDateDescending } from "./content.helpers"
 import type { DeepDiveContent } from "./content.type"
 import { filterDrafts } from "./draft.utils"
 
 /**
- * Category/subcategory lookup entry
+ * Extract category from item ID (first path segment)
+ * Item IDs are relative paths like "design-problems/2024-01-02-url-shortener"
  */
-interface CategoryLookupEntry {
-  category: { id: string; name: string }
-  subcategory: { id: string; name: string }
+function getCategoryFromItemId(itemId: string): string {
+  const firstSlash = itemId.indexOf("/")
+  return firstSlash > 0 ? itemId.substring(0, firstSlash) : itemId
 }
 
 /**
- * Build a lookup map for category/subcategory paths
+ * Process deep dives collection
  */
-async function buildCategoryLookup(): Promise<Map<string, CategoryLookupEntry>> {
-  const categories = await getCollection("categories")
-  const lookup = new Map<string, CategoryLookupEntry>()
-
-  for (const cat of categories) {
-    for (const subcat of cat.data.subcategories) {
-      const key = `${cat.id}/${subcat.id}`
-      lookup.set(key, {
-        category: { id: cat.id, name: cat.data.name },
-        subcategory: { id: subcat.id, name: subcat.name },
-      })
-    }
-  }
-
-  return lookup
-}
-
-/**
- * Get all deep dive content, excluding drafts in production
- */
-export async function getDeepDives(): Promise<DeepDiveContent[]> {
+async function processDeepDivesCollection(): Promise<DeepDiveContent[]> {
   const deepDives = await getCollection("deep-dives")
-  const categoryLookup = await buildCategoryLookup()
+  const categoryLookup = await buildCategoryLookup("deep-dives")
   const items: DeepDiveContent[] = []
 
   for (const item of deepDives) {
     const { frontmatter, Content, tags } = await renderContentItem(item)
-    const { subcategory: subcategoryPath, lastUpdatedOn } = item.data
+    const { lastUpdatedOn } = item.data
 
-    const lookup = categoryLookup.get(subcategoryPath)
-    if (!lookup) {
-      throw new Error(`Invalid subcategory path: ${subcategoryPath} for deep-dive ${item.id}`)
+    // Category is derived from item ID (first path segment: category/date-slug)
+    const categoryId = getCategoryFromItemId(item.id)
+
+    // Resolve category
+    const categoryInfo = resolveCategoryFromFrontmatter(categoryLookup, categoryId)
+    if (!categoryInfo) {
+      throw new Error(`Invalid category: ${categoryId} for deep-dive ${item.id}`)
     }
 
     items.push({
@@ -66,18 +53,23 @@ export async function getDeepDives(): Promise<DeepDiveContent[]> {
       Content,
       href: `/deep-dives/${frontmatter.pageSlug}`,
       type: "deep-dive",
-      category: {
-        id: lookup.category.id,
-        name: lookup.category.name,
-        href: `/category/${lookup.category.id}`,
-      },
-      subcategory: {
-        id: lookup.subcategory.id,
-        name: lookup.subcategory.name,
-        href: `/category/${lookup.category.id}/${lookup.subcategory.id}`,
-      },
+      category: categoryInfo.category,
     })
   }
 
-  return filterDrafts(sortByDateDescending(items))
+  return sortByDateDescending(items)
+}
+
+/**
+ * Get all deep dive content, excluding drafts in production
+ */
+export async function getDeepDives(): Promise<DeepDiveContent[]> {
+  return filterDrafts(await processDeepDivesCollection())
+}
+
+/**
+ * Get all deep dive content including drafts (for /all page)
+ */
+export async function getDeepDivesIncludingDrafts(): Promise<DeepDiveContent[]> {
+  return processDeepDivesCollection()
 }

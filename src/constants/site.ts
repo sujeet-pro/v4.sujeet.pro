@@ -210,8 +210,8 @@ export const ORGANIZATION = {
  * Use buildPath() when rendering these links
  */
 export const NAV_ITEMS = [
-  { path: "/writing", label: "Writing" },
   { path: "/deep-dives", label: "Deep Dives" },
+  { path: "/writing", label: "Writing" },
   { path: "/work", label: "Work" },
   { path: "/uses", label: "Uses" },
 ] as const

@@ -1,10 +1,14 @@
 ---
 import Item from "@/components/item.astro"
 import Layout from "@/layout/layout.astro"
-import { getAllCategories } from "@/utils/content-categories.utils"
+import { getCategoriesForType } from "@/utils/content-categories-generic.utils"
+import { getContentForType } from "@/utils/content-filters.utils"
+import type { ContentItemWithoutContent } from "@/utils/content.type"
 
 export async function getStaticPaths() {
-  const categories = await getAllCategories()
+  const items = await getContentForType("deep-dives")
+  const itemsWithoutContent = items.map(({ Content: _, ...rest }) => rest) as ContentItemWithoutContent[]
+  const categories = await getCategoriesForType("deep-dives", itemsWithoutContent)
 
   return categories.map((category) => ({
     params: { category: category.id },
@@ -13,7 +17,7 @@ export async function getStaticPaths() {
 }
 
 const { category } = Astro.props
-const crumbs = [{ title: "Categories", href: "/category" }]
+const crumbs = [{ title: "Deep Dives", href: "/deep-dives" }]
 ---
 
 <Layout title={category.name} description={category.description} {crumbs} pageType="default">
@@ -24,7 +28,7 @@ const crumbs = [{ title: "Categories", href: "/category" }]
     category.items.length > 0 ? (
       <ul class="flex flex-col">
         {category.items.map((item) => (
-          <Item {item} showCategory={false} />
+          <Item {item} showCategory={false} headingLevel="h2" />
         ))}
       </ul>
     ) : (
