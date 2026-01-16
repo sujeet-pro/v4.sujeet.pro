@@ -7,10 +7,11 @@ import Item from "@/components/item.astro"
 import Link from "@/components/link.astro"
 import Layout from "@/layout/layout.astro"
 import ReadingProgress from "@/components/reading-progress.astro"
-import { getDeepDives } from "@/utils/content-deep-dives.utils"
+import { getDeepDivesIncludingDrafts } from "@/utils/content-collection.utils"
 
+// Generate static paths for all deep-dives (including drafts)
 export async function getStaticPaths() {
-  const deepDives = await getDeepDives()
+  const deepDives = await getDeepDivesIncludingDrafts()
 
   return deepDives.map((dd, index) => {
     const nextDeepDive = index < deepDives.length - 1 ? deepDives[index + 1] : null

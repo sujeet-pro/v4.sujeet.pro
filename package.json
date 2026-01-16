@@ -17,8 +17,9 @@
     "clean": "rm -rf .astro dist",
     "all": "npm run setup && npm run build && npm run check-unused-images && npm run remove-unused-images",
     "test": "vitest run",
-    "validate:static": "npx tsx scripts/validation/validate-static.ts",
-    "validate:live": "npx tsx scripts/validation/validate-live.ts"
+    "validate:build": "npx tsx scripts/validation/validate-static.ts",
+    "validate:local": "npx tsx scripts/validation/validate-live.ts http://localhost:4321",
+    "validate:prod": "npx tsx scripts/validation/validate-live.ts https://sujeet.pro"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

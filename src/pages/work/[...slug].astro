@@ -1,5 +1,5 @@
 ---
-import { getWork } from "@/utils/content-work.utils"
+import { getWorkIncludingDrafts } from "@/utils/content-collection.utils"
 import Layout from "@/layout/layout.astro"
 import ArticleWithTOC from "@/components/article-with-toc.astro"
 import TOC from "@/components/toc.astro"
@@ -8,9 +8,9 @@ import Frontmatter from "@/components/frontmatter.astro"
 import Link from "@/components/link.astro"
 import ReadingProgress from "@/components/reading-progress.astro"
 
-// Generate static paths for all work
+// Generate static paths for all work (including drafts)
 export async function getStaticPaths() {
-  const work = await getWork()
+  const work = await getWorkIncludingDrafts()
 
   return work.map((item, index) => {
     const nextItem = index < work.length - 1 ? work[index + 1] : null

@@ -1,4 +1,4 @@
-import { getWriting } from "@/utils/content-writing.utils"
+import { getWriting } from "@/utils/content-collection.utils"
 import { getFilePath, getLinkProps } from "@/utils/link.utils"
 import rss, { type RSSOptions } from "@astrojs/rss"
 import type { APIRoute } from "astro"

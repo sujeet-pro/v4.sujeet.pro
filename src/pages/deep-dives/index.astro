@@ -3,7 +3,7 @@ import Item from "@/components/item.astro"
 import Link from "@/components/link.astro"
 import Layout from "@/layout/layout.astro"
 import { getCategoriesForType } from "@/utils/content-categories-generic.utils"
-import { getDeepDives } from "@/utils/content-deep-dives.utils"
+import { getDeepDives } from "@/utils/content-collection.utils"
 import type { ContentItemWithoutContent } from "@/utils/content.type"
 
 const deepDives = await getDeepDives()

@@ -4,10 +4,7 @@
  */
 
 import { getCollection } from "astro:content"
-import { getDeepDives } from "./content-deep-dives.utils"
-import { getUses } from "./content-uses.utils"
-import { getWork } from "./content-work.utils"
-import { getWriting } from "./content-writing.utils"
+import { getDeepDives, getUses, getWork, getWriting } from "./content-collection.utils"
 import { SITE } from "@/constants/site"
 
 interface ContentWithBody {

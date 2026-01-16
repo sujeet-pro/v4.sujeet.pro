@@ -1,15 +1,13 @@
 ---
-// Simple article wrapper - just renders prose content
-// Layout handles the 3-column structure, TOC is passed via slot
+/**
+ * Article With TOC Component
+ *
+ * Simple article wrapper for pages with table of contents.
+ * Layout handles the 3-column structure, TOC is passed via slot.
+ * Uses .article-prose-content class from global.css for consistent styling.
+ */
 ---
 
-<article class="prose prose-base max-w-none">
+<article class="article-prose-content">
   <slot />
 </article>
-
-<style>
-  /* Ensure article doesn't overflow */
-  article {
-    overflow-wrap: break-word;
-  }
-</style>

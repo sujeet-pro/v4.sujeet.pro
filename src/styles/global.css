@@ -572,6 +572,17 @@ h3 {
   @apply mx-auto prose prose-lg max-w-none;
 }
 
+/* Article prose wrapper - for standalone article pages */
+.article-prose {
+  @apply mx-auto my-8 prose prose-base max-w-none;
+}
+
+/* Article prose content - for article with TOC layout */
+.article-prose-content {
+  @apply prose prose-base max-w-none;
+  overflow-wrap: break-word;
+}
+
 /* Article container - optimal reading width */
 .article-container {
   @apply mx-auto px-6;

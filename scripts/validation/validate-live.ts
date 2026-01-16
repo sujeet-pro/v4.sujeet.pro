@@ -4,16 +4,20 @@
  * Validates a running/deployed site by crawling from a landing page:
  * - Checks all asset URLs return 200 (fonts, CSS, JS, images)
  * - Checks all internal page links return 200
+ * - Skips URLs found within code blocks (examples in documentation)
  *
  * Usage:
- *   npx tsx scripts/validation/validate-live.ts
+ *   npx tsx scripts/validation/validate-live.ts <url>
+ *
+ * Examples:
+ *   npx tsx scripts/validation/validate-live.ts http://localhost:4321
+ *   npx tsx scripts/validation/validate-live.ts https://sujeet.pro
  *
  * Logs are saved to: logs/validate-live-{timestamp}.log
  */
 
 import * as fs from "fs"
 import * as path from "path"
-import * as readline from "readline"
 
 // Configuration
 const LOGS_DIR = path.join(process.cwd(), "logs")
@@ -57,43 +61,6 @@ class Logger {
   }
 }
 
-async function promptInput(question: string, defaultValue?: string): Promise<string> {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  })
-
-  const prompt = defaultValue ? `${question} [${defaultValue}]: ` : `${question}: `
-
-  return new Promise((resolve) => {
-    rl.question(prompt, (answer) => {
-      rl.close()
-      resolve(answer.trim() || defaultValue || "")
-    })
-  })
-}
-
-async function promptSelection(question: string, options: string[]): Promise<number> {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  })
-
-  console.log(`\n${question}`)
-  options.forEach((opt, i) => console.log(`  ${i + 1}. ${opt}`))
-
-  return new Promise((resolve) => {
-    rl.question("\nEnter choice (number): ", (answer) => {
-      rl.close()
-      const index = parseInt(answer) - 1
-      if (index >= 0 && index < options.length) {
-        resolve(index)
-      } else {
-        resolve(0)
-      }
-    })
-  })
-}
 
 async function fetchWithTimeout(url: string, timeout: number): Promise<Response> {
   const controller = new AbortController()
@@ -116,6 +83,13 @@ async function fetchHtml(url: string): Promise<string | null> {
   try {
     const response = await fetchWithTimeout(url, REQUEST_TIMEOUT)
     if (!response.ok) return null
+
+    // Only parse HTML content - skip text files like llms.txt which contain code examples
+    const contentType = response.headers.get("content-type") || ""
+    if (!contentType.includes("text/html")) {
+      return null
+    }
+
     return await response.text()
   } catch {
     return null
@@ -131,20 +105,43 @@ async function checkUrl(url: string): Promise<{ status: number | string; ok: boo
   }
 }
 
+function stripCodeBlocks(html: string): string {
+  // Remove content inside <pre>, <code>, and <script> tags to avoid validating example URLs
+  // This handles code blocks in documentation that contain example hrefs/srcs
+  let cleaned = html
+
+  // Remove <pre>...</pre> blocks (including nested content)
+  cleaned = cleaned.replace(/<pre[^>]*>[\s\S]*?<\/pre>/gi, "")
+
+  // Remove standalone <code>...</code> that might remain
+  cleaned = cleaned.replace(/<code[^>]*>[\s\S]*?<\/code>/gi, "")
+
+  // Remove <script>...</script> blocks
+  cleaned = cleaned.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+
+  return cleaned
+}
+
 function extractLinks(html: string, baseUrl: string): { assets: Set<string>; pages: Set<string> } {
   const assets = new Set<string>()
   const pages = new Set<string>()
   const origin = new URL(baseUrl).origin
 
+  // Strip code blocks before extracting links to avoid validating example URLs
+  const cleanedHtml = stripCodeBlocks(html)
+
   // Extract href attributes
   const hrefRegex = /href="([^"]+)"/g
   let match
-  while ((match = hrefRegex.exec(html)) !== null) {
+  while ((match = hrefRegex.exec(cleanedHtml)) !== null) {
     const href = match[1]
 
-    // Skip external, anchors, mailto
-    if (href.startsWith("mailto:") || href.startsWith("#")) continue
+    // Skip external, anchors, mailto, tel
+    if (href.startsWith("mailto:") || href.startsWith("#") || href.startsWith("tel:")) continue
     if (href.startsWith("http") && !href.startsWith(origin)) continue
+
+    // Skip HTML-encoded URLs (often from code examples that weren't fully stripped)
+    if (href.includes("&#x")) continue
 
     // Resolve relative URLs
     let fullUrl: string
@@ -167,10 +164,13 @@ function extractLinks(html: string, baseUrl: string): { assets: Set<string>; pag
 
   // Extract src attributes
   const srcRegex = /src="([^"]+)"/g
-  while ((match = srcRegex.exec(html)) !== null) {
+  while ((match = srcRegex.exec(cleanedHtml)) !== null) {
     const src = match[1]
     if (src.startsWith("data:")) continue
     if (src.startsWith("http") && !src.startsWith(origin)) continue
+
+    // Skip HTML-encoded URLs
+    if (src.includes("&#x")) continue
 
     try {
       const fullUrl = new URL(src, baseUrl).href
@@ -182,11 +182,14 @@ function extractLinks(html: string, baseUrl: string): { assets: Set<string>; pag
     }
   }
 
-  // Extract url() in inline styles
+  // Extract url() in inline styles (only from non-code areas)
   const urlRegex = /url\(["']?([^"')]+)["']?\)/g
-  while ((match = urlRegex.exec(html)) !== null) {
+  while ((match = urlRegex.exec(cleanedHtml)) !== null) {
     const url = match[1]
     if (url.startsWith("data:") || url.startsWith("#")) continue
+
+    // Skip HTML-encoded URLs
+    if (url.includes("&#x")) continue
 
     try {
       const fullUrl = new URL(url, baseUrl).href
@@ -218,24 +221,31 @@ async function processInBatches<T, R>(
 async function main() {
   const logger = new Logger()
 
+  // Get URL from CLI argument
+  const url = process.argv[2]
+
+  if (!url) {
+    console.error("\x1b[31mError: URL argument required\x1b[0m")
+    console.error("\nUsage: npx tsx scripts/validation/validate-live.ts <url>")
+    console.error("\nExamples:")
+    console.error("  npx tsx scripts/validation/validate-live.ts http://localhost:4321")
+    console.error("  npx tsx scripts/validation/validate-live.ts https://sujeet.pro")
+    process.exit(1)
+  }
+
+  // Validate URL format
+  try {
+    new URL(url)
+  } catch {
+    console.error(`\x1b[31mError: Invalid URL: ${url}\x1b[0m`)
+    process.exit(1)
+  }
+
+  const landingPage = url
+
   logger.log("=".repeat(60), "INFO")
   logger.log("Live Site Validation", "INFO")
   logger.log("=".repeat(60), "INFO")
-
-  // Select environment
-  const modeIndex = await promptSelection("Select environment to validate:", [
-    "Production - https://sujeet.pro",
-    "Local preview - http://localhost:4321",
-  ])
-
-  const presets = [
-    { url: "https://sujeet.pro" },
-    { url: "http://localhost:4321" },
-  ]
-
-  const preset = presets[modeIndex]
-  const landingPage = await promptInput("Enter landing page URL", preset.url)
-
   logger.log(`\nValidating: ${landingPage}`, "INFO")
   logger.log("", "INFO")
 

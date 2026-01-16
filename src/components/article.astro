@@ -1,4 +1,11 @@
 ---
+/**
+ * Article Component
+ *
+ * Wrapper for prose content on standalone article pages.
+ * Uses .article-prose class from global.css for consistent styling.
+ */
+
 interface Props {
   title: string
   as?: "article" | "section"
@@ -8,6 +15,6 @@ const { as } = Astro.props as Props
 const Element = as === "article" ? "article" : "section"
 ---
 
-<Element class="mx-auto my-8 prose prose-base max-w-none">
+<Element class="article-prose">
   <slot />
 </Element>

@@ -3,10 +3,7 @@
  * Aggregates content from all collections for cross-collection operations
  */
 
-import { getDeepDives } from "./content-deep-dives.utils"
-import { getUses } from "./content-uses.utils"
-import { getWork } from "./content-work.utils"
-import { getWriting } from "./content-writing.utils"
+import { getDeepDives, getUses, getWork, getWriting } from "./content-collection.utils"
 import type { ContentItem, ContentItemWithoutContent } from "./content.type"
 
 /**

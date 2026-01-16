@@ -3,10 +3,7 @@ import Layout from "@/layout/layout.astro"
 import Profile from "@/components/profile.astro"
 import Item from "@/components/item.astro"
 import Link from "@/components/link.astro"
-import { getWriting } from "@/utils/content-writing.utils"
-import { getDeepDives } from "@/utils/content-deep-dives.utils"
-import { getWork } from "@/utils/content-work.utils"
-import { getUses } from "@/utils/content-uses.utils"
+import { getWriting, getDeepDives, getWork, getUses } from "@/utils/content-collection.utils"
 
 // Get recent items from each category (limit to 3 each)
 const [writing, deepDives, work, uses] = await Promise.all([getWriting(), getDeepDives(), getWork(), getUses()])

@@ -1,5 +1,5 @@
 ---
-import { getWriting } from "@/utils/content-writing.utils"
+import { getWritingIncludingDrafts } from "@/utils/content-collection.utils"
 import Layout from "@/layout/layout.astro"
 import ArticleWithTOC from "@/components/article-with-toc.astro"
 import TOC from "@/components/toc.astro"
@@ -8,9 +8,9 @@ import Frontmatter from "@/components/frontmatter.astro"
 import Link from "@/components/link.astro"
 import ReadingProgress from "@/components/reading-progress.astro"
 
-// Generate static paths for all writing
+// Generate static paths for all writing (including drafts)
 export async function getStaticPaths() {
-  const writing = await getWriting()
+  const writing = await getWritingIncludingDrafts()
 
   return writing.map((item, index) => {
     const nextItem = index < writing.length - 1 ? writing[index + 1] : null

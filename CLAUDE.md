@@ -80,8 +80,9 @@ npm run build        # Build for production
 npm run preview      # Preview built site locally
 
 # Validation
-npm run validate:static   # Validate built HTML files
-npm run validate:live     # Validate running site
+npm run validate:build    # Validate built HTML files
+npm run validate:local    # Validate local dev server (localhost:4321)
+npm run validate:prod     # Validate production site (sujeet.pro)
 ```
 
 ## Important Patterns
@@ -134,19 +135,19 @@ Optional:
 
 1. Create markdown file in `content/writing/[category]/YYYY-MM-DD-slug.md`
 2. Include required frontmatter (title, description, publishedOn)
-3. Build and validate: `npm run build && npm run validate:static`
+3. Build and validate: `npm run build && npm run validate:build`
 
 ### Updating Dependencies
 
 1. Check LLM docs for breaking changes (links above)
 2. Run upgrade: `npm update` or `npx @astrojs/upgrade`
 3. Build and test: `npm run build`
-4. Validate: `npm run validate:static`
+4. Validate: `npm run validate:build`
 
 ### Debugging Build Issues
 
 1. Check Astro docs: https://docs.astro.build/llms-full.txt
-2. Run validation: `npm run validate:static`
+2. Run validation: `npm run validate:build`
 3. Check logs in `logs/` folder
 
 ## Styling Conventions

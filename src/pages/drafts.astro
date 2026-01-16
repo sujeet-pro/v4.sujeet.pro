@@ -1,0 +1,19 @@
+---
+import Item from "@/components/item.astro"
+import Layout from "@/layout/layout.astro"
+import { getAllContentIncludingDrafts } from "@/utils/content-filters.utils"
+
+const allContent = await getAllContentIncludingDrafts()
+const drafts = allContent.filter((item) => item.isDraft)
+---
+
+<Layout title="Drafts" description="Browse draft content" crumbs={null} pageType="default" noIndex={true}>
+  <h1 class="mb-2">Drafts</h1>
+  <p class="text-muted mb-8">
+    {drafts.length} draft{drafts.length !== 1 ? "s" : ""} sorted by date.
+  </p>
+
+  <ul class="flex flex-col">
+    {drafts.map((item) => <Item {item} showType={true} showCategory={true} />)}
+  </ul>
+</Layout>

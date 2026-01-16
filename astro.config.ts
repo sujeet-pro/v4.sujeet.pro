@@ -4,6 +4,7 @@ import { defineConfig, envField } from "astro/config"
 import icon from "astro-icon"
 
 import sitemap from "@astrojs/sitemap"
+import { createSitemapFilter } from "./plugins/sitemap-draft-filter"
 
 import expressiveCode from "astro-expressive-code"
 
@@ -32,10 +33,12 @@ import { remarkCodeTitleUsingFile } from "./plugins/remark-code-title-using-file
 import { remarkFrontmatterPlugin } from "./plugins/remark-frontmatter-plugin"
 
 // https://astro.build/config
+const SITE_URL = "https://sujeet.pro"
+const sitemapFilter = await createSitemapFilter(SITE_URL)
 
 export default defineConfig({
   // Full site URL (used for sitemap, canonical URLs)
-  site: "https://sujeet.pro",
+  site: SITE_URL,
 
   trailingSlash: "never",
   build: {
@@ -76,7 +79,7 @@ export default defineConfig({
       }),
     },
   },
-  integrations: [icon(), expressiveCode({}), sitemap()],
+  integrations: [icon(), expressiveCode({}), sitemap({ filter: sitemapFilter })],
   vite: {
     plugins: [tailwindcss() as any],
   },

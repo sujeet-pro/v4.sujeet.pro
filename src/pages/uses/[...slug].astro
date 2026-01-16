@@ -1,5 +1,5 @@
 ---
-import { getUses } from "@/utils/content-uses.utils"
+import { getUsesIncludingDrafts } from "@/utils/content-collection.utils"
 import Layout from "@/layout/layout.astro"
 import ArticleWithTOC from "@/components/article-with-toc.astro"
 import TOC from "@/components/toc.astro"
@@ -8,9 +8,9 @@ import Frontmatter from "@/components/frontmatter.astro"
 import Link from "@/components/link.astro"
 import ReadingProgress from "@/components/reading-progress.astro"
 
-// Generate static paths for all uses
+// Generate static paths for all uses (including drafts)
 export async function getStaticPaths() {
-  const uses = await getUses()
+  const uses = await getUsesIncludingDrafts()
 
   return uses.map((item, index) => {
     const nextItem = index < uses.length - 1 ? uses[index + 1] : null

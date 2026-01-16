@@ -3,12 +3,18 @@
  * Provides functions to filter and aggregate content across types
  */
 
+import {
+  getDeepDives,
+  getDeepDivesIncludingDrafts,
+  getUses,
+  getUsesIncludingDrafts,
+  getWork,
+  getWorkIncludingDrafts,
+  getWriting,
+  getWritingIncludingDrafts,
+} from "./content-collection.utils"
 import { sortByDateDescending } from "./content.helpers"
 import type { ContentItemWithoutContent, ContentType } from "./content.type"
-import { getDeepDives } from "./content-deep-dives.utils"
-import { getUses } from "./content-uses.utils"
-import { getWork } from "./content-work.utils"
-import { getWriting } from "./content-writing.utils"
 
 // =============================================================================
 // Content Getters by Type
@@ -111,11 +117,6 @@ export async function getContentCounts(): Promise<Record<ContentType, number>> {
  * Get all content from all types including drafts, sorted chronologically (newest first)
  */
 export async function getAllContentIncludingDrafts(): Promise<ContentItemWithoutContent[]> {
-  const { getWritingIncludingDrafts } = await import("./content-writing.utils")
-  const { getDeepDivesIncludingDrafts } = await import("./content-deep-dives.utils")
-  const { getWorkIncludingDrafts } = await import("./content-work.utils")
-  const { getUsesIncludingDrafts } = await import("./content-uses.utils")
-
   const [writing, deepDives, work, uses] = await Promise.all([
     getWritingIncludingDrafts(),
     getDeepDivesIncludingDrafts(),
