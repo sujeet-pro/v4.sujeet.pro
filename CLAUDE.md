@@ -83,7 +83,32 @@ npm run preview      # Preview built site locally
 npm run validate:build    # Validate built HTML files
 npm run validate:local    # Validate local dev server (localhost:4321)
 npm run validate:prod     # Validate production site (sujeet.pro)
+
+# Performance Audits (Unlighthouse)
+npm run lighthouse        # Run Lighthouse on production (mobile)
+npm run lighthouse:local  # Run Lighthouse on local server
+npm run lighthouse:desktop # Run Lighthouse on production (desktop)
 ```
+
+### Performance Reports (Unlighthouse)
+
+Automated Lighthouse audits via GitHub Actions, deployed to a separate GitHub Pages repo.
+
+**Setup (one-time):**
+1. Create repo `sujeet-pro/sujeet-pro-perf-reports`
+2. Enable GitHub Pages: Settings → Pages → Source: `main` branch
+3. Create Fine-grained PAT with `Contents: Read and write` for the reports repo
+4. Add secret `REPORTS_REPO_TOKEN` in the main repo
+
+**Running audits:**
+1. Go to Actions → "Unlighthouse Performance Audit" → Run workflow
+2. Select device: `both`, `mobile`, or `desktop`
+3. View reports at: https://sujeet-pro.github.io/sujeet-pro-perf-reports/
+
+Reports include:
+- Summary page with all URLs and Web Vitals (LCP, CLS, INP)
+- Performance, Accessibility, Best Practices, SEO scores per page
+- Detailed Lighthouse reports for each URL
 
 ## Important Patterns
 

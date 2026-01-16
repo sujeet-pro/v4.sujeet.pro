@@ -1,0 +1,219 @@
+# Unlighthouse Performance Audit Workflow
+#
+# Runs Lighthouse audits on all pages and deploys reports to a separate GitHub repo
+# Reports are available at: https://sujeet-pro.github.io/sujeet-pro-perf-reports/
+#
+name: Unlighthouse Performance Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      device:
+        description: "Device type"
+        required: true
+        default: "both"
+        type: choice
+        options:
+          - both
+          - mobile
+          - desktop
+
+env:
+  SITE_URL: "https://sujeet.pro"
+  REPORTS_REPO: "sujeet-pro/sujeet-pro-perf-reports"
+  REPORTS_BRANCH: "main"
+
+jobs:
+  audit:
+    name: Run Unlighthouse Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install audit tools
+        run: npm install --no-save @unlighthouse/cli puppeteer
+
+      - name: Install Chrome
+        run: npx puppeteer browsers install chrome
+
+      - name: Set report folder name
+        id: folder
+        run: |
+          # Format: 2026-01-16-14-30 (readable date-time)
+          FOLDER=$(date -u +"%Y-%m-%d-%H-%M")
+          echo "name=${FOLDER}" >> $GITHUB_OUTPUT
+          echo "Report folder: ${FOLDER}"
+
+      - name: Create reports directory
+        run: mkdir -p "reports/${{ steps.folder.outputs.name }}"
+
+      - name: Run Unlighthouse (Mobile)
+        if: ${{ inputs.device == 'mobile' || inputs.device == 'both' }}
+        run: |
+          npx unlighthouse-ci \
+            --site "${{ env.SITE_URL }}" \
+            --output-path "reports/${{ steps.folder.outputs.name }}/mobile" \
+            --reporter html \
+            --no-cache
+        env:
+          CI: true
+
+      - name: Run Unlighthouse (Desktop)
+        if: ${{ inputs.device == 'desktop' || inputs.device == 'both' }}
+        run: |
+          npx unlighthouse-ci \
+            --site "${{ env.SITE_URL }}" \
+            --output-path "reports/${{ steps.folder.outputs.name }}/desktop" \
+            --reporter html \
+            --desktop \
+            --no-cache
+        env:
+          CI: true
+
+      - name: Clone reports repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPORTS_REPO_TOKEN }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git clone --depth 1 https://x-access-token:${GITHUB_TOKEN}@github.com/${{ env.REPORTS_REPO }}.git reports-repo
+
+      - name: Copy new report
+        run: |
+          cp -r "reports/${{ steps.folder.outputs.name }}" "reports-repo/"
+
+      - name: Update manifest and index
+        run: |
+          cd reports-repo
+
+          # Initialize manifest if it doesn't exist
+          if [ ! -f reports.json ]; then
+            echo '[]' > reports.json
+          fi
+
+          # Add new report to manifest
+          TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+          DEVICE="${{ inputs.device }}"
+          FOLDER="${{ steps.folder.outputs.name }}"
+
+          # Create new entry
+          NEW_ENTRY=$(cat << EOF
+          {
+            "folder": "${FOLDER}",
+            "timestamp": "${TIMESTAMP}",
+            "device": "${DEVICE}"
+          }
+          EOF
+          )
+
+          # Prepend to manifest (newest first)
+          jq --argjson new "$NEW_ENTRY" '. = [$new] + .' reports.json > tmp.json && mv tmp.json reports.json
+
+          # Generate index.html
+          cat > index.html << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Performance Reports | sujeet.pro</title>
+            <style>
+              :root { --bg: #0a0a0a; --bg-card: #141414; --text: #fafafa; --text-muted: #a1a1aa; --border: #27272a; --accent: #3b82f6; }
+              * { box-sizing: border-box; margin: 0; padding: 0; }
+              body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem; }
+              .container { max-width: 900px; margin: 0 auto; }
+              h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+              .subtitle { color: var(--text-muted); margin-bottom: 2rem; }
+              .report-list { display: flex; flex-direction: column; gap: 1rem; }
+              .report { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+              .report:first-child { border-color: var(--accent); }
+              .report:first-child::before { content: "Latest"; font-size: 0.75rem; background: var(--accent); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; margin-bottom: 0.75rem; display: inline-block; }
+              .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+              .report-date { font-weight: 600; font-size: 1.1rem; }
+              .report-device { color: var(--text-muted); font-size: 0.875rem; }
+              .report-links { display: flex; gap: 1rem; flex-wrap: wrap; }
+              .report-links a { color: var(--accent); text-decoration: none; font-size: 0.9rem; }
+              .report-links a:hover { text-decoration: underline; }
+              .info { margin-top: 2rem; padding: 1rem; background: var(--bg-card); border-radius: 8px; font-size: 0.875rem; color: var(--text-muted); }
+              .back-link { display: inline-block; margin-top: 2rem; color: var(--accent); text-decoration: none; }
+              .back-link:hover { text-decoration: underline; }
+              .loading { color: var(--text-muted); }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>Performance Reports</h1>
+              <p class="subtitle">Unlighthouse audits for sujeet.pro</p>
+              <div id="reports" class="report-list">
+                <p class="loading">Loading reports...</p>
+              </div>
+              <div class="info">
+                <strong>What's included:</strong> Core Web Vitals (LCP, CLS, INP), Performance, Accessibility, Best Practices, and SEO scores for each page.
+              </div>
+              <a href="https://sujeet.pro" class="back-link">← Back to sujeet.pro</a>
+            </div>
+            <script>
+              fetch('./reports.json')
+                .then(r => r.json())
+                .then(reports => {
+                  const container = document.getElementById('reports');
+                  if (!reports.length) {
+                    container.innerHTML = '<p>No reports available yet.</p>';
+                    return;
+                  }
+                  container.innerHTML = reports.map(r => {
+                    const links = [];
+                    if (r.device === 'both' || r.device === 'mobile') {
+                      links.push(`<a href="./${r.folder}/mobile/">📱 Mobile</a>`);
+                    }
+                    if (r.device === 'both' || r.device === 'desktop') {
+                      links.push(`<a href="./${r.folder}/desktop/">🖥️ Desktop</a>`);
+                    }
+                    return `
+                      <div class="report">
+                        <div class="report-header">
+                          <span class="report-date">${r.timestamp}</span>
+                          <span class="report-device">${r.device === 'both' ? 'Mobile & Desktop' : r.device}</span>
+                        </div>
+                        <div class="report-links">${links.join('')}</div>
+                      </div>
+                    `;
+                  }).join('');
+                })
+                .catch(() => {
+                  document.getElementById('reports').innerHTML = '<p>Failed to load reports.</p>';
+                });
+            </script>
+          </body>
+          </html>
+          HTMLEOF
+
+          touch .nojekyll
+
+      - name: Push to reports repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPORTS_REPO_TOKEN }}
+        run: |
+          cd reports-repo
+          git add -A
+          git commit -m "Add report: ${{ steps.folder.outputs.name }}" || echo "No changes"
+          git push origin ${{ env.REPORTS_BRANCH }}
+
+      - name: Output report URL
+        run: |
+          FOLDER="${{ steps.folder.outputs.name }}"
+          echo "## 📊 Performance Report Deployed!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Report:** ${FOLDER}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "View all reports: **https://sujeet-pro.github.io/sujeet-pro-perf-reports/**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Direct links:" >> $GITHUB_STEP_SUMMARY
+          echo "- [Mobile Report](https://sujeet-pro.github.io/sujeet-pro-perf-reports/${FOLDER}/mobile/)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Desktop Report](https://sujeet-pro.github.io/sujeet-pro-perf-reports/${FOLDER}/desktop/)" >> $GITHUB_STEP_SUMMARY

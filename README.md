@@ -1,6 +1,6 @@
 # Personal Portfolio & Blog
 
-Technical blog for experienced software professionals. Built with Astro, deployed on Cloudflare Workers.
+Technical blog for experienced software professionals. Built with Astro, deployed on GitHub Pages.
 
 ## Documentation
 
@@ -13,7 +13,7 @@ Technical blog for experienced software professionals. Built with Astro, deploye
 npm install          # Install dependencies
 npm run dev          # Development server
 npm run build        # Production build
-npm run deploy       # Deploy to Cloudflare Workers
+npm run preview      # Preview production build locally
 ```
 
 ## Content Structure

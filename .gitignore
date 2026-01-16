@@ -13,6 +13,9 @@ yarn-error.log*
 pnpm-debug.log*
 logs/
 
+# unlighthouse reports
+.unlighthouse/
+
 
 # environment variables
 .env
