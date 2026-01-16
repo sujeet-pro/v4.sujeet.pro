@@ -1,4 +1,4 @@
-import { defineConfig } from "@unlighthouse/cli"
+import { defineConfig } from "@unlighthouse/core"
 
 export default defineConfig({
   site: "https://sujeet.pro",
