@@ -1,7 +1,7 @@
 /**
  * Sitemap Draft Filter
  *
- * Excludes draft pages from the sitemap by scanning markdown files at config time.
+ * Excludes draft pages and vanity URLs from the sitemap by scanning files at config time.
  * This runs before Astro's content layer is available, so we scan files directly.
  *
  * ## How Draft Detection Works
@@ -11,17 +11,41 @@
  * ## Excluded Pages
  * - All pages with H1 starting with "Draft:"
  * - Static paths like /drafts
+ * - All vanity URLs (redirect pages that should not be indexed)
  */
 
 import fs from "node:fs"
 import path from "node:path"
 import { glob } from "glob"
+import { parse as parseJsonc } from "jsonc-parser"
 
 /** Content types to scan */
 const CONTENT_TYPES = ["writing", "deep-dives", "work", "uses"] as const
 
+/** Path to vanity URLs file */
+const VANITY_FILE_PATH = "./content/vanity.jsonc"
+
 /** Static pages to always exclude from sitemap */
 const EXCLUDED_PATHS = ["/drafts"]
+
+interface VanityEntry {
+  id: string
+  target: string
+}
+
+/**
+ * Get all vanity URL paths from the vanity.jsonc file.
+ */
+function getVanityPaths(): string[] {
+  try {
+    const content = fs.readFileSync(VANITY_FILE_PATH, "utf-8")
+    const entries = parseJsonc(content) as VanityEntry[]
+    return entries.map((entry) => `/${entry.id}`)
+  } catch {
+    // File doesn't exist or parse error, return empty array
+    return []
+  }
+}
 
 /**
  * Check if a markdown file is a draft by looking for "# Draft:" pattern in H1.
@@ -91,6 +115,11 @@ export async function getExcludedUrls(siteUrl: string): Promise<Set<string>> {
   // Add static exclusions
   for (const excludedPath of EXCLUDED_PATHS) {
     excludedUrls.add(`${siteUrl}${excludedPath}`)
+  }
+
+  // Add vanity URL exclusions (redirect pages should not be in sitemap)
+  for (const vanityPath of getVanityPaths()) {
+    excludedUrls.add(`${siteUrl}${vanityPath}`)
   }
 
   // Scan content files for drafts
