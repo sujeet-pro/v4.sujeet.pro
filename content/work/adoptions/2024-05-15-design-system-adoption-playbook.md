@@ -760,7 +760,7 @@ The fundamental tension: shared dependencies enable visual consistency and reduc
 
 **Recommended Architecture: Loosely Coupled Components**
 
-For organizations navigating this tension, the [Component Architecture for Loosely Coupled UI](/work/design-docs/2026-01-06-component-architecture) pattern provides a comprehensive solution. The key principles:
+For organizations navigating this tension, the [Component Architecture for Loosely Coupled UI](/work/design-docs/component-architecture) pattern provides a comprehensive solution. The key principles:
 
 1. **SDK Abstraction Layer**: Components don't directly depend on framework or shell APIs. Instead, they consume abstract interfaces (routing, analytics, state) that the shell implements. This allows components to be tested in isolation and deployed independently.
 
@@ -1415,8 +1415,8 @@ The journey from business case to enterprise-wide adoption is challenging, but w
 
 ### Microfrontend & Architecture Patterns
 
-- [Component Architecture for Loosely Coupled UI](/work/design-docs/2026-01-06-component-architecture) - Meta-framework-agnostic patterns for SDK abstraction, boundary control, and provider-based dependency injection
-- [Microfrontends Architecture](/deep-dives/web-fundamentals/2023-11-01-micro-frontends) - Comprehensive guide to microfrontend composition strategies, Module Federation, and cross-cutting concerns
+- [Component Architecture for Loosely Coupled UI](/work/design-docs/component-architecture) - Meta-framework-agnostic patterns for SDK abstraction, boundary control, and provider-based dependency injection
+- [Microfrontends Architecture](/deep-dives/web-fundamentals/micro-frontends) - Comprehensive guide to microfrontend composition strategies, Module Federation, and cross-cutting concerns
 
 ### Technical Enablement & Codemods
 

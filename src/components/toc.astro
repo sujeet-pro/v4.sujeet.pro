@@ -90,6 +90,11 @@ const { class: className } = Astro.props
       }
     })
 
+    // Calculate total TOC items to determine if we should expand all
+    const totalItems = sections.reduce((count, section) => count + 1 + section.h3s.length, 0)
+    const expandAllThreshold = 21
+    const shouldExpandAll = totalItems <= expandAllThreshold
+
     // Generate HTML with collapsible sections
     function generateTocHtml(sections: TocSection[]): string {
       return sections
@@ -110,9 +115,12 @@ const { class: className } = Astro.props
               )
               .join("")
 
+            // Add 'open' attribute if total items is small enough
+            const openAttr = shouldExpandAll ? "open" : ""
+
             return `
               <li class="toc-section">
-                <details class="toc-details">
+                <details class="toc-details" ${openAttr}>
                   <summary class="toc-summary">
                     <a href="#${section.h2.id}" class="toc-link toc-link-h2 text-muted hover:text-current transition-colors" data-h2-id="${section.h2.id}">
                       ${section.h2.text}
