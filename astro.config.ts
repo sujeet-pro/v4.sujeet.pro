@@ -79,7 +79,7 @@ export default defineConfig({
       }),
     },
   },
-  integrations: [icon(), expressiveCode({}), sitemap({ filter: sitemapFilter })],
+  integrations: [icon(), expressiveCode(), sitemap({ filter: sitemapFilter })],
   vite: {
     plugins: [tailwindcss() as any],
   },
