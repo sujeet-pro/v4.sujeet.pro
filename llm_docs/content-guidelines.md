@@ -16,6 +16,85 @@ This document defines the standards for creating technical content for sujeet.pr
 
 5. **Production Reality**: Include real-world considerations like cost, scale limits, operational complexity, and failure modes.
 
+6. **Real-World Over Theoretical**: Prefer challenges encountered in production systems over academic or theoretical scenarios. See [Real-World vs Theoretical Content](#real-world-vs-theoretical-content) for detailed guidelines.
+
+7. **Zero Filler Tolerance**: Every sentence must provide unique value. Remove transitional fluff, redundant explanations, and padding that doesn't advance understanding.
+
+### Article Length and Reading Time
+
+Articles must be **in-depth but not exhaustive**. Every sentence should earn its place.
+
+| Reading Time | Guidance |
+|--------------|----------|
+| **< 30 minutes** | Ideal target. Achievable for most topics with disciplined writing. |
+| **30-60 minutes** | Acceptable for complex topics. Actively look for content to cut or split. |
+| **> 60 minutes** | **Not acceptable.** Split into a series or aggressively cut scope. |
+
+**Length Guidelines:**
+
+- **Never exceed 1 hour reading time** — if content approaches this limit, split into a multi-part series or narrow scope
+- **Target 30 minutes or less** — most topics can be covered thoroughly with focused writing
+- **Every paragraph must provide unique value** — if removing it doesn't reduce understanding, remove it
+- **Density over volume** — a 20-minute article packed with insights beats a 45-minute article with padding
+
+**Signs an article is too long:**
+
+- Multiple sections that could stand alone as separate articles
+- Repeated explanations of the same concept in different words
+- Excessive background that could be linked to instead
+- Examples that illustrate the same point multiple times
+- Tangential topics that distract from the core thesis
+
+**When splitting articles:**
+
+- Each part should be self-contained with its own TLDR
+- Cross-reference related parts explicitly
+- Consider a series landing page for 3+ parts
+
+### Real-World vs Theoretical Content
+
+This site prioritizes **production-tested knowledge** over academic theory. Content should reflect challenges engineers actually face.
+
+#### What Qualifies as Real-World Content
+
+| Real-World (Preferred) | Theoretical (Use Sparingly) |
+|------------------------|----------------------------|
+| "We hit a race condition when deploying to 50+ pods" | "Race conditions can occur in distributed systems" |
+| "Our p99 latency spiked 3x after this change" | "This approach may have performance implications" |
+| "The migration broke 12% of user sessions" | "Migrations require careful planning" |
+| Specific error messages and stack traces | Generic error categories |
+| Actual metrics from production systems | Hypothetical performance numbers |
+| Code that ran in production (sanitized) | Toy examples that compile but weren't deployed |
+
+#### Guidelines for Real-World Content
+
+1. **Cite specific incidents**: "During Black Friday 2023, we observed..." not "During high traffic..."
+2. **Include actual numbers**: "Response time increased from 45ms to 890ms" not "Response time increased significantly"
+3. **Name the technologies**: "PostgreSQL 15 with pgbouncer" not "a relational database with connection pooling"
+4. **Show the failure first**: Lead with what went wrong, then explain the fix
+5. **Include the debugging journey**: How did you discover the issue? What red herrings did you follow?
+
+#### When Theoretical Content is Acceptable
+
+- **Foundational concepts**: Explaining how an algorithm works before showing production usage
+- **Comparative analysis**: Theoretical Big-O when comparing approaches (but follow with real benchmarks)
+- **Security considerations**: Threat modeling for scenarios you haven't experienced (but want to prevent)
+- **Future-proofing**: Discussing scaling considerations before you've hit those limits
+
+**Always label theoretical content explicitly:**
+
+```markdown
+> **Theoretical consideration**: While we haven't hit this limit, the documentation
+> suggests throughput degrades beyond 10K connections per node.
+```
+
+vs.
+
+```markdown
+> **Production observation**: At 8,500 connections, we observed connection timeouts
+> increase from 0.1% to 4.2%, triggering our alerting threshold.
+```
+
 ## Article Structure
 
 ### Required Sections
@@ -355,6 +434,9 @@ Before publishing, verify:
 - [ ] All claims are backed by references
 - [ ] Trade-offs are explicitly discussed
 - [ ] Edge cases and failure modes are covered
+- [ ] Reading time is under 60 minutes (ideally under 30)
+- [ ] Real-world examples outweigh theoretical explanations
+- [ ] Theoretical content is explicitly labeled as such
 
 ### Technical Accuracy
 
@@ -366,9 +448,11 @@ Before publishing, verify:
 ### Writing Quality
 
 - [ ] No padding or unnecessary explanations
+- [ ] No filler sentences ("In this section...", "As mentioned...")
 - [ ] Active voice preferred
 - [ ] Technical terms used precisely
 - [ ] Consistent terminology throughout
+- [ ] Every paragraph earns its place (removal test passed)
 
 ### Formatting
 
@@ -378,6 +462,51 @@ Before publishing, verify:
 - [ ] All images have alt text and captions
 - [ ] References section is complete
 
+## Senior Engineer Writing Guidelines
+
+The target audience is experienced software professionals (senior/staff/principal engineers). These guidelines ensure content respects their expertise while providing differentiated value.
+
+### Opening and Context
+
+- **Hook with business impact**: Start with a 2-3 sentence scenario that grounds the reader in why this topic matters *now*. Senior engineers don't need hand-holding, but context for business relevance is valuable.
+- **Expand acronyms on first use**: The first time an acronym or short-form appears, include the full form in parentheses, e.g., `SSR (Server-Side Rendering)`. After that, use the short form only.
+- **Terminology table for jargon-heavy articles**: If an article uses many domain-specific terms that readers should understand upfront, add a "Terminology" section near the beginning (after the TLDR). Use a two-column table:
+
+  | Term | Definition |
+  |------|------------|
+  | SSR | Server-Side Rendering — HTML generated on each request by the server |
+  | CLS | Cumulative Layout Shift — measures visual stability as elements load |
+
+- **Forward reference lessons learned**: If the article has a "Lessons Learned" or "War Stories" section, reference it in the introduction. Senior engineers value real failures over theory.
+
+### Content Structure for Case Studies
+
+- **TLDR summarizes; body provides evidence**: When Part 1 follows a TLDR, add a transition like "The TLDR above summarizes the core drivers. This section provides the detailed evidence and quantified business impact."
+- **Reduce TLDR/body redundancy**: Don't repeat the same points. TLDR gives the summary; body sections expand with quantified impacts and detailed analysis.
+- **Lessons Learned before Conclusion**: Place real-world missteps and war stories *before* the Conclusion—this differentiated content should be prominent, not buried.
+
+### Code Examples
+
+- **Production-ready patterns**: Code examples must address real concerns like session persistence, error handling, and security.
+- **Annotate non-obvious decisions**: Add comments explaining *why* a particular approach was chosen, not just what it does.
+- **Include production notes**: After code blocks, add callouts for production considerations (e.g., "For true user-level consistency, persist the UUID in a cookie").
+
+### Warning Callouts
+
+- **Forward reference detailed explanations**: When a concept has complications explained elsewhere (like race conditions), add a warning callout with a cross-reference:
+  > **⚠️ Implementation Warning:** [Brief description of the issue]. See "[Section Name]" for the detailed solution.
+
+### Observability and Operations
+
+- **Specific tool recommendations**: When discussing monitoring, provide concrete stack recommendations (e.g., "Vercel Analytics, Datadog RUM, or New Relic Browser for RUM").
+- **Alerting thresholds**: Include specific thresholds to alert on (e.g., "p95 TTFB > 800ms, cache hit rate < 90%").
+
+### Voice and Tone
+
+- **Active voice in technical sections**: Use "we observed", "requires", "triggers" instead of "was observed", "is required", "can be triggered".
+- **Own mistakes explicitly**: When describing failures, use "we failed to address" not "wasn't addressed".
+- **Authoritative but not arrogant**: Present technical decisions with confidence while acknowledging trade-offs.
+
 ## Anti-Patterns to Avoid
 
 ### Content Anti-Patterns
@@ -386,6 +515,10 @@ Before publishing, verify:
 - **Obvious statements**: "Security is important" (provide specific security implications instead)
 - **Unsubstantiated opinions**: "This is the best approach" (explain why with trade-offs)
 - **Outdated references**: Citing deprecated features or old versions
+- **Repeating acronym expansions**: Expand acronyms only on first use; repeating "SSR (Server-Side Rendering)" throughout is distracting
+- **Filler sentences**: "In this section, we will explore..." or "As we mentioned earlier..." — just state the content
+- **Theoretical-only content**: "Distributed systems are complex" without specific production examples
+- **Padding for length**: Adding content to make an article seem more comprehensive rather than more valuable
 
 ### Structure Anti-Patterns
 
@@ -393,6 +526,8 @@ Before publishing, verify:
 - **Walls of text**: Break up with diagrams, code, and tables
 - **Shallow TLDR**: The TLDR should be genuinely useful, not just a teaser
 - **Missing edge cases**: Real systems deal with edge cases
+- **Burying lessons learned**: War stories and real failures should be prominent, not at the very end
+- **Redundant TLDR and body**: If TLDR covers a point, the body should expand with evidence, not repeat
 
 ### Code Anti-Patterns
 
@@ -400,6 +535,7 @@ Before publishing, verify:
 - **Missing error handling**: Include realistic error handling
 - **Unexplained magic numbers**: Comment or explain constants
 - **Over-simplified**: Don't hide important complexity
+- **Missing production considerations**: Code should address real concerns like persistence, security, session handling
 
 ## Drafts Workflow
 

@@ -4,34 +4,40 @@
     "id": "system-design-fundamentals",
     "name": "System Design Fundamentals",
     "description": "System design foundations and real-world problems - caching strategies, consistency models, URL shorteners, and more",
-    "featured": true
+    "featured": true,
+  },
+  {
+    "id": "design-problems",
+    "name": "Design Problems",
+    "description": "In-depth explorations of common system design problems - load balancers, databases, messaging systems, and more",
+    "featured": false,
   },
   // DSA - data structures and algorithms
   {
     "id": "dsa",
     "name": "Data Structures & Algorithms",
     "description": "Common data structures, algorithm patterns, complexity analysis, and problem-solving techniques",
-    "featured": true
+    "featured": true,
   },
   // Leadership - engineering leadership and behavioral topics
   {
     "id": "leadership",
     "name": "Engineering Leadership",
     "description": "Technical leadership, team building, hiring, technical strategy, and behavioral interview preparation",
-    "featured": true
+    "featured": true,
   },
   // Tools - development tools, services, and tech internals
   {
     "id": "tools",
     "name": "Tools",
     "description": "Deep dives into development tools, third-party services, language runtimes, and technology internals",
-    "featured": true
+    "featured": true,
   },
   // Web Fundamentals - core web concepts, performance, and protocols
   {
     "id": "web-fundamentals",
     "name": "Web Fundamentals",
     "description": "Core web concepts - performance optimization, HTTP protocols, security, accessibility, authentication, and rendering",
-    "featured": true
-  }
+    "featured": true,
+  },
 ]

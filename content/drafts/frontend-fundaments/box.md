@@ -92,3 +92,52 @@ Behaviour:
 </div>
 This will be an anonymous box
 ```
+
+## Formatting Context
+
+Formatting context family:
+
+- Flex
+- Grid
+- Inline
+- Block
+
+**Key Ideas**
+
+- Isolation: Elements within a context are shielded from the rules of external contexts.
+- Scalability: Introducing a new ruleset for elements is as simple as create a new Context (e.g. flex-box, grid)
+- Predictability: with a strict set of rules, the placement of elements is predictable.
+- Contexts can be nested.
+
+> Insert a mermaid diagram, to show nested blocks for different context family. and corresponding html snippet. Ensure it covers - explicit display property for creating a block fromatting context with inline block. also includes all type of formating context including flex and grid
+
+## Browser Positing System
+
+### Pre-requisit concepts
+
+#### Containing Block
+
+- viewport is always a containing block for the root html element
+- If the element has `position:releative`, its closest block-level ancestor element is the containing block
+- if the element has `position: relative`, it becomes a containg block
+
+### Normal Flow
+
+**RTL: Right to Left Languages**
+
+- Top to bottom
+- Left to Right
+
+**RTL: Right to Left Languages**
+
+- Top to bottom
+- Right to Left
+
+#### Changing Normal Flow
+
+`position: static | relative | absolute | sticky | fixed`
+
+- `position:static`, is for the normal flow.
+- `position:relative`, creates a new stacking context (when the value of z-index is not auto), and moves tht element relative to its static position (based on left/right/top/bottom), and doesn't affect anything else.
+
+- `position: absolute`
