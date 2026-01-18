@@ -1,0 +1,2 @@
+- https://github.com/EvgeniiRay/fundamentals-of-frontend-system-design
+- https://static.frontendmasters.com/resources/2024-05-29-systems-design/frontend-system-design-fundamentals.pdf

@@ -7,9 +7,32 @@ Astro technical blog. Strict TypeScript. Static generation. Web Vitals optimized
 **Documentation**: See `llm_docs/` directory for detailed guides:
 
 - `content.md` - Content schemas, categories, frontmatter
+- `content-guidelines.md` - Writing standards, research requirements, quality checklist
 - `markdown-features.md` - Expressive Code, Mermaid, KaTeX
 - `code-standards.md` - TypeScript, CSS, accessibility
 - `commands.md` - Commands and draft workflow
+
+## Content Operations
+
+### Write Blog Workflow
+
+When asked to "Write blog...", "Create article...", or "Write a deep-dive...":
+
+1. **Research**: Search official docs, specs, source code, benchmarks
+2. **Draft**: Create in `content/drafts/[slug]/` with notes, outline, references
+3. **Write**: Include abstract, overview diagram, TLDR, main content, references
+4. **Quality**: Why explained, trade-offs discussed, edge cases covered, claims backed
+
+### Review Blog Workflow
+
+When asked to "Review blog...", "Audit article...", or "Check blog...":
+
+1. Locate article by path or topic
+2. Fact-check claims via research
+3. Check structure: abstract, diagram, TLDR, references
+4. Assess depth and accuracy
+5. Generate report with recommendations
+6. Apply fixes if requested
 
 ## Critical Rules
 
@@ -20,12 +43,39 @@ Astro technical blog. Strict TypeScript. Static generation. Web Vitals optimized
 - No implicit `any`
 - Explicit types required
 
-### Content Files
+### Content Structure
 
-- H1 = title (auto-extracted)
-- Paragraphs after H1 = description
-- "Table of Contents" heading required
-- Filename: `YYYY-MM-DD-slug.md`
+```markdown
+# Title (auto-extracted)
+
+Abstract paragraph - sets context.
+
+<figure>
+
+```mermaid
+flowchart LR
+    A[Start] --> B[End]
+```
+
+<figcaption>Overview diagram</figcaption>
+
+</figure>
+
+## TLDR
+
+**Concept** is [definition].
+
+### Theme 1
+- **Point 1**: Description
+
+## Table of Contents
+
+## Main Content
+...
+
+## References
+- [Source](url) - Description
+```
 
 ### Code Blocks - Collapse Boilerplate
 
@@ -77,15 +127,23 @@ subcategory: category/subcategory # deep-dives only
 ---
 ```
 
-## Commands
+## Writing Standards
 
-```
-Review article: <path>
-Generate article: <topic>
-Generate article from draft: <slug>
-Create draft: <slug>
-```
+### Audience
+- Senior/staff/principal engineers
+- No common knowledge explanations
+- Production-quality code
+- Real-world considerations
 
-## Audience
+### Quality Requirements
+- Why before how (explain design rationale)
+- Trade-offs discussed explicitly
+- Edge cases and failure modes
+- All claims backed by references
 
-Experienced software professionals. Highly technical content. Each article cohesive with logical section flow.
+### Source Hierarchy
+1. Official specs (RFC, W3C, ECMA)
+2. Official documentation
+3. Source code (GitHub)
+4. Peer-reviewed papers
+5. Expert blogs

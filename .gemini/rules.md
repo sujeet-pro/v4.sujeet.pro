@@ -7,9 +7,57 @@ Astro technical blog for experienced software professionals. Strict TypeScript, 
 **Detailed Documentation**: Read `llm_docs/` for complete guidelines:
 
 - `content.md` - Content schemas, categories, frontmatter
+- `content-guidelines.md` - Writing standards, research requirements, quality checklist
 - `markdown-features.md` - Code highlighting, diagrams, math
 - `code-standards.md` - TypeScript, CSS, accessibility requirements
 - `commands.md` - Commands and draft workflow
+
+## Content Operations
+
+### Write Blog Workflow
+
+When asked to "Write blog...", "Create article...", or "Write a deep-dive...":
+
+1. **Deep Research**
+   - Search official documentation, specifications, RFCs
+   - Find GitHub repositories and analyze source code
+   - Look for benchmarks, expert blog posts, conference talks
+   - Cross-reference and verify claims
+
+2. **Create Draft**
+   ```
+   content/drafts/[slug]/
+   ├── _meta.yaml       # target, tags, status
+   ├── notes.md         # Research notes
+   ├── outline.md       # Structure
+   └── references.md    # Sources
+   ```
+
+3. **Required Elements**
+   - Abstract (2-4 sentences)
+   - Overview mermaid diagram
+   - Comprehensive TLDR with subsections
+   - Main content (H2/H3 hierarchy)
+   - Code examples (collapse boilerplate)
+   - References section
+
+4. **Quality Standards**
+   - Why before how (explain design rationale)
+   - Trade-offs discussed explicitly
+   - Edge cases and failure modes covered
+   - No common knowledge padding
+   - All claims backed by references
+
+### Review Blog Workflow
+
+When asked to "Review blog...", "Audit article...", or "Check blog...":
+
+1. Locate article by path or topic
+2. Fact-check claims via web research
+3. Verify structure: abstract, diagram, TLDR, references
+4. Assess depth and quality
+5. Generate report with recommendations
+6. Apply fixes if requested
 
 ## Core Requirements
 
@@ -20,12 +68,40 @@ Astro technical blog for experienced software professionals. Strict TypeScript, 
 - Use `import type` for types
 - Explicit return types
 
-### Content
+### Content Structure
 
-- Title from H1 (auto-extracted)
-- Description from paragraphs after H1
-- "Table of Contents" heading required
-- Filename format: `YYYY-MM-DD-slug.md`
+```markdown
+# Title (auto-extracted)
+
+Abstract paragraph - sets context.
+
+<figure>
+
+```mermaid
+flowchart LR
+    A[Start] --> B[End]
+```
+
+<figcaption>Overview diagram description</figcaption>
+
+</figure>
+
+## TLDR
+
+**Concept** is [definition].
+
+### Theme 1
+- **Point 1**: Description
+- **Point 2**: Description
+
+## Table of Contents
+
+## Main Section
+...
+
+## References
+- [Source](url) - Description
+```
 
 ### Code Blocks
 
@@ -82,12 +158,20 @@ type: design-doc # work only (optional)
 ---
 ```
 
-## Commands
+## Writing Standards
 
-- `Review article: <path>` - Check standards
-- `Generate article: <topic>` - New article
-- `Generate article from draft: <slug>` - From draft folder
-- `Create draft: <slug>` - New draft
+### Audience
+- Senior/staff/principal engineers
+- No common knowledge explanations
+- Production-quality examples
+- Real-world considerations
+
+### Source Quality Hierarchy
+1. Official specifications (RFC, W3C, ECMA)
+2. Official documentation
+3. Source code (GitHub)
+4. Peer-reviewed papers
+5. Expert technical blogs
 
 ## Performance
 

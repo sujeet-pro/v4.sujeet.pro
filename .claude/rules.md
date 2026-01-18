@@ -7,9 +7,41 @@ This is an Astro-based technical blog for experienced software professionals. Al
 **Documentation**: See `llm_docs/` for detailed guides:
 
 - [content.md](../llm_docs/content.md) - Content categories, schemas, frontmatter
+- [content-guidelines.md](../llm_docs/content-guidelines.md) - Writing standards, research requirements, quality checklist
 - [markdown-features.md](../llm_docs/markdown-features.md) - Expressive Code, Mermaid, KaTeX
 - [code-standards.md](../llm_docs/code-standards.md) - TypeScript, CSS, accessibility
 - [commands.md](../llm_docs/commands.md) - Commands and draft workflow
+
+## Skills Available
+
+Claude Code has specialized skills for content operations. Trigger them with these phrases:
+
+### Write Blog Skill
+
+**Trigger**: "Write blog...", "Create article...", "Write a deep-dive..."
+
+**What it does**:
+1. Performs deep web research (official docs, source code, benchmarks)
+2. Creates draft structure in `content/drafts/`
+3. Writes comprehensive content with mermaid diagrams
+4. Follows content-guidelines.md standards
+5. Validates and saves to production location
+
+**Example**: "Write blog about Node.js event loop internals"
+
+### Review Blog Skill
+
+**Trigger**: "Review blog...", "Audit article...", "Improve blog...", "Check blog..."
+
+**What it does**:
+1. Locates article by path or topic
+2. Performs fact-checking via web research
+3. Checks structure against requirements
+4. Assesses quality and depth
+5. Generates detailed report with recommendations
+6. Optionally applies fixes
+
+**Example**: "Review blog content/deep-dives/tools/2023-09-01-libuv/index.md"
 
 ## Critical Rules
 
@@ -26,6 +58,7 @@ This is an Astro-based technical blog for experienced software professionals. Al
 - **Publish date**: From filename `YYYY-MM-DD-slug.md`
 - **Required**: "Table of Contents" heading after description
 - **Audience**: Experienced professionals, highly technical
+- **Required elements**: Abstract, overview mermaid diagram, comprehensive TLDR, references
 
 ### Code Blocks
 
@@ -46,15 +79,6 @@ This is an Astro-based technical blog for experienced software professionals. Al
 - Alt text for all images
 - ARIA labels where needed
 - Keyboard navigable
-
-## Commands
-
-```
-Review article: <path>              # Review for standards
-Generate article: <topic>           # Create new article
-Generate article from draft: <slug> # From draft folder
-Create draft: <slug>                # Initialize draft
-```
 
 ## Content Categories
 
@@ -102,8 +126,14 @@ function main() {
 ### Mermaid Diagram
 
 ````markdown
+<figure>
+
 ```mermaid
 flowchart LR
     A[Start] --> B[End]
 ```
+
+<figcaption>Description of what the diagram shows</figcaption>
+
+</figure>
 ````
