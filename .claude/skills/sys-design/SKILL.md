@@ -369,7 +369,7 @@ Location: `content/posts/design-problems/YYYY-MM-DD-[slug]/index.md`
 
 ```yaml
 ---
-lastUpdatedOn: YYYY-MM-DD
+lastReviewedOn: YYYY-MM-DD
 tags:
   - system-design
   - architecture

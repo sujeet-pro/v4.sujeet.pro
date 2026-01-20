@@ -194,7 +194,7 @@ Optional:
 Use `/write-post <topic>` or manually:
 
 1. Create folder: `content/posts/[category]/YYYY-MM-DD-slug/`
-2. Create `index.md` with frontmatter (`lastUpdatedOn`, `tags`)
+2. Create `index.md` with frontmatter (`lastReviewedOn`, `tags`)
 3. Title from H1, description from paragraphs before ToC
 4. Build and validate: `npm run build && npm run validate:build`
 

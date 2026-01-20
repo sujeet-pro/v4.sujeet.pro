@@ -8,7 +8,7 @@ interface Props {
   minutesRead: string
   /** Published date (optional for in-research content) */
   publishedOn?: Date
-  lastUpdatedOn?: Date | undefined
+  lastReviewedOn?: Date | undefined
   isDraft: boolean
   class?: string
   /** Show content type badge (Writing, Deep Dive, etc.) */
@@ -19,8 +19,8 @@ interface Props {
   category?: CategoryRef
 }
 
-const { minutesRead, publishedOn, lastUpdatedOn, isDraft, class: className, showType, type, showCategory, category } = Astro.props as Props
-const hasUpdates = lastUpdatedOn && publishedOn && publishedOn.toDateString() !== lastUpdatedOn.toDateString()
+const { minutesRead, publishedOn, lastReviewedOn, isDraft, class: className, showType, type, showCategory, category } = Astro.props as Props
+const hasReviews = lastReviewedOn && publishedOn && publishedOn.toDateString() !== lastReviewedOn.toDateString()
 
 // Format date with ordinal suffix (e.g., "Published on 20th January 2026")
 function getOrdinalSuffix(day: number): string {
@@ -41,7 +41,7 @@ function formatDateWithOrdinal(date: Date): string {
 }
 
 const publishedOnTitle = publishedOn ? `Published on ${formatDateWithOrdinal(publishedOn)}` : ""
-const lastUpdatedOnTitle = lastUpdatedOn ? `Last Updated on ${formatDateWithOrdinal(lastUpdatedOn)}` : ""
+const lastReviewedOnTitle = lastReviewedOn ? `Last Reviewed on ${formatDateWithOrdinal(lastReviewedOn)}` : ""
 ---
 
 <div class:list={["frontmatter", className]}>
@@ -83,11 +83,11 @@ const lastUpdatedOnTitle = lastUpdatedOn ? `Last Updated on ${formatDateWithOrdi
   )}
 
   {
-    hasUpdates && lastUpdatedOn && (
-      <span class="frontmatter-item" title={lastUpdatedOnTitle}>
+    hasReviews && lastReviewedOn && (
+      <span class="frontmatter-item" title={lastReviewedOnTitle}>
         <Icon name="carbon:update-now" class="icon-sm" />
-        <time datetime={lastUpdatedOn.toISOString()}>
-          {lastUpdatedOn.toLocaleDateString("en-us", {
+        <time datetime={lastReviewedOn.toISOString()}>
+          {lastReviewedOn.toLocaleDateString("en-us", {
             year: "numeric",
             month: "short",
             day: "numeric",

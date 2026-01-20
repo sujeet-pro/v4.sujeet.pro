@@ -68,7 +68,7 @@ Each content type has a dedicated utility file:
 Content items are returned with unified `ContentItem` interface including:
 
 - `id`, `title`, `description`, `href`
-- `publishedOn`, `lastUpdatedOn`, `minutesRead`
+- `publishedOn`, `lastReviewedOn`, `minutesRead`
 - `tags` (resolved tag objects with id and name)
 - `type` discriminator
 

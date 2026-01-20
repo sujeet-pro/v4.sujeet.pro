@@ -39,7 +39,7 @@ interface Props {
 }
 
 const { item, allArticles } = Astro.props
-const { description, lastUpdatedOn, title, minutesRead, tags, Content, isDraft } = item
+const { description, lastReviewedOn, title, minutesRead, tags, Content, isDraft } = item
 
 const crumbs = [{ name: "In Research", href: "/in-research" }]
 ---
@@ -93,7 +93,7 @@ const crumbs = [{ name: "In Research", href: "/in-research" }]
     </nav>
   </details>
 
-  <Frontmatter slot="content-top" {minutesRead} {lastUpdatedOn} {isDraft} class="my-4" />
+  <Frontmatter slot="content-top" {minutesRead} {lastReviewedOn} {isDraft} class="my-4" />
 
   <!-- Main content (default slot) -->
   <article class="article-prose-content">

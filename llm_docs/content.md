@@ -31,7 +31,7 @@ The filename determines:
 
 ```markdown
 ---
-lastUpdatedOn: 2024-01-15
+lastReviewedOn: 2024-01-15
 tags:
   - tag-id
 subcategory: system-design/foundations # deep-dives only

@@ -49,7 +49,7 @@ interface BaseContentItem {
   minutesRead: string
   description: string
   publishedOn: Date
-  lastUpdatedOn?: Date | undefined
+  lastReviewedOn?: Date | undefined
   isDraft: boolean
   tags: Tag[]
   Content: RenderResult["Content"]
@@ -91,7 +91,7 @@ interface BaseInResearchItem {
   title: string
   minutesRead: string
   description: string
-  lastUpdatedOn?: Date | undefined
+  lastReviewedOn?: Date | undefined
   isDraft: boolean
   tags: Tag[]
   Content: RenderResult["Content"]

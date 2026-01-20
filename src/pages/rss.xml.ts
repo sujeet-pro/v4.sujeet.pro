@@ -15,7 +15,7 @@ export const GET: APIRoute = async () => {
     stylesheet: getFilePath("rss", "styles.xsl"),
     items: allContent.map((item) => {
       const postUrl = getLinkProps({ href: item.href }).href
-      const lastModDate = item.lastUpdatedOn ?? item.publishedOn
+      const lastModDate = item.lastReviewedOn ?? item.publishedOn
       return {
         title: item.title,
         description: item.description,

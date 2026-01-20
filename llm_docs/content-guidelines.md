@@ -407,7 +407,7 @@ higher for I/O-bound work with high latency.
 
 ```yaml
 ---
-lastUpdatedOn: YYYY-MM-DD  # ISO date of last significant update
+lastReviewedOn: YYYY-MM-DD  # ISO date of last significant update
 tags:                       # Relevant tags from tags.jsonc
   - tag-one
   - tag-two
@@ -476,7 +476,7 @@ Before publishing, verify:
 - [ ] Code examples compile/run correctly
 - [ ] Performance claims have benchmarks or citations
 - [ ] Architecture diagrams match described behavior
-- [ ] No outdated information (check lastUpdatedOn)
+- [ ] No outdated information (check lastReviewedOn)
 
 ### Writing Quality
 

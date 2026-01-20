@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2026-01-21
+lastReviewedOn: 2026-01-21
 featured: true
 tags:
   - js
@@ -278,7 +278,7 @@ Layout is where the browser calculates the exact size and position of every elem
 
 Every element in the render tree generates a box with four distinct areas:
 
-```ascii-art
+```plain
 ┌─────────────────────────────────────────┐
 │                 MARGIN                  │
 │   ┌─────────────────────────────────┐   │

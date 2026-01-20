@@ -37,7 +37,7 @@ flowchart TD
     G -->|--fix-all| H[Apply All Fixes]
     G -->|--fix-critical| I[Apply Critical Only]
     G -->|No flags| J[Report Only]
-    H --> K[Update lastUpdatedOn]
+    H --> K[Update lastReviewedOn]
     I --> K
     J --> L[Add to Summary]
     K --> L
@@ -122,12 +122,12 @@ For each article, follow `/review-posts` workflow:
 
 **With `--fix-all`:**
 - Apply all fixes
-- Update lastUpdatedOn
+- Update lastReviewedOn
 - Run build validation at end
 
 **With `--fix-critical`:**
 - Apply critical fixes only
-- Update lastUpdatedOn
+- Update lastReviewedOn
 
 **Without flags:**
 - Generate report
@@ -194,7 +194,7 @@ For each article, follow `/review-posts` workflow:
 
 - Critical issues fixed: [N]
 - Improvements applied: [N]
-- lastUpdatedOn updated: [N] files
+- lastReviewedOn updated: [N] files
 
 ## Next Steps
 
@@ -313,7 +313,7 @@ Found **24** articles. Auto-fixing enabled.
 - Added 3 inline references
 - Updated code blocks with collapse
 - Added trade-off table
-- Updated lastUpdatedOn
+- Updated lastReviewedOn
 
 ---
 ### Reviewing Article 2 of 24

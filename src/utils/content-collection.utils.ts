@@ -96,7 +96,7 @@ async function processAllPosts(): Promise<ContentItem[]> {
       minutesRead: frontmatter.minutesRead,
       description: frontmatter.description,
       publishedOn: frontmatter.publishedOn,
-      lastUpdatedOn: item.data.lastUpdatedOn,
+      lastReviewedOn: item.data.lastReviewedOn,
       isDraft: frontmatter.isDraft,
       tags,
       Content,

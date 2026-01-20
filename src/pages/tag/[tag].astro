@@ -30,10 +30,7 @@ export async function getStaticPaths() {
 
 const { tag, content } = Astro.props
 const crumbs = [
-  {
-    title: "Tags",
-    href: "/tag",
-  },
+  { name: "Tags", href: "/tag" },
 ]
 
 // Sort content by publishedOn date (newest first)

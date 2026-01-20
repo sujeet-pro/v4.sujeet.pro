@@ -313,7 +313,7 @@ Move from drafts to production:
 
 ```yaml
 ---
-lastUpdatedOn: YYYY-MM-DD
+lastReviewedOn: YYYY-MM-DD
 tags:
   - tag-one
   - tag-two

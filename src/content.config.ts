@@ -102,7 +102,7 @@ const categories = defineCollection({
 // Category is automatically injected from folder path by remark-frontmatter-plugin
 // Format: content/posts/<post-type>/<category>/[optional-nesting/]<date>-<slug>.md
 const baseContentSchema = z.object({
-  lastUpdatedOn: z.coerce.date().optional(),
+  lastReviewedOn: z.coerce.date().optional(),
   tags: z.array(z.string()).optional().default([]),
   // Category is derived from folder structure (posts/<post-type>/<category>/...)
   // Can be overridden in frontmatter if needed
@@ -132,7 +132,7 @@ const inResearch = defineCollection({
     base: "./content/in-research",
   }),
   schema: z.object({
-    lastUpdatedOn: z.coerce.date().optional(),
+    lastReviewedOn: z.coerce.date().optional(),
     tags: z.array(z.string()).optional().default([]),
   }),
 })

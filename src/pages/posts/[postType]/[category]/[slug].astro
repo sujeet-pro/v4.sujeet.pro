@@ -57,7 +57,7 @@ interface Props {
 }
 
 const { post, categoryArticles, nextPost, prevPost } = Astro.props
-const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft, category, postType } = post
+const { description, publishedOn, lastReviewedOn, title, minutesRead, tags, Content, isDraft, category, postType } = post
 
 const parentLabel = POST_TYPE_LABELS[postType]
 const crumbs = [
@@ -122,7 +122,7 @@ const showCategoryNav = categoryArticles.length > 0
     </details>
   )}
 
-  <Frontmatter slot="content-top" {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} class="my-4" />
+  <Frontmatter slot="content-top" {minutesRead} {publishedOn} {lastReviewedOn} {isDraft} class="my-4" />
 
   <!-- Main content (default slot) -->
   <article class="article-prose-content">

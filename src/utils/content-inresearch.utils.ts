@@ -33,7 +33,7 @@ async function processAllInResearch(): Promise<InResearchContent[]> {
       title: frontmatter.title,
       minutesRead: frontmatter.minutesRead,
       description: frontmatter.description,
-      lastUpdatedOn: item.data.lastUpdatedOn,
+      lastReviewedOn: item.data.lastReviewedOn,
       isDraft: frontmatter.isDraft,
       tags,
       Content,

@@ -47,7 +47,7 @@ content/in-research/**/*[topic]*.md
 ## Phase 2: Initial Analysis
 
 ### Metadata Check
-- [ ] `lastUpdatedOn` present and recent
+- [ ] `lastReviewedOn` present and recent
 - [ ] Tags from tags.jsonc
 - [ ] Valid YAML frontmatter
 
@@ -194,7 +194,7 @@ function helperTwo() { /* ... */ }
 ## Summary
 **Overall Quality**: [Excellent/Good/Needs Work/Major Issues]
 **Technical Accuracy**: [Score/5]
-**Last Updated**: [Date]
+**Last Reviewed**: [Date]
 
 ## Critical Issues
 ### Issue 1: [Title]
@@ -230,12 +230,12 @@ function helperTwo() { /* ... */ }
 
 **With `--fix-critical`:**
 1. Apply critical issues
-2. Update `lastUpdatedOn`
+2. Update `lastReviewedOn`
 3. Report remaining issues
 
 **With `--fix-all`:**
 1. Apply all fixes
-2. Update `lastUpdatedOn`
+2. Update `lastReviewedOn`
 3. Run validation
 
 ### Common Fixes
