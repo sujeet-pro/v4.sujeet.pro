@@ -1156,6 +1156,33 @@ td {
   outline-color: var(--color-accent);
 }
 
+/* Screen reader only - hides content visually but keeps it for assistive tech */
+.sr-only {
+  @apply absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Skip to main content link - visible on focus for keyboard navigation */
+.skip-link {
+  @apply absolute left-0 top-0 z-50;
+  @apply px-4 py-2 font-medium;
+  background: var(--color-accent);
+  color: white;
+  transform: translateY(-100%);
+  transition: transform var(--transition-fast);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
 /* ==========================================================================
    SEARCH PAGE COMPONENTS
    ========================================================================== */

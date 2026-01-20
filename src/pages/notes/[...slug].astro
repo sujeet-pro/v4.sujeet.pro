@@ -1,11 +1,10 @@
 ---
 import { getNotesIncludingDrafts } from "@/utils/content-collection.utils"
 import Layout from "@/layout/layout.astro"
-import ArticleWithTOC from "@/components/article-with-toc.astro"
+import ArticleNavigation from "@/components/article-navigation.astro"
+import ArticleTags from "@/components/article-tags.astro"
 import TOC from "@/components/toc.astro"
-import Item from "@/components/item.astro"
 import Frontmatter from "@/components/frontmatter.astro"
-import Link from "@/components/link.astro"
 import ReadingProgress from "@/components/reading-progress.astro"
 
 // Generate static paths for all notes (including drafts)
@@ -37,44 +36,19 @@ const crumbs = [
 ---
 
 <Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft} layout="3col">
-  <ReadingProgress />
-
   <!-- TOC in right sidebar -->
   <TOC slot="sidebar-right" />
 
-  <!-- Main content -->
-  <Frontmatter {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} class="my-4" />
+  <!-- Content top (above main) -->
+  <ReadingProgress slot="content-top" />
+  <Frontmatter slot="content-top" {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} class="my-4" />
 
-  <main>
-    <ArticleWithTOC>
-      <Content />
-    </ArticleWithTOC>
-  </main>
+  <!-- Main content (default slot) -->
+  <article class="article-prose-content">
+    <Content />
+  </article>
 
-  {
-    tags.length > 0 && (
-      <section class="sp-border-muted mt-12 border-t pt-12">
-        <h2 class="mb-6 text-2xl font-light">Tags</h2>
-        <div class="flex flex-wrap gap-2">
-          {tags.map((tag) => (
-            <Link href={tag.href} class="px-3 py-1 text-sm">
-              #{tag.name}
-            </Link>
-          ))}
-        </div>
-      </section>
-    )
-  }
-
-  {
-    (prevItem || nextItem) && (
-      <section class="mt-12">
-        <h2 class="mb-6 text-2xl font-light">Read more</h2>
-        <ul class="flex flex-col">
-          {prevItem && <Item textHeading="Next" item={prevItem} />}
-          {nextItem && <Item textHeading="Previous" item={nextItem} />}
-        </ul>
-      </section>
-    )
-  }
+  <!-- Content bottom (below main) -->
+  <ArticleTags slot="content-bottom" {tags} />
+  <ArticleNavigation slot="content-bottom" {prevItem} {nextItem} />
 </Layout>

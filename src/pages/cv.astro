@@ -68,11 +68,11 @@ import { Icon } from "astro-icon/components"
 
       <div class="space-y-8">
         <div>
-          <div class="mb-2 flex items-start justify-between">
+          <div class="cv-heading-row">
             <h3 class="text-xl">Principal Engineer</h3>
             <span class="font-light">July 2024 - Present</span>
           </div>
-          <div class="mb-2 flex items-start justify-between">
+          <div class="cv-heading-row">
             <h3 class="text-xl">Technical Lead</h3>
             <span class="font-light">May 2023 - April 2024</span>
           </div>
@@ -112,7 +112,7 @@ import { Icon } from "astro-icon/components"
         </div>
 
         <div>
-          <div class="mb-2 flex items-start justify-between">
+          <div class="cv-heading-row">
             <h3 class="text-xl">Lead Software Engineer / Acting Engineering Manager</h3>
             <span class="font-light">Aug 2020 - May 2023</span>
           </div>
@@ -151,7 +151,7 @@ import { Icon } from "astro-icon/components"
         </div>
 
         <div>
-          <div class="mb-2 flex items-start justify-between">
+          <div class="cv-heading-row">
             <h3 class="text-xl">Lead Software Engineer</h3>
             <span class="font-light">Feb 2020 - Aug 2020</span>
           </div>
@@ -172,11 +172,11 @@ import { Icon } from "astro-icon/components"
         </div>
 
         <div>
-          <div class="mb-2 flex items-start justify-between">
+          <div class="cv-heading-row">
             <h3 class="text-xl">Specialist Programmer - Expert Track</h3>
             <span class="font-light">Feb 2016 - Nov 2019</span>
           </div>
-          <div class="mb-2 flex items-start justify-between">
+          <div class="cv-heading-row">
             <h3 class="text-xl">Software Engineer</h3>
             <span class="font-light">Oct 2014 - Feb 2016</span>
           </div>
@@ -229,19 +229,41 @@ import { Icon } from "astro-icon/components"
     </section>
 
     <!-- Download CV -->
-    <div class="sp-border-muted border-t pt-8 text-center">
-      <Link href="cv-doc" isVanity class="sp-border-muted inline-flex items-center gap-2 rounded-lg border px-6 py-3">
+    <div class="cv-download-section">
+      <Link href="cv-doc" isVanity class="cv-download-btn">
         <Icon name="carbon:generate-pdf" />
         View Google Doc Version
       </Link>
-      <Link
-        href="download-cv"
-        isVanity
-        class="sp-border-muted inline-flex items-center gap-2 rounded-lg border px-6 py-3"
-      >
+      <Link href="download-cv" isVanity class="cv-download-btn">
         <Icon name="carbon:generate-pdf" />
         Download PDF Version
       </Link>
     </div>
   </div>
 </Layout>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  /* CV-specific heading with date alignment */
+  .cv-heading-row {
+    @apply mb-2 flex items-start justify-between;
+  }
+
+  /* CV download section */
+  .cv-download-section {
+    @apply border-t pt-8 text-center;
+    border-color: var(--color-border);
+  }
+
+  /* CV download button */
+  .cv-download-btn {
+    @apply inline-flex items-center gap-2 rounded-lg border px-6 py-3;
+    border-color: var(--color-border);
+    transition: border-color var(--transition-fast);
+  }
+
+  .cv-download-btn:hover {
+    border-color: var(--color-accent);
+  }
+</style>

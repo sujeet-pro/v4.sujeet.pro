@@ -73,6 +73,7 @@ const searchIndexPath = getFilePath("search/index.json")
     <link rel="alternate" type="text/plain" href={getFilePath("llms-full.txt")} title="LLM Full Content" />
   </head>
   <body>
+    <a href="#main" class="skip-link">Skip to main content</a>
     <Header />
     {layout === "3col" ? (
       <!-- 3-column layout: sidebars outside content, content centered -->
@@ -85,7 +86,11 @@ const searchIndexPath = getFilePath("search/index.json")
         <!-- Center content column -->
         <div class="layout-3col-content">
           {crumbs ? <Breadcrumb {crumbs} /> : null}
-          <slot />
+          <slot name="content-top" />
+          <main id="main">
+            <slot />
+          </main>
+          <slot name="content-bottom" />
         </div>
 
         <!-- Right sidebar column -->
@@ -95,7 +100,7 @@ const searchIndexPath = getFilePath("search/index.json")
       </div>
     ) : (
       <!-- Default layout: constrained width -->
-      <main class="flex-1">
+      <main id="main" class="flex-1">
         <div class="content-container">
           {crumbs ? <Breadcrumb {crumbs} /> : null}
           <slot />

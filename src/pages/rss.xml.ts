@@ -10,7 +10,7 @@ export const GET: APIRoute = async () => {
   // Use Astro's site and base config for URLs
   const rssOptions: RSSOptions = {
     title: "Sujeet's Blog",
-    description: "Technical blog covering web development, system design, performance optimization, and engineering leadership.",
+    description: "Technical blog covering web development, system design, and performance optimization.",
     site: site + getLinkProps({ href: "/" }).href,
     stylesheet: getFilePath("rss", "styles.xsl"),
     items: allContent.map((item) => {

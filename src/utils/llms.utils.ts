@@ -80,7 +80,7 @@ export async function generateLlmsTxt(): Promise<string> {
   // Header
   lines.push("# Sujeet Jaiswal - Technical Blog")
   lines.push("")
-  lines.push("> Personal technical blog covering web development, system design, performance optimization, and engineering leadership. Written by a Frontend Principal Engineer with expertise in building scalable web applications.")
+  lines.push("> Personal technical blog covering web development, system design, and performance optimization. Written by a Frontend Principal Engineer with expertise in building scalable web applications.")
   lines.push("")
   lines.push("This site contains in-depth technical content and casual technical notes. For the complete content in a single file, see /llms-full.txt")
   lines.push("")

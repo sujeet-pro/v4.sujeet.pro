@@ -19,13 +19,6 @@
     "name": "DSA",
     "description": "Common data structures, algorithm patterns, complexity analysis, and problem-solving techniques"
   },
-  // Leadership - engineering leadership and behavioral topics
-  {
-    "id": "leadership",
-    "title": "Engineering Leadership",
-    "name": "Leadership",
-    "description": "Technical leadership, team building, hiring, technical strategy, and behavioral interview preparation"
-  },
   // Tools - development tools, services, and tech internals
   {
     "id": "tools",

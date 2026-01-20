@@ -36,7 +36,7 @@ const crumbs: { title: string; href: string }[] = []
           const items = contentByType.get(type) || []
           const categories = categoriesByType.get(type) || []
           return (
-            <div class="rounded-lg border p-4" style="border-color: var(--color-border);">
+            <div class="browse-card">
               <h3 class="mb-2 text-lg font-medium">
                 <Link href={`/${type}`} class="hover:underline">
                   {CONTENT_TYPE_LABELS[type]}
@@ -77,7 +77,7 @@ const crumbs: { title: string; href: string }[] = []
           </h2>
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {categories.map((cat) => (
-              <div class="rounded-lg border p-4" style="border-color: var(--color-border);">
+              <div class="browse-card">
                 <h3 class="mb-2 font-medium">
                   <Link href={cat.href} class="hover:underline">
                     {cat.name}
@@ -114,3 +114,17 @@ const crumbs: { title: string; href: string }[] = []
     </div>
   </section>
 </Layout>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  .browse-card {
+    @apply rounded-lg border p-4;
+    border-color: var(--color-border);
+    transition: border-color var(--transition-fast);
+  }
+
+  .browse-card:hover {
+    border-color: var(--color-accent);
+  }
+</style>
