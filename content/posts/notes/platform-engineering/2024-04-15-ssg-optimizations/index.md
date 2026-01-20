@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2024-04-15
+lastUpdatedOn: 2026-01-21
 featured: true
 tags:
   - ssg
@@ -90,16 +90,6 @@ Master production-grade SSG architecture with deployment strategies, performance
 - **Monitoring**: Real-time metrics, performance monitoring, error tracking
 - **SEO Optimization**: Static sitemaps, meta tags, structured data
 - **Security**: HTTPS enforcement, security headers, CSP policies
-
-
-- [Part 1: Deconstructing Static Site Generation (SSG)](#part-1-deconstructing-static-site-generation-ssg)
-- [Part 2: The Rendering Spectrum: SSG vs. SSR vs. CSR](#part-2-the-rendering-spectrum-ssg-vs-ssr-vs-csr)
-- [Part 3: Advanced SSG Architecture on AWS: Deployment and Rollback Strategies](#part-3-advanced-ssg-architecture-on-aws-deployment-and-rollback-strategies)
-- [Part 4: Performance Tuning: Conquering Cumulative Layout Shift (CLS)](#part-4-performance-tuning-conquering-cumulative-layout-shift-cls)
-- [Part 5: Asset Delivery Optimization: Serving Pre-Compressed Files](#part-5-asset-delivery-optimization-serving-pre-compressed-files)
-- [Part 6: Enhancing User Experience: Sophisticated Redirection Strategies](#part-6-enhancing-user-experience-sophisticated-redirection-strategies)
-- [Part 7: Advanced Deployment Patterns: Blue-Green and Canary Releases](#part-7-advanced-deployment-patterns-blue-green-and-canary-releases)
-- [Conclusion: Building for the Future with SSG](#conclusion-building-for-the-future-with-ssg)
 
 ## Part 1: Deconstructing Static Site Generation (SSG)
 

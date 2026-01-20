@@ -1,16 +1,80 @@
 ---
-lastUpdatedOn: 2023-05-02
+lastUpdatedOn: 2026-01-21
 tags:
   - web-performance
-  - caching
+  - images
   - frontend
   - performance
+  - compression
 ---
 
 # Image Formats for Web Performance
 
-Master modern image formats including JPEG, WebP, AVIF, and PNG, understanding compression algorithms, color spaces, HDR support, and optimal deployment strategies.
+Master modern image formats including JPEG, WebP, AVIF, and PNG, understanding compression algorithms, color spaces, HDR support, and optimal deployment strategies for balancing quality, file size, and browser compatibility.
 
+<figure>
+
+```mermaid
+flowchart LR
+    subgraph "Compression Efficiency vs JPEG"
+        JPEG["JPEG<br/>1× (baseline)"]
+        WebP["WebP<br/>25-34% smaller"]
+        AVIF["AVIF<br/>30-50% smaller"]
+        JXL["JPEG XL<br/>20-50% smaller"]
+    end
+
+    subgraph "Format Selection"
+        Photo["Photography"] --> AVIF
+        AVIF --> WebP
+        WebP --> JPEG
+
+        Graphics["Graphics/UI"] --> PNG
+        PNG --> WebP
+    end
+```
+
+<figcaption>Modern image format compression efficiency and fallback chain for web delivery</figcaption>
+
+</figure>
+
+## TLDR
+
+**Image format selection** balances compression efficiency, feature support (alpha, HDR, animation), browser compatibility, and encoding cost—modern formats like AVIF and WebP offer 25-50% smaller files than JPEG with progressive fallback strategies.
+
+### Format Comparison
+
+- **JPEG**: Universal support, 8-bit only, no alpha, lossy DCT compression, progressive loading via spectral selection
+- **PNG**: Lossless, alpha support, 1-16 bit depth, larger files, best for graphics/text/screenshots
+- **WebP**: 25-34% smaller than JPEG, lossy/lossless modes, 8-bit alpha, animation support, 95%+ browser support
+- **AVIF**: 30-50% smaller than JPEG, HDR (PQ/HLG BT.2100), 8-12 bit depth, but 8-10× slower encoding
+
+### HDR and Wide Gamut Support
+
+- **JPEG/PNG/WebP**: 8-bit sRGB only, no true HDR capability
+- **AVIF**: PQ/HLG transfer functions, BT.2100 wide gamut, film-grain synthesis
+- **JPEG XL**: Up to 32-bit depth, full Rec.2100 HDR, lossless JPEG transcoding with 20% size reduction
+- **HEIF/HEIC**: iOS default, 50% smaller than JPEG, but limited non-Apple support
+
+### Compression Algorithms
+
+- **JPEG**: 8×8 DCT blocks → quantization → Huffman coding, blocking artifacts at high compression
+- **WebP Lossy**: VP8 intra-frame, 16×16 macroblocks, prediction + residual DCT
+- **AVIF**: AV1 intra-frame with tiles, transforms, CDEF, loop filters, CABAC entropy coding
+- **PNG**: Predictive filtering → DEFLATE (LZ77 + Huffman), lossless but larger
+
+### Deployment Strategy
+
+- **Photography Stack**: `<picture>` with AVIF → WebP → JPEG fallback chain
+- **Graphics/Logos**: WebP lossless → PNG, or SVG for vector graphics
+- **Animation**: WebP animation → MP4 fallback (avoid GIF for quality/size)
+- **Responsive Images**: `srcset` with width descriptors, `sizes` for layout hints
+
+### Performance Trade-offs
+
+- **Encoding Cost**: JPEG (fast) < WebP (2-3×) < AVIF (8-10×) ≈ JPEG XL (moderate)
+- **Decoding Cost**: All modern formats decode efficiently; AVIF benefits from multi-threaded decoding
+- **Progressive Loading**: JPEG progressive, PNG Adam7 interlace, JPEG XL saliency-based
+- **Browser Support**: JPEG/PNG (universal), WebP (95%+), AVIF (90%+), JPEG XL (experimental)
 
 ## Digital Image Format Analysis: Compression Algorithms, Color Spaces, and Web Delivery Optimization
 
@@ -158,3 +222,13 @@ Digital imaging formats trade off between **compression efficiency**, **color fi
 # 15. Conclusion
 
 Selecting an image format requires balancing compression, fidelity, feature support, and compatibility. Today's experts should adopt **WebP** and **AVIF** for immediate web performance gains, plan for **JPEG XL** & **PNG 2.0** as future standards, and maintain legacy **JPEG/PNG** support to ensure universal accessibility. Continuous monitoring of browser support and encoder optimizations will guide optimal format strategies.
+
+## References
+
+- [WebP Compression Study](https://developers.google.com/speed/webp/docs/webp_study) - Google's WebP vs JPEG analysis
+- [AVIF Specification (AV1 Image File Format)](https://aomediacodec.github.io/av1-avif/) - Alliance for Open Media
+- [JPEG XL Reference Implementation (libjxl)](https://github.com/libjxl/libjxl) - Official codec with benchmarks
+- [Can I Use: Image Formats](https://caniuse.com/?search=image%20format) - Browser support tables for WebP, AVIF, JPEG XL
+- [Squoosh](https://squoosh.app/) - Google's image compression comparison tool
+- [JPEG Standard (ISO/IEC 10918-1)](https://www.w3.org/Graphics/JPEG/itu-t81.pdf) - ITU-T Recommendation T.81
+- [PNG Specification (ISO/IEC 15948)](https://www.w3.org/TR/PNG/) - W3C Recommendation

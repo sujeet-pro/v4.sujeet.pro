@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2025-07-16
+lastUpdatedOn: 2026-01-21
 tags:
   - video-streaming
   - video-playback
@@ -90,16 +90,6 @@ Learn the complete video delivery pipeline from codecs and compression to adapti
 - **Ultra-Low Latency**: Sub-second streaming, interactive applications, real-time communication
 - **Quality Focus**: QoE optimization, intelligent adaptation, personalized experiences
 - **Hybrid Systems**: Dynamic protocol selection, adaptive architectures, intelligent routing
-
-
-- [Introduction](#introduction)
-- [The Foundation - Codecs and Compression](#the-foundation---codecs-and-compression)
-- [Packaging and Segmentation](#packaging-and-segmentation)
-- [The Protocols of Power - HLS and MPEG-DASH](#the-protocols-of-power---hls-and-mpeg-dash)
-- [Securing the Stream - Digital Rights Management](#securing-the-stream---digital-rights-management)
-- [The New Frontier - Ultra-Low Latency](#the-new-frontier---ultra-low-latency)
-- [Architecting a Resilient Video Pipeline](#architecting-a-resilient-video-pipeline)
-- [Conclusion](#conclusion)
 
 ## Introduction
 

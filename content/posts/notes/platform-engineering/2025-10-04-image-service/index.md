@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2025-10-04
+lastUpdatedOn: 2026-01-21
 featured: true
 tags:
   - platform-engineering
@@ -11,23 +11,6 @@ tags:
 # Building a Multi-Tenant Image Service Platform
 
 This document presents the architectural design for a cloud-agnostic, multi-tenant image processing platform that provides on-the-fly transformations with enterprise-grade security, performance, and cost optimization. The platform supports hierarchical multi-tenancy (Organization → Tenant → Space), public and private image delivery, and deployment across AWS, GCP, Azure, or on-premise infrastructure. Key capabilities include deterministic transformation caching to ensure sub-second delivery, signed URL generation for secure private access, CDN integration for global edge caching, and a "transform-once-serve-forever" approach that minimizes processing costs while guaranteeing HTTP 200 responses even for first-time transformation requests.
-
-
-- [System Overview](#system-overview)
-- [Component Naming](#component-naming)
-- [Architecture Principles](#architecture-principles)
-- [Technology Stack](#technology-stack)
-- [High-Level Architecture](#high-level-architecture)
-- [Data Models](#data-models)
-- [URL Design](#url-design)
-- [Core Request Flows](#core-request-flows)
-- [Image Processing Pipeline](#image-processing-pipeline)
-- [Security & Access Control](#security--access-control)
-- [Deployment Architecture](#deployment-architecture)
-- [Cost Optimization](#cost-optimization)
-- [Monitoring & Operations](#monitoring--operations)
-
----
 
 ## System Overview
 

@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2024-09-23
+lastUpdatedOn: 2026-01-21
 tags:
   - system-design
   - distributed-systems

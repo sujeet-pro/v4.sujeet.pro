@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2024-06-08
+lastUpdatedOn: 2026-01-21
 tags:
   - performance-testing
   - web-performance
@@ -19,13 +19,6 @@ featuredRank: 1
 
 Master advanced web performance patterns including Islands Architecture, caching strategies, performance monitoring, and CI/CD automation for building high-performance web applications.
 
-
-1. [Architectural Performance Patterns](#1-architectural-performance-patterns)
-2. [Advanced Caching Strategies](#2-advanced-caching-strategies)
-3. [Performance Budgets and Monitoring](#3-performance-budgets-and-monitoring)
-4. [Third-Party Script Management](#4-third-party-script-management)
-5. [CI/CD Performance Automation](#5-cicd-performance-automation)
-6. [Performance Trade-offs and Constraints](#6-performance-trade-offs-and-constraints)
 
 ## TLDR; Strategic Performance Architecture
 

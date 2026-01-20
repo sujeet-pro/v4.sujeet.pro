@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2023-09-13
+lastUpdatedOn: 2026-01-21
 tags:
   - js
   - ts
@@ -85,17 +85,6 @@ flowchart TB
 - **Linux Kernel**: Page cache historically used a two-list active/inactive approach; modern kernels (5.18+) support Multi-Generational LRU (MGLRU) for improved performance
 - **Memcached**: Implements LRU with slab allocator for memory efficiency
 - **CDNs**: Often use LRU variants with size-aware eviction for content delivery
-
-- [The Classic: Understanding LRU](#the-classic-understanding-lru)
-- [LRU Implementation: O(1) Magic](#lru-implementation-o1-magic)
-- [When LRU Fails: The Achilles' Heel](#when-lru-fails-the-achilles-heel)
-- [Beyond LRU: Modern Alternatives](#beyond-lru-modern-alternatives)
-  - [LRU-K: Adding Frequency Memory](#lru-k-adding-frequency-memory)
-  - [2Q: The Probationary Filter](#2q-the-probationary-filter)
-  - [ARC: Self-Tuning Intelligence](#arc-self-tuning-intelligence)
-- [Real-World Applications](#real-world-applications)
-- [Performance Comparison](#performance-comparison)
-- [Conclusion](#conclusion)
 
 ## The Classic: Understanding LRU
 

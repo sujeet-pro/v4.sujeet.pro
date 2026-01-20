@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2025-03-03
+lastUpdatedOn: 2026-01-21
 tags:
   - web-performance
   - performance-optimization
@@ -23,18 +23,6 @@ featuredRank: 1
 # Web Performance Optimization Overview
 
 Advanced techniques for optimizing web application performance across infrastructure, frontend, and modern browser capabilities. Covers Islands Architecture, HTTP/3, edge computing, JavaScript optimization, CSS rendering, image formats, font loading, caching strategies, and performance monitoring.
-
-
-1. [Architectural Performance Patterns](#1-architectural-performance-patterns)
-2. [Infrastructure and Network Optimization](#2-infrastructure-and-network-optimization)
-3. [Asset Optimization Strategies](#3-asset-optimization-strategies)
-4. [JavaScript Performance Optimization](#4-javascript-performance-optimization)
-5. [CSS and Rendering Optimization](#5-css-and-rendering-optimization)
-6. [Image and Media Optimization](#6-image-and-media-optimization)
-7. [Font Optimization](#7-font-optimization)
-8. [Caching and Delivery Strategies](#8-caching-and-delivery-strategies)
-9. [Performance Monitoring and Measurement](#9-performance-monitoring-and-measurement)
-10. [Implementation Checklist and Best Practices](#10-implementation-checklist-and-best-practices)
 
 ## Executive Summary
 

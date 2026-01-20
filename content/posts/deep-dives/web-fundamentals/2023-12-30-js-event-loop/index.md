@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2023-12-30
+lastUpdatedOn: 2026-01-21
 tags:
   - js
   - node
@@ -79,14 +79,6 @@ Master the JavaScript event loop architecture across browser and Node.js environ
 - **Performance Tools**: Event loop metrics, memory usage, CPU profiling
 - **Best Practices**: Environment-aware scheduling, proper error handling, resource management
 
-
-1. [The Abstract Concurrency Model](#the-abstract-concurrency-model)
-2. [Universal Priority System: Tasks and Microtasks](#universal-priority-system-tasks-and-microtasks)
-3. [Browser Event Loop Architecture](#browser-event-loop-architecture)
-4. [Node.js Event Loop: libuv Integration](#nodejs-event-loop-libuv-integration)
-5. [Node.js-Specific Scheduling](#nodejs-specific-scheduling)
-6. [True Parallelism: Worker Threads](#true-parallelism-worker-threads)
-7. [Best Practices and Performance Optimization](#best-practices-and-performance-optimization)
 
 ## The Abstract Concurrency Model
 

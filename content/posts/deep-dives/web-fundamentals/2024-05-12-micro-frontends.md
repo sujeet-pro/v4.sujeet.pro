@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2024-05-12
+lastUpdatedOn: 2026-01-21
 tags:
   - web-performance
   - micro-frontends

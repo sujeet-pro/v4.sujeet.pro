@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2025-04-26
+lastUpdatedOn: 2026-01-21
 tags:
   - react
   - architecture

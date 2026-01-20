@@ -126,10 +126,17 @@ function extractLinks(html: string): { assets: string[]; pages: string[] } {
   const assets: string[] = []
   const pages: string[] = []
 
+  // Remove content inside code blocks before extracting links
+  // This prevents false positives from example code in documentation
+  const htmlWithoutCode = html
+    .replace(/<code[^>]*>[\s\S]*?<\/code>/gi, "")
+    .replace(/<pre[^>]*>[\s\S]*?<\/pre>/gi, "")
+    .replace(/<samp[^>]*>[\s\S]*?<\/samp>/gi, "")
+
   // Extract href attributes
   const hrefRegex = /href="([^"]+)"/g
   let match
-  while ((match = hrefRegex.exec(html)) !== null) {
+  while ((match = hrefRegex.exec(htmlWithoutCode)) !== null) {
     const href = match[1]
     if (shouldSkip(href)) continue
     if (href.match(/\.(css|woff2?|png|jpg|jpeg|gif|svg|ico|webp|json|xml|xsl|js|mjs)$/i)) {
@@ -141,7 +148,7 @@ function extractLinks(html: string): { assets: string[]; pages: string[] } {
 
   // Extract src attributes
   const srcRegex = /src="([^"]+)"/g
-  while ((match = srcRegex.exec(html)) !== null) {
+  while ((match = srcRegex.exec(htmlWithoutCode)) !== null) {
     const src = match[1]
     if (shouldSkip(src)) continue
     assets.push(src)
@@ -149,7 +156,7 @@ function extractLinks(html: string): { assets: string[]; pages: string[] } {
 
   // Extract url() in inline styles
   const urlRegex = /url\(["']?([^"')]+)["']?\)/g
-  while ((match = urlRegex.exec(html)) !== null) {
+  while ((match = urlRegex.exec(htmlWithoutCode)) !== null) {
     const url = match[1]
     if (shouldSkip(url)) continue
     assets.push(url)

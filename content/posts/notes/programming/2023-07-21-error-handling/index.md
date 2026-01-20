@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2023-07-21
+lastUpdatedOn: 2026-01-21
 tags:
   - js
   - ts
@@ -17,24 +17,72 @@ Master exception-based and value-based error handling approaches, from tradition
 
 <figure>
 
-![Error handling](./error-handling.jpg)
+```mermaid
+flowchart LR
+    subgraph "Exception Model"
+        TRY["try/catch"] --> THROW["throw Error"]
+        THROW --> CATCH["catch(error)"]
+    end
 
-<figcaption>
-Photo by <a href="https://unsplash.com/@brett_jordan?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Brett Jordan</a> on <a href="https://unsplash.com/photos/brown-wooden-blocks-on-white-surface-XWar9MbNGUY?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a>
-</figcaption>
+    subgraph "Value Model"
+        FN["function()"] --> RESULT["Result<T, E>"]
+        RESULT --> OK["Ok(value)"]
+        RESULT --> ERR["Err(error)"]
+    end
+
+    subgraph "Evolution"
+        TRYCATCH["try/catch<br/>Imperative"] --> TUPLE["[data, error]<br/>Go-style"]
+        TUPLE --> MONAD["Result Monad<br/>Composable"]
+    end
+```
+
+<figcaption>Evolution from exception-based to value-based error handling paradigms</figcaption>
+
 </figure>
 
+## TLDR
 
-- [Introduction](#introduction)
-- [Section 1: The Orthodox Approach - Exceptions as Control Flow](#section-1-the-orthodox-approach---exceptions-as-control-flow)
-- [Section 2: The Paradigm Shift - Errors as Return Values](#section-2-the-paradigm-shift---errors-as-return-values)
-- [Section 3: Implementing Monadic Patterns in Practice](#section-3-implementing-monadic-patterns-in-practice)
-- [Section 4: The Future of Ergonomic Error Handling](#section-4-the-future-of-ergonomic-error-handling)
-  - [4.1 The Pipeline Operator (|>): Streamlining Composition](#41-the-pipeline-operator--streamlining-composition)
-  - [4.2 Pattern Matching: The Definitive Result Consumer](#42-pattern-matching-the-definitive-result-consumer)
-  - [4.3 The Try Operator (?): Native Result Types](#43-the-try-operator--native-result-types)
-  - [4.4 Supporting Syntax: do and throw Expressions](#44-supporting-syntax-do-and-throw-expressions)
-- [Section 5: Synthesis and Recommendations](#section-5-synthesis-and-recommendations)
+**Error handling** in JavaScript spans from traditional `try/catch` exceptions to modern value-based approaches using monadic types like `Result<T, E>`, with the functional paradigm offering stronger type safety and composability.
+
+### Exception Model Trade-offs
+
+- **Pros**: Familiar syntax, built-in async support with `async/await`, stack traces for debugging
+- **Cons**: Untyped `catch` block (always `unknown`), non-local control flow, can swallow errors silently
+- **Performance**: Stack unwinding is expensive compared to value returns
+
+### Go-Style Tuple Pattern `[data, error]`
+
+- **Explicit errors**: Forces acknowledgment of error possibility at call site
+- **Limitations**: No type-level guarantee one value is non-null, verbose chaining with repeated `if (err)` checks
+- **Stack trace risk**: Converting exceptions to tuple values can lose debugging information
+
+### Monadic Result Type (`Result<T, E>`)
+
+- **Type safety**: Invalid states (both value and error) impossible at compile time
+- **Composable**: Chain operations with `.map()`, `.andThen()`, `.orElse()`, `.match()`
+- **Railway Oriented**: Failures automatically bypass subsequent success operations
+
+### Library Comparison
+
+| Criterion | try/catch | [data, error] | fp-ts Either | neverthrow |
+|-----------|-----------|---------------|--------------|------------|
+| Type Safety | Low | Low | High | High + linting |
+| Ergonomics | High (simple) | Low (verbose) | Low (learning curve) | High |
+| Composability | Poor | Poor | Excellent | Excellent |
+| Performance | Slow (unwinding) | Fast | Fast | Fast |
+
+### Recommendations
+
+- **Use try/catch for**: Legacy code boundaries, top-level safety nets, truly exceptional errors
+- **Use neverthrow for**: New code requiring type-safe error handling with approachable API
+- **Use fp-ts for**: Teams committed to full functional programming paradigm
+- **Avoid Go-style tuples**: Lack type guarantees and compose poorly
+
+### Future JavaScript Features
+
+- **Pipeline Operator (Stage 2)**: Native syntax for Result chaining with `|>`
+- **Pattern Matching (Stage 1)**: Exhaustive Result unwrapping with `match` expression
+- **Try Operator (Stage 1)**: Native `?` operator converting exceptions to Result objects
 
 ## Introduction
 
@@ -521,3 +569,13 @@ The evolution of error handling in JavaScript is a clear indicator of the langua
 The "error as value" paradigm, particularly in its sophisticated monadic form, represents the frontier of writing clear, maintainable, and resilient JavaScript code. Adopting this approach, especially with an eye toward the powerful syntactic enhancements on the horizon, is not merely a tactical choice of library or pattern. It is a strategic investment in the long-term health, quality, and predictability of any modern software system built with JavaScript.
 
 As we look toward the future, the convergence of functional programming principles with native language features promises to make error handling not just safer and more explicit, but also more ergonomic and intuitive than ever before. The journey from exceptions to values represents not just a technical evolution, but a fundamental shift in how we think about and reason about failure in our applications.
+
+## References
+
+- [neverthrow](https://github.com/supermacro/neverthrow) - Type-safe Result and Option types for TypeScript with ESLint plugin
+- [fp-ts](https://gcanti.github.io/fp-ts/) - Typed functional programming library for TypeScript
+- [TC39 Pipeline Operator Proposal](https://github.com/tc39/proposal-pipeline-operator) - Stage 2 proposal for `|>` operator
+- [TC39 Pattern Matching Proposal](https://github.com/tc39/proposal-pattern-matching) - Stage 1 proposal for `match` expression
+- [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/) - Scott Wlaschin's functional error handling patterns
+- [Error Handling in Go](https://go.dev/blog/error-handling-and-go) - Go's explicit error handling philosophy
+- [oxide.ts](https://github.com/andogq/oxide) - Rust-inspired Result and Option types for TypeScript

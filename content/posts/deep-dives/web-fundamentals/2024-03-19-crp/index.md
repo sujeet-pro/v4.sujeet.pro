@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2024-03-19
+lastUpdatedOn: 2026-01-21
 featured: true
 tags:
   - js

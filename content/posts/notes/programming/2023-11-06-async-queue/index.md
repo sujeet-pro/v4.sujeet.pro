@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2023-11-06
+lastUpdatedOn: 2026-01-21
 image: ./async-task-queue.svg
 imageCredit: Async Task Queue and Executors
 
@@ -57,22 +57,58 @@ graph LR
 
 </figure>
 
+## TLDR
 
-- [Part 1: The Foundation of Asynchronous Execution](#part-1-the-foundation-of-asynchronous-execution)
-  - [1.1 The Event Loop and In-Process Concurrency](#11-the-event-loop-and-in-process-concurrency)
-  - [1.2 In-Memory Task Queues: Controlling Local Concurrency](#12-in-memory-task-queues-controlling-local-concurrency)
-- [Part 2: The Ideology of Distributed Async Task Queues](#part-2-the-ideology-of-distributed-async-task-queues)
-  - [2.1 Distributed Architecture Components](#21-distributed-architecture-components)
-  - [2.2 Node.js Task Queue Libraries Comparison](#22-nodejs-task-queue-libraries-comparison)
-  - [2.3 Implementing with BullMQ](#23-implementing-with-bullmq)
-- [Part 3: Engineering for Failure: Adding Resilience](#part-3-engineering-for-failure-adding-resilience)
-  - [3.1 Retries with Exponential Backoff and Jitter](#31-retries-with-exponential-backoff-and-jitter)
-  - [3.2 Dead Letter Queue Pattern](#32-dead-letter-queue-pattern)
-  - [3.3 Idempotent Consumers](#33-idempotent-consumers)
-- [Part 4: Advanced Architectural Patterns](#part-4-advanced-architectural-patterns)
-  - [4.1 Transactional Outbox Pattern](#41-transactional-outbox-pattern)
-  - [4.2 Saga Pattern for Distributed Transactions](#42-saga-pattern-for-distributed-transactions)
-  - [4.3 Event Sourcing and CQRS with Kafka](#43-event-sourcing-and-cqrs-with-kafka)
+**Asynchronous task queues** provide controlled concurrency and reliable task processing in Node.js, from simple in-memory queues for local parallelism to distributed systems with Redis-backed durability and multi-worker scaling.
+
+### In-Memory Task Queues
+
+- **p-queue**: Promise-based with concurrency control, priority support, timeout handling—recommended for most local use cases
+- **fastq**: Fastest in-memory queue (~3× p-queue throughput), minimal API, good for high-volume processing
+- **Event loop aware**: Queues yield to event loop between tasks; avoid sync-heavy processors that block
+
+### Distributed Task Queues
+
+- **BullMQ**: Production-grade Redis-backed queue with retries, priorities, rate limiting, delayed jobs, and flow support
+- **Agenda**: MongoDB-backed scheduler for job scheduling and recurring tasks
+- **Temporal/Conductor**: Workflow orchestration for complex multi-step processes with state persistence
+
+### Architecture Components
+
+- **Producer**: Enqueues tasks with payload and metadata (priority, delay, retry config)
+- **Broker**: Persistent message store (Redis for BullMQ, Kafka for event streaming)
+- **Worker**: Dequeues and processes tasks with concurrency control and error handling
+- **Dead Letter Queue**: Captures tasks that exceed retry attempts for manual inspection
+
+### Resilience Patterns
+
+- **Exponential backoff**: `delay = min(cap, base × 2^attempt)` with jitter to prevent thundering herd
+- **Idempotent consumers**: Use unique job IDs with deduplication to handle at-least-once delivery safely
+- **Transactional outbox**: Write events to outbox table in same transaction as business data; relay process publishes
+- **Circuit breaker**: Pause queue processing when downstream failure rate exceeds threshold
+
+### Saga Pattern for Distributed Transactions
+
+- **Choreography**: Services react to events autonomously; simple but harder to trace
+- **Orchestration**: Central coordinator directs saga steps; explicit flow but single point of coordination
+- **Compensating actions**: Each step has corresponding rollback action for failure recovery
+
+### Library Comparison
+
+| Library | Backing Store | Use Case |
+|---------|--------------|----------|
+| p-queue | In-memory | Local concurrency control |
+| BullMQ | Redis | Production distributed queue |
+| Agenda | MongoDB | Scheduled/recurring jobs |
+| Temporal | PostgreSQL/MySQL | Complex workflow orchestration |
+| Kafka | Kafka | Event streaming, CQRS |
+
+### Performance Considerations
+
+- **Concurrency tuning**: Set based on downstream capacity and resource constraints
+- **Batch processing**: Group related tasks for reduced overhead
+- **Stalled job detection**: BullMQ's lock-based mechanism detects worker crashes
+- **Metrics**: Track queue depth, processing latency, retry rate, DLQ size
 
 ## Part 1: The Foundation of Asynchronous Execution
 

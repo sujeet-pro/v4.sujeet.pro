@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2023-10-10
+lastUpdatedOn: 2026-01-21
 tags:
   - js
   - ts
@@ -16,15 +16,72 @@ tags:
 
 Learn how to build resilient distributed systems using exponential backoff, jitter, and modern retry strategies to handle transient failures and prevent cascading outages.
 
+<figure>
 
-- [I. Introduction: Beyond Naive Retries](#introduction)
-- [II. The Mechanics of Exponential Backoff](#mechanics)
-- [III. Preventing Correlated Failures with Jitter](#jitter)
-- [IV. Production-Ready Implementation](#implementation)
-- [V. The Broader Resilience Ecosystem](#ecosystem)
-- [VI. Operationalizing Backoff](#operationalizing)
-- [VII. Learning from Real-World Failures](#case-studies)
-- [VIII. Conclusion](#conclusion)
+```mermaid
+flowchart LR
+    subgraph "Retry Strategy Evolution"
+        NAIVE["Naive Retry<br/>Immediate, fixed"]
+        EXP["Exponential Backoff<br/>2^attempt × base"]
+        JITTER["+ Jitter<br/>Randomized delays"]
+    end
+
+    NAIVE -->|"Causes retry storms"| EXP
+    EXP -->|"Prevents correlation"| JITTER
+
+    subgraph "Delay Example"
+        D1["100ms"] --> D2["200ms"]
+        D2 --> D3["400ms"]
+        D3 --> D4["800ms"]
+    end
+```
+
+<figcaption>Evolution from naive retries to exponential backoff with jitter for preventing thundering herd problems</figcaption>
+
+</figure>
+
+## TLDR
+
+**Exponential backoff with jitter** is the standard algorithm for handling transient failures in distributed systems, progressively increasing delays between retries while randomizing timing to prevent correlated retry storms.
+
+### Core Algorithm
+
+- **Formula**: `delay = min(cap, base × factor^attempt)` where base is initial delay (100ms), factor is typically 2, cap is maximum delay (30-60s)
+- **Jitter**: Randomizes delay to prevent synchronized retry attempts across clients
+- **Full Jitter**: `delay = random(0, calculated_delay)` — maximum spread, recommended by AWS
+- **Equal Jitter**: `delay = calculated_delay/2 + random(0, calculated_delay/2)` — guarantees minimum wait
+
+### The Thundering Herd Problem
+
+- **Without jitter**: N clients fail simultaneously → all retry at same time → overwhelm recovering service
+- **With jitter**: Retries spread over time window → load smoothed → service can recover
+- **Mathematical effect**: Exponentially growing random window reduces collision probability
+
+### Integration with Circuit Breakers
+
+- **Exponential backoff**: First-line defense for transient faults, handles brief disruptions
+- **Circuit breaker**: Second-line defense for persistent faults, prevents cascading failures
+- **Pattern**: Retry mechanism encapsulated within circuit breaker protection; exhausted retries count as failures
+
+### Production Implementation
+
+- **Idempotency**: Required prerequisite—retries must not cause duplicate side effects
+- **Retry budget**: Limit total retry rate system-wide (e.g., max 10% of normal request rate)
+- **HTTP 429 handling**: Honor `Retry-After` header, backoff is the correct client-side response
+- **Cancellation**: Support AbortController for proper resource cleanup
+
+### Tuning Parameters
+
+- **Initial timeout**: Set slightly above p99 latency of downstream service
+- **Max retries**: 3-5 for critical paths, consider SLO error budget
+- **Max delay (cap)**: 30-60 seconds, prevents impractically long waits
+- **Retryable errors**: 5xx, 429, network errors—never retry 4xx client errors
+
+### Observability
+
+- **Log per attempt**: Operation name, attempt number, delay (before and after jitter), error details
+- **Metrics**: Retry rate, success-after-retry rate, final failure rate, circuit breaker state
+- **Alerts**: High retry rates indicate downstream issues before total failures
 
 ## I. Introduction: Beyond Naive Retries
 

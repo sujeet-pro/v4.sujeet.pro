@@ -62,7 +62,7 @@ const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Conte
 const parentLabel = POST_TYPE_LABELS[postType]
 const crumbs = [
   { name: parentLabel, href: `/posts/${postType}` },
-  ...(category ? [{ name: category.name, href: category.href, title: category.title }] : []),
+  ...(category ? [{ name: category.title, href: category.href, title: category.title }] : []),
 ]
 
 // Show category nav when there are other articles in the same category
@@ -74,7 +74,7 @@ const showCategoryNav = categoryArticles.length > 0
   {showCategoryNav && category && (
     <CategoryNav
       slot="sidebar-left"
-      categoryName={category.name}
+      categoryName={category.title}
       articles={categoryArticles}
       currentArticleId={post.id}
     />
@@ -92,11 +92,11 @@ const showCategoryNav = categoryArticles.length > 0
       <summary class="category-nav-inline-summary">
         <span class="category-nav-inline-title">
           <Icon name="carbon:list" class="icon-sm" />
-          {category.name}
+          {category.title}
         </span>
         <Icon name="carbon:chevron-down" class="category-nav-inline-icon" />
       </summary>
-      <nav class="category-nav-inline-content" aria-label={`${category.name} articles`}>
+      <nav class="category-nav-inline-content" aria-label={`${category.title} articles`}>
         <ul class="category-nav-list">
           {
             categoryArticles.map((article) => {

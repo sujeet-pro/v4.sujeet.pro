@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2025-11-27
+lastUpdatedOn: 2026-01-21
 featured: true
 tags:
   - platform-engineering
@@ -9,25 +9,6 @@ tags:
 # A Modern Approach to Loosely Coupled UI Components
 
 This document provides a comprehensive guide for building **meta-framework-agnostic**, **testable**, and **boundary-controlled** UI components for modern web applications.
-
----
-
-
-1. [Introduction](#introduction)
-2. [Assumptions & Prerequisites](#assumptions--prerequisites)
-3. [Glossary of Terms](#glossary-of-terms)
-4. [Design Principles](#design-principles)
-5. [Architecture Overview](#architecture-overview)
-6. [Layer Definitions](#layer-definitions)
-7. [Internal SDKs](#internal-sdks)
-8. [Folder Structure](#folder-structure)
-9. [Implementation Patterns](#implementation-patterns)
-10. [Boundary Control & Enforcement](#boundary-control--enforcement)
-11. [Testability](#testability)
-12. [Configuration](#configuration)
-13. [Migration Guide](#migration-guide)
-
----
 
 ## Introduction
 

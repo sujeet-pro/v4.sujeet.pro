@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2023-08-17
+lastUpdatedOn: 2026-01-21
 tags:
   - js
   - ts

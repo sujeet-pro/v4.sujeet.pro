@@ -106,17 +106,6 @@ flowchart TB
 - **Resource Efficiency**: Handles thousands of concurrent connections with minimal overhead
 - **Scalability**: Event-driven model scales horizontally for I/O-heavy applications
 
-## Contents
-
-- [The Pillars of the Node.js Runtime](#the-pillars-of-the-nodejs-runtime)
-- [The V8 Engine: High-Performance JavaScript Execution](#the-v8-engine-high-performance-javascript-execution)
-- [Libuv: The Asynchronous I/O Engine](#libuv-the-asynchronous-io-engine)
-- [Architectural Evolution: Key Shifts in the Node.js Paradigm](#architectural-evolution-key-shifts-in-the-nodejs-paradigm)
-- [Core Primitives: Buffers and Streams](#core-primitives-buffers-and-streams)
-- [Comparative Analysis of Concurrency Architectures](#comparative-analysis-of-concurrency-architectures)
-- [Observability and Performance Monitoring](#observability-and-performance-monitoring)
-- [Future Directions and Conclusion](#future-directions-and-conclusion)
-
 ## The Pillars of the Node.js Runtime
 
 To comprehend the inner workings of Node.js, one must first recognize that it is not a monolithic entity. It is a composite system, an elegant orchestration of several distinct components, each with a clearly defined and specialized role. The architecture is founded on a deliberate separation of concerns, which is the very mechanism that enables its signature non-blocking, asynchronous behavior.

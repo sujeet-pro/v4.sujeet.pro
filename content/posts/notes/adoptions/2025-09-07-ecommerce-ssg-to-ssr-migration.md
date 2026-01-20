@@ -1,5 +1,5 @@
 ---
-lastUpdatedOn: 2025-09-07
+lastUpdatedOn: 2026-01-21
 featured: true
 tags:
   - next

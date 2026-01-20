@@ -1,16 +1,85 @@
 ---
-lastUpdatedOn: 2023-04-05
+lastUpdatedOn: 2026-01-21
 tags:
-  - web-performance
-  - caching
+  - accessibility
+  - a11y
+  - wcag
+  - aria
   - frontend
-  - performance
+  - html
+  - ux
 ---
 
 # Web Accessibility
 
 Learn WCAG guidelines, semantic HTML, ARIA attributes, and screen reader optimization to create inclusive websites that work for everyone, including users with disabilities.
 
+<figure>
+
+```mermaid
+flowchart TB
+    subgraph "POUR Principles"
+        P["Perceivable<br/>Text alternatives, captions,<br/>contrast, adaptable"]
+        O["Operable<br/>Keyboard access, timing,<br/>navigation, focus"]
+        U["Understandable<br/>Readable, predictable,<br/>input assistance"]
+        R["Robust<br/>Compatible with<br/>assistive tech"]
+    end
+
+    subgraph "Compliance Levels"
+        A["Level A<br/>Essential<br/>35 criteria"]
+        AA["Level AA<br/>Recommended<br/>+28 criteria"]
+        AAA["Level AAA<br/>Specialized<br/>+23 criteria"]
+    end
+
+    P --> A
+    O --> A
+    U --> A
+    R --> A
+    A --> AA --> AAA
+```
+
+<figcaption>WCAG 2.2 structure: POUR principles and compliance levels</figcaption>
+
+</figure>
+
+## TLDR
+
+**Web Accessibility (a11y)** ensures websites work for everyone, including users with visual, auditory, motor, and cognitive disabilities, following the Web Content Accessibility Guidelines (WCAG) 2.2 international standard.
+
+### WCAG Compliance Levels
+
+- **Level A (Essential)**: 35 criteria for minimum accessibility—without these, assistive technologies cannot operate the site
+- **Level AA (Recommended)**: Additional 28 criteria, required by ADA/EU laws, balance between accessibility and feasibility
+- **Level AAA (Specialized)**: 23 more criteria, not a blanket requirement as some content cannot meet all criteria
+- **POUR Principles**: Perceivable, Operable, Understandable, Robust—foundation of all accessibility
+
+### Semantic HTML and Structure
+
+- **Landmark Elements**: `<header>`, `<nav>`, `<main>`, `<article>`, `<aside>`, `<footer>` for screen reader navigation
+- **Heading Hierarchy**: Logical H1-H6 structure without skipping levels for document outline
+- **Language Declaration**: `lang` attribute on `<html>` and for language changes within content
+- **Skip Links**: "Skip to main content" links for keyboard users to bypass navigation
+
+### ARIA and Interactive Components
+
+- **Live Regions**: `aria-live="polite"` for status updates, `aria-live="assertive"` for alerts
+- **Custom Widgets**: Proper roles (`role="tab"`, `role="menu"`), states (`aria-expanded`, `aria-selected`), and keyboard handling
+- **Focus Management**: Trap focus in modals, restore focus on close, manage focus in SPAs on route changes
+- **Form Accessibility**: Labels with `for` attribute, `aria-describedby` for instructions, `aria-invalid` for errors
+
+### Visual and Keyboard Requirements
+
+- **Color Contrast**: 4.5:1 minimum for normal text, 3:1 for large text (18pt+) and UI components
+- **Focus Indicators**: Visible 2px+ outline with offset, never `outline: none` without alternative
+- **Touch Targets**: 44×44px minimum for mobile, 8px spacing between targets
+- **Color Independence**: Never rely solely on color—use icons, text, or patterns alongside
+
+### Testing and Automation
+
+- **Automated Tools**: axe-core, Lighthouse, Pa11y for CI/CD integration (catch ~30% of issues)
+- **Manual Testing**: Keyboard navigation, screen reader testing (NVDA, VoiceOver, JAWS)
+- **User Testing**: Include users with disabilities in testing process
+- **Quality Gates**: Fail builds on critical accessibility violations
 
 ## Understanding Web Content Accessibility Guidelines (WCAG)
 
@@ -735,3 +804,12 @@ Implementing web accessibility requires a systematic approach combining technica
 By following the guidelines, using the tools, and implementing the checklist provided in this guide, you'll be well-equipped to create web experiences that are truly accessible to all users. Start with the high-priority items, establish automated testing in your CI/CD pipeline, and gradually work toward comprehensive accessibility coverage across all components of your website.
 
 Remember: accessible design is good design, and the techniques that help users with disabilities often improve the experience for everyone.
+
+## References
+
+- [Web Content Accessibility Guidelines (WCAG) 2.2](https://www.w3.org/TR/WCAG22/) - W3C Recommendation
+- [WAI-ARIA Authoring Practices 1.2](https://www.w3.org/WAI/ARIA/apg/) - W3C patterns and widgets
+- [MDN Accessibility Guide](https://developer.mozilla.org/en-US/docs/Web/Accessibility) - Mozilla Developer Network
+- [axe-core Rules](https://github.com/dequelabs/axe-core/blob/develop/doc/rule-descriptions.md) - Deque accessibility testing rules
+- [WebAIM Color Contrast Checker](https://webaim.org/resources/contrastchecker/) - Contrast ratio validation tool
+- [A11y Project Checklist](https://www.a11yproject.com/checklist/) - Community-maintained accessibility checklist
