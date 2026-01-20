@@ -113,10 +113,6 @@ Every article must include these components:
 [Structured summary with key points organized by theme]
 [Use nested bullet points and subsections]
 
-## Table of Contents
-
-[Auto-generated or manual list with anchor links]
-
 ## Main Content Sections
 
 [Detailed technical content organized hierarchically]
@@ -130,9 +126,9 @@ Every article must include these components:
 [All sources with proper attribution]
 ```
 
-### Abstract (Before ToC)
+### Abstract
 
-The abstract appears before the table of contents and serves to:
+The abstract appears after the title and serves to:
 
 - Set the context for why this topic matters
 - Describe what the reader will learn

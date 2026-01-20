@@ -24,7 +24,6 @@ import { rehypeAccessibleEmojis } from "rehype-accessible-emojis"
 import rehypeAutolinkHeadings from "rehype-autolink-headings"
 import rehypeKatex from "rehype-katex"
 import rehypeImgClass from "./plugins/rehype-img-class"
-// import rehypeSlug from "rehype-slug";
 
 // Custom Plugins
 import rehypeMermaid from "rehype-mermaid"
