@@ -3,42 +3,37 @@ import Link from "@/components/link.astro"
 import { Icon } from "astro-icon/components"
 ---
 
-<div class="flex flex-1 items-center justify-center md:justify-start">
-  <!-- Desktop Search Input -->
-  <div class="hidden w-full md:flex">
-    <div class="relative w-full">
-      <input
-        type="text"
-        id="search-input"
-        placeholder="Search..."
-        class="sp-border-muted w-full rounded-lg border px-4 py-2 pr-12 pl-10 text-sm focus:outline-none"
-      />
-      <label for="search-input">
-        <Icon name="carbon:search" class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
-      </label>
-      <label for="search-input" class="absolute top-1/2 right-3 -translate-y-1/2 transform">
-        <kbd class="sp-border-muted inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-xs">
-          <span class="text-xs">⌘</span>
-          <span class="ml-0.5">K</span>
-        </kbd>
-      </label>
-    </div>
-  </div>
-  <!-- Mobile Search Link -->
-  <div class="md:hidden">
-    <Link href="/search" class="flex items-center p-2" aria-label="Search" id="search-link">
-      <Icon name="carbon:search" class="h-5 w-5" />
-    </Link>
+<div class="search-container">
+  <div class="relative w-full">
+    <input
+      type="text"
+      id="search-input"
+      placeholder="Search..."
+      class="sp-border-muted w-full rounded-lg border px-4 py-2 pr-12 pl-10 text-sm focus:outline-none"
+    />
+    <label for="search-input">
+      <Icon name="carbon:search" class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
+    </label>
+    <label for="search-input" class="absolute top-1/2 right-3 -translate-y-1/2 transform">
+      <kbd class="sp-border-muted inline-flex items-center rounded border px-1.5 py-0.5 font-mono text-xs">
+        <span class="text-xs">⌘</span>
+        <span class="ml-0.5">K</span>
+      </kbd>
+    </label>
   </div>
 </div>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const searchInput = document.querySelector<HTMLInputElement>("input#search-input")
-    const searchLink = document.querySelector<HTMLAnchorElement>("a#search-link")
+
     searchInput?.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
-        const path = searchLink?.getAttribute("href") || "/search"
-        window.location.href = path + "?q=" + encodeURIComponent(searchInput.value.trim())
+        const query = searchInput.value.trim()
+        const searchUrl = new URL("/search", window.location.origin)
+        if (query) {
+          searchUrl.searchParams.set("q", query)
+        }
+        window.location.href = searchUrl.pathname + searchUrl.search
       }
     })
 
@@ -47,8 +42,6 @@ import { Icon } from "astro-icon/components"
         e.preventDefault()
         if (searchInput && searchInput.offsetParent !== null) {
           searchInput.focus()
-        } else if (searchLink) {
-          searchLink.click()
         } else {
           window.location.href = "/search"
         }

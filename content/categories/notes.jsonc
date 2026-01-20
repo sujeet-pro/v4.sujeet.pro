@@ -1,0 +1,37 @@
+[
+  // Programming - patterns, idioms, and best practices
+  {
+    "id": "programming",
+    "title": "Programming",
+    "name": "Programming",
+    "description": "Programming patterns, idioms, and best practices - design patterns, error handling, async programming, and language concepts"
+  },
+  // Design Docs - technical design documents and RFCs
+  {
+    "id": "design-docs",
+    "title": "Design Documents",
+    "name": "Design Docs",
+    "description": "Technical design documents, RFCs, and architecture proposals - CSP implementations, component systems, and security designs"
+  },
+  // Adoptions - stories of technology and process adoptions
+  {
+    "id": "adoptions",
+    "title": "Adoption Stories",
+    "name": "Adoptions",
+    "description": "Real-world stories of adopting technologies, design systems, frameworks, and engineering practices at scale"
+  },
+  // Platform Engineering - infrastructure, media delivery, and platform services
+  {
+    "id": "platform-engineering",
+    "title": "Platform Engineering",
+    "name": "Platform",
+    "description": "Platform engineering work - image services, video playback, SSG/SSR optimization, CDN, and infrastructure at scale"
+  },
+  // Productivity - productivity tools and workflows
+  {
+    "id": "productivity",
+    "title": "Productivity",
+    "name": "Productivity",
+    "description": "Productivity tools, workflows, and routines - browser setup, extensions, note-taking, and time management"
+  }
+]

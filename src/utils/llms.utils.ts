@@ -4,7 +4,7 @@
  */
 
 import { getCollection } from "astro:content"
-import { getDeepDives, getUses, getWork, getWriting } from "./content-collection.utils"
+import { getDeepDives, getNotes } from "./content-collection.utils"
 import { SITE } from "@/constants/site"
 
 interface ContentWithBody {
@@ -23,42 +23,19 @@ interface ContentWithBody {
  */
 export async function getAllContentWithBodies(): Promise<ContentWithBody[]> {
   // Get processed content for metadata
-  const [writing, deepDives, work, uses] = await Promise.all([
-    getWriting(),
-    getDeepDives(),
-    getWork(),
-    getUses(),
-  ])
+  const [deepDives, notes] = await Promise.all([getDeepDives(), getNotes()])
 
   // Get raw collections for body content
-  const [rawWriting, rawDeepDives, rawWork, rawUses] = await Promise.all([
-    getCollection("writing"),
-    getCollection("deep-dives"),
-    getCollection("work"),
-    getCollection("uses"),
-  ])
+  const [rawDeepDives, rawNotes] = await Promise.all([getCollection("deep-dives"), getCollection("notes")])
 
   // Create lookup maps for raw content by ID
   const rawBodyMap = new Map<string, string>()
-  for (const item of [...rawWriting, ...rawDeepDives, ...rawWork, ...rawUses]) {
+  for (const item of [...rawDeepDives, ...rawNotes]) {
     rawBodyMap.set(item.id, item.body ?? "")
   }
 
   // Combine processed metadata with raw bodies
   const allContent: ContentWithBody[] = []
-
-  for (const item of writing) {
-    allContent.push({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      href: item.href,
-      type: "writing",
-      category: item.category,
-      body: rawBodyMap.get(item.id) ?? "",
-      publishedOn: item.publishedOn,
-    })
-  }
 
   for (const item of deepDives) {
     allContent.push({
@@ -73,26 +50,13 @@ export async function getAllContentWithBodies(): Promise<ContentWithBody[]> {
     })
   }
 
-  for (const item of work) {
+  for (const item of notes) {
     allContent.push({
       id: item.id,
       title: item.title,
       description: item.description,
       href: item.href,
-      type: "work",
-      category: item.category,
-      body: rawBodyMap.get(item.id) ?? "",
-      publishedOn: item.publishedOn,
-    })
-  }
-
-  for (const item of uses) {
-    allContent.push({
-      id: item.id,
-      title: item.title,
-      description: item.description,
-      href: item.href,
-      type: "uses",
+      type: "notes",
       category: item.category,
       body: rawBodyMap.get(item.id) ?? "",
       publishedOn: item.publishedOn,
@@ -109,12 +73,7 @@ export async function getAllContentWithBodies(): Promise<ContentWithBody[]> {
  * Generate llms.txt index content
  */
 export async function generateLlmsTxt(): Promise<string> {
-  const [writing, deepDives, work, uses] = await Promise.all([
-    getWriting(),
-    getDeepDives(),
-    getWork(),
-    getUses(),
-  ])
+  const [deepDives, notes] = await Promise.all([getDeepDives(), getNotes()])
 
   const lines: string[] = []
 
@@ -123,13 +82,13 @@ export async function generateLlmsTxt(): Promise<string> {
   lines.push("")
   lines.push("> Personal technical blog covering web development, system design, performance optimization, and engineering leadership. Written by a Frontend Principal Engineer with expertise in building scalable web applications.")
   lines.push("")
-  lines.push("This site contains technical articles, deep dives, and work documentation. For the complete content in a single file, see /llms-full.txt")
+  lines.push("This site contains in-depth technical content and casual technical notes. For the complete content in a single file, see /llms-full.txt")
   lines.push("")
 
   // Deep Dives section
   lines.push("## Deep Dives")
   lines.push("")
-  lines.push("In-depth technical explorations of specific topics.")
+  lines.push("In-depth technical explorations and comprehensive guides.")
   lines.push("")
   for (const item of deepDives) {
     const categoryLabel = item.category ? ` [${item.category.name}]` : ""
@@ -137,34 +96,12 @@ export async function generateLlmsTxt(): Promise<string> {
   }
   lines.push("")
 
-  // Work section
-  lines.push("## Work")
+  // Notes section
+  lines.push("## Notes")
   lines.push("")
-  lines.push("Design documents, architecture decisions, and adoption stories from real projects.")
+  lines.push("Casual technical content - design docs, programming patterns, tools, and productivity.")
   lines.push("")
-  for (const item of work) {
-    const categoryLabel = item.category ? ` [${item.category.name}]` : ""
-    lines.push(`- [${item.title}](${SITE.origin}${item.href}):${categoryLabel} ${item.description}`)
-  }
-  lines.push("")
-
-  // Writing section
-  lines.push("## Writing")
-  lines.push("")
-  lines.push("Technical articles and tutorials on programming patterns and concepts.")
-  lines.push("")
-  for (const item of writing) {
-    const categoryLabel = item.category ? ` [${item.category.name}]` : ""
-    lines.push(`- [${item.title}](${SITE.origin}${item.href}):${categoryLabel} ${item.description}`)
-  }
-  lines.push("")
-
-  // Optional section
-  lines.push("## Optional")
-  lines.push("")
-  lines.push("Additional resources that may be helpful but are not essential.")
-  lines.push("")
-  for (const item of uses) {
+  for (const item of notes) {
     const categoryLabel = item.category ? ` [${item.category.name}]` : ""
     lines.push(`- [${item.title}](${SITE.origin}${item.href}):${categoryLabel} ${item.description}`)
   }
@@ -183,7 +120,7 @@ export async function generateLlmsFullTxt(): Promise<string> {
   // Header
   lines.push("# Sujeet Jaiswal - Technical Blog (Full Content)")
   lines.push("")
-  lines.push("> Complete technical blog content for LLM consumption. Contains all articles, deep dives, and documentation.")
+  lines.push("> Complete technical blog content for LLM consumption. Contains all deep dives and notes.")
   lines.push("")
   lines.push(`Source: ${SITE.origin}`)
   lines.push(`Generated: ${new Date().toISOString()}`)
@@ -194,15 +131,13 @@ export async function generateLlmsFullTxt(): Promise<string> {
 
   // Group content by type
   const deepDives = allContent.filter((c) => c.type === "deep-dive")
-  const work = allContent.filter((c) => c.type === "work")
-  const writing = allContent.filter((c) => c.type === "writing")
-  const uses = allContent.filter((c) => c.type === "uses")
+  const notes = allContent.filter((c) => c.type === "notes")
 
   // Deep Dives
   if (deepDives.length > 0) {
     lines.push("# DEEP DIVES")
     lines.push("")
-    lines.push("In-depth technical explorations of specific topics.")
+    lines.push("In-depth technical explorations and comprehensive guides.")
     lines.push("")
     for (const item of deepDives) {
       lines.push("---")
@@ -220,63 +155,15 @@ export async function generateLlmsFullTxt(): Promise<string> {
     }
   }
 
-  // Work
-  if (work.length > 0) {
+  // Notes
+  if (notes.length > 0) {
     lines.push("---")
     lines.push("")
-    lines.push("# WORK")
+    lines.push("# NOTES")
     lines.push("")
-    lines.push("Design documents, architecture decisions, and adoption stories.")
+    lines.push("Casual technical content - design docs, programming patterns, tools, and productivity.")
     lines.push("")
-    for (const item of work) {
-      lines.push("---")
-      lines.push("")
-      lines.push(`## ${item.title}`)
-      lines.push("")
-      lines.push(`**URL:** ${SITE.origin}${item.href}`)
-      if (item.category) {
-        lines.push(`**Category:** ${item.category.name}`)
-      }
-      lines.push(`**Description:** ${item.description}`)
-      lines.push("")
-      lines.push(item.body)
-      lines.push("")
-    }
-  }
-
-  // Writing
-  if (writing.length > 0) {
-    lines.push("---")
-    lines.push("")
-    lines.push("# WRITING")
-    lines.push("")
-    lines.push("Technical articles and tutorials.")
-    lines.push("")
-    for (const item of writing) {
-      lines.push("---")
-      lines.push("")
-      lines.push(`## ${item.title}`)
-      lines.push("")
-      lines.push(`**URL:** ${SITE.origin}${item.href}`)
-      if (item.category) {
-        lines.push(`**Category:** ${item.category.name}`)
-      }
-      lines.push(`**Description:** ${item.description}`)
-      lines.push("")
-      lines.push(item.body)
-      lines.push("")
-    }
-  }
-
-  // Uses (optional)
-  if (uses.length > 0) {
-    lines.push("---")
-    lines.push("")
-    lines.push("# USES (Optional)")
-    lines.push("")
-    lines.push("Tools, setup guides, and productivity tips.")
-    lines.push("")
-    for (const item of uses) {
+    for (const item of notes) {
       lines.push("---")
       lines.push("")
       lines.push(`## ${item.title}`)

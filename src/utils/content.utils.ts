@@ -3,7 +3,7 @@
  * Aggregates content from all collections for cross-collection operations
  */
 
-import { getDeepDives, getUses, getWork, getWriting } from "./content-collection.utils"
+import { getDeepDives, getNotes } from "./content-collection.utils"
 import type { ContentItem, ContentItemWithoutContent } from "./content.type"
 
 /**
@@ -11,9 +11,9 @@ import type { ContentItem, ContentItemWithoutContent } from "./content.type"
  * Returns content sorted by publishedOn date (newest first)
  */
 export async function getAllContent(): Promise<ContentItem[]> {
-  const [writing, deepDives, work, uses] = await Promise.all([getWriting(), getDeepDives(), getWork(), getUses()])
+  const [deepDives, notes] = await Promise.all([getDeepDives(), getNotes()])
 
-  const allContent: ContentItem[] = [...writing, ...deepDives, ...work, ...uses]
+  const allContent: ContentItem[] = [...deepDives, ...notes]
 
   // Sort by publishedOn descending
   allContent.sort((a, b) => {
@@ -39,16 +39,12 @@ export async function getAllContentItems(): Promise<ContentItemWithoutContent[]>
 /**
  * Get content by type
  */
-export async function getContentByType(type: "writing" | "deep-dive" | "work" | "uses"): Promise<ContentItem[]> {
+export async function getContentByType(type: "deep-dive" | "notes"): Promise<ContentItem[]> {
   switch (type) {
-    case "writing":
-      return getWriting()
     case "deep-dive":
       return getDeepDives()
-    case "work":
-      return getWork()
-    case "uses":
-      return getUses()
+    case "notes":
+      return getNotes()
     default:
       return []
   }

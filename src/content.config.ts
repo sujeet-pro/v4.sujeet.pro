@@ -50,21 +50,15 @@ const vanity = defineCollection({
 // Shared category schema for all content types
 // Simplified 2-level structure: content-type/category (no subcategories in folder structure)
 // Category is derived from folder path via remark plugin
+// Categories are only visible if they have at least 1 article (including drafts)
 const categorySchema = z.object({
   id: z.string(),
-  name: z.string(),
+  title: z.string(), // Full descriptive title used for h1, meta, and title attributes
+  name: z.string(), // Short name used for display (footer, breadcrumbs, cards)
   description: z.string(),
-  featured: z.boolean().optional().default(false),
 })
 
 // Per-type category collections
-const categoriesWriting = defineCollection({
-  loader: file("./content/categories/writing.jsonc", {
-    parser: (fileContent) => parseJsonc(fileContent),
-  }),
-  schema: categorySchema,
-})
-
 const categoriesDeepDives = defineCollection({
   loader: file("./content/categories/deep-dives.jsonc", {
     parser: (fileContent) => parseJsonc(fileContent),
@@ -72,15 +66,8 @@ const categoriesDeepDives = defineCollection({
   schema: categorySchema,
 })
 
-const categoriesWork = defineCollection({
-  loader: file("./content/categories/work.jsonc", {
-    parser: (fileContent) => parseJsonc(fileContent),
-  }),
-  schema: categorySchema,
-})
-
-const categoriesUses = defineCollection({
-  loader: file("./content/categories/uses.jsonc", {
+const categoriesNotes = defineCollection({
+  loader: file("./content/categories/notes.jsonc", {
     parser: (fileContent) => parseJsonc(fileContent),
   }),
   schema: categorySchema,
@@ -101,18 +88,7 @@ const baseContentSchema = z.object({
   category: z.string().optional(),
 })
 
-// Writing collection (replaces posts)
-const writing = defineCollection({
-  loader: glob({
-    pattern: "**/[^_]*.md",
-    base: "./content/writing",
-  }),
-  schema: baseContentSchema.extend({
-    featuredRank: z.number().optional(),
-  }),
-})
-
-// Deep dives collection
+// Deep dives collection (in-depth technical content)
 const deepDives = defineCollection({
   loader: glob({
     pattern: "**/[^_]*.md",
@@ -121,24 +97,15 @@ const deepDives = defineCollection({
   schema: baseContentSchema,
 })
 
-// Work collection (design docs, case studies)
-const work = defineCollection({
+// Notes collection (casual technical content - design docs, programming, tools, productivity)
+const notes = defineCollection({
   loader: glob({
     pattern: "**/[^_]*.md",
-    base: "./content/work",
+    base: "./content/notes",
   }),
   schema: baseContentSchema.extend({
     type: z.enum(["design-doc", "architecture", "case-study"]).optional(),
   }),
-})
-
-// Uses collection (tools, setup, productivity)
-const uses = defineCollection({
-  loader: glob({
-    pattern: "**/[^_]*.md",
-    base: "./content/uses",
-  }),
-  schema: baseContentSchema,
 })
 
 // =============================================================================
@@ -146,15 +113,11 @@ const uses = defineCollection({
 // =============================================================================
 
 export const collections = {
-  writing,
   "deep-dives": deepDives,
-  work,
-  uses,
+  notes,
   tags,
   vanity,
   // Per-type category collections
-  "categories-writing": categoriesWriting,
   "categories-deep-dives": categoriesDeepDives,
-  "categories-work": categoriesWork,
-  "categories-uses": categoriesUses,
+  "categories-notes": categoriesNotes,
 }

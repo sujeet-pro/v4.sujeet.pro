@@ -2,42 +2,42 @@
   // System Design Fundamentals - foundational concepts and design problems
   {
     "id": "system-design-fundamentals",
-    "name": "System Design Fundamentals",
-    "description": "System design foundations and real-world problems - caching strategies, consistency models, URL shorteners, and more",
-    "featured": true,
+    "title": "System Design Fundamentals",
+    "name": "System Design",
+    "description": "System design foundations and real-world problems - caching strategies, consistency models, URL shorteners, and more"
   },
   {
     "id": "design-problems",
+    "title": "Design Problems",
     "name": "Design Problems",
-    "description": "In-depth explorations of common system design problems - load balancers, databases, messaging systems, and more",
-    "featured": false,
+    "description": "In-depth explorations of common system design problems - load balancers, databases, messaging systems, and more"
   },
   // DSA - data structures and algorithms
   {
     "id": "dsa",
-    "name": "Data Structures & Algorithms",
-    "description": "Common data structures, algorithm patterns, complexity analysis, and problem-solving techniques",
-    "featured": true,
+    "title": "Data Structures & Algorithms",
+    "name": "DSA",
+    "description": "Common data structures, algorithm patterns, complexity analysis, and problem-solving techniques"
   },
   // Leadership - engineering leadership and behavioral topics
   {
     "id": "leadership",
-    "name": "Engineering Leadership",
-    "description": "Technical leadership, team building, hiring, technical strategy, and behavioral interview preparation",
-    "featured": true,
+    "title": "Engineering Leadership",
+    "name": "Leadership",
+    "description": "Technical leadership, team building, hiring, technical strategy, and behavioral interview preparation"
   },
   // Tools - development tools, services, and tech internals
   {
     "id": "tools",
+    "title": "Tools",
     "name": "Tools",
-    "description": "Deep dives into development tools, third-party services, language runtimes, and technology internals",
-    "featured": true,
+    "description": "Deep dives into development tools, third-party services, language runtimes, and technology internals"
   },
   // Web Fundamentals - core web concepts, performance, and protocols
   {
     "id": "web-fundamentals",
-    "name": "Web Fundamentals",
-    "description": "Core web concepts - performance optimization, HTTP protocols, security, accessibility, authentication, and rendering",
-    "featured": true,
-  },
+    "title": "Web Fundamentals",
+    "name": "Web",
+    "description": "Core web concepts - performance optimization, HTTP protocols, security, accessibility, authentication, and rendering"
+  }
 ]

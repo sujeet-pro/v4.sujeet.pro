@@ -1,19 +1,19 @@
-import { getWriting } from "@/utils/content-collection.utils"
+import { getAllContentChronological } from "@/utils/content-filters.utils"
 import { getFilePath, getLinkProps } from "@/utils/link.utils"
 import rss, { type RSSOptions } from "@astrojs/rss"
 import type { APIRoute } from "astro"
 import { site } from "astro:config/server"
 export const GET: APIRoute = async () => {
-  // Get all writing content, excluding drafts
-  const writing = await getWriting()
+  // Get all content from all types, sorted chronologically (newest first)
+  const allContent = await getAllContentChronological()
 
   // Use Astro's site and base config for URLs
   const rssOptions: RSSOptions = {
     title: "Sujeet's Blog",
-    description: "Personal blog and thoughts on technology, development, and life.",
+    description: "Technical blog covering web development, system design, performance optimization, and engineering leadership.",
     site: site + getLinkProps({ href: "/" }).href,
     stylesheet: getFilePath("rss", "styles.xsl"),
-    items: writing.map((item) => {
+    items: allContent.map((item) => {
       const postUrl = getLinkProps({ href: item.href }).href
       const lastModDate = item.lastUpdatedOn ?? item.publishedOn
       return {

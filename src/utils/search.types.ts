@@ -50,7 +50,8 @@ export interface SearchParams {
  */
 export interface FacetItem {
   id: string
-  name: string
+  name: string // Short name for display
+  title?: string // Full descriptive title for categories
   count: number
 }
 

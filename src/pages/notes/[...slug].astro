@@ -1,5 +1,5 @@
 ---
-import { getWritingIncludingDrafts } from "@/utils/content-collection.utils"
+import { getNotesIncludingDrafts } from "@/utils/content-collection.utils"
 import Layout from "@/layout/layout.astro"
 import ArticleWithTOC from "@/components/article-with-toc.astro"
 import TOC from "@/components/toc.astro"
@@ -8,13 +8,13 @@ import Frontmatter from "@/components/frontmatter.astro"
 import Link from "@/components/link.astro"
 import ReadingProgress from "@/components/reading-progress.astro"
 
-// Generate static paths for all writing (including drafts)
+// Generate static paths for all notes (including drafts)
 export async function getStaticPaths() {
-  const writing = await getWritingIncludingDrafts()
+  const notes = await getNotesIncludingDrafts()
 
-  return writing.map((item, index) => {
-    const nextItem = index < writing.length - 1 ? writing[index + 1] : null
-    const prevItem = index > 0 ? writing[index - 1] : null
+  return notes.map((item, index) => {
+    const nextItem = index < notes.length - 1 ? notes[index + 1] : null
+    const prevItem = index > 0 ? notes[index - 1] : null
 
     return {
       params: { slug: item.pageSlug },
@@ -31,8 +31,8 @@ const { item, nextItem, prevItem } = Astro.props
 const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft, category } = item
 
 const crumbs = [
-  { title: "Writing", href: "/writing" },
-  ...(category ? [{ title: category.name, href: category.href }] : []),
+  { name: "Notes", href: "/notes" },
+  ...(category ? [{ name: category.name, href: category.href, title: category.title }] : []),
 ]
 ---
 
@@ -44,11 +44,13 @@ const crumbs = [
 
   <!-- Main content -->
   <Frontmatter {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} class="my-4" />
-  <ArticleWithTOC>
-    <Content />
-  </ArticleWithTOC>
 
-  <!-- Tags -->
+  <main>
+    <ArticleWithTOC>
+      <Content />
+    </ArticleWithTOC>
+  </main>
+
   {
     tags.length > 0 && (
       <section class="sp-border-muted mt-12 border-t pt-12">
@@ -64,7 +66,6 @@ const crumbs = [
     )
   }
 
-  <!-- Read more -->
   {
     (prevItem || nextItem) && (
       <section class="mt-12">

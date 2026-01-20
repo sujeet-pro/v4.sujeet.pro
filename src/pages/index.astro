@@ -3,41 +3,27 @@ import Layout from "@/layout/layout.astro"
 import Profile from "@/components/profile.astro"
 import Item from "@/components/item.astro"
 import Link from "@/components/link.astro"
-import { getWriting, getDeepDives, getWork, getUses } from "@/utils/content-collection.utils"
+import { getDeepDives, getNotes } from "@/utils/content-collection.utils"
 
-// Get recent items from each category (limit to 3 each)
-const [writing, deepDives, work, uses] = await Promise.all([getWriting(), getDeepDives(), getWork(), getUses()])
+// Get recent items from each section (limit to 5 each)
+const [deepDives, notes] = await Promise.all([getDeepDives(), getNotes()])
 
-const recentWriting = writing.slice(0, 3)
-const recentDeepDives = deepDives.slice(0, 3)
-const recentWork = work.slice(0, 3)
-const recentUses = uses.slice(0, 3)
+const recentDeepDives = deepDives.slice(0, 5)
+const recentNotes = notes.slice(0, 5)
 
 // Define sections with their data
 const sections = [
   {
-    title: "Writing",
-    description: "Technical articles and tutorials",
-    href: "/writing",
-    items: recentWriting,
-  },
-  {
     title: "Deep Dives",
-    description: "In-depth explorations and notes",
+    description: "In-depth technical content and comprehensive guides",
     href: "/deep-dives",
     items: recentDeepDives,
   },
   {
-    title: "Work",
-    description: "Design docs and case studies",
-    href: "/work",
-    items: recentWork,
-  },
-  {
-    title: "Uses",
-    description: "Tools and setup",
-    href: "/uses",
-    items: recentUses,
+    title: "Notes",
+    description: "Casual technical content - design docs, programming, tools, and productivity",
+    href: "/notes",
+    items: recentNotes,
   },
 ].filter((section) => section.items.length > 0)
 ---

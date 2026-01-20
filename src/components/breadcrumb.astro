@@ -4,8 +4,9 @@ import { Icon } from "astro-icon/components"
 
 export interface Props {
   crumbs: {
-    title: string
+    name: string
     href: string
+    title?: string
   }[]
 }
 
@@ -18,8 +19,8 @@ const { crumbs } = Astro.props as Props
       crumbs.length > 0 &&
       crumbs.map((crumb, index) => (
         <>
-          <Link href={crumb.href} class="nav-link">
-            {crumb.title}
+          <Link href={crumb.href} class="nav-link" title={crumb.title}>
+            {crumb.name}
           </Link>
           {index < crumbs.length - 1 && (
             <Icon name="carbon:chevron-right" class="breadcrumb-separator icon-sm" />

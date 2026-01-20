@@ -8,11 +8,11 @@ import { Icon } from "astro-icon/components"
 <header class="site-header">
   <div class="content-container">
     <nav class="site-nav">
-      <!-- Logo -->
+      <!-- Logo - always visible -->
       <Link href="/" class="nav-link nav-logo"> sujeet.pro </Link>
 
-      <!-- Desktop Navigation -->
-      <div class="nav-desktop">
+      <!-- Nav Links - visible on sm and above -->
+      <div class="nav-links-container">
         {
           NAV_ITEMS.map((item) => (
             <Link href={item.path} class="nav-link">
@@ -20,10 +20,19 @@ import { Icon } from "astro-icon/components"
             </Link>
           ))
         }
+      </div>
+
+      <!-- Search Icon - visible on sm only -->
+      <Link href="/search" class="nav-search-icon" aria-label="Search">
+        <Icon name="carbon:search" class="icon-lg" />
+      </Link>
+
+      <!-- Search Input - visible on md and above -->
+      <div class="nav-search-input">
         <Search />
       </div>
 
-      <!-- Mobile Menu Button -->
+      <!-- Hamburger Menu - visible on default only (below sm) -->
       <button
         id="mobile-menu-btn"
         class="mobile-menu-btn"

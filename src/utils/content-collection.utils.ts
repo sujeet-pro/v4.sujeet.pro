@@ -2,7 +2,6 @@
  * Generic Content Collection Utilities
  *
  * Single source of truth for all content type operations.
- * Consolidates content-writing, content-deep-dives, content-work, and content-uses utilities.
  *
  * ## Architecture
  * - COLLECTION_CONFIG: Maps collection names to content types and URL prefixes
@@ -10,23 +9,14 @@
  * - Public API: Type-safe exports that maintain backward compatibility
  *
  * ## Content Types
- * - writing: Blog posts (has optional `featuredRank`)
- * - deep-dives: Educational content (category is required)
- * - work: Design docs, case studies (has optional `workType`)
- * - uses: Tools and productivity content
+ * - deep-dives: In-depth technical content (category is required)
+ * - notes: Casual technical content - design docs, programming, tools, productivity (has optional `type`)
  */
 
 import { getCollection, type CollectionEntry } from "astro:content"
 import { buildCategoryLookup, resolveCategoryFromFrontmatter } from "./content-categories-generic.utils"
 import { renderContentItem, sortByDateDescending } from "./content.helpers"
-import type {
-  ContentItem,
-  ContentType,
-  DeepDiveContent,
-  UsesContent,
-  WorkContent,
-  WritingContent,
-} from "./content.type"
+import type { ContentItem, ContentType, DeepDiveContent, NotesContent } from "./content.type"
 import { filterDrafts } from "./draft.utils"
 
 // =============================================================================
@@ -38,10 +28,8 @@ import { filterDrafts } from "./draft.utils"
  * Maps Astro collection names to content types and URL prefixes.
  */
 const COLLECTION_CONFIG = {
-  writing: { type: "writing" as const, hrefPrefix: "/writing", categoryRequired: false },
   "deep-dives": { type: "deep-dive" as const, hrefPrefix: "/deep-dives", categoryRequired: true },
-  work: { type: "work" as const, hrefPrefix: "/work", categoryRequired: false },
-  uses: { type: "uses" as const, hrefPrefix: "/uses", categoryRequired: false },
+  notes: { type: "notes" as const, hrefPrefix: "/notes", categoryRequired: false },
 } as const
 
 type CollectionName = keyof typeof COLLECTION_CONFIG
@@ -101,17 +89,6 @@ async function processCollection(collectionName: CollectionName): Promise<Conten
 
     // Add type-specific properties and category
     switch (collectionName) {
-      case "writing": {
-        const writingItem = item as CollectionEntry<"writing">
-        const { featuredRank } = writingItem.data
-        processed.push({
-          ...baseItem,
-          type: "writing",
-          ...(featuredRank !== undefined && { featuredRank }),
-          ...(categoryInfo && { category: categoryInfo.category }),
-        } as WritingContent)
-        break
-      }
       case "deep-dives": {
         processed.push({
           ...baseItem,
@@ -120,58 +97,21 @@ async function processCollection(collectionName: CollectionName): Promise<Conten
         } as DeepDiveContent)
         break
       }
-      case "work": {
-        const workItem = item as CollectionEntry<"work">
-        const { type: workType } = workItem.data
+      case "notes": {
+        const notesItem = item as CollectionEntry<"notes">
+        const { type: noteType } = notesItem.data
         processed.push({
           ...baseItem,
-          type: "work",
-          workType,
+          type: "notes",
+          noteType,
           ...(categoryInfo && { category: categoryInfo.category }),
-        } as WorkContent)
-        break
-      }
-      case "uses": {
-        processed.push({
-          ...baseItem,
-          type: "uses",
-          ...(categoryInfo && { category: categoryInfo.category }),
-        } as UsesContent)
+        } as NotesContent)
         break
       }
     }
   }
 
   return sortByDateDescending(processed)
-}
-
-// =============================================================================
-// Public API - Writing
-// =============================================================================
-
-/**
- * Get all writing content (blog posts), excluding drafts in production.
- */
-export async function getWriting(): Promise<WritingContent[]> {
-  const items = await processCollection("writing")
-  return filterDrafts(items) as WritingContent[]
-}
-
-/**
- * Get all writing content including drafts.
- */
-export async function getWritingIncludingDrafts(): Promise<WritingContent[]> {
-  return processCollection("writing") as Promise<WritingContent[]>
-}
-
-/**
- * Get featured writing content, sorted by rank (lower = higher priority).
- */
-export async function getFeaturedWriting(): Promise<WritingContent[]> {
-  const writing = await getWriting()
-  return writing
-    .filter((item) => item.featuredRank !== undefined && !item.isDraft)
-    .sort((a, b) => (a.featuredRank ?? 0) - (b.featuredRank ?? 0))
 }
 
 // =============================================================================
@@ -194,50 +134,31 @@ export async function getDeepDivesIncludingDrafts(): Promise<DeepDiveContent[]> 
 }
 
 // =============================================================================
-// Public API - Work
+// Public API - Notes
 // =============================================================================
 
-/** Valid work content types */
-type WorkType = "design-doc" | "architecture" | "case-study"
+/** Valid note content types */
+type NoteType = "design-doc" | "architecture" | "case-study"
 
 /**
- * Get all work content, excluding drafts in production.
+ * Get all notes content, excluding drafts in production.
  */
-export async function getWork(): Promise<WorkContent[]> {
-  const items = await processCollection("work")
-  return filterDrafts(items) as WorkContent[]
+export async function getNotes(): Promise<NotesContent[]> {
+  const items = await processCollection("notes")
+  return filterDrafts(items) as NotesContent[]
 }
 
 /**
- * Get all work content including drafts.
+ * Get all notes content including drafts.
  */
-export async function getWorkIncludingDrafts(): Promise<WorkContent[]> {
-  return processCollection("work") as Promise<WorkContent[]>
+export async function getNotesIncludingDrafts(): Promise<NotesContent[]> {
+  return processCollection("notes") as Promise<NotesContent[]>
 }
 
 /**
- * Get work content filtered by type.
+ * Get notes content filtered by type.
  */
-export async function getWorkByType(workType: WorkType): Promise<WorkContent[]> {
-  const work = await getWork()
-  return work.filter((item) => item.workType === workType)
-}
-
-// =============================================================================
-// Public API - Uses
-// =============================================================================
-
-/**
- * Get all uses content, excluding drafts in production.
- */
-export async function getUses(): Promise<UsesContent[]> {
-  const items = await processCollection("uses")
-  return filterDrafts(items) as UsesContent[]
-}
-
-/**
- * Get all uses content including drafts.
- */
-export async function getUsesIncludingDrafts(): Promise<UsesContent[]> {
-  return processCollection("uses") as Promise<UsesContent[]>
+export async function getNotesByType(noteType: NoteType): Promise<NotesContent[]> {
+  const notes = await getNotes()
+  return notes.filter((item) => item.noteType === noteType)
 }

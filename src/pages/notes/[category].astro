@@ -6,9 +6,9 @@ import { getContentForType } from "@/utils/content-filters.utils"
 import type { ContentItemWithoutContent } from "@/utils/content.type"
 
 export async function getStaticPaths() {
-  const items = await getContentForType("uses")
+  const items = await getContentForType("notes")
   const itemsWithoutContent = items.map(({ Content: _, ...rest }) => rest) as ContentItemWithoutContent[]
-  const categories = await getCategoriesForType("uses", itemsWithoutContent)
+  const categories = await getCategoriesForType("notes", itemsWithoutContent)
 
   return categories.map((category) => ({
     params: { category: category.id },
@@ -17,11 +17,11 @@ export async function getStaticPaths() {
 }
 
 const { category } = Astro.props
-const crumbs = [{ title: "Uses", href: "/uses" }]
+const crumbs = [{ name: "Notes", href: "/notes" }]
 ---
 
-<Layout title={category.name} description={category.description} {crumbs} pageType="default">
-  <h1>{category.name}</h1>
+<Layout title={category.title} description={category.description} {crumbs} pageType="default">
+  <h1 class="mb-3">{category.title}</h1>
   <p class="text-muted mb-8">{category.description}</p>
 
   {
@@ -32,7 +32,7 @@ const crumbs = [{ title: "Uses", href: "/uses" }]
         ))}
       </ul>
     ) : (
-      <p class="text-muted">No entries yet in this category.</p>
+      <p class="text-muted">No documents yet in this category.</p>
     )
   }
 </Layout>

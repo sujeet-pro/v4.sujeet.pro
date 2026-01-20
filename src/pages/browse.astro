@@ -7,7 +7,7 @@ import { getAllTagsWithCounts } from "@/utils/content-tags.utils"
 import type { ContentType } from "@/utils/content.type"
 
 const contentByType = await getAllContentByType()
-const contentTypes: ContentType[] = ["writing", "deep-dives", "work", "uses"]
+const contentTypes: ContentType[] = ["deep-dives", "notes"]
 
 // Get categories for each type
 const categoriesByType = new Map()
@@ -46,7 +46,7 @@ const crumbs: { title: string; href: string }[] = []
               <ul class="text-sm space-y-1">
                 {categories.slice(0, 3).map((cat) => (
                   <li>
-                    <Link href={cat.href} class="text-muted hover:underline">
+                    <Link href={cat.href} class="text-muted hover:underline" title={cat.title}>
                       {cat.name} ({cat.items.length})
                     </Link>
                   </li>

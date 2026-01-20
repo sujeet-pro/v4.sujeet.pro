@@ -3,16 +3,7 @@
  * Provides functions to filter and aggregate content across types
  */
 
-import {
-  getDeepDives,
-  getDeepDivesIncludingDrafts,
-  getUses,
-  getUsesIncludingDrafts,
-  getWork,
-  getWorkIncludingDrafts,
-  getWriting,
-  getWritingIncludingDrafts,
-} from "./content-collection.utils"
+import { getDeepDives, getDeepDivesIncludingDrafts, getNotes, getNotesIncludingDrafts } from "./content-collection.utils"
 import { sortByDateDescending } from "./content.helpers"
 import type { ContentItemWithoutContent, ContentType } from "./content.type"
 
@@ -23,10 +14,8 @@ import type { ContentItemWithoutContent, ContentType } from "./content.type"
 type ContentGetter = () => Promise<ContentItemWithoutContent[]>
 
 const CONTENT_GETTERS: Record<ContentType, ContentGetter> = {
-  writing: getWriting,
   "deep-dives": getDeepDives,
-  work: getWork,
-  uses: getUses,
+  notes: getNotes,
 }
 
 /**
@@ -43,7 +32,7 @@ export async function getContentForType(type: ContentType): Promise<ContentItemW
 export async function getAllContentByType(): Promise<Map<ContentType, ContentItemWithoutContent[]>> {
   const result = new Map<ContentType, ContentItemWithoutContent[]>()
 
-  const types: ContentType[] = ["writing", "deep-dives", "work", "uses"]
+  const types: ContentType[] = ["deep-dives", "notes"]
   const contentArrays = await Promise.all(types.map((type) => getContentForType(type)))
 
   types.forEach((type, index) => {
@@ -100,10 +89,8 @@ export async function getRecentContent(limit: number = 10): Promise<ContentItemW
 export async function getContentCounts(): Promise<Record<ContentType, number>> {
   const contentByType = await getAllContentByType()
   const counts: Record<ContentType, number> = {
-    writing: 0,
     "deep-dives": 0,
-    work: 0,
-    uses: 0,
+    notes: 0,
   }
 
   for (const [type, items] of contentByType) {
@@ -117,13 +104,8 @@ export async function getContentCounts(): Promise<Record<ContentType, number>> {
  * Get all content from all types including drafts, sorted chronologically (newest first)
  */
 export async function getAllContentIncludingDrafts(): Promise<ContentItemWithoutContent[]> {
-  const [writing, deepDives, work, uses] = await Promise.all([
-    getWritingIncludingDrafts(),
-    getDeepDivesIncludingDrafts(),
-    getWorkIncludingDrafts(),
-    getUsesIncludingDrafts(),
-  ])
+  const [deepDives, notes] = await Promise.all([getDeepDivesIncludingDrafts(), getNotesIncludingDrafts()])
 
-  const allContent: ContentItemWithoutContent[] = [...writing, ...deepDives, ...work, ...uses]
+  const allContent: ContentItemWithoutContent[] = [...deepDives, ...notes]
   return sortByDateDescending(allContent)
 }

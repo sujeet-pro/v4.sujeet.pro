@@ -1,9 +1,0 @@
-[
-  // Programming - patterns, idioms, and best practices
-  {
-    "id": "programming",
-    "name": "Programming",
-    "description": "Programming patterns, idioms, and best practices - design patterns, error handling, async programming, and language concepts",
-    "featured": true
-  }
-]

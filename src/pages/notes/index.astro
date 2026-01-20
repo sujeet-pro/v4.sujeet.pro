@@ -3,18 +3,18 @@ import Item from "@/components/item.astro"
 import Link from "@/components/link.astro"
 import Layout from "@/layout/layout.astro"
 import { getCategoriesForType } from "@/utils/content-categories-generic.utils"
-import { getWork } from "@/utils/content-collection.utils"
+import { getNotes } from "@/utils/content-collection.utils"
 import type { ContentItemWithoutContent } from "@/utils/content.type"
 
-const work = await getWork()
-const itemsWithoutContent = work.map(({ Content: _, ...rest }) => rest) as ContentItemWithoutContent[]
-const categories = await getCategoriesForType("work", itemsWithoutContent)
+const notes = await getNotes()
+const itemsWithoutContent = notes.map(({ Content: _, ...rest }) => rest) as ContentItemWithoutContent[]
+const categories = await getCategoriesForType("notes", itemsWithoutContent)
 const crumbs = null
 ---
 
-<Layout title="Work" description="Design docs, architecture proposals, and adoption stories" {crumbs} pageType="default">
-  <h1 class="page-title">Work</h1>
-  <p class="page-description">Design docs, architecture proposals, and adoption stories.</p>
+<Layout title="Notes" description="Casual technical content - design docs, programming patterns, tools, and productivity" {crumbs} pageType="default">
+  <h1 class="page-title">Notes</h1>
+  <p class="page-description">Casual technical content - design docs, programming patterns, tools, and productivity.</p>
 
   <!-- Categories -->
   <section class="mb-12">
@@ -33,11 +33,11 @@ const crumbs = null
 
   <!-- All Entries -->
   <section>
-    <h2 class="section-title">All Articles ({work.length})</h2>
+    <h2 class="section-title">All Articles ({notes.length})</h2>
     {
-      work.length > 0 ? (
+      notes.length > 0 ? (
         <ul class="flex flex-col">
-          {work.map((item) => (
+          {notes.map((item) => (
             <Item item={item} />
           ))}
         </ul>

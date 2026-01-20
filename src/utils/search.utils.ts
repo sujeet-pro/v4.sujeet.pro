@@ -51,7 +51,7 @@ export async function getSearchFacets(): Promise<SearchFacets> {
   const allContent = await getAllContentItems()
 
   // Use Maps to track counts
-  const categoryMap = new Map<string, { name: string; count: number }>()
+  const categoryMap = new Map<string, { name: string; title: string; count: number }>()
   const tagMap = new Map<string, { name: string; count: number }>()
 
   for (const item of allContent) {
@@ -62,7 +62,7 @@ export async function getSearchFacets(): Promise<SearchFacets> {
       if (existing) {
         existing.count++
       } else {
-        categoryMap.set(catId, { name: item.category.name, count: 1 })
+        categoryMap.set(catId, { name: item.category.name, title: item.category.title, count: 1 })
       }
     }
 
@@ -79,7 +79,7 @@ export async function getSearchFacets(): Promise<SearchFacets> {
 
   // Convert to arrays and sort by count (descending)
   const categories: FacetItem[] = Array.from(categoryMap.entries())
-    .map(([id, { name, count }]) => ({ id, name, count }))
+    .map(([id, { name, title, count }]) => ({ id, name, title, count }))
     .sort((a, b) => b.count - a.count)
 
   const tags: FacetItem[] = Array.from(tagMap.entries())

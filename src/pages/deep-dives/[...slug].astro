@@ -1,6 +1,7 @@
 ---
-import Accordion from "@/components/accordion.astro"
+import { Icon } from "astro-icon/components"
 import ArticleWithTOC from "@/components/article-with-toc.astro"
+import CategoryNav from "@/components/category-nav.astro"
 import TOC from "@/components/toc.astro"
 import Frontmatter from "@/components/frontmatter.astro"
 import Item from "@/components/item.astro"
@@ -17,16 +18,20 @@ export async function getStaticPaths() {
     const nextDeepDive = index < deepDives.length - 1 ? deepDives[index + 1] : null
     const prevDeepDive = index > 0 ? deepDives[index - 1] : null
 
-    // Get related deep-dives in the same category
-    const relatedInCategory = deepDives
-      .filter((d) => d.category.id === dd.category.id && d.id !== dd.id)
-      .slice(0, 5)
+    // Get all articles in the current category for category nav
+    const categoryArticles = deepDives
+      .filter((d) => d.category.id === dd.category.id)
+      .map((d) => ({
+        id: d.id,
+        title: d.title,
+        href: d.href,
+      }))
 
     return {
       params: { slug: dd.pageSlug },
       props: {
         deepDive: dd,
-        relatedInCategory,
+        categoryArticles,
         nextDeepDive,
         prevDeepDive,
       },
@@ -34,43 +39,71 @@ export async function getStaticPaths() {
   })
 }
 
-const { deepDive, relatedInCategory, nextDeepDive, prevDeepDive } = Astro.props
+const { deepDive, categoryArticles, nextDeepDive, prevDeepDive } = Astro.props
 const { description, publishedOn, lastUpdatedOn, title, minutesRead, tags, Content, isDraft, category } = deepDive
 
 const crumbs = [
-  { title: "Deep Dives", href: "/deep-dives" },
-  { title: category.name, href: category.href },
+  { name: "Deep Dives", href: "/deep-dives" },
+  { name: category.name, href: category.href, title: category.title },
 ]
 ---
 
 <Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft} layout="3col">
   <ReadingProgress />
 
+  <!-- Category Nav in left sidebar (desktop only) -->
+  <CategoryNav
+    slot="sidebar-left"
+    categoryName={category.name}
+    articles={categoryArticles}
+    currentArticleId={deepDive.id}
+  />
+
   <!-- TOC in right sidebar -->
   <TOC slot="sidebar-right" />
 
   <!-- Main content -->
+  <!-- Category Nav inline (mobile/tablet only - below breadcrumb) -->
+  <details class="category-nav-inline" id="category-nav-inline">
+    <summary class="category-nav-inline-summary">
+      <span class="category-nav-inline-title">
+        <Icon name="carbon:list" class="icon-sm" />
+        {category.name}
+      </span>
+      <Icon name="carbon:chevron-down" class="category-nav-inline-icon" />
+    </summary>
+    <nav class="category-nav-inline-content" aria-label={`${category.name} articles`}>
+      <ul class="category-nav-list">
+        {
+          categoryArticles.map((article) => {
+            const isCurrent = article.id === deepDive.id
+            return (
+              <li class="category-nav-item">
+                <a
+                  href={article.href}
+                  class:list={[
+                    "category-nav-link",
+                    { "category-nav-link-active": isCurrent }
+                  ]}
+                  aria-current={isCurrent ? "page" : undefined}
+                >
+                  {article.title}
+                </a>
+              </li>
+            )
+          })
+        }
+      </ul>
+    </nav>
+  </details>
+
   <Frontmatter {minutesRead} {publishedOn} {lastUpdatedOn} {isDraft} class="my-4" />
 
-  {
-    relatedInCategory.length > 0 && (
-      <Accordion title={`Related in: ${category.name}`} open={false}>
-        <ol class="list-inside list-decimal space-y-2 p-0">
-          {relatedInCategory.map((dd) => (
-            <li class="pl-2">
-              <Link href={dd.href} class="hover:underline">
-                {dd.title}
-              </Link>
-            </li>
-          ))}
-        </ol>
-      </Accordion>
-    )
-  }
-
-  <ArticleWithTOC>
-    <Content />
-  </ArticleWithTOC>
+  <main>
+    <ArticleWithTOC>
+      <Content />
+    </ArticleWithTOC>
+  </main>
 
   <!-- Tags -->
   {

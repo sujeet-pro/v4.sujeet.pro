@@ -74,15 +74,11 @@ export const ORGANIZATION = {
  */
 export const NAV_ITEMS = [
   { path: "/deep-dives", label: "Deep Dives" },
-  { path: "/writing", label: "Writing" },
-  { path: "/work", label: "Work" },
-  { path: "/uses", label: "Uses" },
+  { path: "/notes", label: "Notes" },
 ] as const
 
 /** Content type labels for display */
 export const CONTENT_TYPE_LABELS = {
-  writing: "Writing",
   "deep-dive": "Deep Dive",
-  work: "Work",
-  uses: "Uses",
+  notes: "Notes",
 } as const

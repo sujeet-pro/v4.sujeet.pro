@@ -12,17 +12,13 @@ import type { CategoryRef, CategoryWithItems, ContentItemWithoutContent, Content
 // =============================================================================
 
 const CATEGORY_COLLECTION_MAP: Record<ContentType, string> = {
-  writing: "categories-writing",
   "deep-dives": "categories-deep-dives",
-  work: "categories-work",
-  uses: "categories-uses",
+  notes: "categories-notes",
 } as const
 
 const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
-  writing: "Writing",
   "deep-dives": "Deep Dives",
-  work: "Work",
-  uses: "Uses",
+  notes: "Notes",
 }
 
 export { CONTENT_TYPE_LABELS }
@@ -45,13 +41,14 @@ interface CategoryLookupResult {
  */
 export async function buildCategoryLookup(contentType: ContentType): Promise<Map<string, CategoryLookupResult>> {
   const collectionName = CATEGORY_COLLECTION_MAP[contentType]
-  const categories = await getCollection(collectionName as "categories-writing")
+  const categories = await getCollection(collectionName as "categories-deep-dives" | "categories-notes")
   const lookup = new Map<string, CategoryLookupResult>()
 
   for (const cat of categories) {
     lookup.set(cat.id, {
       category: {
         id: cat.id,
+        title: cat.data.title,
         name: cat.data.name,
         description: cat.data.description,
         href: `/${contentType}/${cat.id}`,
@@ -70,7 +67,7 @@ export async function getCategoriesForType(
   items: ContentItemWithoutContent[],
 ): Promise<CategoryWithItems[]> {
   const collectionName = CATEGORY_COLLECTION_MAP[contentType]
-  const categories = await getCollection(collectionName as "categories-writing")
+  const categories = await getCollection(collectionName as "categories-deep-dives" | "categories-notes")
 
   // Group items by category
   const itemsByCategory = new Map<string, ContentItemWithoutContent[]>()
@@ -88,9 +85,9 @@ export async function getCategoriesForType(
     const categoryItems = itemsByCategory.get(cat.id) || []
     return {
       id: cat.id,
+      title: cat.data.title,
       name: cat.data.name,
       description: cat.data.description,
-      featured: cat.data.featured,
       items: categoryItems,
       href: `/${contentType}/${cat.id}`,
     }
@@ -124,17 +121,6 @@ export async function getAllCategoriesAcrossTypes(
   }
 
   return result
-}
-
-/**
- * Get featured categories for a content type
- */
-export async function getFeaturedCategoriesForType(
-  contentType: ContentType,
-  items: ContentItemWithoutContent[],
-): Promise<CategoryWithItems[]> {
-  const categories = await getCategoriesForType(contentType, items)
-  return categories.filter((cat) => cat.featured)
 }
 
 /**

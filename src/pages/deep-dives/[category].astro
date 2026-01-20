@@ -17,11 +17,11 @@ export async function getStaticPaths() {
 }
 
 const { category } = Astro.props
-const crumbs = [{ title: "Deep Dives", href: "/deep-dives" }]
+const crumbs = [{ name: "Deep Dives", href: "/deep-dives" }]
 ---
 
-<Layout title={category.name} description={category.description} {crumbs} pageType="default">
-  <h1>{category.name}</h1>
+<Layout title={category.title} description={category.description} {crumbs} pageType="default">
+  <h1 class="mb-3">{category.title}</h1>
   <p class="text-muted mb-8">{category.description}</p>
 
   {

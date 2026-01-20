@@ -68,14 +68,9 @@ export async function getTagsByRefs(tagRefs: string[] | undefined): Promise<Tag[
  * Returns tags sorted alphabetically by name
  */
 export async function getAllUsedTags(): Promise<Tag[]> {
-  const [writing, deepDives, work, uses] = await Promise.all([
-    getCollection("writing"),
-    getCollection("deep-dives"),
-    getCollection("work"),
-    getCollection("uses"),
-  ])
+  const [deepDives, notes] = await Promise.all([getCollection("deep-dives"), getCollection("notes")])
 
-  const allContent = [...writing, ...deepDives, ...work, ...uses]
+  const allContent = [...deepDives, ...notes]
   const tagSet = new Set<string>()
 
   allContent.forEach((item) => {
@@ -120,14 +115,9 @@ export interface TagWithCount extends Tag {
  * Returns tags sorted by count (descending) then alphabetically by name
  */
 export async function getAllTagsWithCounts(): Promise<TagWithCount[]> {
-  const [writing, deepDives, work, uses] = await Promise.all([
-    getCollection("writing"),
-    getCollection("deep-dives"),
-    getCollection("work"),
-    getCollection("uses"),
-  ])
+  const [deepDives, notes] = await Promise.all([getCollection("deep-dives"), getCollection("notes")])
 
-  const allContent = [...writing, ...deepDives, ...work, ...uses]
+  const allContent = [...deepDives, ...notes]
   const tagCounts = new Map<string, number>()
 
   allContent.forEach((item) => {

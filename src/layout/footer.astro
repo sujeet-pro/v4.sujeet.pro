@@ -2,22 +2,12 @@
 import { getCollection } from "astro:content"
 import Link from "@/components/link.astro"
 
-// Get featured categories for each content type
-const writingCategories = (await getCollection("categories-writing"))
-  .filter((c) => c.data.featured)
-  .map((c) => ({ id: c.id, name: c.data.name, href: `/writing/${c.id}` }))
-
+// Get all categories for each content type (only categories with articles are defined)
 const deepDivesCategories = (await getCollection("categories-deep-dives"))
-  .filter((c) => c.data.featured)
-  .map((c) => ({ id: c.id, name: c.data.name, href: `/deep-dives/${c.id}` }))
+  .map((c) => ({ id: c.id, title: c.data.title, name: c.data.name, href: `/deep-dives/${c.id}` }))
 
-const workCategories = (await getCollection("categories-work"))
-  .filter((c) => c.data.featured)
-  .map((c) => ({ id: c.id, name: c.data.name, href: `/work/${c.id}` }))
-
-const usesCategories = (await getCollection("categories-uses"))
-  .filter((c) => c.data.featured)
-  .map((c) => ({ id: c.id, name: c.data.name, href: `/uses/${c.id}` }))
+const notesCategories = (await getCollection("categories-notes"))
+  .map((c) => ({ id: c.id, title: c.data.title, name: c.data.name, href: `/notes/${c.id}` }))
 ---
 
 <footer class="site-footer">
@@ -30,37 +20,17 @@ const usesCategories = (await getCollection("categories-uses"))
         </h4>
         <nav class="site-footer-category-links">
           {deepDivesCategories.map((cat) => (
-            <Link href={cat.href} class="nav-link">{cat.name}</Link>
+            <Link href={cat.href} class="nav-link" title={cat.title}>{cat.name}</Link>
           ))}
         </nav>
       </div>
       <div class="site-footer-category-section">
         <h4 class="site-footer-category-title">
-          <Link href="/writing" class="nav-link">Writing</Link>
+          <Link href="/notes" class="nav-link">Notes</Link>
         </h4>
         <nav class="site-footer-category-links">
-          {writingCategories.map((cat) => (
-            <Link href={cat.href} class="nav-link">{cat.name}</Link>
-          ))}
-        </nav>
-      </div>
-      <div class="site-footer-category-section">
-        <h4 class="site-footer-category-title">
-          <Link href="/work" class="nav-link">Work</Link>
-        </h4>
-        <nav class="site-footer-category-links">
-          {workCategories.map((cat) => (
-            <Link href={cat.href} class="nav-link">{cat.name}</Link>
-          ))}
-        </nav>
-      </div>
-      <div class="site-footer-category-section">
-        <h4 class="site-footer-category-title">
-          <Link href="/uses" class="nav-link">Uses</Link>
-        </h4>
-        <nav class="site-footer-category-links">
-          {usesCategories.map((cat) => (
-            <Link href={cat.href} class="nav-link">{cat.name}</Link>
+          {notesCategories.map((cat) => (
+            <Link href={cat.href} class="nav-link" title={cat.title}>{cat.name}</Link>
           ))}
         </nav>
       </div>

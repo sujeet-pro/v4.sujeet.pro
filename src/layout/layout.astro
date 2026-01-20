@@ -75,25 +75,23 @@ const searchIndexPath = getFilePath("search/index.json")
   <body>
     <Header />
     {layout === "3col" ? (
-      <!-- 3-column layout: sidebars outside main, content centered -->
-      <div class="layout-3col-wrapper flex-1">
-        <div class="layout-3col-grid">
-          <!-- Left sidebar column -->
-          <aside class="layout-3col-sidebar layout-3col-sidebar-left">
-            {hasSidebarLeft && <slot name="sidebar-left" />}
-          </aside>
+      <!-- 3-column layout: sidebars outside content, content centered -->
+      <div class="layout-3col-grid flex-1">
+        <!-- Left sidebar column -->
+        <aside class="layout-3col-sidebar layout-3col-sidebar-left">
+          {hasSidebarLeft && <slot name="sidebar-left" />}
+        </aside>
 
-          <!-- Center content column (main) -->
-          <main class="layout-3col-content">
-            {crumbs ? <Breadcrumb {crumbs} /> : null}
-            <slot />
-          </main>
-
-          <!-- Right sidebar column -->
-          <aside class="layout-3col-sidebar layout-3col-sidebar-right">
-            {hasSidebarRight && <slot name="sidebar-right" />}
-          </aside>
+        <!-- Center content column -->
+        <div class="layout-3col-content">
+          {crumbs ? <Breadcrumb {crumbs} /> : null}
+          <slot />
         </div>
+
+        <!-- Right sidebar column -->
+        <aside class="layout-3col-sidebar layout-3col-sidebar-right">
+          {hasSidebarRight && <slot name="sidebar-right" />}
+        </aside>
       </div>
     ) : (
       <!-- Default layout: constrained width -->

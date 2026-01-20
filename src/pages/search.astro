@@ -41,7 +41,7 @@ const searchIndexPath = getFilePath("search/index.json")
             <h3 class="filter-group-title">Categories</h3>
             <div class="filter-group-list" id="category-filters">
               {categories.map((cat) => (
-                <label class="filter-chip">
+                <label class="filter-chip" title={cat.fullName}>
                   <input type="checkbox" name="category" value={cat.id} class="filter-chip-input peer" />
                   <span class="tag peer-checked:badge-accent">
                     {cat.name} <span class="text-muted">({cat.count})</span>

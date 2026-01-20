@@ -60,8 +60,14 @@ export default defineConfig({
 
   // Redirects for old routes
   redirects: {
-    "/post": "/writing",
-    "/post/[...slug]": "/writing/[...slug]",
+    "/post": "/notes",
+    "/post/[...slug]": "/notes/[...slug]",
+    "/writing": "/notes",
+    "/writing/[...slug]": "/notes/[...slug]",
+    "/work": "/notes",
+    "/work/[...slug]": "/notes/[...slug]",
+    "/uses": "/notes",
+    "/uses/[...slug]": "/notes/[...slug]",
   },
 
   // Define environment schema for type safety

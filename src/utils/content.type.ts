@@ -15,7 +15,7 @@ export interface Tag {
 // Content Type Enum
 // =============================================================================
 
-export type ContentType = "writing" | "deep-dives" | "work" | "uses"
+export type ContentType = "deep-dives" | "notes"
 
 // =============================================================================
 // Category Reference Types (for content items)
@@ -23,7 +23,8 @@ export type ContentType = "writing" | "deep-dives" | "work" | "uses"
 
 export interface CategoryRef {
   id: string
-  name: string
+  title: string // Full descriptive title for h1, meta, title attributes
+  name: string // Short name for display (footer, breadcrumbs, cards)
   description: string
   href: string
 }
@@ -49,51 +50,37 @@ interface BaseContentItem {
   category?: CategoryRef | undefined
 }
 
-// Writing content (blog posts)
-export interface WritingContent extends BaseContentItem {
-  type: "writing"
-  featuredRank?: number | undefined
-}
-
-// Deep dive content
+// Deep dive content (in-depth technical)
 export interface DeepDiveContent extends BaseContentItem {
   type: "deep-dive"
   // Deep dives require category
   category: CategoryRef
 }
 
-// Work content (design docs, case studies, architecture)
-export interface WorkContent extends BaseContentItem {
-  type: "work"
-  workType?: "design-doc" | "architecture" | "case-study" | undefined
-}
-
-// Uses content (tools, setup, productivity)
-export interface UsesContent extends BaseContentItem {
-  type: "uses"
+// Notes content (casual technical - design docs, programming, tools, productivity)
+export interface NotesContent extends BaseContentItem {
+  type: "notes"
+  noteType?: "design-doc" | "architecture" | "case-study" | undefined
 }
 
 // Union type for all content types
-export type ContentItem = WritingContent | DeepDiveContent | WorkContent | UsesContent
+export type ContentItem = DeepDiveContent | NotesContent
 
 // =============================================================================
 // Content Item Types (without Content component for listings)
 // =============================================================================
 
-export type WritingContentItem = Omit<WritingContent, "Content">
 export type DeepDiveContentItem = Omit<DeepDiveContent, "Content">
-export type WorkContentItem = Omit<WorkContent, "Content">
-export type UsesContentItem = Omit<UsesContent, "Content">
+export type NotesContentItem = Omit<NotesContent, "Content">
 
 // Union type for all content item types (for listings)
-export type ContentItemWithoutContent = WritingContentItem | DeepDiveContentItem | WorkContentItem | UsesContentItem
+export type ContentItemWithoutContent = DeepDiveContentItem | NotesContentItem
 
 // =============================================================================
 // Category Types with Items (for category pages)
 // =============================================================================
 
 export interface CategoryWithItems<T = ContentItemWithoutContent> extends CategoryRef {
-  featured: boolean
   items: T[]
 }
 
