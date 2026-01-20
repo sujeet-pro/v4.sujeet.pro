@@ -73,12 +73,13 @@ export const ORGANIZATION = {
  * Navigation items for header
  */
 export const NAV_ITEMS = [
-  { path: "/deep-dives", label: "Deep Dives" },
-  { path: "/notes", label: "Notes" },
+  { path: "/posts/deep-dives", label: "Deep Dives" },
+  { path: "/posts/notes", label: "Notes" },
 ] as const
 
 /** Content type labels for display */
 export const CONTENT_TYPE_LABELS = {
   "deep-dive": "Deep Dive",
   notes: "Notes",
+  "in-research": "In Research",
 } as const

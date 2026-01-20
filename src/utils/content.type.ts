@@ -12,10 +12,17 @@ export interface Tag {
 }
 
 // =============================================================================
-// Content Type Enum
+// Post Type and Content Type
 // =============================================================================
 
-export type ContentType = "deep-dives" | "notes"
+/** Post type represents the first-level folder under posts/ */
+export type PostType = "deep-dives" | "notes"
+
+/** Content type alias for backward compatibility */
+export type ContentType = PostType
+
+/** Collection type includes all content collections */
+export type CollectionType = PostType | "in-research"
 
 // =============================================================================
 // Category Reference Types (for content items)
@@ -46,12 +53,15 @@ interface BaseContentItem {
   tags: Tag[]
   Content: RenderResult["Content"]
   href: string
-  // Category derived from folder structure (content-type/category/...)
+  // Post type derived from folder structure (posts/<post-type>/...)
+  postType: PostType
+  // Category derived from folder structure (posts/<post-type>/<category>/...)
   category?: CategoryRef | undefined
 }
 
 // Deep dive content (in-depth technical)
 export interface DeepDiveContent extends BaseContentItem {
+  postType: "deep-dives"
   type: "deep-dive"
   // Deep dives require category
   category: CategoryRef
@@ -59,6 +69,7 @@ export interface DeepDiveContent extends BaseContentItem {
 
 // Notes content (casual technical - design docs, programming, tools, productivity)
 export interface NotesContent extends BaseContentItem {
+  postType: "notes"
   type: "notes"
   noteType?: "design-doc" | "architecture" | "case-study" | undefined
 }
@@ -67,14 +78,42 @@ export interface NotesContent extends BaseContentItem {
 export type ContentItem = DeepDiveContent | NotesContent
 
 // =============================================================================
+// In-Research Content Types (no date, no categories)
+// =============================================================================
+
+// Base interface for in-research content (no publishedOn required)
+interface BaseInResearchItem {
+  id: string
+  pageSlug: string
+  title: string
+  minutesRead: string
+  description: string
+  lastUpdatedOn?: Date | undefined
+  isDraft: boolean
+  tags: Tag[]
+  Content: RenderResult["Content"]
+  href: string
+}
+
+// In-research content (work in progress, no publish date)
+export interface InResearchContent extends BaseInResearchItem {
+  collectionType: "in-research"
+  type: "in-research"
+}
+
+// =============================================================================
 // Content Item Types (without Content component for listings)
 // =============================================================================
 
 export type DeepDiveContentItem = Omit<DeepDiveContent, "Content">
 export type NotesContentItem = Omit<NotesContent, "Content">
+export type InResearchContentItem = Omit<InResearchContent, "Content">
 
 // Union type for all content item types (for listings)
 export type ContentItemWithoutContent = DeepDiveContentItem | NotesContentItem
+
+// Union type for in-research content items (for listings)
+export type InResearchContentItemWithoutContent = InResearchContentItem
 
 // =============================================================================
 // Category Types with Items (for category pages)
@@ -113,6 +152,20 @@ export const remarkPluginFrontmatterSchema = z.object({
   description: z.string({ message: "Description is required" }).min(1, "Description is required"),
   minutesRead: z.string({ message: "Minutes read is required" }).min(1, "Minutes read is required"),
   publishedOn: z.coerce.date({ message: "Published on is required" }),
+  isDraft: z.boolean({ message: "Is draft is required" }),
+  pageSlug: z.string({ message: "Slug is required" }),
+})
+
+// Schema for in-research content (no publishedOn required)
+export const inResearchFrontmatterSchema = z.object({
+  title: z
+    .string({
+      required_error: "Title is required",
+      message: "Title is required",
+    })
+    .min(1, "Title is required of min size 1"),
+  description: z.string({ message: "Description is required" }).min(1, "Description is required"),
+  minutesRead: z.string({ message: "Minutes read is required" }).min(1, "Minutes read is required"),
   isDraft: z.boolean({ message: "Is draft is required" }),
   pageSlug: z.string({ message: "Slug is required" }),
 })

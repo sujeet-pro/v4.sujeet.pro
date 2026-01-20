@@ -58,15 +58,20 @@ export default defineConfig({
   },
 
   // Redirects for old routes
+  // Note: Dynamic path redirects with parameters are not supported in static mode
+  // Old deep-dives and notes URLs will 404 - users should update their bookmarks
   redirects: {
-    "/post": "/notes",
-    "/post/[...slug]": "/notes/[...slug]",
-    "/writing": "/notes",
-    "/writing/[...slug]": "/notes/[...slug]",
-    "/work": "/notes",
-    "/work/[...slug]": "/notes/[...slug]",
-    "/uses": "/notes",
-    "/uses/[...slug]": "/notes/[...slug]",
+    // Static redirects for migration to /posts structure
+    "/deep-dives": "/posts/deep-dives",
+    "/notes": "/posts/notes",
+    "/articles": "/posts",
+    "/drafts": "/posts/drafts",
+
+    // Legacy redirects (now point to /posts/notes)
+    "/post": "/posts/notes",
+    "/writing": "/posts/notes",
+    "/work": "/posts/notes",
+    "/uses": "/posts/notes",
   },
 
   // Define environment schema for type safety

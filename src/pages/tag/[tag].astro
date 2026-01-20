@@ -41,8 +41,8 @@ const sortedContent = [...content].sort((a, b) => b.publishedOn.getTime() - a.pu
 ---
 
 <Layout title={`Tag: ${tag.name}`} description={`Content tagged with ${tag.name}`} {crumbs} pageType="default">
-  <h1 class="text-center">#{tag.name}</h1>
-  <p class="text-muted mb-8 text-center">{sortedContent.length} items</p>
+  <h1 class="page-title">#{tag.name}</h1>
+  <p class="page-description">{sortedContent.length} items</p>
 
   <ul class="content-list">
     {sortedContent.map((item) => <Item item={item} showType={true} />)}

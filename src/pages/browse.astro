@@ -2,16 +2,16 @@
 import Link from "@/components/link.astro"
 import Layout from "@/layout/layout.astro"
 import { getAllContentByType } from "@/utils/content-filters.utils"
-import { getCategoriesForType, CONTENT_TYPE_LABELS } from "@/utils/content-categories-generic.utils"
+import { getCategoriesForType, POST_TYPE_LABELS } from "@/utils/content-categories-generic.utils"
 import { getAllTagsWithCounts } from "@/utils/content-tags.utils"
-import type { ContentType } from "@/utils/content.type"
+import type { PostType } from "@/utils/content.type"
 
 const contentByType = await getAllContentByType()
-const contentTypes: ContentType[] = ["deep-dives", "notes"]
+const postTypes: PostType[] = ["deep-dives", "notes"]
 
 // Get categories for each type
 const categoriesByType = new Map()
-for (const type of contentTypes) {
+for (const type of postTypes) {
   const items = contentByType.get(type) || []
   const categories = await getCategoriesForType(type, items)
   categoriesByType.set(type, categories)
@@ -24,22 +24,22 @@ const crumbs: { title: string; href: string }[] = []
 ---
 
 <Layout title="Browse" description="Browse content by category, type, or tag" {crumbs} pageType="default">
-  <h1 class="mb-2">Browse</h1>
-  <p class="text-muted mb-8">Explore content by category, type, or tag.</p>
+  <h1 class="page-title">Browse</h1>
+  <p class="page-description">Explore content by category, type, or tag.</p>
 
   {/* Content by Type */}
   <section class="mb-12">
-    <h2 class="mb-6 text-xl font-light">By Content Type</h2>
+    <h2 class="mb-6 text-xl font-light">By Post Type</h2>
     <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
       {
-        contentTypes.map((type) => {
+        postTypes.map((type) => {
           const items = contentByType.get(type) || []
           const categories = categoriesByType.get(type) || []
           return (
             <div class="browse-card">
               <h3 class="mb-2 text-lg font-medium">
-                <Link href={`/${type}`} class="hover:underline">
-                  {CONTENT_TYPE_LABELS[type]}
+                <Link href={`/posts/${type}`} class="hover:underline">
+                  {POST_TYPE_LABELS[type]}
                 </Link>
               </h3>
               <p class="text-muted text-sm mb-3">{items.length} items</p>
@@ -64,14 +64,14 @@ const crumbs: { title: string; href: string }[] = []
 
   {/* Categories by Type */}
   {
-    contentTypes.map((type) => {
+    postTypes.map((type) => {
       const categories = categoriesByType.get(type) || []
       if (categories.length === 0) return null
       return (
         <section class="mb-12">
           <h2 class="mb-4 text-xl font-light">
-            <Link href={`/${type}`} class="hover:underline">
-              {CONTENT_TYPE_LABELS[type]}
+            <Link href={`/posts/${type}`} class="hover:underline">
+              {POST_TYPE_LABELS[type]}
             </Link>
             {" Categories"}
           </h2>

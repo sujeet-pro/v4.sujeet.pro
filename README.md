@@ -155,90 +155,82 @@ Block: $$\int_0^1 x^2 dx$$
 
 ---
 
-## Using LLM Agents
+## Using Claude Code
 
-This repo includes documentation for LLM agents (Claude, Cursor, Gemini, Codex) to assist with content creation and code review.
+This repo is configured for Claude Code with specialized skills for content creation and code review.
 
-### Agent Configuration Files
+### Claude Skills
 
-| Agent  | Config File        |
-| ------ | ------------------ |
-| Claude | `.claude/rules.md` |
-| Cursor | `.cursor/rules.md` |
-| Gemini | `.gemini/rules.md` |
-| Codex  | `codex.md`         |
+#### Content Skills
 
-All agents reference detailed docs in `llm_docs/`.
+| Command | Description |
+|---------|-------------|
+| `/write-post <topic>` | Write new blog post with deep research |
+| `/review-posts <path/topic>` | Review and improve existing post |
+| `/sys-design <topic>` | Write system design solution document |
+| `/research-post <topic>` | Generate research material for future article |
+| `/write-research <type> <category> <path>` | Convert research into blog post |
+| `/review-all` | Review all posts one by one |
 
-### Commands
+#### Code Skills
 
-#### Review an Article
+| Command | Description |
+|---------|-------------|
+| `/review-code` | Review entire codebase against standards |
+| `/review-changes` | Review uncommitted changes only |
 
-```
-Review article: content/writing/javascript/patterns/2023-05-01-pub-sub.md
-```
+### Example Workflows
 
-Reviews for:
-
-- Structure (H1, description, Table of Contents)
-- Code blocks (collapsed boilerplate, proper highlighting)
-- Technical accuracy
-- Accessibility
-
-#### Generate an Article
+#### Write a New Post
 
 ```
-Generate article: Understanding Event Sourcing
+/write-post Node.js event loop internals - covering phases and common pitfalls
 ```
 
-Or with reference files:
+Claude will:
+1. Research from official docs, source code, expert blogs
+2. Create draft structure with outline
+3. Write content with mermaid diagrams and inline references
+4. Apply quality checks and save to production location
+
+#### Review an Existing Post
 
 ```
-Generate article: React Server Components
-ref: content/writing/frameworks/react/2024-03-15-react-architecture.md
+/review-posts content/posts/web/2024-01-15-caching.md
 ```
 
-#### Draft Workflow
+Claude will:
+1. Analyze structure and content
+2. Fact-check claims via web research
+3. Check code blocks for collapse usage
+4. Generate detailed report with recommendations
 
-For complex articles, use the draft workflow:
+#### Research Before Writing
 
-1. **Create draft folder:**
-
-   ```
-   Create draft: distributed-consensus
-   ```
-
-2. **Add research notes** to `content/drafts/distributed-consensus/`:
-   - `_meta.yaml` - Target collection, tags, status
-   - `notes.md` - Research notes from various sources
-   - `outline.md` - Planned structure
-
-3. **Generate article:**
-   ```
-   Generate article from draft: distributed-consensus
-   ```
-
-The agent reads all files, synthesizes content, and places the article in the correct location.
-
-### Draft Metadata (`_meta.yaml`)
-
-```yaml
-target: writing # writing | deep-dives | work | uses
-folder: javascript/patterns # Optional: target folder
-tags:
-  - js
-  - design-patterns
-workingTitle: My Article
-status: research # research | outlining | drafting | review | ready
+```
+/research-post WebSocket scaling patterns
 ```
 
-### Key Guidelines for Agents
+Creates research material in `content/in-research/`. Later convert to article:
+
+```
+/write-research posts web content/in-research/2024-01-20-websockets/
+```
+
+### Key Guidelines
 
 1. **Code blocks**: Always collapse imports/boilerplate with `collapse={lines}`
 2. **TypeScript**: Strictest mode, use `import type` for types
 3. **CSS**: Minimalistic - prefer Tailwind utilities
-4. **Structure**: Each section should lead naturally to the next
-5. **Audience**: Experienced professionals, highly technical
+4. **Audience**: Senior/staff/principal engineers
+5. **Conciseness**: No padding, no filler, every paragraph earns its place
+
+### Configuration
+
+- `.claude/rules.md` - Project rules and skill reference
+- `.claude/settings.local.json` - Permissions
+- `.claude/skills/` - Detailed skill documentation
+- `llm_docs/` - Content guidelines, code standards, markdown features
 
 ---
 

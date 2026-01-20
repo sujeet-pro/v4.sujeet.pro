@@ -25,12 +25,12 @@ export async function getAllContentWithBodies(): Promise<ContentWithBody[]> {
   // Get processed content for metadata
   const [deepDives, notes] = await Promise.all([getDeepDives(), getNotes()])
 
-  // Get raw collections for body content
-  const [rawDeepDives, rawNotes] = await Promise.all([getCollection("deep-dives"), getCollection("notes")])
+  // Get raw collection for body content
+  const rawPosts = await getCollection("posts")
 
   // Create lookup maps for raw content by ID
   const rawBodyMap = new Map<string, string>()
-  for (const item of [...rawDeepDives, ...rawNotes]) {
+  for (const item of rawPosts) {
     rawBodyMap.set(item.id, item.body ?? "")
   }
 

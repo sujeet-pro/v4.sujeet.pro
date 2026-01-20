@@ -68,12 +68,11 @@ export async function getTagsByRefs(tagRefs: string[] | undefined): Promise<Tag[
  * Returns tags sorted alphabetically by name
  */
 export async function getAllUsedTags(): Promise<Tag[]> {
-  const [deepDives, notes] = await Promise.all([getCollection("deep-dives"), getCollection("notes")])
+  const posts = await getCollection("posts")
 
-  const allContent = [...deepDives, ...notes]
   const tagSet = new Set<string>()
 
-  allContent.forEach((item) => {
+  posts.forEach((item) => {
     item.data.tags?.forEach((tag: string) => tagSet.add(tag))
   })
 
@@ -115,12 +114,11 @@ export interface TagWithCount extends Tag {
  * Returns tags sorted by count (descending) then alphabetically by name
  */
 export async function getAllTagsWithCounts(): Promise<TagWithCount[]> {
-  const [deepDives, notes] = await Promise.all([getCollection("deep-dives"), getCollection("notes")])
+  const posts = await getCollection("posts")
 
-  const allContent = [...deepDives, ...notes]
   const tagCounts = new Map<string, number>()
 
-  allContent.forEach((item) => {
+  posts.forEach((item) => {
     item.data.tags?.forEach((tag: string) => {
       tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1)
     })

@@ -1,7 +1,7 @@
 /**
  * Sitemap Draft Filter
  *
- * Excludes draft pages and vanity URLs from the sitemap by scanning files at config time.
+ * Excludes draft pages, in-research content, and vanity URLs from the sitemap.
  * This runs before Astro's content layer is available, so we scan files directly.
  *
  * ## How Draft Detection Works
@@ -10,7 +10,8 @@
  *
  * ## Excluded Pages
  * - All pages with H1 starting with "Draft:"
- * - Static paths like /drafts
+ * - Static paths like /drafts, /posts/drafts
+ * - All /in-research/* pages (work in progress content)
  * - All vanity URLs (redirect pages that should not be indexed)
  */
 
@@ -26,7 +27,10 @@ const CONTENT_TYPES = ["writing", "deep-dives", "work", "uses"] as const
 const VANITY_FILE_PATH = "./content/vanity.jsonc"
 
 /** Static pages to always exclude from sitemap */
-const EXCLUDED_PATHS = ["/drafts"]
+const EXCLUDED_PATHS = ["/drafts", "/posts/drafts"]
+
+/** Path prefixes to exclude (all pages under these paths) */
+const EXCLUDED_PREFIXES = ["/in-research"]
 
 interface VanityEntry {
   id: string
@@ -143,13 +147,25 @@ export async function getExcludedUrls(siteUrl: string): Promise<Set<string>> {
 }
 
 /**
- * Create a sitemap filter function that excludes draft URLs.
+ * Create a sitemap filter function that excludes draft URLs and excluded prefixes.
  */
 export async function createSitemapFilter(siteUrl: string): Promise<(page: string) => boolean> {
   const excludedUrls = await getExcludedUrls(siteUrl)
 
   return (page: string) => {
     const normalizedPage = page.replace(/\/$/, "")
-    return !excludedUrls.has(normalizedPage)
+
+    // Check exact URL matches
+    if (excludedUrls.has(normalizedPage)) return false
+
+    // Check prefix matches (e.g., /in-research/*)
+    const pagePath = normalizedPage.replace(siteUrl, "")
+    for (const prefix of EXCLUDED_PREFIXES) {
+      if (pagePath === prefix || pagePath.startsWith(`${prefix}/`)) {
+        return false
+      }
+    }
+
+    return true
   }
 }

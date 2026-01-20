@@ -48,7 +48,7 @@ const vanity = defineCollection({
 })
 
 // Shared category schema for all content types
-// Simplified 2-level structure: content-type/category (no subcategories in folder structure)
+// Simplified 2-level structure: posts/<post-type>/<category>
 // Category is derived from folder path via remark plugin
 // Categories are only visible if they have at least 1 article (including drafts)
 const categorySchema = z.object({
@@ -58,19 +58,25 @@ const categorySchema = z.object({
   description: z.string(),
 })
 
-// Per-type category collections
-const categoriesDeepDives = defineCollection({
-  loader: file("./content/categories/deep-dives.jsonc", {
-    parser: (fileContent) => parseJsonc(fileContent),
+// Unified categories collection (parses nested structure from categories.jsonc)
+const categories = defineCollection({
+  loader: file("./content/categories.jsonc", {
+    parser: (fileContent) => {
+      const parsed = parseJsonc(fileContent) as Record<string, unknown[]>
+      // Flatten nested structure: { "deep-dives": [...], "notes": [...] }
+      // into array with postType field and composite ID
+      return Object.entries(parsed).flatMap(([postType, cats]) =>
+        (cats as Array<{ id: string }>).map((cat) => ({
+          ...cat,
+          id: `${postType}/${cat.id}`, // e.g., "deep-dives/web-fundamentals"
+          postType,
+        })),
+      )
+    },
   }),
-  schema: categorySchema,
-})
-
-const categoriesNotes = defineCollection({
-  loader: file("./content/categories/notes.jsonc", {
-    parser: (fileContent) => parseJsonc(fileContent),
+  schema: categorySchema.extend({
+    postType: z.enum(["deep-dives", "notes"]),
   }),
-  schema: categorySchema,
 })
 
 // =============================================================================
@@ -79,32 +85,38 @@ const categoriesNotes = defineCollection({
 
 // Shared schema for all content types
 // Category is automatically injected from folder path by remark-frontmatter-plugin
-// Format: content/<content-type>/<category>/[optional-nesting/]<date>-<slug>.md
+// Format: content/posts/<post-type>/<category>/[optional-nesting/]<date>-<slug>.md
 const baseContentSchema = z.object({
   lastUpdatedOn: z.coerce.date().optional(),
   tags: z.array(z.string()).optional().default([]),
-  // Category is derived from folder structure (content-type/category/...)
+  // Category is derived from folder structure (posts/<post-type>/<category>/...)
   // Can be overridden in frontmatter if needed
   category: z.string().optional(),
 })
 
-// Deep dives collection (in-depth technical content)
-const deepDives = defineCollection({
+// Unified posts collection (deep-dives and notes)
+// Post type is derived from the first-level folder (deep-dives or notes)
+const posts = defineCollection({
   loader: glob({
     pattern: "**/[^_]*.md",
-    base: "./content/deep-dives",
-  }),
-  schema: baseContentSchema,
-})
-
-// Notes collection (casual technical content - design docs, programming, tools, productivity)
-const notes = defineCollection({
-  loader: glob({
-    pattern: "**/[^_]*.md",
-    base: "./content/notes",
+    base: "./content/posts",
   }),
   schema: baseContentSchema.extend({
+    // Optional note type (only applicable for notes)
     type: z.enum(["design-doc", "architecture", "case-study"]).optional(),
+  }),
+})
+
+// In-research collection (no categories, no date requirement)
+// Simple flat structure: content/in-research/<slug>.md or content/in-research/<slug>/index.md
+const inResearch = defineCollection({
+  loader: glob({
+    pattern: "**/[^_]*.md",
+    base: "./content/in-research",
+  }),
+  schema: z.object({
+    lastUpdatedOn: z.coerce.date().optional(),
+    tags: z.array(z.string()).optional().default([]),
   }),
 })
 
@@ -113,11 +125,9 @@ const notes = defineCollection({
 // =============================================================================
 
 export const collections = {
-  "deep-dives": deepDives,
-  notes,
+  posts,
+  inResearch,
+  categories,
   tags,
   vanity,
-  // Per-type category collections
-  "categories-deep-dives": categoriesDeepDives,
-  "categories-notes": categoriesNotes,
 }

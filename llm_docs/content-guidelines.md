@@ -6,19 +6,21 @@ This document defines the standards for creating technical content for sujeet.pr
 
 ### Core Principles
 
-1. **Depth Over Breadth**: Cover topics comprehensively rather than superficially. Each article should be the definitive resource on its subject.
+1. **Concise, Not Verbose**: Write for senior engineers who value density over verbosity. Every sentence must earn its place. If removing a paragraph doesn't reduce understanding, remove it. No padding, no filler, no hand-holding.
 
-2. **Why Before How**: Always explain the reasoning behind design decisions, architectural choices, and trade-offs before diving into implementation details.
+2. **Depth Over Breadth**: Cover topics comprehensively rather than superficially. Each article should be the definitive resource on its subject.
 
-3. **No Common Knowledge Padding**: Skip explanations of concepts your audience already knows. A senior engineer doesn't need "JavaScript is a programming language" level context.
+3. **Why Before How**: Always explain the reasoning behind design decisions, architectural choices, and trade-offs before diving into implementation details.
 
-4. **Evidence-Based Claims**: Back assertions with references, specifications, benchmarks, or source code. Avoid unsubstantiated opinions.
+4. **No Common Knowledge Padding**: Skip explanations of concepts your audience already knows. A senior engineer doesn't need "JavaScript is a programming language" level context.
 
-5. **Production Reality**: Include real-world considerations like cost, scale limits, operational complexity, and failure modes.
+5. **Evidence-Based Claims**: Back assertions with references, specifications, benchmarks, or source code. Avoid unsubstantiated opinions.
 
-6. **Real-World Over Theoretical**: Prefer challenges encountered in production systems over academic or theoretical scenarios. See [Real-World vs Theoretical Content](#real-world-vs-theoretical-content) for detailed guidelines.
+6. **Production Reality**: Include real-world considerations like cost, scale limits, operational complexity, and failure modes.
 
-7. **Zero Filler Tolerance**: Every sentence must provide unique value. Remove transitional fluff, redundant explanations, and padding that doesn't advance understanding.
+7. **Real-World Over Theoretical**: Prefer challenges encountered in production systems over academic or theoretical scenarios. See [Real-World vs Theoretical Content](#real-world-vs-theoretical-content) for detailed guidelines.
+
+8. **Zero Filler Tolerance**: Every sentence must provide unique value. Remove transitional fluff, redundant explanations, and padding that doesn't advance understanding.
 
 ### Article Length and Reading Time
 
@@ -213,8 +215,43 @@ Code should be:
 2. **Annotated** - Include comments for non-obvious parts
 3. **Realistic** - Use production-quality patterns
 4. **Typed** - Prefer TypeScript over JavaScript when applicable
+5. **Collapsed by default** - All boilerplate must be collapsed
 
-**Collapsing Irrelevant Lines:**
+**CRITICAL: Code Block Collapse**
+
+All code blocks MUST use the `collapse` directive to hide irrelevant lines. Only the lines that demonstrate the key concept should be visible by default.
+
+**Always collapse:**
+- Import statements (unless demonstrating import patterns)
+- Setup and boilerplate code
+- Type definitions (unless discussing types)
+- Helper functions (unless directly relevant)
+- Error handling (unless that's the topic)
+- Configuration objects
+
+````markdown
+```typescript title="example.ts" collapse={1-6, 15-20}
+// Collapsed: imports
+import { something } from 'somewhere'
+import { another } from 'elsewhere'
+import type { Type } from 'types'
+const config = { /* ... */ }
+// end imports
+
+// VISIBLE: The key insight
+export function mainFunction(): Result {
+  // This is what readers care about
+  const meaningful = computeValue()
+  return meaningful
+}
+
+// Collapsed: helpers
+function helper1() { /* ... */ }
+function helper2() { /* ... */ }
+```
+````
+
+**Collapsing Partial Code:**
 
 When showing partial code, use comments to indicate omitted sections:
 

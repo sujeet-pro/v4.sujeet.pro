@@ -35,6 +35,7 @@
   // Runtime & Core Technologies
   // =============================================================================
   { "id": "node", "name": "Node.js" },
+  { "id": "v8-engine", "name": "V8 Engine" },
   { "id": "libuv", "name": "libuv" },
   { "id": "html", "name": "HTML" },
   { "id": "css", "name": "CSS" },

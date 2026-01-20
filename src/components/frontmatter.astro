@@ -6,20 +6,21 @@ import Link from "./link.astro"
 
 interface Props {
   minutesRead: string
-  publishedOn: Date
+  /** Published date (optional for in-research content) */
+  publishedOn?: Date
   lastUpdatedOn?: Date | undefined
   isDraft: boolean
   class?: string
   /** Show content type badge (Writing, Deep Dive, etc.) */
   showType?: boolean
-  type?: ContentItem["type"]
+  type?: ContentItem["type"] | "in-research"
   /** Show category alongside type */
   showCategory?: boolean
   category?: CategoryRef
 }
 
 const { minutesRead, publishedOn, lastUpdatedOn, isDraft, class: className, showType, type, showCategory, category } = Astro.props as Props
-const hasUpdates = lastUpdatedOn && publishedOn.toDateString() !== lastUpdatedOn.toDateString()
+const hasUpdates = lastUpdatedOn && publishedOn && publishedOn.toDateString() !== lastUpdatedOn.toDateString()
 
 // Format date with ordinal suffix (e.g., "Published on 20th January 2026")
 function getOrdinalSuffix(day: number): string {
@@ -39,7 +40,7 @@ function formatDateWithOrdinal(date: Date): string {
   return `${day}${getOrdinalSuffix(day)} ${month} ${year}`
 }
 
-const publishedOnTitle = `Published on ${formatDateWithOrdinal(publishedOn)}`
+const publishedOnTitle = publishedOn ? `Published on ${formatDateWithOrdinal(publishedOn)}` : ""
 const lastUpdatedOnTitle = lastUpdatedOn ? `Last Updated on ${formatDateWithOrdinal(lastUpdatedOn)}` : ""
 ---
 
@@ -66,18 +67,20 @@ const lastUpdatedOnTitle = lastUpdatedOn ? `Last Updated on ${formatDateWithOrdi
     {minutesRead}
   </span>
 
-  <span class="frontmatter-item" title={publishedOnTitle}>
-    <Icon name="carbon:calendar" class="icon-sm" />
-    <time datetime={publishedOn.toISOString()}>
-      {
-        publishedOn.toLocaleDateString("en-us", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        })
-      }
-    </time>
-  </span>
+  {publishedOn && (
+    <span class="frontmatter-item" title={publishedOnTitle}>
+      <Icon name="carbon:calendar" class="icon-sm" />
+      <time datetime={publishedOn.toISOString()}>
+        {
+          publishedOn.toLocaleDateString("en-us", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        }
+      </time>
+    </span>
+  )}
 
   {
     hasUpdates && lastUpdatedOn && (

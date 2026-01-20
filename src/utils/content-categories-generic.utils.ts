@@ -1,27 +1,22 @@
 /**
  * Generic Category Utilities
  * Provides functions to get categories for any content type
- * Simplified 2-level structure: content-type/category
+ * Simplified 2-level structure: posts/<post-type>/<category>
  */
 
 import { getCollection } from "astro:content"
-import type { CategoryRef, CategoryWithItems, ContentItemWithoutContent, ContentType } from "./content.type"
+import type { CategoryRef, CategoryWithItems, ContentItemWithoutContent, PostType } from "./content.type"
 
 // =============================================================================
-// Collection Name Mapping
+// Collection Name and Labels
 // =============================================================================
 
-const CATEGORY_COLLECTION_MAP: Record<ContentType, string> = {
-  "deep-dives": "categories-deep-dives",
-  notes: "categories-notes",
-} as const
-
-const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
+const POST_TYPE_LABELS: Record<PostType, string> = {
   "deep-dives": "Deep Dives",
   notes: "Notes",
 }
 
-export { CONTENT_TYPE_LABELS }
+export { POST_TYPE_LABELS }
 
 // =============================================================================
 // Category Lookup Types
@@ -39,19 +34,24 @@ interface CategoryLookupResult {
  * Build a lookup map for category IDs to their refs
  * Used when processing content items to resolve category info
  */
-export async function buildCategoryLookup(contentType: ContentType): Promise<Map<string, CategoryLookupResult>> {
-  const collectionName = CATEGORY_COLLECTION_MAP[contentType]
-  const categories = await getCollection(collectionName as "categories-deep-dives" | "categories-notes")
+export async function buildCategoryLookup(postType: PostType): Promise<Map<string, CategoryLookupResult>> {
+  const categories = await getCollection("categories")
   const lookup = new Map<string, CategoryLookupResult>()
 
+  // Filter categories by postType and build lookup
   for (const cat of categories) {
-    lookup.set(cat.id, {
+    if (cat.data.postType !== postType) continue
+
+    // Extract the category ID (without postType prefix)
+    const categoryId = cat.id.split("/")[1] || cat.id
+
+    lookup.set(categoryId, {
       category: {
-        id: cat.id,
+        id: categoryId,
         title: cat.data.title,
         name: cat.data.name,
         description: cat.data.description,
-        href: `/${contentType}/${cat.id}`,
+        href: `/posts/${postType}/${categoryId}`,
       },
     })
   }
@@ -60,14 +60,16 @@ export async function buildCategoryLookup(contentType: ContentType): Promise<Map
 }
 
 /**
- * Get all categories for a content type with their items
+ * Get all categories for a post type with their items
  */
 export async function getCategoriesForType(
-  contentType: ContentType,
+  postType: PostType,
   items: ContentItemWithoutContent[],
 ): Promise<CategoryWithItems[]> {
-  const collectionName = CATEGORY_COLLECTION_MAP[contentType]
-  const categories = await getCollection(collectionName as "categories-deep-dives" | "categories-notes")
+  const categories = await getCollection("categories")
+
+  // Filter categories by postType
+  const typeCategories = categories.filter((cat) => cat.data.postType === postType)
 
   // Group items by category
   const itemsByCategory = new Map<string, ContentItemWithoutContent[]>()
@@ -81,39 +83,42 @@ export async function getCategoriesForType(
     }
   }
 
-  return categories.map((cat) => {
-    const categoryItems = itemsByCategory.get(cat.id) || []
+  return typeCategories.map((cat) => {
+    // Extract the category ID (without postType prefix)
+    const categoryId = cat.id.split("/")[1] || cat.id
+    const categoryItems = itemsByCategory.get(categoryId) || []
+
     return {
-      id: cat.id,
+      id: categoryId,
       title: cat.data.title,
       name: cat.data.name,
       description: cat.data.description,
       items: categoryItems,
-      href: `/${contentType}/${cat.id}`,
+      href: `/posts/${postType}/${categoryId}`,
     }
   })
 }
 
 /**
- * Get a specific category by ID for a content type
+ * Get a specific category by ID for a post type
  */
 export async function getCategoryById(
-  contentType: ContentType,
+  postType: PostType,
   categoryId: string,
   items: ContentItemWithoutContent[],
 ): Promise<CategoryWithItems | undefined> {
-  const categories = await getCategoriesForType(contentType, items)
+  const categories = await getCategoriesForType(postType, items)
   return categories.find((cat) => cat.id === categoryId)
 }
 
 /**
- * Get all categories across all content types
- * Returns a map of content type to categories
+ * Get all categories across all post types
+ * Returns a map of post type to categories
  */
 export async function getAllCategoriesAcrossTypes(
-  itemsByType: Map<ContentType, ContentItemWithoutContent[]>,
-): Promise<Map<ContentType, CategoryWithItems[]>> {
-  const result = new Map<ContentType, CategoryWithItems[]>()
+  itemsByType: Map<PostType, ContentItemWithoutContent[]>,
+): Promise<Map<PostType, CategoryWithItems[]>> {
+  const result = new Map<PostType, CategoryWithItems[]>()
 
   for (const [type, items] of itemsByType) {
     const categories = await getCategoriesForType(type, items)

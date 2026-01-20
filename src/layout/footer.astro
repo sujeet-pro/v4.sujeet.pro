@@ -2,12 +2,23 @@
 import { getCollection } from "astro:content"
 import Link from "@/components/link.astro"
 
-// Get all categories for each content type (only categories with articles are defined)
-const deepDivesCategories = (await getCollection("categories-deep-dives"))
-  .map((c) => ({ id: c.id, title: c.data.title, name: c.data.name, href: `/deep-dives/${c.id}` }))
+// Get all categories from unified collection
+const allCategories = await getCollection("categories")
 
-const notesCategories = (await getCollection("categories-notes"))
-  .map((c) => ({ id: c.id, title: c.data.title, name: c.data.name, href: `/notes/${c.id}` }))
+// Filter by post type and map to display format
+const deepDivesCategories = allCategories
+  .filter((c) => c.data.postType === "deep-dives")
+  .map((c) => {
+    const categoryId = c.id.split("/")[1] || c.id
+    return { id: categoryId, title: c.data.title, name: c.data.name, href: `/posts/deep-dives/${categoryId}` }
+  })
+
+const notesCategories = allCategories
+  .filter((c) => c.data.postType === "notes")
+  .map((c) => {
+    const categoryId = c.id.split("/")[1] || c.id
+    return { id: categoryId, title: c.data.title, name: c.data.name, href: `/posts/notes/${categoryId}` }
+  })
 ---
 
 <footer class="site-footer">
@@ -16,7 +27,7 @@ const notesCategories = (await getCollection("categories-notes"))
     <div class="site-footer-categories">
       <div class="site-footer-category-section">
         <h4 class="site-footer-category-title">
-          <Link href="/deep-dives" class="nav-link">Deep Dives</Link>
+          <Link href="/posts/deep-dives" class="nav-link">Deep Dives</Link>
         </h4>
         <nav class="site-footer-category-links">
           {deepDivesCategories.map((cat) => (
@@ -26,7 +37,7 @@ const notesCategories = (await getCollection("categories-notes"))
       </div>
       <div class="site-footer-category-section">
         <h4 class="site-footer-category-title">
-          <Link href="/notes" class="nav-link">Notes</Link>
+          <Link href="/posts/notes" class="nav-link">Notes</Link>
         </h4>
         <nav class="site-footer-category-links">
           {notesCategories.map((cat) => (
@@ -38,11 +49,12 @@ const notesCategories = (await getCollection("categories-notes"))
 
     <div class="site-footer-links">
       <nav class="site-footer-nav">
-        <Link href="/articles" class="nav-link">All Articles</Link>
+        <Link href="/posts" class="nav-link">All Posts</Link>
         <Link href="/tag" class="nav-link">Tags</Link>
         <Link href="/search" class="nav-link">Search</Link>
         <Link href="/cv" class="nav-link">Resume</Link>
-        <Link href="/drafts" class="nav-link">Drafts</Link>
+        <Link href="/posts/drafts" class="nav-link">Drafts</Link>
+        <Link href="/in-research" class="nav-link">In Research</Link>
       </nav>
 
       <div class="site-footer-social">

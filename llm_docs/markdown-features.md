@@ -277,16 +277,6 @@ Use emoji shortcodes:
 
 Emojis are made accessible automatically with ARIA labels.
 
-## Auto-Generated Table of Contents
-
-The `## Table of Contents` section is auto-populated by remark-toc. Just add the heading:
-
-```markdown
-## Table of Contents
-
-<!-- Auto-generated -->
-```
-
 ## Figures with Captions
 
 Wrap diagrams or images in figure elements:

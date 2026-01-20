@@ -5,31 +5,39 @@ import type { RemarkPlugin } from "node_modules/@astrojs/markdown-remark/dist/ty
 import getReadingTime from "reading-time"
 import type { VFile } from "vfile"
 import { getPublishedDate } from "./utils/date.utils"
-import { getSlug } from "./utils/slug.utils"
+import { getSlug, getInResearchSlug } from "./utils/slug.utils"
 
-// Content types that use the 2-level folder structure (content-type/category)
-const CONTENT_TYPES = ["writing", "deep-dives", "work", "uses"] as const
+// Valid post types within the posts folder
+const POST_TYPES = ["deep-dives", "notes"] as const
+
+/**
+ * Check if file is in the in-research folder
+ */
+function isInResearchContent(filePath: string): boolean {
+  const inResearchDir = path.resolve("./content/in-research")
+  return filePath.startsWith(inResearchDir)
+}
 
 /**
  * Extract category from file path
- * Path structure: content/<content-type>/<category>/[optional-nesting/]<date>-<slug>.md
- * Example: content/writing/javascript/2023-05-01-pub-sub.md → category: "javascript"
- * Example: content/deep-dives/system-design/cap-theorem/2024-01-01-index.md → category: "system-design"
+ * Path structure: content/posts/<post-type>/<category>/[optional-nesting/]<date>-<slug>.md
+ * Example: content/posts/notes/programming/2023-05-01-pub-sub.md → category: "programming"
+ * Example: content/posts/deep-dives/system-design/cap-theorem/2024-01-01-index.md → category: "system-design"
  */
 function getCategoryFromPath(filePath: string): string | undefined {
-  const contentDir = path.resolve("./content")
-  if (!filePath.startsWith(contentDir)) {
+  const postsDir = path.resolve("./content/posts")
+  if (!filePath.startsWith(postsDir)) {
     return undefined
   }
 
-  const relativePath = path.relative(contentDir, filePath)
+  const relativePath = path.relative(postsDir, filePath)
   const parts = relativePath.split(path.sep)
 
-  // parts[0] = content-type (writing, deep-dives, etc.)
+  // parts[0] = post-type (deep-dives, notes)
   // parts[1] = category
   if (parts.length >= 2) {
-    const contentType = parts[0]
-    if (CONTENT_TYPES.includes(contentType as (typeof CONTENT_TYPES)[number])) {
+    const postType = parts[0]
+    if (POST_TYPES.includes(postType as (typeof POST_TYPES)[number])) {
       return parts[1]
     }
   }
@@ -50,13 +58,19 @@ export const remarkFrontmatterPlugin: RemarkPlugin = (options: { defaultLayout: 
     const title = getTitle(tree, file) ?? file.data.astro.frontmatter.title
     file.data.astro.frontmatter.title ??= title?.replace(/^draft:\s*/i, "") ?? ""
     file.data.astro.frontmatter.isDraft ??= title?.toLowerCase().trim().startsWith("draft:") ?? false
-    file.data.astro.frontmatter.publishedOn ??= getPublishedDate(file.path)
     file.data.astro.frontmatter.description ??= getDescription(tree, file)
-    file.data.astro.frontmatter.pageSlug ??= getSlug(file.path)
 
-    // Inject category from path structure (content-type/category/...)
-    // This allows the folder structure to define the category without explicit frontmatter
-    file.data.astro.frontmatter.category ??= getCategoryFromPath(file.path)
+    // Handle in-research content differently (no date requirement)
+    if (isInResearchContent(file.path)) {
+      file.data.astro.frontmatter.pageSlug ??= getInResearchSlug(file.path)
+      // in-research content doesn't require publishedOn
+    } else {
+      file.data.astro.frontmatter.publishedOn ??= getPublishedDate(file.path)
+      file.data.astro.frontmatter.pageSlug ??= getSlug(file.path)
+      // Inject category from path structure (content-type/category/...)
+      // This allows the folder structure to define the category without explicit frontmatter
+      file.data.astro.frontmatter.category ??= getCategoryFromPath(file.path)
+    }
   }
 }
 

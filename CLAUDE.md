@@ -1,11 +1,46 @@
 # Claude Code Instructions
 
-This file provides context and instructions for AI agents working on this project.
+This file provides context and instructions for Claude Code working on this project.
 
 ## Project Overview
 
-This is a personal website/blog built with Astro, deployed to:
-- **Production**: https://sujeet.pro (GitHub Pages)
+Personal technical blog for senior/staff/principal engineers. Built with Astro, deployed to GitHub Pages.
+
+**Production**: https://sujeet.pro
+
+## Claude Skills
+
+Use these commands for common tasks:
+
+### Content Skills
+
+| Command | Description |
+|---------|-------------|
+| `/write-post <topic>` | Write new blog post with deep research |
+| `/review-posts <path/topic>` | Review and improve existing post |
+| `/sys-design <topic>` | Write system design solution document |
+| `/research-post <topic>` | Generate research material for future article |
+| `/write-research <type> <category> <path>` | Convert research into blog post |
+| `/review-all` | Review all posts one by one |
+
+### Code Skills
+
+| Command | Description |
+|---------|-------------|
+| `/review-code` | Review entire codebase against standards |
+| `/review-changes` | Review uncommitted changes only |
+
+### Skill Details
+
+See `.claude/skills/` for detailed skill documentation:
+- `write-post/SKILL.md` - Deep research, mermaid diagrams, inline references
+- `review-posts/SKILL.md` - Fact-checking, structure review, quality assessment
+- `sys-design/SKILL.md` - Two approaches (cloud-native vs custom), trade-offs
+- `research-post/SKILL.md` - Content aggregation, source annotation
+- `write-research/SKILL.md` - Convert research to polished articles
+- `review-code/SKILL.md` - TypeScript, CSS, accessibility standards
+- `review-changes/SKILL.md` - Scoped review of git changes
+- `review-all/SKILL.md` - Batch content review
 
 ## Tech Stack
 
@@ -129,10 +164,8 @@ const { href } = getLinkProps({ href: "/writing" })
 ### Content Collections
 
 Content uses Astro's Content Layer API with `glob` and `file` loaders:
-- Writing (blog posts): `content/writing/`
-- Deep Dives: `content/deep-dives/`
-- Work: `content/work/`
-- Uses: `content/uses/`
+- Posts (blog posts): `content/posts/`
+- In-Research (research material): `content/in-research/`
 
 ### LLM-Friendly Endpoints
 
@@ -158,9 +191,12 @@ Optional:
 
 ### Adding a New Blog Post
 
-1. Create markdown file in `content/writing/[category]/YYYY-MM-DD-slug.md`
-2. Include required frontmatter (title, description, publishedOn)
-3. Build and validate: `npm run build && npm run validate:build`
+Use `/write-post <topic>` or manually:
+
+1. Create folder: `content/posts/[category]/YYYY-MM-DD-slug/`
+2. Create `index.md` with frontmatter (`lastUpdatedOn`, `tags`)
+3. Title from H1, description from paragraphs before ToC
+4. Build and validate: `npm run build && npm run validate:build`
 
 ### Updating Dependencies
 

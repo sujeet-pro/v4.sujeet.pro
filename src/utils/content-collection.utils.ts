@@ -4,11 +4,11 @@
  * Single source of truth for all content type operations.
  *
  * ## Architecture
- * - COLLECTION_CONFIG: Maps collection names to content types and URL prefixes
+ * - COLLECTION_CONFIG: Maps post types to content types and URL prefixes
  * - processCollection(): Generic processor for all content types
  * - Public API: Type-safe exports that maintain backward compatibility
  *
- * ## Content Types
+ * ## Post Types (folder structure under content/posts/)
  * - deep-dives: In-depth technical content (category is required)
  * - notes: Casual technical content - design docs, programming, tools, productivity (has optional `type`)
  */
@@ -16,7 +16,7 @@
 import { getCollection, type CollectionEntry } from "astro:content"
 import { buildCategoryLookup, resolveCategoryFromFrontmatter } from "./content-categories-generic.utils"
 import { renderContentItem, sortByDateDescending } from "./content.helpers"
-import type { ContentItem, ContentType, DeepDiveContent, NotesContent } from "./content.type"
+import type { ContentItem, DeepDiveContent, NotesContent, PostType } from "./content.type"
 import { filterDrafts } from "./draft.utils"
 
 // =============================================================================
@@ -24,51 +24,68 @@ import { filterDrafts } from "./draft.utils"
 // =============================================================================
 
 /**
- * Collection configuration mapping.
- * Maps Astro collection names to content types and URL prefixes.
+ * Post type configuration mapping.
+ * Maps post types to content types and URL prefixes.
  */
-const COLLECTION_CONFIG = {
-  "deep-dives": { type: "deep-dive" as const, hrefPrefix: "/deep-dives", categoryRequired: true },
-  notes: { type: "notes" as const, hrefPrefix: "/notes", categoryRequired: false },
+const POST_TYPE_CONFIG = {
+  "deep-dives": { type: "deep-dive" as const, hrefPrefix: "/posts/deep-dives", categoryRequired: true },
+  notes: { type: "notes" as const, hrefPrefix: "/posts/notes", categoryRequired: false },
 } as const
-
-type CollectionName = keyof typeof COLLECTION_CONFIG
 
 // =============================================================================
 // Internal Helpers
 // =============================================================================
 
 /**
- * Extract category from item ID (first path segment).
- * Item IDs are relative paths like "javascript/2023-05-01-pub-sub"
+ * Extract post type from item ID (first path segment).
+ * Item IDs are relative paths like "deep-dives/web-fundamentals/2023-05-01-http"
  */
-function getCategoryFromItemId(itemId: string): string {
+function getPostTypeFromItemId(itemId: string): PostType {
   const firstSlash = itemId.indexOf("/")
-  return firstSlash > 0 ? itemId.substring(0, firstSlash) : itemId
+  const postType = firstSlash > 0 ? itemId.substring(0, firstSlash) : itemId
+  if (postType !== "deep-dives" && postType !== "notes") {
+    throw new Error(`Invalid post type: ${postType} for item ${itemId}`)
+  }
+  return postType as PostType
 }
 
 /**
- * Generic collection processor.
+ * Extract category from item ID (second path segment after post type).
+ * Item IDs are relative paths like "deep-dives/web-fundamentals/2023-05-01-http"
+ */
+function getCategoryFromItemId(itemId: string): string {
+  const parts = itemId.split("/")
+  // parts[0] = post-type (deep-dives, notes)
+  // parts[1] = category
+  return parts.length >= 2 ? parts[1] : itemId
+}
+
+/**
+ * Process all posts from the unified collection.
  * Handles all content types with type-specific property extraction.
  */
-async function processCollection(collectionName: CollectionName): Promise<ContentItem[]> {
-  const items = await getCollection(collectionName)
-  const config = COLLECTION_CONFIG[collectionName]
+async function processAllPosts(): Promise<ContentItem[]> {
+  const items = await getCollection("posts")
 
-  // Determine the content type for category lookup
-  const categoryType: ContentType = collectionName === "deep-dives" ? "deep-dives" : (collectionName as ContentType)
-  const categoryLookup = await buildCategoryLookup(categoryType)
+  // Build category lookups for both post types
+  const categoryLookups = {
+    "deep-dives": await buildCategoryLookup("deep-dives"),
+    notes: await buildCategoryLookup("notes"),
+  }
 
   const processed: ContentItem[] = []
 
   for (const item of items) {
     const { frontmatter, Content, tags } = await renderContentItem(item)
+    const postType = getPostTypeFromItemId(item.id)
     const categoryId = getCategoryFromItemId(item.id)
+    const config = POST_TYPE_CONFIG[postType]
+    const categoryLookup = categoryLookups[postType]
     const categoryInfo = resolveCategoryFromFrontmatter(categoryLookup, categoryId)
 
     // Validate required category for deep-dives
     if (config.categoryRequired && !categoryInfo) {
-      throw new Error(`Invalid category: ${categoryId} for ${collectionName} ${item.id}`)
+      throw new Error(`Invalid category: ${categoryId} for ${postType} ${item.id}`)
     }
 
     // Build base content item
@@ -84,24 +101,27 @@ async function processCollection(collectionName: CollectionName): Promise<Conten
       tags,
       Content,
       href: `${config.hrefPrefix}/${frontmatter.pageSlug}`,
+      postType,
       type: config.type,
     }
 
     // Add type-specific properties and category
-    switch (collectionName) {
+    switch (postType) {
       case "deep-dives": {
         processed.push({
           ...baseItem,
+          postType: "deep-dives",
           type: "deep-dive",
           category: categoryInfo!.category, // Required, validated above
         } as DeepDiveContent)
         break
       }
       case "notes": {
-        const notesItem = item as CollectionEntry<"notes">
+        const notesItem = item as CollectionEntry<"posts">
         const { type: noteType } = notesItem.data
         processed.push({
           ...baseItem,
+          postType: "notes",
           type: "notes",
           noteType,
           ...(categoryInfo && { category: categoryInfo.category }),
@@ -115,6 +135,25 @@ async function processCollection(collectionName: CollectionName): Promise<Conten
 }
 
 // =============================================================================
+// Public API - All Posts
+// =============================================================================
+
+/**
+ * Get all posts, excluding drafts in production.
+ */
+export async function getPosts(): Promise<ContentItem[]> {
+  const items = await processAllPosts()
+  return filterDrafts(items)
+}
+
+/**
+ * Get all posts including drafts.
+ */
+export async function getPostsIncludingDrafts(): Promise<ContentItem[]> {
+  return processAllPosts()
+}
+
+// =============================================================================
 // Public API - Deep Dives
 // =============================================================================
 
@@ -122,15 +161,16 @@ async function processCollection(collectionName: CollectionName): Promise<Conten
  * Get all deep dive content, excluding drafts in production.
  */
 export async function getDeepDives(): Promise<DeepDiveContent[]> {
-  const items = await processCollection("deep-dives")
-  return filterDrafts(items) as DeepDiveContent[]
+  const items = await getPosts()
+  return items.filter((item): item is DeepDiveContent => item.postType === "deep-dives")
 }
 
 /**
  * Get all deep dive content including drafts.
  */
 export async function getDeepDivesIncludingDrafts(): Promise<DeepDiveContent[]> {
-  return processCollection("deep-dives") as Promise<DeepDiveContent[]>
+  const items = await processAllPosts()
+  return items.filter((item): item is DeepDiveContent => item.postType === "deep-dives")
 }
 
 // =============================================================================
@@ -144,15 +184,16 @@ type NoteType = "design-doc" | "architecture" | "case-study"
  * Get all notes content, excluding drafts in production.
  */
 export async function getNotes(): Promise<NotesContent[]> {
-  const items = await processCollection("notes")
-  return filterDrafts(items) as NotesContent[]
+  const items = await getPosts()
+  return items.filter((item): item is NotesContent => item.postType === "notes")
 }
 
 /**
  * Get all notes content including drafts.
  */
 export async function getNotesIncludingDrafts(): Promise<NotesContent[]> {
-  return processCollection("notes") as Promise<NotesContent[]>
+  const items = await processAllPosts()
+  return items.filter((item): item is NotesContent => item.postType === "notes")
 }
 
 /**

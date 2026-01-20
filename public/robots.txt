@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /in-research
+Disallow: /posts/drafts
 
 Sitemap: https://sujeet.pro/sitemap-index.xml

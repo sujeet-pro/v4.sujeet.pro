@@ -2,75 +2,82 @@
 
 ## Project Context
 
-This is an Astro-based technical blog for experienced software professionals. All content is highly technical and structured for cohesive reading.
+Astro-based technical blog for experienced software professionals (senior/staff/principal engineers). All content is highly technical and structured for cohesive reading.
 
 **Documentation**: See `llm_docs/` for detailed guides:
 
 - [content.md](../llm_docs/content.md) - Content categories, schemas, frontmatter
-- [content-guidelines.md](../llm_docs/content-guidelines.md) - Writing standards, research requirements, quality checklist
+- [content-guidelines.md](../llm_docs/content-guidelines.md) - Writing standards, conciseness, quality checklist
 - [markdown-features.md](../llm_docs/markdown-features.md) - Expressive Code, Mermaid, KaTeX
 - [code-standards.md](../llm_docs/code-standards.md) - TypeScript, CSS, accessibility
-- [commands.md](../llm_docs/commands.md) - Commands and draft workflow
+- [commands.md](../llm_docs/commands.md) - Commands and workflow
 
-## Skills Available
+## Claude Skills
 
-Claude Code has specialized skills for content operations. Trigger them with these phrases:
+### Content Skills
 
-### Write Blog Skill
+| Skill | Trigger | Description |
+|-------|---------|-------------|
+| `/write-post` | `/write-post <topic>` | Write new blog post with deep research |
+| `/review-posts` | `/review-posts <path/topic>` | Review and improve existing post |
+| `/sys-design` | `/sys-design <topic>` | Write system design solution document |
+| `/research-post` | `/research-post <topic>` | Generate research material for future article |
+| `/write-research` | `/write-research <type> <category> <path>` | Convert research into blog post |
+| `/review-all` | `/review-all` | Review all posts one by one |
 
-**Trigger**: "Write blog...", "Create article...", "Write a deep-dive..."
+### Code Skills
 
-**What it does**:
-1. Performs deep web research (official docs, source code, benchmarks)
-2. Creates draft structure in `content/drafts/`
-3. Writes comprehensive content with mermaid diagrams
-4. Follows content-guidelines.md standards
-5. Validates and saves to production location
-
-**Example**: "Write blog about Node.js event loop internals"
-
-### Review Blog Skill
-
-**Trigger**: "Review blog...", "Audit article...", "Improve blog...", "Check blog..."
-
-**What it does**:
-1. Locates article by path or topic
-2. Performs fact-checking via web research
-3. Checks structure against requirements
-4. Assesses quality and depth
-5. Generates detailed report with recommendations
-6. Optionally applies fixes
-
-**Example**: "Review blog content/deep-dives/tools/2023-09-01-libuv/index.md"
+| Skill | Trigger | Description |
+|-------|---------|-------------|
+| `/review-code` | `/review-code` | Review entire codebase against standards |
+| `/review-changes` | `/review-changes` | Review uncommitted changes only |
 
 ## Critical Rules
+
+### Content Creation
+
+- **Audience**: Senior/staff/principal engineers only
+- **Conciseness**: No padding, no filler, no tutorial-style hand-holding
+- **Every paragraph earns its place** - if removing doesn't reduce understanding, remove it
+- **Reading time**: Target < 30 minutes, max 60 minutes
+- **Title**: Extracted from H1 heading (don't add to frontmatter)
+- **Description**: Paragraphs between H1 and "Table of Contents"
+- **Publish date**: From filename `YYYY-MM-DD-slug.md`
+- **No manual ToC**: Auto-generated
+
+### Code Blocks
+
+**ALWAYS collapse boilerplate:**
+
+````markdown
+```ts title="example.ts" collapse={1-3}
+import { a } from "a"
+import { b } from "b"
+import { c } from "c"
+
+// Visible main code
+function main() {
+  return "hello"
+}
+```
+````
+
+- Use `title="filename.ts"` for file context
+- Highlight key lines with `{2-4}`
+- Collapse imports, setup, helpers unless directly relevant
 
 ### TypeScript
 
 - **Strictest mode** - No implicit any, strict null checks
 - Use `import type` for type-only imports
 - All code must be properly typed
-
-### Content Creation
-
-- **Title**: Extracted from H1 heading (don't add to frontmatter)
-- **Description**: Paragraphs between H1 and "Table of Contents"
-- **Publish date**: From filename `YYYY-MM-DD-slug.md`
-- **Required**: "Table of Contents" heading after description
-- **Audience**: Experienced professionals, highly technical
-- **Required elements**: Abstract, overview mermaid diagram, comprehensive TLDR, references
-
-### Code Blocks
-
-- **ALWAYS collapse boilerplate** using `collapse={1-5, 20-25}`
-- Use `title="filename.ts"` for file context
-- Highlight key lines with `{2-4}`
-- Use diff syntax for changes (`+` / `-`)
+- Use path aliases: `@/*`, `@constants/*`
 
 ### CSS
 
-- **Minimalistic approach** - Prefer Tailwind utilities
-- No unnecessary wrappers or redundant styles
+- **Minimalistic** - Prefer Tailwind utilities
+- Semantic class names for 3+ utilities
+- CSS variables for theming
 - Use dark mode variants (`dark:`)
 
 ### Accessibility
@@ -82,12 +89,10 @@ Claude Code has specialized skills for content operations. Trigger them with the
 
 ## Content Categories
 
-| Collection | Path                  | Required Fields       |
-| ---------- | --------------------- | --------------------- |
-| writing    | `content/writing/`    | tags                  |
-| deep-dives | `content/deep-dives/` | tags, subcategory     |
-| work       | `content/work/`       | tags, type (optional) |
-| uses       | `content/uses/`       | tags                  |
+| Collection | Path | Required Fields |
+|------------|------|-----------------|
+| posts | `content/posts/` | tags |
+| in-research | `content/in-research/` | topic, status |
 
 ## Quick Reference
 
@@ -108,21 +113,6 @@ tags:
 ---
 ```
 
-### Code Block with Collapse
-
-````markdown
-```ts title="example.ts" collapse={1-3}
-import { a } from "a"
-import { b } from "b"
-import { c } from "c"
-
-// Visible main code
-function main() {
-  return "hello"
-}
-```
-````
-
 ### Mermaid Diagram
 
 ````markdown
@@ -133,7 +123,7 @@ flowchart LR
     A[Start] --> B[End]
 ```
 
-<figcaption>Description of what the diagram shows</figcaption>
+<figcaption>Description of diagram</figcaption>
 
 </figure>
 ````

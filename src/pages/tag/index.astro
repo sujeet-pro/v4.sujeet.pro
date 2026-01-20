@@ -33,36 +33,32 @@ const crumbs = null
 ---
 
 <Layout title="Tags" description="All tags" {crumbs} pageType="default">
-  <div class="mx-auto max-w-4xl">
-    <div class="mb-12 text-center">
-      <h1 class="mb-4">Tags</h1>
-      <p class="text-muted text-lg">
-        Explore {totalTags} tags across {totalContent} items
-      </p>
-    </div>
+  <h1 class="page-title">Tags</h1>
+  <p class="page-description">
+    Explore {totalTags} tags across {totalContent} items
+  </p>
 
-    <ul class="content-list">
-      {
-        sortedTags.map((tag) => (
-          <li class="content-item">
-            <Link href={tag.href} class="tag-list-link">
-              <span>#{tag.name}</span>
-              <span class="text-muted text-sm">{tag.contentCount}</span>
-            </Link>
-          </li>
-        ))
-      }
-    </ul>
-
+  <ul class="content-list">
     {
-      sortedTags.length === 0 && (
-        <div class="mt-12 text-center">
-          <h3 class="heading-3 mb-2">No tags found</h3>
-          <p class="text-muted">Tags will appear here once content is added.</p>
-        </div>
-      )
+      sortedTags.map((tag) => (
+        <li class="content-item">
+          <Link href={tag.href} class="tag-list-link">
+            <span>#{tag.name}</span>
+            <span class="text-muted text-sm">{tag.contentCount}</span>
+          </Link>
+        </li>
+      ))
     }
-  </div>
+  </ul>
+
+  {
+    sortedTags.length === 0 && (
+      <div class="mt-12 text-center">
+        <h3 class="heading-3 mb-2">No tags found</h3>
+        <p class="text-muted">Tags will appear here once content is added.</p>
+      </div>
+    )
+  }
 </Layout>
 
 <style is:global>

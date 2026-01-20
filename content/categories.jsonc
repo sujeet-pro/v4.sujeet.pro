@@ -1,0 +1,75 @@
+{
+  "deep-dives": [
+    // System Design Fundamentals - foundational concepts and design problems
+    {
+      "id": "system-design-fundamentals",
+      "title": "System Design Fundamentals",
+      "name": "System Design",
+      "description": "System design foundations and real-world problems - caching strategies, consistency models, URL shorteners, and more"
+    },
+    {
+      "id": "design-problems",
+      "title": "Design Problems",
+      "name": "Design Problems",
+      "description": "In-depth explorations of common system design problems - load balancers, databases, messaging systems, and more"
+    },
+    // DSA - data structures and algorithms
+    {
+      "id": "dsa",
+      "title": "Data Structures & Algorithms",
+      "name": "DSA",
+      "description": "Common data structures, algorithm patterns, complexity analysis, and problem-solving techniques"
+    },
+    // Tools - development tools, services, and tech internals
+    {
+      "id": "tools",
+      "title": "Tools",
+      "name": "Tools",
+      "description": "Deep dives into development tools, third-party services, language runtimes, and technology internals"
+    },
+    // Web Fundamentals - core web concepts, performance, and protocols
+    {
+      "id": "web-fundamentals",
+      "title": "Web Fundamentals",
+      "name": "Web",
+      "description": "Core web concepts - performance optimization, HTTP protocols, security, accessibility, authentication, and rendering"
+    }
+  ],
+  "notes": [
+    // Programming - patterns, idioms, and best practices
+    {
+      "id": "programming",
+      "title": "Programming",
+      "name": "Programming",
+      "description": "Programming patterns, idioms, and best practices - design patterns, error handling, async programming, and language concepts"
+    },
+    // Design Docs - technical design documents and RFCs
+    {
+      "id": "design-docs",
+      "title": "Design Documents",
+      "name": "Design Docs",
+      "description": "Technical design documents, RFCs, and architecture proposals - CSP implementations, component systems, and security designs"
+    },
+    // Adoptions - stories of technology and process adoptions
+    {
+      "id": "adoptions",
+      "title": "Adoption Stories",
+      "name": "Adoptions",
+      "description": "Real-world stories of adopting technologies, design systems, frameworks, and engineering practices at scale"
+    },
+    // Platform Engineering - infrastructure, media delivery, and platform services
+    {
+      "id": "platform-engineering",
+      "title": "Platform Engineering",
+      "name": "Platform",
+      "description": "Platform engineering work - image services, video playback, SSG/SSR optimization, CDN, and infrastructure at scale"
+    },
+    // Productivity - productivity tools and workflows
+    {
+      "id": "productivity",
+      "title": "Productivity",
+      "name": "Productivity",
+      "description": "Productivity tools, workflows, and routines - browser setup, extensions, note-taking, and time management"
+    }
+  ]
+}

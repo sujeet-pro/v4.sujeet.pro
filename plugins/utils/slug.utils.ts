@@ -1,17 +1,51 @@
 import path from "node:path"
 
-export function getSlug(filePath: string) {
-  const contentFolder = path.resolve("./content")
+/**
+ * Get slug for in-research content (no date handling)
+ * Simple structure: content/in-research/<slug>.md or content/in-research/<slug>/index.md
+ */
+export function getInResearchSlug(filePath: string): string {
+  const inResearchFolder = path.resolve("./content/in-research")
 
-  // Get the relative path from content folder using path.relative
-  const relativePath = path.relative(contentFolder, filePath)
+  // Get the relative path from in-research folder
+  const relativePath = path.relative(inResearchFolder, filePath)
 
-  // If the file is not within the content folder, throw an error
+  // If the file is not within the in-research folder, throw an error
   if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
-    throw new Error(`File path is not within content folder: ${filePath}`)
+    throw new Error(`File path is not within in-research folder: ${filePath}`)
   }
 
-  // Remove the first level folder (posts/pages) from the path
+  // Remove file extension from the last part (filename)
+  const filename = path.basename(filePath, path.extname(filePath))
+
+  // If it's an index.md file, use the parent folder name as slug
+  if (filename.toLowerCase() === "index") {
+    const parentDir = path.dirname(relativePath)
+    // Handle nested folders: folder/subfolder/index.md -> folder/subfolder
+    return parentDir === "." ? "" : parentDir
+  }
+
+  // Otherwise, use the filename (without extension) as the slug
+  // Handle nested files: folder/file.md -> folder/file
+  const dirname = path.dirname(relativePath)
+  if (dirname === ".") {
+    return filename
+  }
+  return `${dirname}/${filename}`
+}
+
+export function getSlug(filePath: string) {
+  const postsFolder = path.resolve("./content/posts")
+
+  // Get the relative path from posts folder using path.relative
+  const relativePath = path.relative(postsFolder, filePath)
+
+  // If the file is not within the posts folder, throw an error
+  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+    throw new Error(`File path is not within posts folder: ${filePath}`)
+  }
+
+  // Remove the first level folder (post-type: deep-dives/notes) from the path
   const pathWithoutFirstLevel = relativePath.replace(/^[^\/]+\//, "")
 
   // Split the path into parts
