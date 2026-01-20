@@ -286,7 +286,7 @@ Add a custom origin header in CloudFront's origin configuration that is always u
 
 **Lambda@Edge Function:**
 
-```javascript
+```javascript title="build-version-router.js"
 exports.handler = (event, context, callback) => {
   const request = event.Records[0].cf.request
   const headers = request.headers
@@ -307,11 +307,9 @@ exports.handler = (event, context, callback) => {
 
 **Rollback Script:**
 
-```bash
+```bash title="version-deployment.sh"
 #!/bin/bash
-# version-deployment.sh
 
-# Function to update build version in CloudFront
 update_build_version() {
     local version=$1
     local distribution_id=$2
@@ -343,7 +341,7 @@ This approach provides several advantages:
 
 Performance is a primary driver for adopting Static Site Generation, but raw speed is only part of the user experience equation. Visual stability is equally critical. **Cumulative Layout Shift (CLS)** is a Core Web Vital metric that measures the unexpected shifting of page content as it loads.
 
-A good user experience corresponds to a CLS score below 0.1. Even though a site's content is static, CLS issues are common because the problem is often not about dynamic content, but about the browser's inability to correctly predict the layout of the page from the initial HTML.
+A good user experience corresponds to a [CLS score below 0.1](https://web.dev/articles/cls). Even though a site's content is static, CLS issues are common because the problem is often not about dynamic content, but about the browser's inability to correctly predict the layout of the page from the initial HTML.
 
 ### 4.1 Understanding and Diagnosing CLS
 
@@ -410,7 +408,7 @@ Generate two separate build outputs—one optimized for mobile and another for d
 
 **Implementation with Lambda@Edge:**
 
-```javascript
+```javascript title="device-router.js"
 exports.handler = (event, context, callback) => {
   const request = event.Records[0].cf.request
   const headers = request.headers
@@ -462,7 +460,7 @@ When enabling automatic compression in CloudFront:
 - Use a cache policy with Gzip and Brotli settings enabled
 - Ensure TTL values in the cache policy are greater than zero
 
-**Limitations of Edge Compression:**
+**[Limitations of Edge Compression](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/ServingCompressedFiles.html):**
 
 - Objects below 1,000 bytes or exceeding 10,000,000 bytes are not compressed
 - If an uncompressed copy is already in the cache, CloudFront may serve it without re-compressing
@@ -506,7 +504,7 @@ graph TD
 
 **Lambda@Edge Function**: Create a Lambda@Edge function that triggers on the viewer request event. This function's sole purpose is to perform content negotiation. It inspects the Accept-Encoding header sent by the user's browser and rewrites the request URI accordingly.
 
-```javascript
+```javascript title="compression-negotiator.js"
 exports.handler = (event, context, callback) => {
   const request = event.Records[0].cf.request
   const headers = request.headers
@@ -514,7 +512,7 @@ exports.handler = (event, context, callback) => {
   // Get the Accept-Encoding header
   const acceptEncoding = headers["accept-encoding"] ? headers["accept-encoding"][0].value.toLowerCase() : ""
 
-  // Determine the best compression format
+  // Determine the best compression format (prefer Brotli over Gzip)
   let compressionSuffix = ""
   if (acceptEncoding.includes("br")) {
     compressionSuffix = ".br"
@@ -589,13 +587,13 @@ Many hosting providers support redirection using configuration files like `_redi
 /x https://twitter.com/sujeetpro
 ```
 
-This approach is simple but limited to 50 rules and requires requests to reach the origin server.
+This approach is simple but requires requests to reach the origin server.
 
 ### 6.3 Method 3: S3 Static Website Routing Rules
 
 When an Amazon S3 bucket is configured for static website hosting, it provides a mechanism to define routing rules. These rules, specified in a JSON document in the bucket's properties, allow you to conditionally redirect requests based on the object key prefix or an HTTP error code returned by a request.
 
-This method is well-suited for simple, sitewide redirection scenarios. Common use cases include:
+This method is well-suited for simple, sitewide redirection scenarios but is [limited to 50 routing rules per website configuration](https://docs.aws.amazon.com/AmazonS3/latest/userguide/how-to-page-redirect.html). Common use cases include:
 
 - Redirecting a renamed folder: If you rename a directory from `/blog/` to `/articles/`
 - Creating vanity URLs: A rule can redirect a simple path like `/twitter` to an external profile URL
@@ -616,7 +614,7 @@ This method is well-suited for simple, sitewide redirection scenarios. Common us
 }
 ```
 
-However, S3 routing rules have significant limitations. The number of rules is capped at 50 per website configuration. More importantly, the redirection logic is executed at the S3 origin, which means a request must travel all the way from the user's browser, through the CloudFront CDN, to the S3 bucket before the redirect is issued.
+However, S3 routing rules have significant limitations. More importantly, the redirection logic is executed at the S3 origin, which means a request must travel all the way from the user's browser, through the CloudFront CDN, to the S3 bucket before the redirect is issued.
 
 ### 6.4 Method 4: High-Performance Edge Redirects with Lambda@Edge
 
@@ -624,7 +622,7 @@ For a more performant, scalable, and flexible solution, redirects should be hand
 
 In this pattern, a Lambda@Edge function is associated with the viewer request event of a CloudFront distribution. This function intercepts every incoming request before CloudFront checks its cache. The function's code contains the redirection logic. If the requested URI matches a rule, the function immediately generates and returns an HTTP 301 (Moved Permanently) or 302 (Found) response directly from the edge location closest to the user.
 
-```javascript
+```javascript collapse={1-10}
 // A Lambda@Edge function for managing redirects at the edge.
 "use strict"
 
@@ -636,7 +634,7 @@ const redirectMap = {
 }
 
 exports.handler = (event, context, callback) => {
-  const request = event.Records.cf.request
+  const request = event.Records[0].cf.request
   const uri = request.uri
 
   if (redirectMap[uri]) {
@@ -704,16 +702,15 @@ A new version of the application is deployed to the idle Green environment. Once
 
 For a static site on AWS, this architecture is best implemented with a single CloudFront distribution and a Lambda@Edge function:
 
-```javascript
+```javascript title="blue-green-router.js" collapse={1-5}
 // This function routes traffic to a 'blue' or 'green' S3 origin
 // based on a cookie. This allows for targeted testing and instant switching.
-exports.handler = async (event) => {
-  const request = event.Records.cf.request
-  const headers = request.headers
+const blueOriginDomain = "my-site-blue.s3.amazonaws.com"
+const greenOriginDomain = "my-site-green.s3.amazonaws.com"
 
-  // Define the domain names of your Blue and Green S3 bucket origins
-  const blueOriginDomain = "my-site-blue.s3.amazonaws.com"
-  const greenOriginDomain = "my-site-green.s3.amazonaws.com"
+exports.handler = async (event) => {
+  const request = event.Records[0].cf.request
+  const headers = request.headers
 
   // Default to the stable 'blue' origin
   let targetOriginDomain = blueOriginDomain
@@ -724,7 +721,7 @@ exports.handler = async (event) => {
       // A cookie 'routing=green' will switch the user to the green environment
       if (cookie.value.includes("routing=green")) {
         targetOriginDomain = greenOriginDomain
-        break // Exit loop once found
+        break
       }
     }
   }
@@ -750,9 +747,9 @@ Canary releases allow you to gradually shift traffic to a new version, enabling 
 
 **Implementation with Lambda@Edge:**
 
-```javascript
+```javascript title="canary-router.js"
 exports.handler = async (event) => {
-  const request = event.Records.cf.request
+  const request = event.Records[0].cf.request
   const headers = request.headers
 
   // Get user identifier (IP, user agent hash, etc.)

@@ -176,10 +176,10 @@ $$
 
 Research indicates typical efficiency gains from design system adoption:
 
-| Team Type | Efficiency Gain Range | Average |
-|-----------|----------------------|---------|
-| Design Teams | 31-50% | ~38% |
-| Development Teams | 20-47% | ~31% |
+| Team Type         | Efficiency Gain Range | Average |
+| ----------------- | --------------------- | ------- |
+| Design Teams      | 31-50%                | ~38%    |
+| Development Teams | 20-47%                | ~31%    |
 
 **ROI Timeline Expectations:**
 
@@ -288,11 +288,11 @@ graph TB
 
 **Model Trade-offs:**
 
-| Model | Best For | Pitfalls |
-|-------|----------|----------|
-| **Centralized** | Consistency, quality control, clear ownership | Can become a bottleneck; "dictatorship" dynamic where control is quickly lost; slow response to team needs |
-| **Federated** | Realistic component usage, team investment, scalability | Requires strong governance processes; needs dedicated coordinating staff; not suitable for small teams or early-stage startups |
-| **Hybrid** | Balance of consistency and flexibility; large organizations | Requires clear boundaries; can create confusion about ownership; needs explicit contribution guidelines |
+| Model           | Best For                                                    | Pitfalls                                                                                                                       |
+| --------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| **Centralized** | Consistency, quality control, clear ownership               | Can become a bottleneck; "dictatorship" dynamic where control is quickly lost; slow response to team needs                     |
+| **Federated**   | Realistic component usage, team investment, scalability     | Requires strong governance processes; needs dedicated coordinating staff; not suitable for small teams or early-stage startups |
+| **Hybrid**      | Balance of consistency and flexibility; large organizations | Requires clear boundaries; can create confusion about ownership; needs explicit contribution guidelines                        |
 
 **Tracking Team Effectiveness**
 
@@ -310,12 +310,12 @@ Governance determines how decisions get made at scale. Without clear governance,
 
 Different decision types require different governance approaches:
 
-| Decision Type | Governance Approach |
-|---------------|---------------------|
-| **Core Components** | Central team approval required |
-| **Product-Specific** | Team autonomy with design review |
-| **Breaking Changes** | RFC process with stakeholder input |
-| **Quality Gates** | Automated testing + design review + accessibility audit |
+| Decision Type        | Governance Approach                                     |
+| -------------------- | ------------------------------------------------------- |
+| **Core Components**  | Central team approval required                          |
+| **Product-Specific** | Team autonomy with design review                        |
+| **Breaking Changes** | RFC process with stakeholder input                      |
+| **Quality Gates**    | Automated testing + design review + accessibility audit |
 
 Core components that affect the entire organization warrant central team approval because changes ripple across all products. Product-specific components can follow a lighter-weight process with team autonomy balanced by design review. Breaking changes require an RFC (Request for Comments) process with stakeholder input and adequate migration timelines. Quality gates should be automated wherever possible—automated testing, design review checklists, and accessibility audits prevent regression without creating bottlenecks.
 
@@ -335,11 +335,11 @@ The architectural foundation determines the long-term viability of your design s
 
 **Architecture Strategy Comparison**
 
-| Approach | Pros | Cons |
-|----------|------|------|
-| **Framework-Specific** (React, Angular, Vue) | Better developer experience, seamless integration | Vendor lock-in, maintenance overhead, framework dependency |
-| **Framework-Agnostic** (Web Components) | Future-proof, technology-agnostic, single codebase | Steeper learning curve, limited ecosystem integration |
-| **Hybrid** | Best of both worlds, flexibility | More complexity to manage |
+| Approach                                     | Pros                                               | Cons                                                       |
+| -------------------------------------------- | -------------------------------------------------- | ---------------------------------------------------------- |
+| **Framework-Specific** (React, Angular, Vue) | Better developer experience, seamless integration  | Vendor lock-in, maintenance overhead, framework dependency |
+| **Framework-Agnostic** (Web Components)      | Future-proof, technology-agnostic, single codebase | Steeper learning curve, limited ecosystem integration      |
+| **Hybrid**                                   | Best of both worlds, flexibility                   | More complexity to manage                                  |
 
 The **Hybrid Approach** often provides the best balance for organizations with diverse technology stacks. Design tokens and principles remain platform-agnostic, serving as the single source of truth. Framework-specific component wrappers consume these tokens and implement interaction patterns optimized for each framework. This approach maintains a shared design language across platforms while delivering the developer experience teams expect.
 
@@ -365,35 +365,41 @@ The W3C Design Tokens Community Group (DTCG) specification reached its first sta
 
 ```javascript title="style-dictionary.config.js"
 module.exports = {
-  source: ['tokens/**/*.json'],
+  source: ["tokens/**/*.json"],
   platforms: {
     css: {
-      transformGroup: 'css',
-      buildPath: 'dist/css/',
-      files: [{
-        destination: 'variables.css',
-        format: 'css/variables',
-        options: { outputReferences: true }
-      }]
+      transformGroup: "css",
+      buildPath: "dist/css/",
+      files: [
+        {
+          destination: "variables.css",
+          format: "css/variables",
+          options: { outputReferences: true },
+        },
+      ],
     },
     js: {
-      transformGroup: 'js',
-      buildPath: 'dist/js/',
-      files: [{
-        destination: 'tokens.js',
-        format: 'javascript/es6'
-      }]
+      transformGroup: "js",
+      buildPath: "dist/js/",
+      files: [
+        {
+          destination: "tokens.js",
+          format: "javascript/es6",
+        },
+      ],
     },
     scss: {
-      transformGroup: 'scss',
-      buildPath: 'dist/scss/',
-      files: [{
-        destination: '_variables.scss',
-        format: 'scss/variables'
-      }]
-    }
-  }
-};
+      transformGroup: "scss",
+      buildPath: "dist/scss/",
+      files: [
+        {
+          destination: "_variables.scss",
+          format: "scss/variables",
+        },
+      ],
+    },
+  },
+}
 ```
 
 Style Dictionary's `outputReferences: true` option preserves token aliases in the output, enabling CSS like `--color-action-primary: var(--color-blue-500)` rather than resolved values. This maintains the semantic relationship and enables runtime theming.
@@ -402,11 +408,11 @@ Style Dictionary's `outputReferences: true` option preserves token aliases in th
 
 Design tokens should be organized into three layers, each serving a distinct purpose:
 
-| Tier | Also Known As | Purpose | Example |
-|------|---------------|---------|---------|
-| **Primitives** | Foundation, Core, Reference | Raw values defining what styles exist | `color-blue-500: #0070f3` |
-| **Semantics** | Decision, System, Alias | Intent-based mappings defining how styles apply | `color-action-primary: {color-blue-500}` |
-| **Components** | Element-specific | Where tokens apply to specific elements | `button-background: {color-action-primary}` |
+| Tier           | Also Known As               | Purpose                                         | Example                                     |
+| -------------- | --------------------------- | ----------------------------------------------- | ------------------------------------------- |
+| **Primitives** | Foundation, Core, Reference | Raw values defining what styles exist           | `color-blue-500: #0070f3`                   |
+| **Semantics**  | Decision, System, Alias     | Intent-based mappings defining how styles apply | `color-action-primary: {color-blue-500}`    |
+| **Components** | Element-specific            | Where tokens apply to specific elements         | `button-background: {color-action-primary}` |
 
 ```json title="tokens.json (DTCG format)"
 {
@@ -459,7 +465,9 @@ Design components with composition in mind. Prefer compound components (like `<S
 
 TypeScript serves a dual purpose: catching bugs at compile time and providing inline documentation through IDE autocomplete. Every public component should export its props interface, enabling consuming teams to extend or wrap components safely.
 
-```typescript title="Button.tsx"
+```typescript title="Button.tsx" collapse={1-2}
+import React from 'react';
+
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
@@ -491,7 +499,7 @@ Storybook has become the standard development environment and documentation plat
 
 Configure Storybook to mirror your production build configuration as closely as possible. Use the same token imports, the same CSS processing, and the same TypeScript settings. Divergence between Storybook and production creates subtle bugs that erode trust.
 
-```typescript title=".storybook/main.ts"
+```typescript title=".storybook/main.ts" collapse={1-2}
 import type { StorybookConfig } from '@storybook/react-vite';
 
 const config: StorybookConfig = {
@@ -519,6 +527,7 @@ Storybook's autodocs feature generates documentation from TypeScript types and J
 > **Real-World Example: SWAN's Documentation Excellence**
 >
 > SWAN's documentation site goes beyond API references to include:
+>
 > - **Accessibility considerations**: Each component documents keyboard interactions, ARIA attributes, and screen reader behavior
 > - **Design guidelines**: When and why to use each component, with visual examples of correct and incorrect usage
 > - **React-Live integration**: Renderable, editable code examples that users can modify and share—making it trivial to reproduce issues or demonstrate solutions
@@ -538,7 +547,7 @@ How you bundle and distribute your design system determines the consumption expe
 
 For design system libraries, Rollup remains the gold standard for production builds due to its excellent tree-shaking and clean output. Vite, which uses Rollup internally for production builds, provides a superior development experience with near-instant hot module replacement. The recommended approach is Vite for development with Rollup for production via Vite's library mode.
 
-```typescript title="vite.config.ts"
+```typescript title="vite.config.ts" collapse={1-5}
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import dts from 'vite-plugin-dts';
@@ -626,12 +635,12 @@ Migration strategy determines how existing applications adopt the design system.
 
 The **Strangler Fig Pattern**, named by Martin Fowler after Australian strangler fig trees that gradually envelop their hosts, applies well to design system migration. New features are built with the design system while legacy UI remains functional. A facade layer presents a unified interface, routing to either legacy or new components based on feature flags or URL paths.
 
-| Aspect | Consideration |
-|--------|---------------|
-| **Mechanism** | New features built with design system; facade routes between legacy and new |
-| **Risk** | Low—legacy remains functional throughout migration |
-| **Resources** | Higher—requires running two systems simultaneously |
-| **Timeline** | Long—large systems can take years to fully migrate |
+| Aspect         | Consideration                                                                     |
+| -------------- | --------------------------------------------------------------------------------- |
+| **Mechanism**  | New features built with design system; facade routes between legacy and new       |
+| **Risk**       | Low—legacy remains functional throughout migration                                |
+| **Resources**  | Higher—requires running two systems simultaneously                                |
+| **Timeline**   | Long—large systems can take years to fully migrate                                |
 | **State sync** | Challenging—maintaining consistency between systems requires careful coordination |
 
 The Strangler Fig pattern is inappropriate for small systems where wholesale replacement is simpler, when a facade layer isn't architecturally feasible, or when the team cannot commit to the extended timeline large migrations require.
@@ -659,6 +668,7 @@ When multiple applications on the same domain use the design system, duplicate d
 **The Problem**
 
 Each application bundles its own copy of design system assets:
+
 - `app-a.example.com/fonts/opensans.woff2` (450KB)
 - `app-b.example.com/fonts/opensans.woff2` (450KB duplicate)
 - `checkout.example.com/fonts/opensans.woff2` (450KB duplicate)
@@ -683,11 +693,11 @@ All applications import from this shared location:
 
 ```css
 /* In each application's CSS */
-@import url('https://assets.example.com/design-system/v3/base.css');
+@import url("https://assets.example.com/design-system/v3/base.css");
 
 @font-face {
-  font-family: 'Open Sans';
-  src: url('https://assets.example.com/design-system/v3/fonts/opensans-regular.woff2') format('woff2');
+  font-family: "Open Sans";
+  src: url("https://assets.example.com/design-system/v3/fonts/opensans-regular.woff2") format("woff2");
 }
 ```
 
@@ -734,14 +744,14 @@ In microfrontend setups where the parent application (shell) injects major libra
 ```javascript
 // Shell application webpack.config.js (Module Federation)
 new ModuleFederationPlugin({
-  name: 'shell',
+  name: "shell",
   shared: {
-    react: { singleton: true, requiredVersion: '^18.0.0' },
-    'react-dom': { singleton: true, requiredVersion: '^18.0.0' },
-    '@company/design-system': { singleton: true, requiredVersion: '^3.0.0' },
-    '@company/state-management': { singleton: true, requiredVersion: '^2.0.0' },
+    react: { singleton: true, requiredVersion: "^18.0.0" },
+    "react-dom": { singleton: true, requiredVersion: "^18.0.0" },
+    "@company/design-system": { singleton: true, requiredVersion: "^3.0.0" },
+    "@company/state-management": { singleton: true, requiredVersion: "^2.0.0" },
   },
-});
+})
 ```
 
 This creates upgrade coupling: to upgrade the design system, all microfrontends must be compatible with the new version, and the shell must coordinate the rollout. If microfrontend A requires design system v4 for a new component, but microfrontend B hasn't been tested with v4, the upgrade blocks.
@@ -761,7 +771,7 @@ The fundamental tension: shared dependencies enable visual consistency and reduc
 
 **Recommended Architecture: Loosely Coupled Components**
 
-For organizations navigating this tension, the [Component Architecture for Loosely Coupled UI](/posts/notes/design-docs/component-architecture) pattern provides a comprehensive solution. The key principles:
+For organizations navigating this tension, several architectural patterns provide solutions. The key principles:
 
 1. **SDK Abstraction Layer**: Components don't directly depend on framework or shell APIs. Instead, they consume abstract interfaces (routing, analytics, state) that the shell implements. This allows components to be tested in isolation and deployed independently.
 
@@ -789,7 +799,7 @@ Every application should expose its design system version in a discoverable way:
 
 ```html
 <!-- In the HTML head -->
-<meta name="design-system-version" content="3.5.2">
+<meta name="design-system-version" content="3.5.2" />
 ```
 
 ```javascript
@@ -810,10 +820,11 @@ The design system's documentation site should itself be a consumer of the design
 > **Real-World Example: SWAN's Complete Design System Artifact Suite**
 >
 > [SWAN](https://vista.design/swan/) exemplifies a comprehensive design system that spans the full design-to-development workflow:
+>
 > - **Code library**: 80+ React components with TypeScript definitions, ESLint plugin for code quality, and Stylelint plugin for CSS validation
 > - **Figma UI Kit**: A complete Figma library matching the code components 1:1, enabling designers to use the same components product teams implement—no translation layer required
 > - **Codemods**: Automated migration scripts shipped with major versions, reducing upgrade friction
-> - **Builder.io integration**: SWAN components integrated with Builder.io for rapid prototyping and building temporary marketing pages without developer involvement
+> - **Live playground**: React-Live integration for interactive, editable code examples
 >
 > The Figma integration deserves emphasis: when designers use SWAN components in their designs, developers receive specs that map directly to available components. This eliminates the "designer handoff" problem where custom designs require new component development. Additional integrations (like product card data connections) were achieved through the champion model, with product teams building domain-specific extensions on the SWAN foundation.
 
@@ -858,6 +869,7 @@ Effective support requires clear channels with appropriate response expectations
 > **Real-World Example: SWAN's Multi-Channel Support Structure**
 >
 > Vista's SWAN design system implements a tiered support structure with purpose-specific channels:
+>
 > - **#swan-announcements**: One-way channel for updates, releases, and deprecation notices
 > - **#swan-help**: Two-way support channel where teams can ask questions and get rapid responses
 > - **Request form**: Structured intake for improvements, new component requests, and bug reports—ensuring requests don't get lost in chat history
@@ -883,20 +895,20 @@ Measurement transforms design system management from opinion-based to evidence-b
 
 Organize metrics into four categories that together provide a complete picture:
 
-| Category | Metric | What It Measures |
-|----------|--------|------------------|
-| **Adoption** | Component Coverage | % of UI using design system |
-| **Adoption** | Team Adoption | Number of active teams |
-| **Adoption** | Usage Frequency | Components used per project |
-| **Adoption** | Detachment Rate | % of components customized |
-| **Efficiency** | Development Velocity | Time to implement features |
-| **Efficiency** | Bug Reduction | UI-related bug count |
-| **Efficiency** | Onboarding Time | Time for new team members |
-| **Efficiency** | Maintenance Overhead | Time spent on UI consistency |
-| **Quality** | Accessibility Score | WCAG compliance |
-| **Quality** | Visual Consistency | Design audit scores |
-| **Quality** | Performance Impact | Bundle size and load time |
-| **Quality** | User Satisfaction | Internal and external feedback |
+| Category       | Metric               | What It Measures               |
+| -------------- | -------------------- | ------------------------------ |
+| **Adoption**   | Component Coverage   | % of UI using design system    |
+| **Adoption**   | Team Adoption        | Number of active teams         |
+| **Adoption**   | Usage Frequency      | Components used per project    |
+| **Adoption**   | Detachment Rate      | % of components customized     |
+| **Efficiency** | Development Velocity | Time to implement features     |
+| **Efficiency** | Bug Reduction        | UI-related bug count           |
+| **Efficiency** | Onboarding Time      | Time for new team members      |
+| **Efficiency** | Maintenance Overhead | Time spent on UI consistency   |
+| **Quality**    | Accessibility Score  | WCAG compliance                |
+| **Quality**    | Visual Consistency   | Design audit scores            |
+| **Quality**    | Performance Impact   | Bundle size and load time      |
+| **Quality**    | User Satisfaction    | Internal and external feedback |
 
 **Adoption metrics** tell you whether teams are using the system. **Efficiency metrics** demonstrate whether the system delivers promised productivity gains. **Quality metrics** verify that adoption doesn't come at the cost of user experience. Track all four categories—optimizing one while ignoring others creates invisible debt.
 
@@ -946,7 +958,7 @@ Major version upgrades are adoption killers. Teams delay upgrades because migrat
 
 [jscodeshift](https://github.com/facebook/jscodeshift) is Facebook's toolkit for running codemods. It parses JavaScript/TypeScript into an AST (Abstract Syntax Tree), allows transformations, and writes the result back to files.
 
-```typescript title="codemods/v3-to-v4/rename-button-variant.ts"
+```typescript title="codemods/v3-to-v4/rename-button-variant.ts" collapse={1-2}
 import { API, FileInfo, Options } from 'jscodeshift';
 
 /**
@@ -1023,14 +1035,14 @@ defineTest(
 
 Not every change warrants a codemod. Prioritize based on:
 
-| Change Type | Codemod Priority | Rationale |
-|-------------|------------------|-----------|
-| Prop rename | High | Mechanical change, easy to automate, common pattern |
-| Component rename | High | Find-and-replace at scale |
-| Prop value changes | Medium | May require context the codemod lacks |
-| API restructuring | Medium | Complex but high-value for major versions |
-| Behavior changes | Low | Often requires human judgment |
-| Removal of deprecated APIs | High | Teams have had warning; enforce the deadline |
+| Change Type                | Codemod Priority | Rationale                                           |
+| -------------------------- | ---------------- | --------------------------------------------------- |
+| Prop rename                | High             | Mechanical change, easy to automate, common pattern |
+| Component rename           | High             | Find-and-replace at scale                           |
+| Prop value changes         | Medium           | May require context the codemod lacks               |
+| API restructuring          | Medium           | Complex but high-value for major versions           |
+| Behavior changes           | Low              | Often requires human judgment                       |
+| Removal of deprecated APIs | High             | Teams have had warning; enforce the deadline        |
 
 #### Repository Scanning for Adoption Tracking
 
@@ -1115,11 +1127,11 @@ repositories:
 
   - name: legacy-checkout
     url: git@github.com:company/legacy-checkout.git
-    branch: master  # Override for legacy repo
+    branch: master # Override for legacy repo
 
   - name: feature-experiment
     url: git@github.com:company/feature-experiment.git
-    branch: experiment-v2  # Specific branch for active experiment
+    branch: experiment-v2 # Specific branch for active experiment
 ```
 
 **Scheduling and Automation**
@@ -1131,8 +1143,8 @@ name: Design System Adoption Scanner
 
 on:
   schedule:
-    - cron: '0 6 * * 1'  # Every Monday at 6 AM
-  workflow_dispatch:     # Manual trigger
+    - cron: "0 6 * * 1" # Every Monday at 6 AM
+  workflow_dispatch: # Manual trigger
 
 jobs:
   scan:
@@ -1149,17 +1161,17 @@ jobs:
 
 #### Usage Analytics: Data-Driven Decision Making
 
-Beyond knowing which repos use the design system, you need to understand *how* they use it. Which components are popular? Which props are used? Where do teams override or customize? This data drives prioritization for everything from documentation to deprecation.
+Beyond knowing which repos use the design system, you need to understand _how_ they use it. Which components are popular? Which props are used? Where do teams override or customize? This data drives prioritization for everything from documentation to deprecation.
 
 **What to Track**
 
-| Metric | Question It Answers | Actionable Insight |
-|--------|---------------------|-------------------|
-| Component usage count | Which components are most used? | Focus documentation and stability efforts |
-| Props frequency | Which props are commonly used? | Consider making rare props opt-in; simplify common cases |
-| Override frequency | Which components get customized most? | Candidate for API expansion or variants |
-| Version distribution | How many versions are in production? | Urgency for codemod development |
-| Unused components | Which components have zero usage? | Candidates for deprecation |
+| Metric                | Question It Answers                   | Actionable Insight                                       |
+| --------------------- | ------------------------------------- | -------------------------------------------------------- |
+| Component usage count | Which components are most used?       | Focus documentation and stability efforts                |
+| Props frequency       | Which props are commonly used?        | Consider making rare props opt-in; simplify common cases |
+| Override frequency    | Which components get customized most? | Candidate for API expansion or variants                  |
+| Version distribution  | How many versions are in production?  | Urgency for codemod development                          |
+| Unused components     | Which components have zero usage?     | Candidates for deprecation                               |
 
 **Static Analysis Pipeline**
 
@@ -1277,13 +1289,13 @@ Build dashboards that answer strategic questions:
 
 Use analytics to drive roadmap decisions:
 
-| Signal | Action |
-|--------|--------|
-| Component has 500+ usages, high override rate | Expand API, add variants to cover override cases |
-| Component has 0 usages across all repos | Candidate for deprecation in next major version |
-| Specific prop unused across 95% of usages | Make it optional, improve defaults |
-| 40% of repos still on v2 | Invest in v2→v3 codemod, outreach to lagging teams |
-| One team has 80% override rate | Investigate: API gaps or team needs custom training? |
+| Signal                                        | Action                                               |
+| --------------------------------------------- | ---------------------------------------------------- |
+| Component has 500+ usages, high override rate | Expand API, add variants to cover override cases     |
+| Component has 0 usages across all repos       | Candidate for deprecation in next major version      |
+| Specific prop unused across 95% of usages     | Make it optional, improve defaults                   |
+| 40% of repos still on v2                      | Invest in v2→v3 codemod, outreach to lagging teams   |
+| One team has 80% override rate                | Investigate: API gaps or team needs custom training? |
 
 **Privacy and Sensitivity**
 
@@ -1409,14 +1421,13 @@ The journey from business case to enterprise-wide adoption is challenging, but w
 
 ### Enterprise Design System Examples
 
-- [SWAN Design System (Vista)](https://vista.design/swan/) - Comprehensive enterprise design system with 80+ components, ESLint/Stylelint plugins, codemods, Figma UI kit, Builder.io integration, and interactive React-Live playground
+- [SWAN Design System (Vista)](https://vista.design/swan/) - Comprehensive enterprise design system with 80+ components, ESLint/Stylelint plugins, codemods, Figma UI kit, and interactive React-Live playground
 - [Top Storybook Documentation Examples](https://www.supernova.io/blog/top-storybook-documentation-examples-and-the-lessons-you-can-learn) - Best practices from BBC, Audi, and other enterprise design systems
 - [Design System Metrics - Figma Blog](https://www.figma.com/blog/design-systems-104-making-metrics-matter/) - Framework for measuring design system effectiveness
 - [Building a Design System Adoption Metric from Production Data](https://developers.mews.com/design-system-adoption-metric-building/) - Practical approach to measuring adoption
 
 ### Microfrontend & Architecture Patterns
 
-- [Component Architecture for Loosely Coupled UI](/posts/notes/design-docs/component-architecture) - Meta-framework-agnostic patterns for SDK abstraction, boundary control, and provider-based dependency injection
 - [Microfrontends Architecture](/posts/deep-dives/web-fundamentals/micro-frontends) - Comprehensive guide to microfrontend composition strategies, Module Federation, and cross-cutting concerns
 
 ### Technical Enablement & Codemods

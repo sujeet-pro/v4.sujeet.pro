@@ -16,6 +16,42 @@ tags:
 
 Learn the complete video delivery pipeline from codecs and compression to adaptive streaming protocols, DRM systems, and ultra-low latency technologies for building modern video applications.
 
+<figure>
+
+```mermaid
+flowchart LR
+    subgraph "Content Preparation"
+        SRC[Source Video] --> ENC[Encoding<br/>H.264/H.265/AV1]
+        ENC --> PKG[Packaging<br/>fMP4/CMAF]
+        PKG --> DRM[DRM Encryption<br/>CENC]
+    end
+
+    subgraph "Delivery"
+        DRM --> CDN[CDN Edge<br/>Global PoPs]
+        CDN --> MAN[Manifest<br/>HLS/DASH]
+    end
+
+    subgraph "Playback"
+        MAN --> ABR[ABR Selection]
+        ABR --> DEC[Decryption<br/>+ Decoding]
+        DEC --> PLAY[Playback]
+    end
+
+    style SRC fill:#e1d5e7,stroke:#9673a6
+    style ENC fill:#dae8fc,stroke:#6c8ebf
+    style PKG fill:#dae8fc,stroke:#6c8ebf
+    style DRM fill:#f8cecc,stroke:#b85450
+    style CDN fill:#fff2cc,stroke:#d6b656
+    style MAN fill:#fff2cc,stroke:#d6b656
+    style ABR fill:#d5e8d4,stroke:#82b366
+    style DEC fill:#d5e8d4,stroke:#82b366
+    style PLAY fill:#d5e8d4,stroke:#82b366
+```
+
+<figcaption>End-to-end video playback pipeline from source encoding through CDN delivery to adaptive client playback</figcaption>
+
+</figure>
+
 ## TLDR
 
 **Modern Video Playback** is a sophisticated pipeline combining codecs, adaptive streaming protocols, DRM systems, and ultra-low latency technologies to deliver high-quality video experiences across all devices and network conditions.
@@ -202,7 +238,7 @@ CMAF solves this problem by defining a standardized fMP4 container that can be u
 
 The open-source tool ffmpeg is the workhorse of the video processing world. Here's a detailed breakdown of generating a multi-bitrate HLS stream:
 
-```bash file=./hls.bash
+```bash file=./hls.bash collapse={8-15}
 ffmpeg -i ./video/big-buck-bunny.mp4 \
 -filter_complex \
 "[0:v]split=7[v1][v2][v3][v4][v5][v6][v7]; \
@@ -421,3 +457,18 @@ Key trends defining the future of video streaming include:
 3. **Quality of Experience (QoE) Focus**: Every technical decision ultimately serves the goal of improving user experience
 
 The future of video playback lies in building intelligent, hybrid, and complex systems that can dynamically select the right tool for the right job. The most successful platforms will be those that master this complexity, architecting resilient and adaptive pipelines capable of delivering a flawless, high-quality stream to any user, on any device, under any network condition.
+
+## References
+
+- [HTTP Live Streaming (HLS) - Apple Developer](https://developer.apple.com/streaming/) - Official HLS specification and implementation guides
+- [MPEG-DASH Specification - ISO/IEC 23009-1](https://www.iso.org/standard/79329.html) - International standard for adaptive streaming
+- [AV1 Codec - Alliance for Open Media](https://aomedia.org/av1/) - Royalty-free video codec specification
+- [H.264/AVC - ITU-T H.264](https://www.itu.int/rec/T-REC-H.264) - Advanced Video Coding standard
+- [H.265/HEVC - ITU-T H.265](https://www.itu.int/rec/T-REC-H.265) - High Efficiency Video Coding standard
+- [CMAF - ISO/IEC 23000-19](https://www.iso.org/standard/79106.html) - Common Media Application Format
+- [Common Encryption (CENC) - ISO/IEC 23001-7](https://www.iso.org/standard/68042.html) - Multi-DRM encryption standard
+- [Widevine DRM - Google](https://www.widevine.com/) - Google's DRM solution documentation
+- [FairPlay Streaming - Apple](https://developer.apple.com/streaming/fps/) - Apple's DRM implementation
+- [Low-Latency HLS - Apple Developer](https://developer.apple.com/documentation/http-live-streaming/enabling-low-latency-http-live-streaming-hls) - LL-HLS implementation guide
+- [WebRTC - W3C](https://www.w3.org/TR/webrtc/) - Web Real-Time Communication specification
+- [FFmpeg Documentation](https://ffmpeg.org/documentation.html) - Video processing toolkit

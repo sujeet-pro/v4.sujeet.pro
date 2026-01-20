@@ -259,11 +259,17 @@ npm run check
 npm run format -- --check $(git diff --name-only)
 ```
 
-## Reference Standards
+## Reference Documents
 
-- [code-standards.md](../../../llm_docs/code-standards.md)
-- [content-guidelines.md](../../../llm_docs/content-guidelines.md)
-- [CLAUDE.md](../../../CLAUDE.md)
+**IMPORTANT**: Before reviewing changes, read these documents from the project root:
+
+| Document | Path (from project root) | Purpose |
+|----------|--------------------------|---------|
+| Code Standards | `llm_docs/code-standards.md` | TypeScript, CSS, accessibility requirements |
+| Content Guidelines | `llm_docs/content-guidelines.md` | Writing standards for content changes |
+| Project Instructions | `CLAUDE.md` | Project structure, commands, styling conventions |
+
+**Usage**: Use the Read tool with absolute paths (e.g., `/path/to/project/llm_docs/code-standards.md`) to read these files before starting work.
 
 ## Tools Available
 

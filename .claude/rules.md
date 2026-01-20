@@ -4,13 +4,35 @@
 
 Astro-based technical blog for experienced software professionals (senior/staff/principal engineers). All content is highly technical and structured for cohesive reading.
 
-**Documentation**: See `llm_docs/` for detailed guides:
+**Documentation**: Reference guides are in the `llm_docs/` directory at the project root.
 
-- [content.md](../llm_docs/content.md) - Content categories, schemas, frontmatter
-- [content-guidelines.md](../llm_docs/content-guidelines.md) - Writing standards, conciseness, quality checklist
-- [markdown-features.md](../llm_docs/markdown-features.md) - Expressive Code, Mermaid, KaTeX
-- [code-standards.md](../llm_docs/code-standards.md) - TypeScript, CSS, accessibility
-- [commands.md](../llm_docs/commands.md) - Commands and workflow
+## Project Structure
+
+**IMPORTANT**: This project uses a non-standard Astro layout:
+
+| Directory | Purpose |
+|-----------|---------|
+| `src/` | Source code (components, pages, styles, utils) |
+| `content/` | Content collections (NOT `src/content/`) |
+
+**Key content files** (all at project root `content/` folder):
+- `content/posts/` - Blog post markdown files
+- `content/in-research/` - Research material
+- `content/tags.jsonc` - Tag definitions (NOT `src/content/tags.json`)
+- `content/categories.jsonc` - Category definitions
+- `content/postTypes.jsonc` - Post type definitions
+
+**IMPORTANT**: Before executing any skill, read the relevant documentation files using absolute paths from the project root:
+
+| Document | Path (from project root) | Description |
+|----------|--------------------------|-------------|
+| Content Structure | `llm_docs/content.md` | Content categories, schemas, frontmatter |
+| Content Guidelines | `llm_docs/content-guidelines.md` | Writing standards, conciseness, quality checklist |
+| Markdown Features | `llm_docs/markdown-features.md` | Expressive Code, Mermaid, KaTeX syntax |
+| Code Standards | `llm_docs/code-standards.md` | TypeScript, CSS, accessibility requirements |
+| Commands | `llm_docs/commands.md` | Build commands and workflow |
+
+**Note**: These paths are relative to the project root, NOT relative to the `.claude/` directory.
 
 ## Claude Skills
 
@@ -87,12 +109,17 @@ function main() {
 - ARIA labels where needed
 - Keyboard navigable
 
-## Content Categories
+## Content Collections
 
 | Collection | Path | Required Fields |
 |------------|------|-----------------|
 | posts | `content/posts/` | tags |
 | in-research | `content/in-research/` | topic, status |
+
+**Content metadata files** (all JSONC format with comments):
+- Tags: `content/tags.jsonc`
+- Categories: `content/categories.jsonc`
+- Post Types: `content/postTypes.jsonc`
 
 ## Quick Reference
 

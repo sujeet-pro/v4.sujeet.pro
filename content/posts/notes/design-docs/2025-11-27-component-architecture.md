@@ -2,6 +2,10 @@
 lastReviewedOn: 2026-01-21
 featured: true
 tags:
+  - react
+  - ts
+  - frontend-architecture
+  - design-patterns
   - platform-engineering
   - system-design
 ---
@@ -21,6 +25,37 @@ As web applications grow in complexity, maintaining a clean separation of concer
 - **Supports server-driven UI** patterns common in modern applications
 
 Whether you're building an e-commerce platform, a content management system, or a SaaS dashboard, these patterns provide a solid foundation for scalable frontend architecture.
+
+## TLDR
+
+**This architecture** provides a layered, framework-agnostic approach to building React applications where business logic is decoupled from UI primitives and meta-framework APIs are abstracted through injectable SDKs.
+
+### Core Layers
+
+- **Primitives**: Generic UI components (Button, Card, Modal) with no business logic, living in a separate design system package
+- **Blocks**: Business-aware components (ProductCard, AddToCartButton) that compose primitives and contain domain logic
+- **Widgets**: BFF-connected page sections that receive backend payloads and compose blocks
+- **SDKs**: Internal abstractions for cross-cutting concerns (analytics, routing, experiments, HTTP) with injectable implementations
+
+### Key Patterns
+
+- **Dependency Injection via Context**: All external dependencies (analytics, HTTP, routing) are injected through React Context providers, enabling easy testing without complex mocking
+- **Barrel Exports for Public APIs**: Each module exposes its public interface through `index.ts` files, hiding internal implementation details and enabling refactoring without breaking consumers
+- **Boundary Enforcement**: ESLint rules using `eslint-plugin-boundaries` prevent architectural violations (e.g., Blocks importing Widgets)
+- **Lazy-Loaded Registries**: Widget registries map BFF widget types to components using `React.lazy()` for code splitting
+
+### Testing Strategy
+
+- **Mock SDK Provider**: A `TestSdkProvider` wraps components with mocked implementations of all SDK services
+- **No Framework Mocking**: Since components use SDK abstractions instead of framework APIs directly, tests don't need to mock Next.js/Remix internals
+- **Isolation**: Each layer can be tested independently with appropriate mocks for its dependencies
+
+### When to Use This Pattern
+
+- Multiple teams contributing to the same application
+- Components shared across applications using different meta-frameworks
+- Need for framework migration without rewriting business logic
+- Long-term maintainability prioritized over initial velocity
 
 ---
 
@@ -153,7 +188,9 @@ Every module exposes its public API through a barrel file (`index.ts`). Internal
 
 - Enables refactoring without breaking consumers
 - Makes API surface area clear and intentional
-- Supports tree-shaking and code splitting
+- Provides a single entry point for consumers
+
+> **⚠️ Trade-off Note:** While barrel files define clean APIs, they can [negatively impact tree-shaking](https://tkdodo.eu/blog/please-stop-using-barrel-files) in application code because bundlers may import the entire barrel file. For library packages, use `package.json` exports with multiple entry points. For performance-critical application paths, consider direct imports bypassing barrels.
 
 ---
 
@@ -1971,3 +2008,16 @@ describe('AddToCartButton', () => {
 - ✅ **Maintainability**: Clear boundaries prevent spaghetti dependencies
 - ✅ **Scalability**: Teams can work independently on different layers
 - ✅ **Consistency**: Enforced patterns through tooling, not just documentation
+
+---
+
+## References
+
+- [eslint-plugin-boundaries](https://github.com/javierbrea/eslint-plugin-boundaries) - ESLint plugin for enforcing architectural boundaries between modules
+- [React Context for Dependency Injection](https://testdouble.com/insights/react-context-for-dependency-injection-not-state-management) - Using React Context for DI instead of state management
+- [Dependency Injection in React](https://blog.logrocket.com/dependency-injection-react/) - LogRocket guide covering props, Context, and custom hooks patterns
+- [Please Stop Using Barrel Files](https://tkdodo.eu/blog/please-stop-using-barrel-files) - TkDodo on barrel file trade-offs and tree-shaking implications
+- [React Patterns](https://krasimir.gitbooks.io/react-in-patterns/content/) - Krasimir Tsonev's guide to React patterns including dependency injection
+- [TypeScript Strict Mode](https://www.typescriptlang.org/tsconfig#strict) - Official TypeScript documentation on strict type checking
+- [Next.js optimizePackageImports](https://nextjs.org/docs/app/api-reference/config/next-config-js/optimizePackageImports) - Next.js configuration for optimizing barrel file imports
+- [Vitest Testing Framework](https://vitest.dev/) - Modern testing framework compatible with Vite and React

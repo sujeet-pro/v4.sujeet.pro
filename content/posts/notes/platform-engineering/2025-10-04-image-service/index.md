@@ -12,6 +12,64 @@ tags:
 
 This document presents the architectural design for a cloud-agnostic, multi-tenant image processing platform that provides on-the-fly transformations with enterprise-grade security, performance, and cost optimization. The platform supports hierarchical multi-tenancy (Organization → Tenant → Space), public and private image delivery, and deployment across AWS, GCP, Azure, or on-premise infrastructure. Key capabilities include deterministic transformation caching to ensure sub-second delivery, signed URL generation for secure private access, CDN integration for global edge caching, and a "transform-once-serve-forever" approach that minimizes processing costs while guaranteeing HTTP 200 responses even for first-time transformation requests.
 
+<figure>
+
+```mermaid
+graph TB
+    Client[Client Application]
+    CDN[Edge Cache / CDN]
+
+    subgraph "Image Service Platform"
+        Gateway[Image Gateway]
+        Transform[Transform Engine]
+        Storage[(Object Storage)]
+        Cache[(Redis Cache)]
+        DB[(PostgreSQL)]
+    end
+
+    Client -->|HTTPS| CDN
+    CDN -->|Cache Miss| Gateway
+    Gateway --> Transform
+    Transform --> Cache
+    Transform --> DB
+    Transform --> Storage
+```
+
+<figcaption>High-level architecture: Clients request images through CDN, with cache misses handled by the Image Gateway which orchestrates transformation, caching, and storage</figcaption>
+
+</figure>
+
+## TLDR
+
+A **multi-tenant image service platform** provides on-demand image transformations with deterministic caching, signed URL security, and cloud-agnostic deployment.
+
+### Core Architecture
+
+- **Multi-layer caching** (CDN → Redis → Database → Storage) achieves 95%+ cache hit rates
+- **Transform-once-serve-forever** model with content-addressed storage eliminates duplicate processing
+- **Guaranteed HTTP 200** responses—even first-time transforms complete synchronously (< 800ms for images < 5MB)
+- **Hierarchical tenancy** (Organization → Tenant → Space) with policy inheritance for flexible isolation
+
+### Technology Choices
+
+- **Sharp (libvips)** for image processing—4-5x faster than ImageMagick, low memory footprint ([Sharp Performance](https://sharp.pixelplumbing.com/performance/))
+- **Redis with Redlock** for distributed locking and caching—note that Redlock has [known limitations](https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html) for safety-critical scenarios
+- **PostgreSQL** with JSONB for flexible policy storage and metadata
+- **AVIF/WebP** automatic format negotiation—AVIF offers 20-30% better compression than WebP ([format comparison](https://cloudinary.com/guides/image-formats/avif-vs-webp-4-key-differences-and-how-to-choose))
+
+### Security Model
+
+- **HMAC-SHA256 signed URLs** with expiration timestamps for private content
+- **Key rotation support** via key IDs (kid) in signed URLs
+- **Row-level tenant isolation** enforced at database and API layers
+- **Rate limiting** with sliding window algorithm per organization
+
+### Cost Optimization
+
+- **56% cost reduction** through multi-layer caching and storage lifecycle management
+- **Storage tiering** (hot → warm → cold) based on access patterns
+- **CDN origin offloading** reduces bandwidth costs from $0.09/GB to $0.02/GB
+
 ## System Overview
 
 ### Core Capabilities
@@ -214,13 +272,15 @@ import crypto from "crypto"
 
 #### Distributed Locking
 
-| Technology          | Pros                          | Cons                      | Recommendation         |
-| ------------------- | ----------------------------- | ------------------------- | ---------------------- |
-| **Redlock (Redis)** | Simple, Redis-based           | Network partitions        | ✅ **Recommended**     |
-| etcd                | Consistent, Kubernetes native | Separate service          | Use if already running |
-| Database locks      | Simple, transactional         | Contention, less scalable | Development only       |
+| Technology          | Pros                          | Cons                                | Recommendation         |
+| ------------------- | ----------------------------- | ----------------------------------- | ---------------------- |
+| **Redlock (Redis)** | Simple, Redis-based           | Network partitions, clock skew risk | ✅ **Recommended**     |
+| etcd                | Consistent, Kubernetes native | Separate service                    | Use if already running |
+| Database locks      | Simple, transactional         | Contention, less scalable           | Development only       |
 
 **Choice**: **Redlock** with Redis
+
+> **⚠️ Important Limitation**: Redlock has [known safety limitations](https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html) related to clock skew and process pauses. For this image service use case (efficiency optimization, not correctness), Redlock is appropriate. For safety-critical mutual exclusion where lock violations could cause data corruption, consider etcd or ZooKeeper instead.
 
 ```bash
 npm install redlock
@@ -407,7 +467,7 @@ sequenceDiagram
 
 ### Database Schema
 
-```sql
+```sql title="schema.sql" collapse={1-30, 110-140, 175-210}
 -- Organizations (Top-level tenants)
 CREATE TABLE organizations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -942,7 +1002,7 @@ sequenceDiagram
 
 ### Processing Implementation
 
-```javascript
+```javascript title="transform-engine.js" collapse={1-2, 8-12}
 import sharp from "sharp"
 import crypto from "crypto"
 
@@ -1248,12 +1308,15 @@ export default TransformEngine
 
 ### Distributed Locking
 
-```javascript
+```javascript title="lock-manager.js" collapse={1-2}
 import Redlock from "redlock"
 import Redis from "ioredis"
 
 /**
  * Distributed lock manager using Redlock algorithm
+ * NOTE: Redlock has known limitations for safety-critical scenarios.
+ * Consider etcd/ZooKeeper for strict mutual exclusion requirements.
+ * See: https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html
  */
 class LockManager {
   constructor(redisClients) {
@@ -1307,7 +1370,7 @@ export default LockManager
 
 ### Signed URL Implementation
 
-```javascript
+```javascript title="signature-service.js" collapse={1}
 import crypto from "crypto"
 
 /**
@@ -1455,7 +1518,7 @@ export default SignatureService
 
 ### Authentication Middleware
 
-```javascript
+```javascript title="auth-middleware.js" collapse={1}
 import crypto from "crypto"
 
 /**
@@ -1575,7 +1638,7 @@ export default AuthMiddleware
 
 ### Rate Limiting
 
-```javascript
+```javascript title="rate-limiter.js" collapse={1}
 import Redis from "ioredis"
 
 /**
@@ -1740,7 +1803,7 @@ graph TB
 
 ### Storage Abstraction Layer
 
-```javascript
+```javascript title="storage-adapter.js"
 /**
  * Abstract storage interface
  */
@@ -1770,17 +1833,9 @@ class StorageAdapter {
   }
 }
 
-/**
- * AWS S3 Implementation
- */
-import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
-  DeleteObjectCommand,
-  HeadObjectCommand,
-} from "@aws-sdk/client-s3"
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
+// AWS S3 Implementation (imports collapsed)
+// import { S3Client, PutObjectCommand, GetObjectCommand, ... } from "@aws-sdk/client-s3"
+// import { getSignedUrl } from "@aws-sdk/s3-request-presigner"
 
 class S3StorageAdapter extends StorageAdapter {
   constructor(config) {
@@ -1861,10 +1916,8 @@ class S3StorageAdapter extends StorageAdapter {
   }
 }
 
-/**
- * Google Cloud Storage Implementation
- */
-import { Storage } from "@google-cloud/storage"
+// Google Cloud Storage Implementation (imports collapsed)
+// import { Storage } from "@google-cloud/storage"
 
 class GCSStorageAdapter extends StorageAdapter {
   constructor(config) {
@@ -1916,10 +1969,8 @@ class GCSStorageAdapter extends StorageAdapter {
   }
 }
 
-/**
- * Azure Blob Storage Implementation
- */
-import { BlobServiceClient } from "@azure/storage-blob"
+// Azure Blob Storage Implementation (imports collapsed)
+// import { BlobServiceClient } from "@azure/storage-blob"
 
 class AzureBlobStorageAdapter extends StorageAdapter {
   constructor(config) {
@@ -1977,10 +2028,8 @@ class AzureBlobStorageAdapter extends StorageAdapter {
   }
 }
 
-/**
- * MinIO Implementation (S3-compatible for on-premise)
- */
-import * as Minio from "minio"
+// MinIO Implementation (S3-compatible for on-premise, imports collapsed)
+// import * as Minio from "minio"
 
 class MinIOStorageAdapter extends StorageAdapter {
   constructor(config) {
@@ -2070,7 +2119,7 @@ export { StorageAdapter, StorageFactory }
 
 ### Deployment Configuration
 
-```yaml
+```yaml title="docker-compose.yml" collapse={21-40, 60-95}
 # docker-compose.yml for local development
 version: "3.8"
 
@@ -2207,7 +2256,7 @@ graph LR
 
 ### Storage Lifecycle Management
 
-```javascript
+```javascript title="lifecycle-manager.js"
 /**
  * Storage lifecycle manager
  */
@@ -2318,7 +2367,7 @@ Key optimizations:
 
 ### Metrics Collection
 
-```javascript
+```javascript title="metrics-registry.js" collapse={1}
 import prometheus from "prom-client"
 
 /**
@@ -2434,8 +2483,7 @@ export default metricsRegistry
 
 ### Alerting Configuration
 
-```yaml
-# prometheus-alerts.yml
+```yaml title="prometheus-alerts.yml"
 groups:
   - name: image_service_alerts
     interval: 30s
@@ -2511,7 +2559,7 @@ groups:
 
 ### Health Checks
 
-```javascript
+```javascript title="health-check.js"
 /**
  * Health check service
  */
@@ -2627,3 +2675,46 @@ This document presents a comprehensive architecture for a **multi-tenant, cloud-
 5. **Transform canonicalization** maximizes cache hit rates
 
 This architecture provides a production-ready foundation for building a Cloudinary-alternative image service with enterprise-grade performance, security, and cost efficiency.
+
+## References
+
+### Image Processing
+
+- [Sharp Documentation](https://sharp.pixelplumbing.com/) - High-performance Node.js image processing library
+- [Sharp Performance Benchmarks](https://sharp.pixelplumbing.com/performance/) - Performance comparison with other libraries
+- [libvips](https://www.libvips.org/) - The underlying image processing library powering Sharp
+
+### Image Formats
+
+- [AVIF vs WebP Comparison](https://cloudinary.com/guides/image-formats/avif-vs-webp-4-key-differences-and-how-to-choose) - Cloudinary guide on format selection
+- [WebP Documentation](https://developers.google.com/speed/webp) - Google's WebP format specification
+- [AVIF Specification](https://aomediacodec.github.io/av1-avif/) - AOM AVIF specification
+
+### Distributed Locking
+
+- [Redis Distributed Locks](https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/) - Official Redis documentation on Redlock
+- [How to do Distributed Locking](https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html) - Martin Kleppmann's analysis of Redlock limitations
+- [Is Redlock Safe?](https://antirez.com/news/101) - Antirez's response to Redlock criticism
+
+### Cloud Storage
+
+- [AWS S3 SDK v3](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/) - AWS SDK for JavaScript
+- [Google Cloud Storage Node.js](https://cloud.google.com/nodejs/docs/reference/storage/latest) - GCS client library
+- [Azure Blob Storage SDK](https://learn.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-nodejs) - Azure Storage client
+- [MinIO JavaScript Client](https://min.io/docs/minio/linux/developers/javascript/minio-javascript.html) - S3-compatible storage
+
+### Caching & Performance
+
+- [Redis Cluster](https://redis.io/docs/latest/operate/oss_and_stack/management/scaling/) - Redis clustering documentation
+- [CDN Caching Best Practices](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching) - MDN HTTP caching guide
+
+### Security
+
+- [HMAC-SHA256](https://datatracker.ietf.org/doc/html/rfc2104) - RFC 2104 HMAC specification
+- [Signed URLs Best Practices](https://cloud.google.com/cdn/docs/using-signed-urls) - GCP guide on signed URL implementation
+
+### Frameworks & Tools
+
+- [Fastify](https://www.fastify.io/) - Low-overhead web framework for Node.js
+- [PostgreSQL JSONB](https://www.postgresql.org/docs/current/datatype-json.html) - JSON support in PostgreSQL
+- [Prometheus](https://prometheus.io/docs/introduction/overview/) - Monitoring and alerting toolkit

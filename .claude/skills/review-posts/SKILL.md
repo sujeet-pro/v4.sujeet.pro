@@ -48,7 +48,7 @@ content/in-research/**/*[topic]*.md
 
 ### Metadata Check
 - [ ] `lastReviewedOn` present and recent
-- [ ] Tags from tags.jsonc
+- [ ] Tags from `content/tags.jsonc` (NOT `src/content/tags.json`)
 - [ ] Valid YAML frontmatter
 
 ### Structure Analysis
@@ -278,9 +278,15 @@ Delete any manual Table of Contents - it's auto-generated.
 
 ## Reference Documents
 
-- [content-guidelines.md](../../../llm_docs/content-guidelines.md)
-- [markdown-features.md](../../../llm_docs/markdown-features.md)
-- [CLAUDE.md](../../../CLAUDE.md)
+**IMPORTANT**: Before reviewing, read these documents from the project root:
+
+| Document | Path (from project root) | Purpose |
+|----------|--------------------------|---------|
+| Content Guidelines | `llm_docs/content-guidelines.md` | Writing standards, conciseness rules, quality checklist |
+| Markdown Features | `llm_docs/markdown-features.md` | Expressive Code syntax, Mermaid diagrams, KaTeX |
+| Project Instructions | `CLAUDE.md` | Project structure, commands, styling conventions |
+
+**Usage**: Use the Read tool with absolute paths (e.g., `/path/to/project/llm_docs/content-guidelines.md`) to read these files before starting work.
 
 ## Tools Available
 

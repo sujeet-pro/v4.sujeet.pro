@@ -63,15 +63,15 @@ graph LR
 
 ### In-Memory Task Queues
 
-- **p-queue**: Promise-based with concurrency control, priority support, timeout handling—recommended for most local use cases
-- **fastq**: Fastest in-memory queue (~3× p-queue throughput), minimal API, good for high-volume processing
+- **p-queue**: Promise-based with concurrency control, priority support, timeout handling—recommended for most local use cases ([npm](https://www.npmjs.com/package/p-queue))
+- **fastq**: Fastest in-memory queue, minimal footprint (33KB), good for high-volume processing ([GitHub](https://github.com/mcollina/fastq))
 - **Event loop aware**: Queues yield to event loop between tasks; avoid sync-heavy processors that block
 
 ### Distributed Task Queues
 
-- **BullMQ**: Production-grade Redis-backed queue with retries, priorities, rate limiting, delayed jobs, and flow support
-- **Agenda**: MongoDB-backed scheduler for job scheduling and recurring tasks
-- **Temporal/Conductor**: Workflow orchestration for complex multi-step processes with state persistence
+- **BullMQ**: Production-grade Redis-backed queue with retries, priorities, rate limiting, delayed jobs, and flow support ([docs](https://docs.bullmq.io/))
+- **Agenda**: MongoDB-backed scheduler for job scheduling and recurring tasks ([GitHub](https://github.com/agenda/agenda))
+- **Temporal**: Workflow orchestration for complex multi-step processes with state persistence ([temporal.io](https://temporal.io/))
 
 ### Architecture Components
 
@@ -84,12 +84,12 @@ graph LR
 
 - **Exponential backoff**: `delay = min(cap, base × 2^attempt)` with jitter to prevent thundering herd
 - **Idempotent consumers**: Use unique job IDs with deduplication to handle at-least-once delivery safely
-- **Transactional outbox**: Write events to outbox table in same transaction as business data; relay process publishes
+- **Transactional outbox**: Write events to outbox table in same transaction as business data; relay process publishes ([microservices.io](https://microservices.io/patterns/data/transactional-outbox.html))
 - **Circuit breaker**: Pause queue processing when downstream failure rate exceeds threshold
 
 ### Saga Pattern for Distributed Transactions
 
-- **Choreography**: Services react to events autonomously; simple but harder to trace
+- **Choreography**: Services react to events autonomously; decoupled but harder to trace ([microservices.io](https://microservices.io/patterns/data/saga.html))
 - **Orchestration**: Central coordinator directs saga steps; explicit flow but single point of coordination
 - **Compensating actions**: Each step has corresponding rollback action for failure recovery
 
@@ -100,7 +100,7 @@ graph LR
 | p-queue | In-memory | Local concurrency control |
 | BullMQ | Redis | Production distributed queue |
 | Agenda | MongoDB | Scheduled/recurring jobs |
-| Temporal | PostgreSQL/MySQL | Complex workflow orchestration |
+| Temporal | PostgreSQL/MySQL/Cassandra | Complex workflow orchestration |
 | Kafka | Kafka | Event streaming, CQRS |
 
 ### Performance Considerations
@@ -120,47 +120,55 @@ At the core of Node.js is a single-threaded, event-driven architecture. This mod
 
 ```mermaid
 graph TD
-    subgraph "Event Loop Architecture"
-        CS[Call Stack]
-        EL[Event Loop]
-        MQ[Microtask Queue]
-        TQ[Task Queue]
-        WEB[Web APIs]
+    subgraph "Event Loop Phases"
+        T[1. Timers]
+        PC[2. Pending Callbacks]
+        IP[3. Idle/Prepare]
+        P[4. Poll]
+        C[5. Check]
+        CL[6. Close Callbacks]
     end
 
-    CS --> EL
-    EL --> MQ
-    EL --> TQ
-    WEB --> TQ
-    WEB --> MQ
+    subgraph "Queues"
+        MQ[Microtask Queue]
+    end
 
-    classDef stackClass fill:#ff9999,stroke:#000,stroke-width:2px
-    classDef queueClass fill:#99ccff,stroke:#000,stroke-width:2px
-    classDef loopClass fill:#99ff99,stroke:#000,stroke-width:2px
+    T --> PC --> IP --> P --> C --> CL --> T
+    MQ -.->|After each phase| T
+    MQ -.->|After each phase| PC
+    MQ -.->|After each phase| P
+    MQ -.->|After each phase| C
+    MQ -.->|After each phase| CL
 
-    class CS stackClass
-    class MQ,TQ queueClass
-    class EL loopClass
+    classDef phaseClass fill:#99ccff,stroke:#000,stroke-width:2px
+    classDef microClass fill:#ffcc99,stroke:#000,stroke-width:2px
+
+    class T,PC,IP,P,C,CL phaseClass
+    class MQ microClass
 ```
 
-<figcaption>Event loop architecture showing the relationship between call stack, event loop, and various queues</figcaption>
+<figcaption>Node.js event loop phases execute sequentially, with microtasks processed between each phase</figcaption>
 
 </figure>
 
 The Event Loop orchestrates execution between the Call Stack, where synchronous code runs, and various queues that hold callbacks for asynchronous operations. When an async operation completes, its callback is placed in a queue. The Event Loop monitors the Call Stack and processes tasks from these queues when it becomes empty.
 
-**Queue Types:**
+**Event Loop Phases** ([Node.js Docs](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/)):
 
-- **Task Queue (Macrotask Queue)**: Holds callbacks from I/O operations, `setTimeout`, and `setInterval`
-- **Microtask Queue**: Holds callbacks from Promises (`.then()`, `.catch()`) and `process.nextTick()`. This queue has higher priority - all microtasks are executed to completion before the Event Loop processes the next task from the macrotask queue.
+The event loop executes in six phases: timers → pending callbacks → idle/prepare → poll → check → close callbacks. Each phase has a FIFO queue of callbacks to execute.
+
+- **Microtask Queue**: Holds callbacks from `process.nextTick()` and Promise callbacks (`.then()`, `.catch()`). Processed after each phase completes, before moving to the next phase—higher priority than macrotasks.
+- **Macrotask Queues**: Phase-specific queues hold callbacks from timers, I/O operations, `setImmediate()`, and close events.
 
 ### 1.2 In-Memory Task Queues: Controlling Local Concurrency
 
 For many applications, the first step beyond simple callbacks is an in-memory task queue. The goal is to manage and throttle the execution of asynchronous tasks within a single process, such as controlling concurrent requests to a third-party API to avoid rate limiting.
 
-```ts file=./2025-01-24-code-sample.ts collapse={47-52, 56-64, 67-75, 80-89, 101-106, 110-112}
+```ts file=./2025-01-24-code-sample.ts collapse={1-1, 45-95, 97-114}
 
 ```
+
+> **Note**: This implementation uses [`Promise.withResolvers()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/withResolvers) (Baseline 2024) to cleanly separate promise creation from resolution.
 
 This implementation provides basic control over local asynchronous operations. However, it has critical limitations for production systems:
 
@@ -231,7 +239,7 @@ A distributed task queue system consists of three main components:
 | Library       | Backend | Core Philosophy & Strengths                               | Key Features                                                                                    |
 | ------------- | ------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
 | **BullMQ**    | Redis   | Modern, robust, high-performance queue system             | Job dependencies (flows), rate limiting, repeatable jobs, priority queues, sandboxed processors |
-| **Bee-Queue** | Redis   | Simple, fast, lightweight for real-time, short-lived jobs | Atomic operations, job timeouts, configurable retry strategies, scheduled jobs                  |
+| **Bee-Queue** | Redis   | Simple, fast, lightweight for real-time, short-lived jobs | Atomic operations, job timeouts, configurable retries, event-driven processing                  |
 | **Agenda**    | MongoDB | Flexible job scheduling with cron-based intervals         | Cron scheduling, concurrency control per job, job priorities, web UI (Agendash)                 |
 
 ### 2.3 Implementing with BullMQ

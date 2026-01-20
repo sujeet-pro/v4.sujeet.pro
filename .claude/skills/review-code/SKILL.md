@@ -33,7 +33,7 @@ Reviewed:
 
 NOT Reviewed (use /review-all):
 ├── content/       # Markdown content
-└── llm_docs/      # Documentation
+└── llm_docs/      # Documentation (at project root)
 ```
 
 ## Workflow
@@ -52,12 +52,17 @@ flowchart TD
     J --> K[Generate Report]
 ```
 
-## Reference Standards
+## Reference Documents
 
-Before reviewing, consult:
-- [code-standards.md](../../../llm_docs/code-standards.md)
-- [CLAUDE.md](../../../CLAUDE.md)
-- [Astro Docs](https://docs.astro.build/llms-full.txt)
+**IMPORTANT**: Before reviewing code, read these documents from the project root:
+
+| Document | Path (from project root) | Purpose |
+|----------|--------------------------|---------|
+| Code Standards | `llm_docs/code-standards.md` | TypeScript, CSS, accessibility requirements |
+| Project Instructions | `CLAUDE.md` | Project structure, commands, styling conventions |
+| Astro Docs | https://docs.astro.build/llms-full.txt | Framework documentation (fetch via WebFetch) |
+
+**Usage**: Use the Read tool with absolute paths (e.g., `/path/to/project/llm_docs/code-standards.md`) to read these files before starting work.
 
 ## Phase 1: Remove Unused Code
 
@@ -469,7 +474,7 @@ npm run validate:build  # Validation
 1. **Incremental changes** - Fix one category at a time
 2. **Validate often** - Run `npm run check` frequently
 3. **Preserve functionality** - Never break existing behavior
-4. **Follow conventions** - Reference llm_docs and CLAUDE.md
+4. **Follow conventions** - Reference `llm_docs/` (at project root) and `CLAUDE.md`
 5. **Don't over-abstract** - Keep solutions simple
 
 ## Tools Available

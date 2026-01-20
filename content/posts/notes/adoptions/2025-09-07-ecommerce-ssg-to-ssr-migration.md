@@ -694,7 +694,7 @@ This ambiguity forced us to roll back behavior changes and re-implement them sep
 1. **Unknown risks**: A big-bang release with streaming and no caching could have introduced performance or reliability issues that would be difficult to diagnose under production load
 2. **Infrastructure load**: Without caching, every request hit the SSR servers, creating unpredictable scaling requirements
 3. **Caching complexity**: We discovered that caching decisions required page-level data (product type, inventory status, personalization requirements) to determine appropriate TTLs
-4. **Router limitations**: The App Router's data fetching patterns didn't align well with our need to inspect page data before setting cache headers. Unlike Pages Router's `getServerSideProps` which provides direct access to the response object (`res.setHeader('Cache-Control', '...')`), App Router initially had no equivalent mechanism—this limitation wasn't addressed until Next.js 14.2.10. This forced a pivot to Pages Router mid-project
+4. **Router limitations**: The App Router's data fetching patterns didn't align well with our need to inspect page data before setting cache headers. Unlike Pages Router's `getServerSideProps` which provides direct access to the response object (`res.setHeader('Cache-Control', '...')`), App Router initially had no equivalent mechanism—this limitation wasn't addressed until [Next.js 14.2.10](https://github.com/vercel/next.js/discussions/52491). This forced a pivot to Pages Router mid-project
 
 **Result**: Significant rework as we migrated from App Router back to Pages Router mid-project.
 
@@ -784,8 +784,8 @@ The migration from SSG to SSR is not just about solving technical problems—it'
 ## References
 
 - [Next.js Pages Router - getServerSideProps](https://nextjs.org/docs/pages/building-your-application/data-fetching/get-server-side-props) - Official Next.js documentation on server-side rendering with the Pages Router
-- [Next.js Middleware](https://nextjs.org/docs/app/building-your-application/routing/middleware) - Edge middleware for routing, A/B testing, and personalization (deprecated in Next.js 16+)
-- [Next.js 16 Middleware to Proxy Migration](https://nextjs.org/docs/messages/middleware-to-proxy) - Official migration guide for updating middleware.ts to proxy.ts in Next.js 16+
+- [Next.js Proxy](https://nextjs.org/docs/app/api-reference/file-conventions/proxy) - Edge proxy for routing, A/B testing, and personalization (replaces middleware.ts as of Next.js 16)
+- [Next.js Middleware to Proxy Migration](https://nextjs.org/docs/messages/middleware-to-proxy) - Official migration guide for updating middleware.ts to proxy.ts in Next.js 16+
 - [Core Web Vitals - web.dev](https://web.dev/articles/vitals) - Google's official documentation on LCP, INP, and CLS thresholds and measurement
 - [Core Web Vitals Thresholds](https://web.dev/articles/defining-core-web-vitals-thresholds) - How Google defined the "good", "needs improvement", and "poor" thresholds
 - [Strangler Fig Pattern - AWS](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/strangler-fig.html) - AWS Prescriptive Guidance on incremental migration using the Strangler Fig pattern

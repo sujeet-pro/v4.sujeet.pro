@@ -313,8 +313,14 @@ estimatedArticles: 1-3
 
 ## Reference Documents
 
-- [content-guidelines.md](../../../llm_docs/content-guidelines.md)
-- [CLAUDE.md](../../../CLAUDE.md)
+**IMPORTANT**: Before researching, read these documents from the project root:
+
+| Document | Path (from project root) | Purpose |
+|----------|--------------------------|---------|
+| Content Guidelines | `llm_docs/content-guidelines.md` | Writing standards, quality expectations for research |
+| Project Instructions | `CLAUDE.md` | Project structure, target audience, content categories |
+
+**Usage**: Use the Read tool with absolute paths (e.g., `/path/to/project/llm_docs/content-guidelines.md`) to read these files before starting work.
 
 ## Tools Available
 
