@@ -9,6 +9,7 @@ export interface Tag {
   id: string
   name: string // From jsonc or auto-generated
   href: string
+  featured?: boolean // Featured tags appear on the home page
 }
 
 // =============================================================================
@@ -57,6 +58,8 @@ interface BaseContentItem {
   postType: PostType
   // Category derived from folder structure (posts/<post-type>/<category>/...)
   category?: CategoryRef | undefined
+  // Featured posts appear on the home page
+  featured: boolean
 }
 
 // Deep dive content (in-depth technical)

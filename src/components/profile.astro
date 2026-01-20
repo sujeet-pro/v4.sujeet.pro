@@ -1,51 +1,47 @@
 ---
 import sujeetImage from "@/assets/sujeet.jpg"
 import Link from "@/components/link.astro"
+import { AUTHOR, PROFILE_ACTIONS, PROFILE_LABELS } from "@/constants/site"
 import { Icon } from "astro-icon/components"
+import { getFeaturedTags } from "@/utils/content-tags.utils"
+
+const featuredTags = await getFeaturedTags()
 ---
 
 <section class="profile">
   <div class="profile-container">
     <div class="profile-image-wrapper">
-      <img
-        src={sujeetImage.src}
-        alt="Sujeet Jaiswal - Frontend Principal Engineer"
-        class="profile-image"
-      />
+      <img src={sujeetImage.src} alt={AUTHOR.imageAlt} class="profile-image" />
     </div>
 
     <div class="profile-header">
-      <h1 class="profile-name">Sujeet Jaiswal</h1>
-      <h2 class="profile-title">Frontend Principal Engineer</h2>
+      <h1 class="profile-name">{AUTHOR.name}</h1>
+      <h2 class="profile-title">{AUTHOR.title}</h2>
     </div>
 
     <div class="profile-bio">
-      <p class="profile-bio-text">
-        Crafting exceptional user experiences through innovative frontend architecture, scalable design systems, and
-        cutting-edge web technologies. Leading teams to build products that users love.
-      </p>
+      <p class="profile-bio-text">{AUTHOR.profileBio}</p>
     </div>
 
     <div class="profile-actions">
       <Link href="/cv" class="btn-outline">
         <Icon name="carbon:document" class="icon-md" />
-        View CV
+        {PROFILE_ACTIONS.viewCv}
       </Link>
       <Link href="/posts" class="btn-outline">
         <Icon name="carbon:blog" class="icon-md" />
-        All Posts
+        {PROFILE_ACTIONS.allPosts}
       </Link>
     </div>
 
     <div class="profile-expertise">
-      <h3 class="profile-expertise-title">Core Expertise</h3>
+      <h3 class="profile-expertise-title">{PROFILE_LABELS.coreExpertise}</h3>
       <div class="profile-tags">
-        <span class="tag">React & Next.js</span>
-        <span class="tag">TypeScript</span>
-        <span class="tag">Design Systems</span>
-        <span class="tag">Performance</span>
-        <span class="tag">Team Leadership</span>
-        <span class="tag">Architecture</span>
+        {featuredTags.map((tag) => (
+          <Link href={tag.href} class="tag">
+            {tag.name}
+          </Link>
+        ))}
       </div>
     </div>
   </div>

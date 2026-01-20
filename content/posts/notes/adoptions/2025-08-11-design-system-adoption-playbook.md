@@ -1,5 +1,6 @@
 ---
 lastUpdatedOn: 2025-08-11
+featured: true
 tags:
   - design-system
   - organizational-change

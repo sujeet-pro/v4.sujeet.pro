@@ -14,18 +14,25 @@ const { crumbs } = Astro.props as Props
 ---
 
 <nav class="breadcrumb" aria-label="Breadcrumb">
+  <Link href="/" class="nav-link" title="Home" aria-label="Home">
+    <Icon name="carbon:home" class="icon-sm" />
+  </Link>
   {
     Array.isArray(crumbs) &&
-      crumbs.length > 0 &&
-      crumbs.map((crumb, index) => (
+      crumbs.length > 0 && (
         <>
-          <Link href={crumb.href} class="nav-link" title={crumb.title}>
-            {crumb.name}
-          </Link>
-          {index < crumbs.length - 1 && (
-            <Icon name="carbon:chevron-right" class="breadcrumb-separator icon-sm" />
-          )}
+          <Icon name="carbon:chevron-right" class="breadcrumb-separator icon-sm" />
+          {crumbs.map((crumb, index) => (
+            <>
+              <Link href={crumb.href} class="nav-link" title={crumb.title}>
+                {crumb.name}
+              </Link>
+              {index < crumbs.length - 1 && (
+                <Icon name="carbon:chevron-right" class="breadcrumb-separator icon-sm" />
+              )}
+            </>
+          ))}
         </>
-      ))
+      )
   }
 </nav>

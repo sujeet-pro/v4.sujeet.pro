@@ -8,8 +8,8 @@
   // Technical Domains
   // =============================================================================
   { "id": "web", "name": "Web Development" },
-  { "id": "frontend", "name": "Frontend" },
-  { "id": "backend", "name": "Backend" },
+  { "id": "frontend", "name": "Frontend", "featured": true },
+  { "id": "backend", "name": "Backend", "featured": true },
   { "id": "devops", "name": "DevOps" },
   { "id": "platform-engineering", "name": "Platform Engineering" },
   { "id": "infrastructure", "name": "Infrastructure" },
@@ -18,7 +18,7 @@
   // =============================================================================
   // Programming Languages
   // =============================================================================
-  { "id": "js", "name": "JavaScript" },
+  { "id": "js", "name": "JavaScript", "featured": true },
   { "id": "ts", "name": "TypeScript" },
 
   // =============================================================================
@@ -72,8 +72,8 @@
   // =============================================================================
   // Architecture & Design
   // =============================================================================
-  { "id": "architecture", "name": "Architecture" },
-  { "id": "system-design", "name": "System Design" },
+  { "id": "architecture", "name": "Architecture", "featured": true },
+  { "id": "system-design", "name": "System Design", "featured": true },
   { "id": "design-patterns", "name": "Design Patterns" },
   { "id": "microservices", "name": "Microservices" },
   { "id": "distributed-systems", "name": "Distributed Systems" },
@@ -84,12 +84,12 @@
   // =============================================================================
   // Performance
   // =============================================================================
-  { "id": "performance", "name": "Performance" },
-  { "id": "web-performance", "name": "Web Performance" },
+  { "id": "performance", "name": "Performance", "featured": true },
+  { "id": "web-performance", "name": "Web Performance", "featured": true },
   { "id": "performance-optimization", "name": "Performance Optimization" },
   { "id": "core-web-vitals", "name": "Core Web Vitals" },
   { "id": "cls", "name": "CLS" },
-  { "id": "caching", "name": "Caching" },
+  { "id": "caching", "name": "Caching", "featured": true },
   { "id": "compression", "name": "Compression" },
   { "id": "infrastructure-optimization", "name": "Infrastructure Optimization" },
   { "id": "database-optimization", "name": "Database Optimization" },

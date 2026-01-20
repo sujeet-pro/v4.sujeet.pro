@@ -20,11 +20,11 @@ export const SITE = {
   name: "Sujeet Jaiswal",
 
   /** Full site title */
-  title: "Sujeet Jaiswal - Frontend Principal Engineer",
+  title: "Sujeet Jaiswal - Principal Software Engineer",
 
   /** Site description for SEO */
   description:
-    "Personal blog and portfolio of Sujeet Jaiswal, a Frontend Principal Engineer crafting exceptional user experiences through innovative frontend architecture and scalable design systems.",
+    "Personal blog and portfolio of Sujeet Jaiswal, a Principal Software Engineer crafting exceptional user experiences through innovative frontend architecture and scalable design systems.",
 
   /** Language code */
   language: "en-US",
@@ -40,8 +40,18 @@ export const SITE = {
 export const AUTHOR = {
   name: "Sujeet Jaiswal",
   email: "sujeet.profession@gmail.com",
-  title: "Frontend Principal Engineer",
+  title: "Principal Software Engineer",
+  /** Short bio for SEO and meta descriptions */
   bio: "Crafting exceptional user experiences through innovative frontend architecture, scalable design systems, and cutting-edge web technologies.",
+  /** Detailed bio for profile display */
+  profileBio:`
+  Principal Software Engineer focused on frontend architecture, 
+  design systems, and end-to-end system design, 
+  with a strong emphasis on infra and architecture for 
+  scale, reliability, and performance.
+  `,
+  /** Alt text for profile image */
+  imageAlt: "Sujeet Jaiswal - Principal Software Engineer",
   /** Relative path to author image */
   image: "/images/sujeet-jaiswal.jpg",
   social: {
@@ -82,4 +92,15 @@ export const CONTENT_TYPE_LABELS = {
   "deep-dive": "Deep Dive",
   notes: "Notes",
   "in-research": "In Research",
+} as const
+
+/** Profile action labels */
+export const PROFILE_ACTIONS = {
+  viewCv: "View CV",
+  allPosts: "All Posts",
+} as const
+
+/** Profile section labels */
+export const PROFILE_LABELS = {
+  coreExpertise: "Core Expertise",
 } as const

@@ -3,37 +3,35 @@ import Layout from "@/layout/layout.astro"
 import Profile from "@/components/profile.astro"
 import Item from "@/components/item.astro"
 import Link from "@/components/link.astro"
-import { getDeepDives, getNotes } from "@/utils/content-collection.utils"
+import { SITE } from "@/constants/site"
+import {
+  getFeaturedDeepDives,
+  getFeaturedNotes,
+  getPostTypeMetadata,
+} from "@/utils/content-collection.utils"
 
-// Get recent items from each section (limit to 5 each)
-const [deepDives, notes] = await Promise.all([getDeepDives(), getNotes()])
+// Get featured items from each section (sorted by date, newest first)
+const [featuredDeepDives, featuredNotes, deepDivesMetadata, notesMetadata] = await Promise.all([
+  getFeaturedDeepDives(),
+  getFeaturedNotes(),
+  getPostTypeMetadata("deep-dives"),
+  getPostTypeMetadata("notes"),
+])
 
-const recentDeepDives = deepDives.slice(0, 5)
-const recentNotes = notes.slice(0, 5)
-
-// Define sections with their data
+// Define sections with their data from content
 const sections = [
   {
-    title: "Deep Dives",
-    description: "In-depth technical content and comprehensive guides",
-    href: "/deep-dives",
-    items: recentDeepDives,
+    ...deepDivesMetadata,
+    items: featuredDeepDives,
   },
   {
-    title: "Notes",
-    description: "Casual technical content - design docs, programming, tools, and productivity",
-    href: "/notes",
-    items: recentNotes,
+    ...notesMetadata,
+    items: featuredNotes,
   },
 ].filter((section) => section.items.length > 0)
 ---
 
-<Layout
-  title="Sujeet Jaiswal - Frontend Principal Engineer"
-  description="Sujeet Jaiswal is a Frontend Principal Engineer crafting exceptional user experiences through innovative frontend architecture and scalable design systems."
-  crumbs={null}
-  pageType="default"
->
+<Layout title={SITE.title} description={SITE.description} crumbs={null} pageType="default">
   <Profile />
 
   {

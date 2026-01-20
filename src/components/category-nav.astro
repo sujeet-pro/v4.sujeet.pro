@@ -93,13 +93,14 @@ const { categoryName, articles, currentArticleId, class: className } = Astro.pro
   }
 
   .category-nav-link-active {
-    @apply font-medium;
-    background: var(--color-accent);
-    color: white !important;
+    @apply font-medium rounded-none;
+    border-left: 3px solid var(--color-accent);
+    color: var(--color-accent) !important;
   }
 
   .category-nav-link-active:hover {
-    background: var(--color-accent);
+    background: transparent;
+    color: var(--color-accent) !important;
   }
 
   /* ==========================================================================

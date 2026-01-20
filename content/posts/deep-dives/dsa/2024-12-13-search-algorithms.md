@@ -1,5 +1,6 @@
 ---
 lastUpdatedOn: 2024-12-13
+featured: true
 tags:
   - algorithms
   - dsa

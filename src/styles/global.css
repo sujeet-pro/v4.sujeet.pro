@@ -496,50 +496,52 @@ h3 {
 }
 
 .site-footer-inner {
-  @apply flex flex-col gap-4;
+  @apply flex flex-col gap-6;
 }
 
-.site-footer-links {
-  @apply flex flex-col items-center justify-between gap-6 md:flex-row;
+/* Three Column Grid */
+.site-footer-columns {
+  @apply grid gap-8;
+  @apply grid-cols-1 sm:grid-cols-2 md:grid-cols-3;
 }
 
-.site-footer-nav {
-  @apply flex flex-wrap items-center justify-center gap-4 text-sm md:justify-start;
+.site-footer-column {
+  @apply flex flex-col gap-3;
+}
+
+.site-footer-column-title {
+  @apply text-sm font-semibold uppercase tracking-wide;
+  color: var(--color-text);
+}
+
+.site-footer-column-links {
+  @apply flex flex-col items-start gap-2 text-sm;
+}
+
+.site-footer-column-links a {
+  @apply transition-colors;
+  color: var(--color-text-muted);
+}
+
+.site-footer-column-links a:hover {
+  color: var(--color-text);
+}
+
+/* Horizontal Bar: Resume + Social */
+.site-footer-bar {
+  @apply flex flex-col items-center justify-between gap-4 py-6 sm:flex-row;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .site-footer-social {
   @apply flex items-center gap-4;
 }
 
+/* Copyright */
 .site-footer-copyright {
-  @apply pt-4 text-center text-sm md:text-left;
-  border-top: 1px solid var(--color-border);
+  @apply text-center text-sm;
   color: var(--color-text-muted);
-}
-
-.site-footer-categories {
-  @apply flex flex-col gap-8 pb-6;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.site-footer-category-section {
-  @apply flex flex-col gap-3;
-}
-
-.site-footer-category-title {
-  @apply text-sm font-medium;
-  color: var(--color-text);
-}
-
-.site-footer-category-links {
-  @apply grid grid-cols-1 gap-x-4 gap-y-2 text-sm;
-  @apply sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
-}
-
-.site-footer-category-links a {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* ==========================================================================
@@ -829,7 +831,7 @@ button {
 }
 
 .profile-title {
-  @apply mb-2 font-sans text-2xl leading-snug font-normal md:text-3xl;
+  @apply mb-2 font-sans text-2xl leading-snug font-light md:text-3xl;
 }
 
 .profile-bio {
@@ -865,13 +867,39 @@ button {
   @apply inline-block rounded-sm px-2 py-0.5 text-xs no-underline;
   background: var(--color-bg-alt);
   color: var(--color-text-muted);
-  transition: color 150ms ease;
+  border: 1px solid transparent;
+  transition: color 150ms ease, border-color 150ms ease;
   position: relative;
   z-index: 1;
 }
 
 .tag:hover {
   color: var(--color-text);
+  border-color: var(--color-accent);
+}
+
+/* Tag link - for article pages, animated underline on hover */
+.tag-link {
+  @apply relative inline-block px-3 py-1 text-sm no-underline;
+  color: var(--color-text-muted);
+  transition: color 200ms ease;
+}
+
+.tag-link::after {
+  content: "";
+  @apply absolute left-0 w-0;
+  bottom: 4px;
+  height: 1px;
+  background: var(--color-accent);
+  transition: width 300ms ease;
+}
+
+.tag-link:hover {
+  color: var(--color-text);
+}
+
+.tag-link:hover::after {
+  width: 100%;
 }
 
 .badge {

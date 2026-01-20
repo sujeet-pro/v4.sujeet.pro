@@ -33,6 +33,7 @@ const tags = defineCollection({
   schema: z.object({
     id: z.string(),
     name: z.string(),
+    featured: z.boolean().optional().default(false),
   }),
 })
 
@@ -44,6 +45,20 @@ const vanity = defineCollection({
   schema: z.object({
     id: z.string(),
     target: z.string().url(),
+  }),
+})
+
+// Post Types (deep-dives, notes) - metadata for each post type
+const postTypes = defineCollection({
+  loader: file("./content/postTypes.jsonc", {
+    parser: (fileContent) => parseJsonc(fileContent),
+  }),
+  schema: z.object({
+    id: z.string(),
+    title: z.string(), // Full title for display
+    name: z.string(), // Short name for navigation
+    description: z.string(), // Description for listings
+    href: z.string(), // URL path to the post type page
   }),
 })
 
@@ -92,6 +107,8 @@ const baseContentSchema = z.object({
   // Category is derived from folder structure (posts/<post-type>/<category>/...)
   // Can be overridden in frontmatter if needed
   category: z.string().optional(),
+  // Featured posts appear on the home page
+  featured: z.boolean().optional().default(false),
 })
 
 // Unified posts collection (deep-dives and notes)
@@ -128,6 +145,7 @@ export const collections = {
   posts,
   inResearch,
   categories,
+  postTypes,
   tags,
   vanity,
 }

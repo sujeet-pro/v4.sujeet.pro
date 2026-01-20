@@ -1,5 +1,6 @@
 ---
 lastUpdatedOn: 2025-11-27
+featured: true
 tags:
   - platform-engineering
   - system-design

@@ -1,5 +1,6 @@
 ---
 lastUpdatedOn: 2024-03-19
+featured: true
 tags:
   - js
   - html
@@ -11,7 +12,6 @@ tags:
   - frontend
   - architecture
   - cls
-featuredRank: 10
 ---
 
 # Critical Rendering Path

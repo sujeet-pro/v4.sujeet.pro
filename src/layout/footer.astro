@@ -19,44 +19,59 @@ const notesCategories = allCategories
     const categoryId = c.id.split("/")[1] || c.id
     return { id: categoryId, title: c.data.title, name: c.data.name, href: `/posts/notes/${categoryId}` }
   })
+
+const allPostsLinks = [
+  { href: "/search", name: "Search" },
+  { href: "/tag", name: "Tags" },
+  { href: "/posts/drafts", name: "Drafts" },
+  { href: "/in-research", name: "In Research" },
+]
 ---
 
 <footer class="site-footer">
   <div class="content-container site-footer-inner">
-    {/* Category Links Grid */}
-    <div class="site-footer-categories">
-      <div class="site-footer-category-section">
-        <h4 class="site-footer-category-title">
+    {/* Three Column Navigation Grid */}
+    <div class="site-footer-columns">
+      {/* Column 1: Deep Dives */}
+      <div class="site-footer-column">
+        <h4 class="site-footer-column-title">
           <Link href="/posts/deep-dives" class="nav-link">Deep Dives</Link>
         </h4>
-        <nav class="site-footer-category-links">
+        <nav class="site-footer-column-links">
           {deepDivesCategories.map((cat) => (
             <Link href={cat.href} class="nav-link" title={cat.title}>{cat.name}</Link>
           ))}
         </nav>
       </div>
-      <div class="site-footer-category-section">
-        <h4 class="site-footer-category-title">
+
+      {/* Column 2: Notes */}
+      <div class="site-footer-column">
+        <h4 class="site-footer-column-title">
           <Link href="/posts/notes" class="nav-link">Notes</Link>
         </h4>
-        <nav class="site-footer-category-links">
+        <nav class="site-footer-column-links">
           {notesCategories.map((cat) => (
             <Link href={cat.href} class="nav-link" title={cat.title}>{cat.name}</Link>
           ))}
         </nav>
       </div>
+
+      {/* Column 3: All Posts */}
+      <div class="site-footer-column">
+        <h4 class="site-footer-column-title">
+          <Link href="/posts" class="nav-link">All Posts</Link>
+        </h4>
+        <nav class="site-footer-column-links">
+          {allPostsLinks.map((link) => (
+            <Link href={link.href} class="nav-link">{link.name}</Link>
+          ))}
+        </nav>
+      </div>
     </div>
 
-    <div class="site-footer-links">
-      <nav class="site-footer-nav">
-        <Link href="/posts" class="nav-link">All Posts</Link>
-        <Link href="/tag" class="nav-link">Tags</Link>
-        <Link href="/search" class="nav-link">Search</Link>
-        <Link href="/cv" class="nav-link">Resume</Link>
-        <Link href="/posts/drafts" class="nav-link">Drafts</Link>
-        <Link href="/in-research" class="nav-link">In Research</Link>
-      </nav>
-
+    {/* Horizontal Bar: Resume + Social */}
+    <div class="site-footer-bar">
+      <Link href="/cv" class="nav-link">Resume</Link>
       <div class="site-footer-social">
         <Link
           href="https://github.com/sujeet-pro"
@@ -88,6 +103,7 @@ const notesCategories = allCategories
       </div>
     </div>
 
+    {/* Copyright */}
     <p class="site-footer-copyright">
       &copy; {new Date().getFullYear()} Sujeet Jaiswal. All rights reserved.
     </p>

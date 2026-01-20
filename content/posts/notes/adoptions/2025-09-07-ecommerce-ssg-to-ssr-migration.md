@@ -1,5 +1,6 @@
 ---
 lastUpdatedOn: 2025-09-07
+featured: true
 tags:
   - next
   - gatsby

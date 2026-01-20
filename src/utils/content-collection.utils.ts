@@ -103,6 +103,7 @@ async function processAllPosts(): Promise<ContentItem[]> {
       href: `${config.hrefPrefix}/${frontmatter.pageSlug}`,
       postType,
       type: config.type,
+      featured: item.data.featured ?? false,
     }
 
     // Add type-specific properties and category
@@ -202,4 +203,79 @@ export async function getNotesIncludingDrafts(): Promise<NotesContent[]> {
 export async function getNotesByType(noteType: NoteType): Promise<NotesContent[]> {
   const notes = await getNotes()
   return notes.filter((item) => item.noteType === noteType)
+}
+
+// =============================================================================
+// Public API - Featured Posts
+// =============================================================================
+
+/**
+ * Get all featured posts, sorted by published date (newest first).
+ * Excludes drafts in production.
+ */
+export async function getFeaturedPosts(): Promise<ContentItem[]> {
+  const items = await getPosts()
+  return items.filter((item) => item.featured)
+}
+
+/**
+ * Get featured deep dive content, sorted by published date (newest first).
+ * Excludes drafts in production.
+ */
+export async function getFeaturedDeepDives(): Promise<DeepDiveContent[]> {
+  const items = await getDeepDives()
+  return items.filter((item) => item.featured)
+}
+
+/**
+ * Get featured notes content, sorted by published date (newest first).
+ * Excludes drafts in production.
+ */
+export async function getFeaturedNotes(): Promise<NotesContent[]> {
+  const items = await getNotes()
+  return items.filter((item) => item.featured)
+}
+
+// =============================================================================
+// Public API - Post Types Metadata
+// =============================================================================
+
+export interface PostTypeMetadata {
+  id: PostType
+  title: string
+  name: string
+  description: string
+  href: string
+}
+
+/**
+ * Get metadata for a specific post type.
+ */
+export async function getPostTypeMetadata(postType: PostType): Promise<PostTypeMetadata> {
+  const postTypes = await getCollection("postTypes")
+  const metadata = postTypes.find((pt) => pt.id === postType)
+  if (!metadata) {
+    throw new Error(`Post type metadata not found: ${postType}`)
+  }
+  return {
+    id: metadata.id as PostType,
+    title: metadata.data.title,
+    name: metadata.data.name,
+    description: metadata.data.description,
+    href: metadata.data.href,
+  }
+}
+
+/**
+ * Get metadata for all post types.
+ */
+export async function getAllPostTypesMetadata(): Promise<PostTypeMetadata[]> {
+  const postTypes = await getCollection("postTypes")
+  return postTypes.map((pt) => ({
+    id: pt.id as PostType,
+    title: pt.data.title,
+    name: pt.data.name,
+    description: pt.data.description,
+    href: pt.data.href,
+  }))
 }

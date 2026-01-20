@@ -22,7 +22,7 @@ export async function getStaticPaths() {
     const nextPost = sameTypeIndex < sameTypePosts.length - 1 ? sameTypePosts[sameTypeIndex + 1] : null
     const prevPost = sameTypeIndex > 0 ? sameTypePosts[sameTypeIndex - 1] : null
 
-    // Get all articles in the current category for category nav (deep-dives only)
+    // Get all articles in the current category for category nav
     const categoryArticles = post.category
       ? posts
           .filter((p) => p.category?.id === post.category?.id && p.postType === post.postType)
@@ -65,12 +65,12 @@ const crumbs = [
   ...(category ? [{ name: category.name, href: category.href, title: category.title }] : []),
 ]
 
-// Deep dives show category nav, notes don't
-const showCategoryNav = postType === "deep-dives" && categoryArticles.length > 0
+// Show category nav when there are other articles in the same category
+const showCategoryNav = categoryArticles.length > 0
 ---
 
 <Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft} layout="3col">
-  <!-- Category Nav in left sidebar (desktop only, deep-dives only) -->
+  <!-- Category Nav in left sidebar (desktop only) -->
   {showCategoryNav && category && (
     <CategoryNav
       slot="sidebar-left"
@@ -86,7 +86,7 @@ const showCategoryNav = postType === "deep-dives" && categoryArticles.length > 0
   <!-- Content top (above main) -->
   <ReadingProgress slot="content-top" />
 
-  <!-- Category Nav inline (mobile/tablet only, deep-dives only) -->
+  <!-- Category Nav inline (mobile/tablet only) -->
   {showCategoryNav && category && (
     <details slot="content-top" class="category-nav-inline" id="category-nav-inline">
       <summary class="category-nav-inline-summary">

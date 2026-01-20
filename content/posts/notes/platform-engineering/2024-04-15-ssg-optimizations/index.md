@@ -1,5 +1,6 @@
 ---
 lastUpdatedOn: 2024-04-15
+featured: true
 tags:
   - ssg
   - web-performance
