@@ -146,45 +146,72 @@ function helperTwo() { /* ... */ }
 ### Content Quality
 
 #### Technical Accuracy (HIGHEST PRIORITY)
-- [ ] All claims verifiable
-- [ ] Inline references present
-- [ ] No speculation as fact
-- [ ] Correct terminology
+- [ ] All claims verifiable and verified via research
+- [ ] Inline references present for every significant claim
+- [ ] No speculation presented as fact
+- [ ] Correct, current terminology
+- [ ] Code examples pass conceptual PR review
+- [ ] Performance claims backed by evidence
+- [ ] Security considerations addressed
 
-#### Conciseness for Senior Engineers
-- [ ] No padding or filler
-- [ ] No tutorial-style hand-holding
-- [ ] No obvious statements
-- [ ] Every paragraph earns its place
+#### Authoritative Tone (REQUIRED)
+- [ ] Assertive statements, not excessive hedging
+- [ ] Direct language: "X does Y" not "X might possibly do Y"
+- [ ] Confident where evidence supports
+- [ ] Honest and explicit about unknowns/limitations
+- [ ] No unnecessary qualifiers weakening claims
+- [ ] Reads like a staff engineer explaining to peers
+
+#### Conciseness (NO FILLER)
+- [ ] No padding or filler sentences whatsoever
+- [ ] No tutorial-style hand-holding ("First, let's...")
+- [ ] No obvious statements ("Security is important")
+- [ ] No meta-commentary ("In this article, we will...")
+- [ ] Every paragraph earns its place with new information
+- [ ] Every sentence advances understanding
 - [ ] Reading time < 30 minutes (60 max)
 
-#### Design Reasoning
-- [ ] Covers "why" behind decisions
-- [ ] Documents assumptions and constraints
-- [ ] Historical context where relevant
+#### Completeness Without Verbosity
+- [ ] Covers "why" behind decisions (design reasoning)
+- [ ] Documents assumptions and constraints explicitly
+- [ ] Historical context where it illuminates decisions
+- [ ] All edge cases and subtleties addressed
+- [ ] Failure modes discussed
+- [ ] Performance implications noted where relevant
 
-#### Trade-offs
-- [ ] Explicit pros/cons listed
-- [ ] Real-world examples included
+#### Trade-offs (MANDATORY)
+- [ ] Explicit pros/cons for every approach/technology
+- [ ] Real-world examples demonstrating trade-offs
 - [ ] Nothing presented as "the best solution"
-- [ ] Alternative approaches mentioned
+- [ ] Alternative approaches mentioned with reasons
+- [ ] Context-dependent recommendations
+- [ ] When to use AND when NOT to use
 
 ### Writing Quality
-- [ ] Serious but not too formal
+- [ ] Serious, professional, but not stiff
 - [ ] Active voice preferred
-- [ ] No filler content
-- [ ] Consistent terminology
-- [ ] Logical flow
+- [ ] Consistent terminology throughout
+- [ ] Logical flow between sections
+- [ ] Clear topic sentences
+
+### Staff/Principal Engineer Standard
+- [ ] Could be cited as authoritative reference
+- [ ] Handles nuance and edge cases
+- [ ] Discusses operational considerations
+- [ ] Addresses real production concerns
+- [ ] No oversimplification of complex topics
 
 ### Score Each Area (1-5)
 
 | Area | Score | Notes |
 |------|-------|-------|
-| Core concepts | /5 | |
-| Design reasoning | /5 | |
-| Trade-off analysis | /5 | |
-| Code examples | /5 | |
-| Inline citations | /5 | |
+| Technical accuracy | /5 | Verified claims, correct code |
+| Design reasoning | /5 | Why, not just what |
+| Trade-off analysis | /5 | Complete pros/cons |
+| Code examples | /5 | Correct, idiomatic, collapsed |
+| Inline citations | /5 | Every claim supported |
+| Conciseness | /5 | No filler, every word earns place |
+| Authoritative tone | /5 | Assertive, confident, honest |
 
 ## Phase 6: Generate Report
 
@@ -257,24 +284,42 @@ Always collapse imports and boilerplate.
 
 Delete any manual Table of Contents - it's auto-generated.
 
-## Anti-Patterns to Flag
+## Anti-Patterns to Flag (CRITICAL)
 
 ### Content Anti-Patterns
-- **Tutorial-style**: "First, let's understand what X is..."
-- **Obvious statements**: "Security is important"
-- **Unsubstantiated claims**: No inline references
-- **Silver bullet thinking**: "This is the best approach"
+- **Tutorial-style**: "First, let's understand what X is...", "Before we begin..."
+- **Obvious statements**: "Security is important", "Performance matters"
+- **Unsubstantiated claims**: Any claim without inline reference
+- **Silver bullet thinking**: "This is the best approach", "Always use X"
 - **Verbose explanations**: Can be said in fewer words
+- **Meta-commentary**: "In this article, we will...", "Let me explain..."
+- **Filler transitions**: "Now that we've covered X, let's move to Y"
+- **Oversimplification**: Glossing over important nuances
+- **Missing trade-offs**: Presenting only benefits, no downsides
+- **Outdated information**: Old APIs, deprecated patterns, stale benchmarks
 
 ### Structure Anti-Patterns
 - **Manual ToC**: Should be auto-generated
-- **Missing overview diagram**: No visual context
-- **No collapse in code**: All lines visible
+- **Missing overview diagram**: No visual context for complex topics
+- **No collapse in code**: All lines visible including boilerplate
+- **Missing References section**: No sources cited
+- **Wall of text**: No diagrams, tables, or code breaking up prose
+- **Shallow TLDR**: Just a teaser, not comprehensive summary
 
 ### Tone Anti-Patterns
-- **Too formal**: Academic/corporate speak
-- **Preachy**: "You should..."
-- **Dismissive**: "Obviously..." or "Simply..."
+- **Too formal**: Academic/corporate speak, passive voice
+- **Preachy**: "You should...", "You must..."
+- **Dismissive**: "Obviously...", "Simply...", "Just..."
+- **Excessive hedging**: "might possibly", "could perhaps", "may or may not"
+- **False certainty**: Speculation presented as established fact
+- **Condescending**: Explaining things that are basic to the target audience
+
+### Technical Anti-Patterns
+- **Code without context**: No title, no explanation of what it demonstrates
+- **Incorrect code**: Syntax errors, logic bugs, outdated APIs
+- **Unidiomatic code**: Not following language conventions
+- **Missing error handling**: Where it would be present in production
+- **Toy examples**: Over-simplified to the point of being misleading
 
 ## Reference Documents
 

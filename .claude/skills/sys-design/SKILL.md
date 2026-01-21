@@ -14,12 +14,18 @@ Creates comprehensive system design documents targeting senior/staff architects.
 
 ## Philosophy
 
-These articles should read like a senior architect explaining their thought process:
-- **Explore the "why"** behind every decision
-- **Show the trade-off landscape**, not just the "right answer"
-- **Acknowledge context-dependence**: what works for Twitter doesn't work for a startup
-- **Include historical context**: how did we get here?
-- **Be honest about unknowns**: what would we need to validate?
+These articles must serve as authoritative references for staff/principal architects. Not interview prep checklists, but deep technical explorations:
+
+### Core Principles
+- **Authoritative and assertive**: Make confident statements backed by evidence. "This approach provides X" not "This might provide X"
+- **Complete technical depth**: Cover every subtlety, edge case, and failure mode that matters
+- **Explore the "why"**: Every decision must explain underlying reasoning, constraints, and assumptions
+- **Explicit trade-offs**: Every choice has pros/cons, when to use, when NOT to use
+- **Context-dependent**: What works for Twitter doesn't work for a startup—be explicit about scale requirements
+- **Historical context**: How did we get here? What problems drove these solutions?
+- **Honest about unknowns**: Clearly distinguish verified facts from educated speculation
+- **Zero filler**: No obvious statements, no meta-commentary, every paragraph earns its place
+- **Operational reality**: Address monitoring, debugging, failure modes, and migration paths
 
 ## Workflow
 
@@ -341,27 +347,96 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 ## Quality Checks
 
 ### Technical Accuracy (HIGHEST PRIORITY)
-- [ ] All numbers realistic and sourced
-- [ ] Calculations correct
-- [ ] Trade-offs fairly represented
-- [ ] Inline references present
+- [ ] All numbers realistic and sourced with references
+- [ ] Calculations correct and show work
+- [ ] Latency/throughput claims backed by evidence
+- [ ] Trade-offs fairly and completely represented
+- [ ] Inline references for all significant claims
+- [ ] Database/technology capabilities accurately stated
+- [ ] No speculation presented as fact
 
-### Conciseness
-- [ ] No padding or filler
-- [ ] Every section earns its place
-- [ ] Reading time reasonable
+### Authoritative Tone
+- [ ] Assertive statements where evidence supports
+- [ ] No excessive hedging ("might possibly", "could perhaps")
+- [ ] Confident presentation of verified facts
+- [ ] Explicit about unknowns and assumptions
+- [ ] Reads like staff architect explaining to peers
 
-### Learning Focus
-- [ ] Explains "why" not just "what"
-- [ ] Trade-offs for every decision
-- [ ] Nothing presented as "best"
-- [ ] Historical context included
+### Completeness
+- [ ] Every design decision has explicit reasoning
+- [ ] All significant trade-offs documented
+- [ ] Edge cases and failure modes addressed
+- [ ] Operational concerns covered (monitoring, debugging)
+- [ ] Migration and evolution paths discussed
+- [ ] Security considerations addressed
+- [ ] Cost implications noted where relevant
+
+### Trade-offs (MANDATORY FOR EVERY DECISION)
+- [ ] Pros/cons for every technology choice
+- [ ] Pros/cons for every architectural pattern
+- [ ] When to use AND when NOT to use each approach
+- [ ] Context-dependent recommendations (scale, team size)
+- [ ] Nothing presented as universally "best"
+- [ ] Alternative approaches mentioned with reasoning
+
+### Conciseness (ZERO FILLER)
+- [ ] No padding or filler sentences
+- [ ] No meta-commentary ("In this article...")
+- [ ] No obvious statements ("Reliability is important")
+- [ ] Every section earns its place with new insight
+- [ ] Every paragraph advances understanding
+- [ ] Reading time reasonable for depth
+
+### Staff/Principal Engineer Standard
+- [ ] Could be cited in design review discussions
+- [ ] Handles nuance senior architects care about
+- [ ] Addresses real production concerns
+- [ ] Complete enough for informed decision-making
+- [ ] No oversimplification of complex trade-offs
 
 ### Formatting
 - [ ] No manual ToC
-- [ ] Mermaid diagrams render
-- [ ] Code blocks use collapse
-- [ ] References complete
+- [ ] Mermaid diagrams render correctly
+- [ ] ASCII diagrams use `plain` code blocks
+- [ ] Code/config blocks use collapse for boilerplate
+- [ ] References section complete with authoritative sources
+
+## Anti-Patterns to Avoid (STRICT)
+
+### Content Anti-Patterns
+- **Interview checklist style**: Listing components without explaining why
+- **Silver bullet thinking**: "Always use X", "This is the best approach"
+- **Missing trade-offs**: Any decision without explicit pros/cons
+- **Unsourced numbers**: Back-of-envelope without showing assumptions
+- **Tutorial-style**: "First, let's understand...", "Before we begin..."
+- **Meta-commentary**: "In this article, we will explore..."
+- **Obvious statements**: "Scalability is important", "Security matters"
+- **Filler transitions**: "Now that we've covered X, let's discuss Y"
+- **Incomplete reasoning**: What without explaining why
+- **False precision**: "This will handle exactly 1M QPS" without evidence
+
+### Technical Anti-Patterns
+- **Technology name-dropping**: Mentioning technologies without explaining why
+- **Ignoring operational concerns**: No monitoring, debugging, or alerting
+- **Missing failure modes**: Not discussing what happens when things break
+- **Scale-agnostic advice**: Same recommendation for 100 users and 100M users
+- **Outdated patterns**: Recommending deprecated or superseded approaches
+- **Oversimplification**: Glossing over important nuances
+- **Incomplete comparisons**: Comparing only favorable attributes
+
+### Tone Anti-Patterns
+- **Excessive hedging**: "might possibly", "could perhaps"
+- **False certainty**: Speculation presented as established fact
+- **Preachy**: "You should always...", "Never do..."
+- **Dismissive**: "Obviously...", "Simply...", "Just..."
+- **Vendor bias**: Promoting one cloud provider without fair comparison
+
+### Structure Anti-Patterns
+- **Manual ToC**: Auto-generated by framework
+- **Missing diagrams**: No visual representation of architecture
+- **Wall of text**: No tables, diagrams, or code breaking up prose
+- **Shallow TLDR**: Just a teaser, not comprehensive summary
+- **Missing References**: No sources for claims and numbers
 
 ## Save Document
 

@@ -49,22 +49,16 @@ flowchart TD
 
 ### Content Directories
 
-| Directory | Description | Priority |
-|-----------|-------------|----------|
-| `content/posts/` | Main blog posts | High |
-| `content/in-research/` | Research documents | Medium |
+| Directory              | Description        | Priority |
+| ---------------------- | ------------------ | -------- |
+| `content/posts/`       | Main blog posts    | High     |
+| `content/in-research/` | Research documents | Medium   |
 
 ### Discovery
 
 ```bash
 find content/posts content/in-research -name "*.md" -not -path "*/drafts/*"
 ```
-
-### Exclusions
-
-- Files in `content/drafts/`
-- README.md files
-- Files with `draft: true` in frontmatter
 
 ## Phase 2: Build Article Queue
 
@@ -82,10 +76,12 @@ find content/posts content/in-research -name "*.md" -not -path "*/drafts/*"
 Found **[N]** articles:
 
 ### Posts ([count])
+
 1. [title] - `path` - Last updated: [date]
 2. [title] - `path` - Last updated: [date]
 
 ### In-Research ([count])
+
 1. [title] - `path` - Last updated: [date]
 
 Proceed with review? [Y/n]
@@ -108,28 +104,192 @@ Proceed with review? [Y/n]
 ---
 ```
 
-### Apply Review Process
+### Comprehensive Review Checklist
 
-For each article, follow `/review-posts` workflow:
+For each article, execute ALL of the following checks:
 
-1. Initial Analysis
-2. Fact-Check via Research
-3. Structure Review
-4. Quality Assessment
-5. Generate Report
+#### 3.1 Metadata Check
+- [ ] `lastReviewedOn` present and recent
+- [ ] Tags from `content/tags.jsonc` (NOT `src/content/tags.json`)
+- [ ] Valid YAML frontmatter
+- [ ] Date in folder name matches content
+
+#### 3.2 Structure Analysis
+- [ ] Clear title (H1) - descriptive, not clickbait
+- [ ] Abstract paragraph (2-4 sentences) - sets context
+- [ ] Overview mermaid diagram - visualizes core concept
+- [ ] Comprehensive TLDR section with subsections
+- [ ] Proper section hierarchy (H2 → H3 → H4)
+- [ ] References section present (REQUIRED)
+- [ ] NO manual Table of Contents (auto-generated)
+
+#### 3.3 Content Inventory
+Create inventory of:
+- All claims made (with/without citations)
+- All code examples (collapse usage, correctness)
+- All diagrams (mermaid/ASCII/images)
+- All external references (URLs, papers, docs)
+
+#### 3.4 Fact-Check (CRITICAL)
+
+**Verify Technical Claims:**
+1. Search official documentation for each claim
+2. Cross-reference multiple authoritative sources
+3. Flag discrepancies, outdated info, or speculation stated as fact
+4. Ensure terminology is correct and current
+
+**Check Code Examples:**
+1. Syntax correct for stated language/version?
+2. Logic correct and idiomatic?
+3. Follows current best practices?
+4. Error handling appropriate?
+5. Boilerplate collapsed? (imports, setup, teardown)
+6. Would a staff engineer find issues?
+
+**Validate References:**
+1. URLs accessible and not 404?
+2. Content at URL actually supports the claim?
+3. Better/more authoritative sources available?
+4. Every significant claim has inline reference?
+
+#### 3.5 Code Block Review
+
+Every code block must:
+- Have `title` attribute for context
+- Use `collapse` for imports, boilerplate, helpers
+- Use line highlighting `{n-m}` for key concepts
+- Be syntactically correct
+- Follow idiomatic patterns for the language
+
+#### 3.6 TLDR Quality Check
+- [ ] Main concept defined (1-2 sentences, not vague)
+- [ ] 3-6 themed subsections covering key areas
+- [ ] 3-6 bullet points per subsection
+- [ ] **Bold** for key terms and concepts
+- [ ] Standalone useful (not just a teaser)
+- [ ] Includes key trade-offs
+- [ ] A staff engineer could use as reference
+
+#### 3.7 Quality Assessment
+
+**Technical Accuracy (HIGHEST PRIORITY):**
+- [ ] All claims verifiable and verified
+- [ ] Inline references present for claims
+- [ ] No speculation presented as fact
+- [ ] Correct, current terminology
+- [ ] Code would pass PR review
+
+**Authoritative Tone:**
+- [ ] Assertive, not hedging unnecessarily
+- [ ] Direct statements, not "might be" or "could possibly"
+- [ ] Confident where evidence supports
+- [ ] Honest about unknowns and limitations
+
+**Conciseness (NO FILLER):**
+- [ ] No padding or filler sentences
+- [ ] No tutorial-style hand-holding
+- [ ] No obvious statements ("security is important")
+- [ ] Every paragraph earns its place
+- [ ] No "In this article, we will..."
+- [ ] Reading time < 30 minutes (60 max)
+
+**Completeness:**
+- [ ] Covers design reasoning (why, not just what)
+- [ ] Documents assumptions and constraints
+- [ ] Historical context where relevant
+- [ ] Explicit pros/cons for all approaches
+- [ ] Alternative approaches mentioned
+- [ ] Real-world examples included
+- [ ] Nothing presented as "the best solution"
+
+**Staff/Principal Engineer Standard:**
+- [ ] Could be cited as authoritative reference
+- [ ] Handles edge cases and subtleties
+- [ ] Discusses failure modes
+- [ ] Performance implications noted
+- [ ] Security considerations covered
+
+Score each area (1-5):
+| Area | Score | Notes |
+|------|-------|-------|
+| Technical accuracy | /5 | |
+| Design reasoning | /5 | |
+| Trade-off analysis | /5 | |
+| Code quality | /5 | |
+| Inline citations | /5 | |
+| Conciseness | /5 | |
+| Authoritative tone | /5 | |
+
+#### 3.8 Generate Report
+
+```markdown
+# Review Report: [Article Title]
+
+## Summary
+**Overall Quality**: [Excellent/Good/Needs Work/Major Issues]
+**Technical Accuracy**: [Score/5]
+**Staff Engineer Ready**: [Yes/No]
+**Last Reviewed**: [Date]
+
+## Critical Issues (Must Fix)
+### Issue 1: [Title]
+- **Location**: [Section/line]
+- **Problem**: [Description]
+- **Evidence**: [Research findings with source]
+- **Fix**: [Specific recommended change]
+
+## Fact-Check Results
+| Claim | Verified | Source | Notes |
+|-------|----------|--------|-------|
+| [Claim] | ✓/✗ | [URL] | [Notes] |
+
+## Code Review Results
+| Block | File | Issues | Collapse Needed |
+|-------|------|--------|-----------------|
+| [Title] | [Line] | [Issues] | [Yes/No] |
+
+## Improvements Needed
+### Structure
+- [Issues]
+
+### Missing Elements
+- [ ] Item
+
+### Outdated Information
+- [Items needing updates]
+
+## Anti-Patterns Found
+- [ ] Tutorial-style content
+- [ ] Filler statements
+- [ ] Unsubstantiated claims
+- [ ] Silver bullet thinking
+
+## Recommendations
+### High Priority (Critical)
+1. [Fix]
+
+### Medium Priority (Improvements)
+1. [Enhancement]
+
+### Low Priority (Polish)
+1. [Polish item]
+```
 
 ### Handle Fixes
 
 **With `--fix-all`:**
+
 - Apply all fixes
 - Update lastReviewedOn
 - Run build validation at end
 
 **With `--fix-critical`:**
+
 - Apply critical fixes only
 - Update lastReviewedOn
 
 **Without flags:**
+
 - Generate report
 - No modifications
 
@@ -138,11 +298,11 @@ For each article, follow `/review-posts` workflow:
 ```markdown
 ## Review Progress
 
-| # | Article | Status | Critical | Improvements | Polish |
-|---|---------|--------|----------|--------------|--------|
-| 1 | [title] | Done | 2 fixed | 5 fixed | 3 fixed |
-| 2 | [title] | In Progress | - | - | - |
-| 3 | [title] | Pending | - | - | - |
+| #   | Article | Status      | Critical | Improvements | Polish  |
+| --- | ------- | ----------- | -------- | ------------ | ------- |
+| 1   | [title] | Done        | 2 fixed  | 5 fixed      | 3 fixed |
+| 2   | [title] | In Progress | -        | -            | -       |
+| 3   | [title] | Pending     | -        | -            | -       |
 ```
 
 ## Phase 4: Final Summary
@@ -155,33 +315,39 @@ For each article, follow `/review-posts` workflow:
 
 ## Overview
 
-| Category | Count | Critical | Improvements | Polish |
-|----------|-------|----------|--------------|--------|
-| Posts | [N] | [X] | [Y] | [Z] |
-| In-Research | [N] | [X] | [Y] | [Z] |
-| **Total** | **[N]** | **[X]** | **[Y]** | **[Z]** |
+| Category    | Count   | Critical | Improvements | Polish  |
+| ----------- | ------- | -------- | ------------ | ------- |
+| Posts       | [N]     | [X]      | [Y]          | [Z]     |
+| In-Research | [N]     | [X]      | [Y]          | [Z]     |
+| **Total**   | **[N]** | **[X]**  | **[Y]**      | **[Z]** |
 
 ## Articles by Quality Score
 
 ### Excellent (5/5)
+
 - [title] - `path`
 
 ### Good (4/5)
+
 - [title] - `path`
 
 ### Needs Work (3/5)
+
 - [title] - `path`
 
 ### Major Issues (1-2/5)
+
 - [title] - `path`
 
 ## Common Issues Found
 
 ### Most Frequent Critical Issues
+
 1. **[Issue]** - Found in [N] articles
 2. **[Issue]** - Found in [N] articles
 
 ### Most Frequent Improvements
+
 1. **[Issue]** - Found in [N] articles
 
 ## Articles Requiring Manual Attention
@@ -233,6 +399,7 @@ Final Summary
 ### Per-Article Errors
 
 If article fails:
+
 1. Log error details
 2. Mark as "Review Failed"
 3. Continue with next article
@@ -250,6 +417,7 @@ npm run validate:build
 ## Quality Standards Reference
 
 ### Content Quality
+
 - [ ] Abstract sets context
 - [ ] Overview diagram present
 - [ ] TLDR comprehensive
@@ -257,17 +425,20 @@ npm run validate:build
 - [ ] Trade-offs discussed
 
 ### Conciseness
+
 - [ ] No padding/filler
 - [ ] No tutorial-style
 - [ ] Every paragraph earns place
 - [ ] Reading time < 30 min
 
 ### Code Blocks
+
 - [ ] Boilerplate collapsed
 - [ ] Titles present
 - [ ] Key lines highlighted
 
 ### Structure
+
 - [ ] No manual ToC
 - [ ] References section
 - [ ] Proper hierarchy
@@ -327,12 +498,12 @@ Found **24** articles. Auto-fixing enabled.
 
 **IMPORTANT**: Before reviewing, read these documents from the project root:
 
-| Document | Path (from project root) | Purpose |
-|----------|--------------------------|---------|
-| Review Posts Skill | `.claude/skills/review-posts/SKILL.md` | Detailed review process and criteria |
-| Content Guidelines | `llm_docs/content-guidelines.md` | Writing standards, conciseness rules, quality checklist |
-| Markdown Features | `llm_docs/markdown-features.md` | Expressive Code syntax, Mermaid diagrams, KaTeX |
-| Project Instructions | `CLAUDE.md` | Project structure, commands, styling conventions |
+| Document             | Path (from project root)               | Purpose                                                 |
+| -------------------- | -------------------------------------- | ------------------------------------------------------- |
+| Review Posts Skill   | `.claude/skills/review-posts/SKILL.md` | Detailed review process and criteria                    |
+| Content Guidelines   | `llm_docs/content-guidelines.md`       | Writing standards, conciseness rules, quality checklist |
+| Markdown Features    | `llm_docs/markdown-features.md`        | Expressive Code syntax, Mermaid diagrams, KaTeX         |
+| Project Instructions | `CLAUDE.md`                            | Project structure, commands, styling conventions        |
 
 **Usage**: Use the Read tool with absolute paths (e.g., `/path/to/project/llm_docs/content-guidelines.md`) to read these files before starting work.
 

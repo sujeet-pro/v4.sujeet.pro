@@ -124,27 +124,42 @@ content/drafts/[slug]/
 
 ## Phase 4: Write Content
 
+### Quality Standard: Staff/Principal Engineer Reference
+
+Content must be usable as authoritative reference by senior technical leadership. Every article should:
+- Be citable in technical discussions and design reviews
+- Handle nuance and edge cases that matter in production
+- Provide complete context for informed decision-making
+- Stand up to scrutiny from domain experts
+
 ### Writing Principles
 
-1. **Technical accuracy is HIGHEST priority**: Every claim must be verifiable with inline references
-2. **Concise for senior engineers**: No padding, no filler, no obvious statements
-3. **Why before how**: Explain design rationale before implementation
-4. **No silver bullets**: Everything has trade-offs
-5. **Real-world over theoretical**: Production examples preferred
+1. **Technical accuracy is HIGHEST priority**: Every claim must be verifiable with inline references from authoritative sources
+2. **Authoritative and assertive**: Write with confidence where evidence supports. "X does Y" not "X might do Y"
+3. **Concise, zero filler**: No padding, no obvious statements, every sentence advances understanding
+4. **Complete coverage**: All subtleties, edge cases, failure modes, and trade-offs addressed
+5. **Why before how**: Explain design rationale, constraints, and assumptions before implementation
+6. **Explicit trade-offs**: Every approach has pros/cons, when to use, when NOT to use
+7. **Real-world over theoretical**: Production examples, operational concerns, actual failure modes
+8. **Honest about unknowns**: Clearly distinguish verified facts from educated speculation
 
 ### Tone Guidelines
 
 **DO:**
-- Write directly and clearly
-- Share insights like explaining to a peer
-- Acknowledge uncertainty
-- Present trade-offs objectively
+- Write directly and assertively
+- Make confident statements backed by evidence
+- Share insights like a staff engineer explaining to peers
+- Be explicit about limitations and unknowns
+- Present trade-offs with clear context for decision-making
 
 **DON'T:**
 - Use academic/corporate speak
-- Be preachy or prescriptive
-- Use "Obviously..." or "Simply..."
+- Be preachy or prescriptive ("You should...")
+- Use "Obviously...", "Simply...", or "Just..."
 - Present opinions as universal truths
+- Hedge excessively ("might possibly", "could perhaps")
+- Write filler ("In this article, we will explore...")
+- State the obvious ("Security is important")
 
 ### Content Sections
 
@@ -274,33 +289,63 @@ The event loop uses a single thread for JavaScript execution but delegates I/O t
 
 ## Phase 5: Quality Checks
 
-### Content Quality
-- [ ] Abstract sets clear context
-- [ ] Overview diagram visualizes main concept
-- [ ] TLDR is comprehensive and standalone
-- [ ] All claims backed by inline references
-- [ ] Trade-offs explicitly discussed
-- [ ] Design reasoning explained (why, not just what)
-- [ ] Real-world examples included
+### Technical Accuracy (HIGHEST PRIORITY)
+- [ ] Every claim verified against authoritative sources
+- [ ] Inline references for all significant claims
+- [ ] Code examples syntactically correct and idiomatic
+- [ ] Code would pass PR review from senior engineer
+- [ ] Performance claims backed by benchmarks/evidence
+- [ ] Diagrams accurately represent described behavior
+- [ ] No speculation presented as established fact
+- [ ] Terminology correct and current
 
-### Conciseness (CRITICAL)
+### Authoritative Tone
+- [ ] Assertive statements where evidence supports
+- [ ] No excessive hedging or unnecessary qualifiers
+- [ ] Confident presentation of verified facts
+- [ ] Explicit about unknowns and limitations
+- [ ] Reads like staff engineer explaining to peers
+
+### Completeness
+- [ ] Abstract sets clear context (2-4 sentences)
+- [ ] Overview diagram visualizes core concept
+- [ ] TLDR is comprehensive and standalone (usable as reference)
+- [ ] Design reasoning explained (why, not just what)
+- [ ] Assumptions and constraints documented
+- [ ] Historical context where it illuminates decisions
+- [ ] All edge cases and subtleties addressed
+- [ ] Failure modes discussed
+- [ ] Performance implications noted
+
+### Trade-offs (MANDATORY)
+- [ ] Explicit pros/cons for every approach
+- [ ] When to use AND when NOT to use
+- [ ] Real-world examples demonstrating trade-offs
+- [ ] Nothing presented as "the best solution"
+- [ ] Alternative approaches mentioned with reasoning
+
+### Conciseness (ZERO FILLER)
 - [ ] No padding or filler sentences
+- [ ] No meta-commentary ("In this article...")
 - [ ] No tutorial-style hand-holding
 - [ ] No obvious statements
-- [ ] Every paragraph earns its place
+- [ ] Every paragraph adds new information
+- [ ] Every sentence advances understanding
 - [ ] Reading time < 30 minutes (60 max)
 
-### Technical Accuracy (HIGHEST PRIORITY)
-- [ ] Code examples are correct
-- [ ] Performance claims have evidence
-- [ ] Diagrams match described behavior
-- [ ] All inline references valid
-- [ ] No speculation as fact
+### Staff/Principal Engineer Standard
+- [ ] Could be cited as authoritative reference
+- [ ] Handles nuance senior engineers care about
+- [ ] Addresses operational/production concerns
+- [ ] No oversimplification of complex topics
+- [ ] Complete enough for informed decision-making
 
 ### Formatting
 - [ ] No manual Table of Contents
-- [ ] Mermaid diagrams render
+- [ ] Mermaid diagrams render correctly
 - [ ] Code blocks use collapse for boilerplate
+- [ ] Code blocks have title attribute
+- [ ] Key lines highlighted in code
 - [ ] References section complete
 - [ ] Text diagrams use `plain`
 
@@ -324,26 +369,42 @@ tags:
 4. Verify build: `npm run build`
 5. Validate: `npm run validate:build`
 
-## Anti-Patterns to Avoid
+## Anti-Patterns to Avoid (STRICT)
 
 ### Content Anti-Patterns
-- **Tutorial-style**: "First, let's understand what X is..."
-- **Obvious statements**: "Security is important"
-- **Silver bullet thinking**: "This is the best approach"
-- **Claims without sources**: No inline references
-- **Missing reasoning**: What without why
-- **Verbose**: Can be said in fewer words
+- **Tutorial-style**: "First, let's understand...", "Before we begin..."
+- **Obvious statements**: "Security is important", "Performance matters"
+- **Meta-commentary**: "In this article, we will...", "Let me explain..."
+- **Filler transitions**: "Now that we've covered X, let's move to Y"
+- **Silver bullet thinking**: "This is the best approach", "Always use X"
+- **Claims without sources**: Every significant claim needs inline reference
+- **Missing reasoning**: What without explaining why
+- **Verbose**: Any sentence that can be said in fewer words
+- **Oversimplification**: Glossing over nuances that matter
+- **Incomplete trade-offs**: Only benefits, no downsides or limitations
 
 ### Structure Anti-Patterns
-- **Manual ToC**: Auto-generated
-- **Missing trade-offs**: Not discussing pros/cons
-- **No code collapse**: All lines visible
-- **Missing references**: Every article needs one
+- **Manual ToC**: Auto-generated by framework
+- **Missing trade-offs**: Every approach needs pros/cons
+- **No code collapse**: Imports/boilerplate must be collapsed
+- **Missing references**: Every article needs complete References section
+- **Shallow TLDR**: Must be comprehensive, not just a teaser
+- **No overview diagram**: Complex topics need visual context
 
 ### Tone Anti-Patterns
-- **Too formal**: Academic/corporate speak
-- **Preachy**: "You should..."
-- **Dismissive**: "Obviously..."
+- **Too formal**: Academic/corporate speak, excessive passive voice
+- **Preachy**: "You should...", "You must..."
+- **Dismissive**: "Obviously...", "Simply...", "Just..."
+- **Excessive hedging**: "might possibly", "could perhaps"
+- **False certainty**: Speculation presented as fact
+- **Condescending**: Explaining basics to senior audience
+
+### Technical Anti-Patterns
+- **Incorrect code**: Syntax errors, logic bugs, deprecated APIs
+- **Unidiomatic code**: Not following language/framework conventions
+- **Missing context**: Code without title or explanation
+- **Toy examples**: Over-simplified to point of being misleading
+- **Outdated information**: Old versions, deprecated patterns
 
 ## Reference Documents
 

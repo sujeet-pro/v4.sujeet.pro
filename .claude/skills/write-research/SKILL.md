@@ -175,35 +175,64 @@ export function example(): Result {
 
 ## Phase 5: Quality Check
 
-### Content Quality
-- [ ] Abstract sets context
-- [ ] Overview diagram present
-- [ ] TLDR is comprehensive
-- [ ] All claims have inline references
-- [ ] Trade-offs discussed
-- [ ] Design reasoning explained
+### Technical Accuracy (HIGHEST PRIORITY)
+- [ ] Every claim verified against research sources
+- [ ] Inline references for all significant claims
+- [ ] Code examples syntactically correct and idiomatic
+- [ ] Code would pass PR review from senior engineer
+- [ ] Performance claims backed by evidence
+- [ ] Diagrams accurately represent described behavior
+- [ ] No speculation presented as fact
+- [ ] Terminology correct and current
+
+### Authoritative Tone
+- [ ] Assertive statements where evidence supports
+- [ ] No excessive hedging or unnecessary qualifiers
+- [ ] Confident presentation of verified facts
+- [ ] Explicit about unknowns and limitations
+- [ ] Reads like staff engineer explaining to peers
 
 ### Research Integration
-- [ ] Key findings represented
-- [ ] Sources properly cited
-- [ ] Gaps acknowledged if unresolved
-- [ ] No research copied verbatim (synthesized)
+- [ ] All key findings from research represented
+- [ ] Sources properly cited with inline references
+- [ ] Gaps explicitly acknowledged if unresolved
+- [ ] No research copied verbatim (synthesized into article voice)
+- [ ] Research quality validated before use
 
-### Conciseness
-- [ ] No padding or filler
+### Completeness
+- [ ] Abstract sets clear context (2-4 sentences)
+- [ ] Overview diagram visualizes core concept
+- [ ] TLDR is comprehensive and standalone (usable as reference)
+- [ ] Design reasoning explained (why, not just what)
+- [ ] All edge cases and subtleties addressed
+- [ ] Failure modes discussed where relevant
+
+### Trade-offs (MANDATORY)
+- [ ] Explicit pros/cons for every approach
+- [ ] When to use AND when NOT to use
+- [ ] Real-world examples demonstrating trade-offs
+- [ ] Nothing presented as "the best solution"
+- [ ] Alternative approaches mentioned with reasoning
+
+### Conciseness (ZERO FILLER)
+- [ ] No padding or filler sentences
+- [ ] No meta-commentary ("In this article...")
 - [ ] No tutorial-style hand-holding
-- [ ] Every section earns its place
+- [ ] No obvious statements
+- [ ] Every paragraph adds new information
 - [ ] Reading time < 30 minutes
 
-### Technical Accuracy
-- [ ] Claims verified against sources
-- [ ] Code examples correct
-- [ ] Diagrams accurate
+### Staff/Principal Engineer Standard
+- [ ] Could be cited as authoritative reference
+- [ ] Handles nuance senior engineers care about
+- [ ] Addresses operational/production concerns
+- [ ] Complete enough for informed decision-making
 
 ### Formatting
 - [ ] No manual ToC
-- [ ] Mermaid diagrams render
-- [ ] Code blocks use collapse
+- [ ] Mermaid diagrams render correctly
+- [ ] Code blocks use collapse for boilerplate
+- [ ] Code blocks have title attribute
 - [ ] References section complete
 
 ## Phase 6: Save Article
@@ -251,13 +280,35 @@ If research suggests multiple articles:
 3. Update research with cross-references
 4. Note remaining articles in research status
 
-## Anti-Patterns
+## Anti-Patterns (STRICT)
 
+### Content Anti-Patterns
 - **Copy-pasting research**: Synthesize, don't copy verbatim
-- **Ignoring gaps**: Note unresolved questions in article
-- **Missing citations**: Every claim needs source from research
-- **Over-verbose**: Research may be detailed; article should be concise
+- **Ignoring gaps**: Unresolved questions must be explicitly noted
+- **Missing citations**: Every significant claim needs inline reference
+- **Over-verbose**: Research may be detailed; article must be concise
+- **Tutorial-style**: "First, let's understand...", "Before we begin..."
+- **Obvious statements**: "Security is important", "Performance matters"
+- **Meta-commentary**: "In this article, we will..."
+- **Silver bullet thinking**: "This is the best approach"
+- **Incomplete trade-offs**: Only benefits, no downsides
+
+### Tone Anti-Patterns
+- **Excessive hedging**: "might possibly", "could perhaps"
+- **False certainty**: Speculation presented as fact
+- **Preachy**: "You should...", "You must..."
+- **Dismissive**: "Obviously...", "Simply..."
+
+### Technical Anti-Patterns
+- **Incorrect code**: Syntax errors, logic bugs, deprecated APIs
+- **Unidiomatic code**: Not following language conventions
+- **Missing context**: Code without title or explanation
+- **Outdated information**: Old versions, deprecated patterns
+
+### Process Anti-Patterns
 - **Skipping quality check**: Research quality doesn't guarantee article quality
+- **Blind trust**: Not verifying research claims before using
+- **Incomplete transfer**: Missing key insights from research
 
 ## Reference Documents
 
