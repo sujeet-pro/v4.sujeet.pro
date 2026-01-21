@@ -121,30 +121,53 @@ For each significant claim:
 
 ### Code Block Review
 
-All code must use collapse for irrelevant lines:
+All code must use collapse to hide any lines not essential to the key concept. Use **multiple collapse ranges** for non-contiguous sections:
+
+**Collapse Syntax:** `collapse={1-5, 12-18, 25-30}` — any line ranges, including middle sections.
 
 ````markdown
-```ts title="example.ts" collapse={1-4, 10-11}
-import { foo } from 'bar'
-import { baz } from 'qux'
-import { something } from 'somewhere'
-import { another } from 'elsewhere'
+```typescript title="api-handler.ts" collapse={1-5, 13-20, 28-35}
+// Lines 1-5: Imports (collapsed)
+import { Request, Response } from 'express'
+import { validateBody, sanitize } from './middleware'
+import { UserService } from './services/user'
+import type { ApiResponse, UserInput } from './types'
 
-export function mainFunction() {
-  // Main logic here
-  return foo(baz())
+// Lines 6-12: VISIBLE - Key request handling pattern
+export async function createUser(req: Request, res: Response): Promise<void> {
+  const input = sanitize(req.body) as UserInput
+  if (!validateBody(input)) return res.status(400).json({ error: 'Invalid input' })
+  const user = await UserService.create(input)
+  res.status(201).json({ data: user })
 }
 
-function helperOne() { /* ... */ }
-function helperTwo() { /* ... */ }
+// Lines 13-20: Internal validation (collapsed)
+function validateUserInput(input: UserInput): string[] {
+  const errors: string[] = []
+  if (!input.email?.includes('@')) errors.push('Invalid email')
+  if (input.password?.length < 8) errors.push('Password too short')
+  return errors
+}
+
+// Lines 21-27: VISIBLE - Key error handling pattern
+export function handleError(err: Error, res: Response): void {
+  const status = err.name === 'ValidationError' ? 400 : 500
+  res.status(status).json({ error: err.message })
+}
+
+// Lines 28-35: Utility functions (collapsed)
+function logRequest(req: Request): void { /* ... */ }
+function formatResponse<T>(data: T): ApiResponse<T> { /* ... */ }
 ```
 ````
 
-**Collapse rules:**
-- Imports: Always collapse unless demonstrating import patterns
-- Boilerplate: Collapse setup/teardown code
-- Type definitions: Collapse unless discussing types
-- Helper functions: Collapse unless directly relevant
+**Collapse review checklist:**
+- [ ] Imports: Collapsed unless demonstrating import patterns
+- [ ] Setup/config: Collapsed unless discussing initialization
+- [ ] **Middle sections**: Helper functions between key functions are collapsed
+- [ ] Type definitions: Collapsed unless discussing types
+- [ ] Error handling: Collapsed unless that's the topic
+- [ ] Only key concept lines are visible by default
 
 ### TLDR Quality Check
 
@@ -322,6 +345,7 @@ tags:
 - **Oversimplification**: Glossing over important nuances
 - **Missing trade-offs**: Presenting only benefits, no downsides
 - **Outdated information**: Old APIs, deprecated patterns, stale benchmarks
+- **Migration timelines/development plans**: Do NOT include phased rollout plans, week-by-week timelines, or development schedules unless explicitly requested by user
 
 ### Structure Anti-Patterns
 - **Manual ToC**: Should be auto-generated

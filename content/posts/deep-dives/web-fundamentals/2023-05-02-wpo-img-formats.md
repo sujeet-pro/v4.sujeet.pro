@@ -91,11 +91,11 @@ flowchart LR
 | **TIFF**      | Varies                     | Both           | up to 32                | Yes              | Yes           | Tiles/pyramids        | Archival, professional       | JPEG/PNG     |
 | **BMP**       | None                       | None (raw/RLE) | up to 24                | No               | No            | None                  | Legacy, universal support    | PNG/JPEG     |
 
-# 1. Introduction
+## 1. Introduction
 
 Digital imaging formats trade off between **compression efficiency**, **color fidelity**, **dynamic range**, **feature support**, and **computational cost**. Understanding their internal mechanisms—how data is stored, compressed, and decoded—empowers experts to select optimal formats for web delivery, professional workflows, or archival storage.
 
-# 2. JPEG (ISO/IEC 10918-1)
+## 2. JPEG (ISO/IEC 10918-1)
 
 **Storage:** 8×8 pixel blocks → DCT → quantization → zig-zag scan → Huffman coding.
 **Compression:** Lossy; quality factor 0–100 scales quantization matrices.
@@ -104,7 +104,7 @@ Digital imaging formats trade off between **compression efficiency**, **color fi
 **Limitations:** Blocking artifacts at high compression; no alpha; 8 bit only.
 **Use Case:** Ubiquitous photographic delivery; fallback for modern formats.
 
-# 3. PNG 1.3 (ISO/IEC 15948)
+## 3. PNG 1.3 (ISO/IEC 15948)
 
 **Storage:** Raw pixel data pre-filtered by one of five filter types → DEFLATE (LZ77+Huffman).
 **Bit Depth:** 1,2,4,8,16 bits per channel; truecolor, grayscale, indexed, alpha.
@@ -113,7 +113,7 @@ Digital imaging formats trade off between **compression efficiency**, **color fi
 **Limitation:** Lossless means larger files; no HDR.
 **Use Case:** Graphics, text overlays, scientific data; transparency.
 
-# 4. WebP (IETF RFC 6386/6387)
+## 4. WebP (IETF RFC 6386/6387)
 
 **Architecture:**
 
@@ -125,7 +125,7 @@ Digital imaging formats trade off between **compression efficiency**, **color fi
   **Limitation:** No HDR; moderate encoding complexity.
   **Use Case:** Immediate web adoption for mixed photo/UI assets.
 
-# 5. AVIF (AV1 in HEIF, ISO/IEC 23008-12)
+## 5. AVIF (AV1 in HEIF, ISO/IEC 23008-12)
 
 **Container:** ISOBMFF HEIF.
 **Codec:** AV1 intra-frame: tiles, transforms, CDEF, loop filters, entropy (CABAC).
@@ -135,7 +135,7 @@ Digital imaging formats trade off between **compression efficiency**, **color fi
 **Trade-off:** 8–10× slower encode; multi-threaded decoding.
 **Use Case:** HDR photography, immersive media; progressive web where encoding time is secondary.
 
-# 6. JPEG XL (ISO/IEC 18181)
+## 6. JPEG XL (ISO/IEC 18181)
 
 **Modes:**
 
@@ -149,7 +149,7 @@ Digital imaging formats trade off between **compression efficiency**, **color fi
   **Limitation:** Experimental browser support.
   **Use Case:** Future-proof web, archival, layered editing.
 
-# 7. HEIF/HEIC (ISO/IEC 23008-12)
+## 7. HEIF/HEIC (ISO/IEC 23008-12)
 
 **Container:** ISOBMFF; multiple images, sequences, metadata.
 **Codec:** HEVC Intra frames; Main/Main10 profiles.
@@ -159,7 +159,7 @@ Digital imaging formats trade off between **compression efficiency**, **color fi
 **Limitation:** Limited non-Apple support; licensing concerns.
 **Use Case:** Mobile photography (iOS default), computational photography.
 
-# 8. JPEG 2000 (ISO/IEC 15444-1)
+## 8. JPEG 2000 (ISO/IEC 15444-1)
 
 **Core:** Tiling → DWT (CDF 9/7 for lossy, 5/3 for lossless) → quantization → EBCOT entropy.
 **Features:**
@@ -170,7 +170,7 @@ Digital imaging formats trade off between **compression efficiency**, **color fi
   **Limitation:** High complexity; poor web support.
   **Use Case:** Digital cinema, medical imaging, archival.
 
-# 9. GIF (RFC 7946)
+## 9. GIF (RFC 7946)
 
 **Core:** LZW dictionary; 8 bit palette max.
 **Animation:** Frame differencing; disposal methods.
@@ -178,19 +178,19 @@ Digital imaging formats trade off between **compression efficiency**, **color fi
 **Limitation:** 256 colors; no HDR; crude transparency.
 **Use Case:** Simple animations, low-color graphics.
 
-# 10. TIFF (ISO/IEC 16684)
+## 10. TIFF (ISO/IEC 16684)
 
 **Container:** Tag-based; supports LZW, ZIP, JPEG, PackBits.
 **Features:** Multi-page, tiling, pyramids, custom metadata.
 **Use Case:** Scanning, pro photography, geo-TIFF.
 
-# 11. BMP
+## 11. BMP
 
 **Storage:** Uncompressed scanlines (bottom-up); optional RLE for 4/8 bit.
 **Limitation:** Very large; no compression.
 **Use Case:** Legacy Windows graphics.
 
-# 12. PNG 2.0 Community Proposal
+## 12. PNG 2.0 Community Proposal
 
 **Motivation:** Native 10-bit/channel without 16-bit overhead.
 **Packing:**
@@ -201,7 +201,7 @@ Digital imaging formats trade off between **compression efficiency**, **color fi
   **Limitation:** Non-standard; decoder updates required.
   **Use Case:** Future high-fidelity web graphics.
 
-# 13. Evolution, Trade-offs & Constraints
+## 13. Evolution, Trade-offs & Constraints
 
 - **Legacy vs Next-Gen:** JPEG/PNG universal but inefficient; WebP/HEIF/AVIF modern but require fallbacks.
 - **Lossy vs Lossless:** Lossy sacrifices data for size; lossless preserves fidelity at higher cost.
@@ -209,7 +209,7 @@ Digital imaging formats trade off between **compression efficiency**, **color fi
 - **Progressive Loading:** Essential for perceived performance; supported variably.
 - **Computational Cost:** JPEG < WebP (2–3×) < AVIF (8–10×) ≈ JPEG XL moderate; JPEG 2000 high.
 
-# 14. Deployment Strategy
+## 14. Deployment Strategy
 
 **Format Stack:**
 
@@ -219,7 +219,7 @@ Digital imaging formats trade off between **compression efficiency**, **color fi
 4. **Archival:** TIFF/JPEG XL lossless
    **Implementation:** Use `<picture>` & `srcset` for responsive, progressive enhancement with fallbacks.
 
-# 15. Conclusion
+## 15. Conclusion
 
 Selecting an image format requires balancing compression, fidelity, feature support, and compatibility. Today's experts should adopt **WebP** and **AVIF** for immediate web performance gains, plan for **JPEG XL** & **PNG 2.0** as future standards, and maintain legacy **JPEG/PNG** support to ensure universal accessibility. Continuous monitoring of browser support and encoder optimizations will guide optimal format strategies.
 

@@ -6,6 +6,13 @@ tags:
   - system-design
   - image-processing
   - multi-tenancy
+  - cdn
+  - caching
+  - aws
+  - redis
+  - performance
+  - web-performance
+  - scalability
 ---
 
 # Building a Multi-Tenant Image Service Platform
@@ -1002,7 +1009,7 @@ sequenceDiagram
 
 ### Processing Implementation
 
-```javascript title="transform-engine.js" collapse={1-2, 8-12}
+```javascript title="transform-engine.js" collapse={1-17}
 import sharp from "sharp"
 import crypto from "crypto"
 
@@ -1308,7 +1315,7 @@ export default TransformEngine
 
 ### Distributed Locking
 
-```javascript title="lock-manager.js" collapse={1-2}
+```javascript title="lock-manager.js" collapse={1-13}
 import Redlock from "redlock"
 import Redis from "ioredis"
 
@@ -1370,7 +1377,7 @@ export default LockManager
 
 ### Signed URL Implementation
 
-```javascript title="signature-service.js" collapse={1}
+```javascript title="signature-service.js" collapse={1-7}
 import crypto from "crypto"
 
 /**
@@ -1518,7 +1525,7 @@ export default SignatureService
 
 ### Authentication Middleware
 
-```javascript title="auth-middleware.js" collapse={1}
+```javascript title="auth-middleware.js" collapse={1-5}
 import crypto from "crypto"
 
 /**
@@ -1638,7 +1645,7 @@ export default AuthMiddleware
 
 ### Rate Limiting
 
-```javascript title="rate-limiter.js" collapse={1}
+```javascript title="rate-limiter.js" collapse={1-5}
 import Redis from "ioredis"
 
 /**
@@ -1803,7 +1810,7 @@ graph TB
 
 ### Storage Abstraction Layer
 
-```javascript title="storage-adapter.js"
+```javascript title="storage-adapter.js" collapse={1-33}
 /**
  * Abstract storage interface
  */
@@ -2256,7 +2263,7 @@ graph LR
 
 ### Storage Lifecycle Management
 
-```javascript title="lifecycle-manager.js"
+```javascript title="lifecycle-manager.js" collapse={1-9}
 /**
  * Storage lifecycle manager
  */
@@ -2367,7 +2374,7 @@ Key optimizations:
 
 ### Metrics Collection
 
-```javascript title="metrics-registry.js" collapse={1}
+```javascript title="metrics-registry.js" collapse={1-6}
 import prometheus from "prom-client"
 
 /**
@@ -2559,7 +2566,7 @@ groups:
 
 ### Health Checks
 
-```javascript title="health-check.js"
+```javascript title="health-check.js" collapse={1-8}
 /**
  * Health check service
  */

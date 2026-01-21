@@ -398,7 +398,8 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - [ ] No manual ToC
 - [ ] Mermaid diagrams render correctly
 - [ ] ASCII diagrams use `plain` code blocks
-- [ ] Code/config blocks use collapse for boilerplate
+- [ ] Code/config blocks use collapse for non-essential lines (imports, setup, middle sections, helpers)
+- [ ] Multiple collapse ranges used when needed: `collapse={1-5, 12-18, 25-30}`
 - [ ] References section complete with authoritative sources
 
 ### Tags
@@ -422,6 +423,7 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - **Filler transitions**: "Now that we've covered X, let's discuss Y"
 - **Incomplete reasoning**: What without explaining why
 - **False precision**: "This will handle exactly 1M QPS" without evidence
+- **Migration timelines/development plans**: Do NOT include phased rollout plans, week-by-week timelines, or development schedules unless explicitly requested by user
 
 ### Technical Anti-Patterns
 - **Technology name-dropping**: Mentioning technologies without explaining why

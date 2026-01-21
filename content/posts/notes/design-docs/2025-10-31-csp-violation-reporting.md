@@ -3,11 +3,17 @@ lastReviewedOn: 2026-01-21
 tags:
   - platform-engineering
   - system-design
+  - security
+  - web-security
+  - csp
+  - scalability
+  - backend
+  - infrastructure
 ---
 
-# CSP-Sentinel Technical Design Document
+# High-Throughput CSP Violation Reporting at Scale
 
-CSP-Sentinel is a centralized, high-throughput system designed to collect, process, and analyze Content Security Policy (CSP) violation reports from web browsers. As our web properties serve tens of thousands of requests per second, the system must handle significant burst traffic (baseline 50k RPS, scaling to 100k+ RPS) while maintaining near-zero impact on client browsers.
+CSP-Sentinel is a centralized system designed to collect, process, and analyze Content Security Policy (CSP) violation reports from web browsers at scale. The system handles baseline 50k RPS with burst capacity to 500k+ RPS while maintaining sub-millisecond response times and near-zero impact on client browsers.
 
 <figure>
 
@@ -208,7 +214,7 @@ flowchart LR
 
 ### 5.2 Snowflake DDL (Production)
 
-```sql
+```sql title="snowflake/csp_violations.sql" collapse={4-8}
 CREATE TABLE CSP_VIOLATIONS (
   EVENT_ID            STRING DEFAULT UUID_STRING(),
   EVENT_TS            TIMESTAMP_LTZ NOT NULL,
@@ -226,14 +232,14 @@ CLUSTER BY (EVENT_DATE, VIOLATED_DIRECTIVE);
 
 ### 5.3 Postgres DDL (Development)
 
-```sql
+```sql title="postgres/csp_violations.sql"
 CREATE TABLE csp_violations (
   event_id UUID PRIMARY KEY,
   event_ts TIMESTAMPTZ NOT NULL,
-  -- ... same fields
+  -- ... same fields as Snowflake
   blocked_uri TEXT
 );
--- GIN Index for text search
+
 CREATE INDEX idx_blocked_uri_trgm ON csp_violations USING gin (blocked_uri gin_trgm_ops);
 ```
 
@@ -326,20 +332,6 @@ Optimizing the Netty engine for 50k+ RPS:
 - **Snowpipe vs COPY:**
   - For < 50k RPS: Direct Batch Inserts (JDBC) or small batch `COPY`.
   - For > 50k RPS: Write to S3 -> Trigger **[Snowpipe](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro)**. This decouples consumer logic from warehouse loading latency.
-
-## 9. Development Plan
-
-1.  **Phase 1: Local Prototype**
-    - Docker Compose (Kafka, Redis, Postgres).
-    - Basic API & Consumer implementation.
-2.  **Phase 2: Cloud Infrastructure**
-    - Terraform for EKS, MSK, ElastiCache.
-    - Snowflake setup.
-3.  **Phase 3: Production Hardening**
-    - Load testing (k6/Gatling) to validate 50k RPS.
-    - Alert tuning.
-4.  **Phase 4: Launch**
-    - Switch DNS report-uri to new endpoint.
 
 ## References
 

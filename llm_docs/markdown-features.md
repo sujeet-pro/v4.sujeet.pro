@@ -70,24 +70,90 @@ const important = "highlighted text"
 
 ### Collapsible Sections
 
-**IMPORTANT**: Use this to collapse irrelevant code lines. Non-essential boilerplate should be collapsed by default.
+**IMPORTANT**: Use collapse to hide irrelevant code. Only the key concept lines should be visible by default. Collapse can target **any line ranges** - imports at the start, setup code, middle sections, helper functions, or any combination.
+
+**Syntax**: `collapse={start-end}` or `collapse={1-5, 12-18, 25-30}` for multiple ranges.
+
+#### Basic Example
 
 ````markdown
 ```ts collapse={1-5, 20-25}
-// These lines will be collapsed
+// Lines 1-5 collapsed (imports)
 import { something } from "somewhere"
 import { another } from "elsewhere"
 // ... more imports
 
-// Main code visible by default
+// Lines 6-19 visible (main code)
 function main() {
   // implementation
 }
 
-// These lines will also be collapsed
-// Additional utilities
+// Lines 20-25 collapsed (helpers)
+function helper1() { }
 ```
 ````
+
+#### Collapsing Middle Sections (Key Pattern)
+
+Use collapse to show **only the key insight** while hiding surrounding implementation details:
+
+````markdown
+```typescript title="user-service.ts" collapse={1-8, 16-28, 35-42}
+// Lines 1-8: Imports and type definitions (collapsed)
+import { Database } from './database'
+import { Logger } from './logger'
+import { validateEmail, hashPassword } from './utils'
+import type { User, CreateUserInput, UserResult } from './types'
+
+const logger = new Logger('user-service')
+const db = new Database()
+
+// Lines 9-15: VISIBLE - The key authentication logic
+export async function authenticateUser(email: string, password: string): Promise<UserResult> {
+  const user = await db.users.findByEmail(email)
+  if (!user) return { success: false, error: 'User not found' }
+
+  const isValid = await verifyPassword(password, user.passwordHash)
+  return isValid ? { success: true, user } : { success: false, error: 'Invalid password' }
+}
+
+// Lines 16-28: Password handling internals (collapsed)
+async function verifyPassword(plain: string, hash: string): Promise<boolean> {
+  // ... bcrypt comparison logic
+  return true
+}
+
+async function createPasswordHash(password: string): Promise<string> {
+  // ... bcrypt hashing logic
+  return ''
+}
+
+function validatePasswordStrength(password: string): boolean {
+  // ... validation rules
+  return true
+}
+
+// Lines 29-34: VISIBLE - The key user creation logic
+export async function createUser(input: CreateUserInput): Promise<UserResult> {
+  if (!validateEmail(input.email)) return { success: false, error: 'Invalid email' }
+  const hash = await createPasswordHash(input.password)
+  const user = await db.users.create({ ...input, passwordHash: hash })
+  return { success: true, user }
+}
+
+// Lines 35-42: Cleanup and admin utilities (collapsed)
+export async function deleteUser(id: string): Promise<void> {
+  await db.users.delete(id)
+  logger.info(`User ${id} deleted`)
+}
+
+export async function listUsers(): Promise<User[]> {
+  return db.users.findAll()
+}
+```
+````
+
+**Result**: Reader sees only lines 9-15 and 29-34 (the two key functions), with collapsed sections for imports, helpers, and utilities.
 
 ### Marking Lines
 
@@ -296,8 +362,14 @@ graph LR
 
 ## Best Practices for Code Blocks
 
-1. **Always use `collapse` for boilerplate**: Imports, type definitions, and helper functions should be collapsed
-2. **Use titles for context**: Add `title="filename.ts"` for file-specific code
-3. **Highlight key lines**: Use `{lineNumbers}` to draw attention to important code
-4. **Use diff syntax for changes**: Show `+` and `-` for modifications
-5. **Keep visible code focused**: Only show code relevant to the explanation
+1. **Collapse aggressively**: Use `collapse` for any lines not essential to the key concept:
+   - Imports and type definitions
+   - Setup, configuration, and boilerplate
+   - Helper functions and utilities
+   - **Middle sections** that don't illustrate the main point
+   - Error handling (unless that's the topic)
+2. **Collapse multiple ranges**: Use `collapse={1-8, 15-20, 30-40}` to show only the essential parts
+3. **Use titles for context**: Add `title="filename.ts"` for file-specific code
+4. **Highlight key lines**: Use `{lineNumbers}` to draw attention to important code
+5. **Use diff syntax for changes**: Show `+` and `-` for modifications
+6. **Keep visible code focused**: Only show code directly relevant to the explanation

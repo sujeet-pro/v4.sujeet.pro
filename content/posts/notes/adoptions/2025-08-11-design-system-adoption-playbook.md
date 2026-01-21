@@ -1428,7 +1428,7 @@ The journey from business case to enterprise-wide adoption is challenging, but w
 
 ### Microfrontend & Architecture Patterns
 
-- [Microfrontends Architecture](/posts/deep-dives/web-fundamentals/micro-frontends) - Comprehensive guide to microfrontend composition strategies, Module Federation, and cross-cutting concerns
+- [Microfrontends Architecture](../../deep-dives/web-fundamentals/2024-05-12-micro-frontends.md) - Comprehensive guide to microfrontend composition strategies, Module Federation, and cross-cutting concerns
 
 ### Technical Enablement & Codemods
 

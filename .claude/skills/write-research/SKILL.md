@@ -157,21 +157,54 @@ The event loop processes callbacks in six distinct phases ([Node.js Event Loop D
 
 ### Code Examples
 
-**Always collapse boilerplate:**
+**Always collapse any lines not essential to the key concept.** Use multiple ranges:
+
+**Collapse Syntax:** `collapse={1-5, 12-18, 25-30}` — any line ranges, including middle sections.
 
 ````markdown
-```typescript title="example.ts" collapse={1-5}
-import { something } from 'somewhere'
-import { another } from 'elsewhere'
-import type { Type } from 'types'
-// setup...
+```typescript title="data-fetcher.ts" collapse={1-6, 14-21, 29-35}
+// Lines 1-6: Imports (collapsed)
+import { fetch } from 'node-fetch'
+import { Cache } from './cache'
+import type { FetchOptions, FetchResult } from './types'
 
-// Main logic - visible
-export function example(): Result {
-  return computeValue()
+const cache = new Cache()
+const BASE_URL = 'https://api.example.com'
+
+// Lines 7-13: VISIBLE - Key fetching pattern
+export async function fetchWithCache<T>(path: string, ttl: number): Promise<T> {
+  const cached = cache.get<T>(path)
+  if (cached) return cached
+  const data = await fetch(`${BASE_URL}${path}`).then(r => r.json())
+  cache.set(path, data, ttl)
+  return data
 }
+
+// Lines 14-21: Retry logic (collapsed)
+async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
+  for (let i = 0; i < retries; i++) {
+    const res = await fetch(url)
+    if (res.ok) return res
+    await sleep(Math.pow(2, i) * 100)
+  }
+  throw new Error('Max retries exceeded')
+}
+
+// Lines 22-28: VISIBLE - Key batch operation
+export async function fetchBatch<T>(paths: string[]): Promise<T[]> {
+  return Promise.all(paths.map(p => fetchWithCache<T>(p, 300)))
+}
+
+// Lines 29-35: Utilities (collapsed)
+function sleep(ms: number): Promise<void> { return new Promise(r => setTimeout(r, ms)) }
+function buildUrl(path: string, params: Record<string, string>): string { /* ... */ }
 ```
 ````
+
+**Collapse rules:**
+- Imports and setup: Always collapsed
+- **Middle sections**: Helpers between key functions collapsed
+- Only the key patterns readers need should be visible
 
 ## Phase 5: Quality Check
 
@@ -292,6 +325,7 @@ If research suggests multiple articles:
 - **Meta-commentary**: "In this article, we will..."
 - **Silver bullet thinking**: "This is the best approach"
 - **Incomplete trade-offs**: Only benefits, no downsides
+- **Migration timelines/development plans**: Do NOT include phased rollout plans, week-by-week timelines, or development schedules unless explicitly requested by user
 
 ### Tone Anti-Patterns
 - **Excessive hedging**: "might possibly", "could perhaps"

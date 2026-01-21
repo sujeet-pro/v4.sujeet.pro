@@ -8,11 +8,54 @@ tags:
 
 My Chrome configuration for maximum productivity: address bar keywords for instant navigation and essential extensions for a seamless cross-browser workflow.
 
+<figure>
+
+```mermaid
+flowchart LR
+    subgraph "Chrome Omnibox"
+        K[Keyword + Query]
+    end
+
+    subgraph "Destinations"
+        J[Jira/Confluence]
+        AI[AI Tools]
+        G[Google Workspace]
+        U[Utilities]
+    end
+
+    K --> J
+    K --> AI
+    K --> G
+    K --> U
+
+    style K fill:#dae8fc,stroke:#6c8ebf
+```
+
+<figcaption>Address bar keywords route queries directly to target services</figcaption>
+
+</figure>
+
 ## TLDR
 
-- **Address bar keywords** turn Chrome's omnibox into a command palette—type `j 123` to jump directly to Jira ticket 123
-- **Cross-browser extensions** (Raindrop, Bitwarden) ensure bookmarks and passwords sync regardless of which browser you're testing
-- **Claude ecosystem** integration: desktop app (`Opt+Space`), CLI, IDE extensions, and browser extension cover all AI use cases
+**Address bar keywords** transform Chrome's omnibox into a command palette for instant navigation to any service.
+
+### Keyboard Shortcuts
+
+- **Development**: `j 123` jumps to Jira ticket, `cf onboarding` searches Confluence
+- **AI tools**: `c explain this` opens Claude, `p latest react` queries Perplexity
+- **Google Workspace**: `sheet Q1 budget` finds spreadsheets, `gm invoice` searches Gmail
+
+### Cross-Browser Workflow
+
+- **Raindrop.io** syncs bookmarks across all browsers (Chrome, Arc, Firefox, Brave)
+- **Bitwarden** provides password + passkey management with desktop app for system-wide autofill
+- Browser-agnostic tools eliminate lock-in when testing different browsers
+
+### Claude Integration
+
+- **Desktop app** (`Opt + Space`) for quick questions without context-switching
+- **CLI + IDE extensions** for all coding tasks: debugging, refactoring, generation
+- **Browser extension** for webpage summaries, content analysis, data extraction
 
 ---
 
@@ -48,7 +91,8 @@ Address bar keywords let you search any site directly from Chrome's omnibox. Ins
 **Notes:**
 
 - ChatGPT & Claude keywords create a draft prompt—you still need to press Enter to submit
-- Perplexity and Gemini auto-submit the search
+- Perplexity auto-submits the search
+- Gemini's `?q=` parameter support varies—test in your browser or use the [Gemini Ultimate extension](https://chromewebstore.google.com/detail/gemini-ultimate/jhpkldiddcobahfolmjiobbacjbgdegl)
 - I set Perplexity as default search engine on my personal profile, ChatGPT on work profile (via "ChatGPT Search" extension)
 
 ### Google Office & Drive
@@ -99,7 +143,7 @@ I frequently switch browsers to test features (Arc, Firefox, Brave, etc.), so br
 | Extension | Purpose |
 | :-------- | :------ |
 | **[React Developer Tools](https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi)** | Inspect React component hierarchy, props, and state. Essential for debugging React applications. |
-| **Ad Blocker** | I use uBlock Origin. Reduces noise and improves page load times during development. |
+| **[uBlock Origin Lite](https://chromewebstore.google.com/detail/ublock-origin-lite/ddkjiahejlhfcafbddmgiahcphecmpfh)** | Manifest V3-compliant ad blocker. Uses declarative filtering rules (DNR API) instead of dynamic blocking—less flexible than the original uBlock Origin, but the only option since Chrome disabled MV2 extensions in mid-2025. Blocks most ads and trackers effectively; cosmetic filtering is ~20% less effective. For full uBlock Origin, use Firefox, Edge, or Brave. |
 
 ### AI Integration
 
@@ -116,3 +160,12 @@ I'm a heavy Claude user across multiple surfaces:
 - **Browser extension** — AI assistance on any website: summarizing articles, analyzing content, extracting structured data
 
 This combination covers every AI use case without context-switching between tools.
+
+## References
+
+- [Chrome Site Search Settings](https://support.google.com/chrome/answer/95426) - Official Chrome documentation on custom search engines
+- [GPT and Claude from your URL bar](https://treyhunner.com/2024/07/chatgpt-and-claude-from-your-browser-url-bar/) - Trey Hunner's guide to AI tool URL shortcuts
+- [Raindrop.io](https://raindrop.io/) - Cross-browser bookmark manager
+- [Bitwarden](https://bitwarden.com/) - Open-source password manager
+- [Claude Browser Extension](https://chromewebstore.google.com/detail/claude/danfoobphdgcjkkpopfngjfnfckhpnhl) - Anthropic's official Chrome extension
+- [uBlock Origin vs uBlock Origin Lite](https://adblock-tester.com/ad-blockers/ublock-origin-vs-ublock-origin-lite/) - Comparison of MV2 vs MV3 ad blocking capabilities

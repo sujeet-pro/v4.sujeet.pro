@@ -3,14 +3,55 @@ lastReviewedOn: 2026-01-21
 featured: true
 tags:
   - react
-  - hooks
+  - react-hooks
   - architecture
   - performance
+  - frontend
 ---
 
 # React Hooks
 
 Master React Hooks' architectural principles, design patterns, and implementation strategies for building scalable, maintainable applications with functional components.
+
+```mermaid
+flowchart TB
+    subgraph "React Hooks Architecture"
+        direction TB
+        subgraph "Core Hooks"
+            useState[useState<br/>State Management]
+            useReducer[useReducer<br/>Complex State]
+            useEffect[useEffect<br/>Side Effects]
+            useRef[useRef<br/>Mutable Refs]
+        end
+
+        subgraph "Performance Hooks"
+            useMemo[useMemo<br/>Memoized Values]
+            useCallback[useCallback<br/>Memoized Functions]
+            useDeferredValue[useDeferredValue<br/>Deferred Updates]
+            useTransition[useTransition<br/>Transitions]
+        end
+
+        subgraph "Advanced Hooks"
+            useId[useId<br/>Unique IDs]
+            useSyncExternalStore[useSyncExternalStore<br/>External State]
+            useLayoutEffect[useLayoutEffect<br/>Sync DOM]
+            useInsertionEffect[useInsertionEffect<br/>CSS Injection]
+        end
+
+        subgraph "Custom Hooks"
+            usePrevious[usePrevious]
+            useDebounce[useDebounce]
+            useFetch[useFetch]
+            useLocalStorage[useLocalStorage]
+        end
+    end
+
+    useState --> useMemo
+    useReducer --> useCallback
+    useEffect --> useSyncExternalStore
+    useMemo --> usePrevious
+    useCallback --> useDebounce
+```
 
 ## TLDR
 
@@ -2380,3 +2421,14 @@ function useRealTimeComponent<T>(dataSource: () => Promise<T>, updateInterval: n
 - **Performance**: What's the performance impact of complex hook compositions?
 - **Testing**: How do we test components that use multiple modern hooks?
 - **Debugging**: What tools and techniques help debug complex hook interactions?
+
+## References
+
+- [React Hooks Documentation](https://react.dev/reference/react/hooks) - Official React documentation for all hooks
+- [Rules of Hooks](https://react.dev/reference/rules/rules-of-hooks) - Official rules and constraints for using hooks
+- [Built-in React Hooks](https://react.dev/reference/react/hooks) - Complete reference for useState, useEffect, useContext, etc.
+- [Custom Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks) - Guide to building custom hooks
+- [useSyncExternalStore](https://react.dev/reference/react/useSyncExternalStore) - Subscribing to external stores
+- [useTransition](https://react.dev/reference/react/useTransition) - Managing transitions and loading states
+- [useDeferredValue](https://react.dev/reference/react/useDeferredValue) - Deferring non-critical updates
+- [React 19 use Hook](https://react.dev/reference/react/use) - Consuming promises and context with use

@@ -24,6 +24,7 @@ import { rehypeAccessibleEmojis } from "rehype-accessible-emojis"
 import rehypeAutolinkHeadings from "rehype-autolink-headings"
 import rehypeKatex from "rehype-katex"
 import rehypeImgClass from "./plugins/rehype-img-class"
+import rehypeInternalLinks from "./plugins/rehype-internal-links"
 
 // Custom Plugins
 import rehypeMermaid from "rehype-mermaid"
@@ -104,6 +105,7 @@ export default defineConfig({
       remarkEmoji,
     ],
     rehypePlugins: [
+      rehypeInternalLinks,
       rehypeKatex,
       [rehypeAccessibleEmojis as RehypePlugin, { ignore: ["title", "script", "style", "svg", "math", "pre", "code"] }],
       rehypeHeadingIds,

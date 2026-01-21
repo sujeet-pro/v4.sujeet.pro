@@ -34,6 +34,8 @@
   // =============================================================================
   // Runtime & Core Technologies
   // =============================================================================
+  { "id": "dom", "name": "DOM" },
+  { "id": "browser-apis", "name": "Browser APIs" },
   { "id": "node", "name": "Node.js" },
   { "id": "v8-engine", "name": "V8 Engine" },
   { "id": "libuv", "name": "libuv" },
@@ -119,6 +121,7 @@
   { "id": "fp", "name": "Functional Programming" },
   { "id": "monads", "name": "Monads" },
   { "id": "concurrency", "name": "Concurrency" },
+  { "id": "event-loop", "name": "Event Loop" },
 
   // =============================================================================
   // Reliability & Error Handling
@@ -151,9 +154,11 @@
   // Deployment & CI/CD
   // =============================================================================
   { "id": "deployment", "name": "Deployment" },
+  { "id": "ci-cd", "name": "CI/CD" },
   { "id": "rollback", "name": "Rollback Strategies" },
   { "id": "feature-flags", "name": "Feature Flags" },
   { "id": "experimentation", "name": "Experimentation" },
+  { "id": "ab-testing", "name": "A/B Testing" },
 
   // =============================================================================
   // Media & Assets
@@ -182,7 +187,7 @@
   { "id": "design-tokens", "name": "Design Tokens" },
   { "id": "component-library", "name": "Component Library" },
   { "id": "ui-consistency", "name": "UI Consistency" },
-  { "id": "hooks", "name": "React Hooks" },
+  { "id": "react-hooks", "name": "React Hooks" },
 
   // =============================================================================
   // Leadership & Organization

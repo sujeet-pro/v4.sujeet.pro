@@ -5,12 +5,83 @@ tags:
   - architecture
   - performance
   - next
+  - frontend
+  - ssr
+  - web-performance
 ---
 
 # React Architecture Internals
 
 This comprehensive analysis examines React's sophisticated architectural evolution from a simple Virtual DOM abstraction to a multi-faceted rendering system that spans client-side, server-side, and hybrid execution models. We explore the foundational Fiber reconciliation engine, the intricacies of hydration and streaming, and the revolutionary React Server Components protocol that fundamentally reshapes the client-server boundary in modern web applications.
 
+```mermaid
+flowchart TB
+    subgraph "React Rendering Models"
+        direction TB
+        subgraph "Client-Side"
+            CSR[CSR<br/>Full Client Render]
+            Hydration[Hydration<br/>Attach to Server HTML]
+        end
+
+        subgraph "Server-Side"
+            SSR[SSR<br/>Full Server Render]
+            Streaming[Streaming SSR<br/>Progressive HTML]
+            SSG[SSG<br/>Build-Time Render]
+        end
+
+        subgraph "Hybrid"
+            RSC[React Server Components<br/>Server + Client Mix]
+        end
+    end
+
+    subgraph "Fiber Architecture"
+        Reconciler[Fiber Reconciler]
+        RenderPhase[Render Phase<br/>Interruptible]
+        CommitPhase[Commit Phase<br/>Synchronous]
+
+        Reconciler --> RenderPhase
+        RenderPhase --> CommitPhase
+    end
+
+    CSR --> Reconciler
+    Hydration --> Reconciler
+    SSR --> Streaming
+    Streaming --> Hydration
+    RSC --> Streaming
+    RSC --> Hydration
+```
+
+## TLDR
+
+**React's Fiber architecture** enables interruptible, priority-based rendering through a virtual call stack implementation, forming the foundation for concurrent features and Server Components.
+
+### Fiber Reconciliation
+
+- **Two-Phase Process**: Interruptible render phase builds work-in-progress tree; synchronous commit phase applies DOM changes
+- **Double Buffering**: Maintains current and work-in-progress trees for atomic UI updates
+- **O(n) Diffing**: Heuristic algorithm assumes different element types produce different trees and keys enable efficient list operations
+- **Hooks Integration**: Each fiber maintains a linked list of hooks, explaining why hooks must be called in consistent order
+
+### Rendering Models
+
+- **CSR**: Fast TTFB, slow FCP/TTI, poor SEO—best for SPAs and dashboards
+- **SSR**: Pre-rendered HTML with hydration—excellent SEO, delayed interactivity
+- **SSG/ISR**: Build-time rendering with optional revalidation—optimal performance for static content
+- **Streaming SSR**: Progressive HTML delivery through Suspense boundaries
+
+### React Server Components
+
+- **Zero Bundle Impact**: Server component code never reaches the client
+- **Direct Backend Access**: Components can query databases and internal services directly
+- **Progressive JSON Protocol**: Streamable format enables out-of-order chunk resolution
+- **Selective Hydration**: Only client components contribute to JavaScript bundle
+
+### Architectural Trade-offs
+
+- **RSC + SSR**: Optimal performance, highest infrastructure complexity
+- **Traditional SSR**: Page-level data fetching, full hydration required
+- **SSG**: Maximum performance for infrequently changing content
+- **CSR**: Simplified deployment, SEO not critical
 
 ## 1. The Fiber Reconciliation Engine: React's Architectural Foundation
 
@@ -498,3 +569,14 @@ This progression demonstrates React's commitment to solving real-world performan
 For practitioners architecting modern React applications, understanding these internal mechanisms is crucial for making informed decisions about rendering strategies, performance optimization, and infrastructure requirements. The architectural choices made at the framework level—from Fiber's double-buffering strategy to RSC's progressive JSON protocol—directly impact application performance, user experience, and developer productivity.
 
 As the React ecosystem continues to evolve, these foundational architectural patterns will likely influence the broader landscape of user interface frameworks, establishing new paradigms for client-server collaboration in interactive applications.
+
+## References
+
+- [React Fiber Architecture](https://github.com/acdlite/react-fiber-architecture) - Andrew Clark's explanation of the Fiber reconciler design
+- [React Documentation - Concurrent Features](https://react.dev/reference/react/Suspense) - Official Suspense and concurrent rendering docs
+- [React Server Components RFC](https://github.com/reactjs/rfcs/blob/main/text/0188-server-components.md) - Original RFC explaining RSC design
+- [React 18 Release Notes](https://react.dev/blog/2022/03/29/react-v18) - Official release notes covering Suspense, streaming, and concurrent features
+- [Next.js App Router Documentation](https://nextjs.org/docs/app) - Practical RSC implementation in Next.js
+- [Rendering on the Web - Google](https://web.dev/rendering-on-the-web/) - Comprehensive comparison of rendering strategies
+- [React Hydration Documentation](https://react.dev/reference/react-dom/client/hydrateRoot) - Official hydration API documentation
+- [Building Your Own React](https://pomb.us/build-your-own-react/) - Deep dive into React internals including Fiber

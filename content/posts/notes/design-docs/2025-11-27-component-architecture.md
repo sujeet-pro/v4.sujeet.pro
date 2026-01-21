@@ -8,11 +8,59 @@ tags:
   - design-patterns
   - platform-engineering
   - system-design
+  - component-library
 ---
 
 # A Modern Approach to Loosely Coupled UI Components
 
 This document provides a comprehensive guide for building **meta-framework-agnostic**, **testable**, and **boundary-controlled** UI components for modern web applications.
+
+<figure>
+
+```mermaid
+flowchart TB
+    subgraph Shell["Application Shell (Framework-Specific)"]
+        F[Next.js / Remix / Vite]
+    end
+
+    subgraph Independent["Independent Layers (No Dependencies)"]
+        direction LR
+        subgraph SDK["SDK Layer"]
+            direction TB
+            A[Analytics]
+            R[Router]
+            H[HTTP]
+            E[Experiments]
+        end
+        subgraph DS["Design System"]
+            Primitives[Primitives<br/>Button, Card, Modal]
+        end
+    end
+
+    subgraph Components["Component Layers"]
+        Blocks["Blocks<br/>(Business Components)"]
+        Widgets["Widgets<br/>(BFF Integration)"]
+    end
+
+    subgraph Registries["Page-Specific Registries"]
+        direction LR
+        HomeReg[Home Registry]
+        PDPReg[PDP Registry]
+        PLPReg[PLP Registry]
+        CartReg[Cart Registry]
+    end
+
+    F -->|initializes & configures| SDK
+    Primitives -->|composes| Blocks
+    SDK -.->|injected via Context| Blocks
+    SDK -.->|injected via Context| Widgets
+    Blocks -->|composes| Widgets
+    Widgets -->|lazy-loaded by| Registries
+```
+
+<figcaption>Architecture overview: SDK Layer and Design System (Primitives) are independent with no dependencies. The Application Shell initializes SDK implementations, which are then injected via React Context into Blocks and Widgets. Each page type has its own widget registry for code splitting.</figcaption>
+
+</figure>
 
 ## Introduction
 
@@ -534,7 +582,7 @@ export interface StateSdk {
 
 ### SDK Provider Implementation
 
-```typescript
+```typescript title="src/sdk/core/sdk.provider.tsx" collapse={1-4}
 // src/sdk/core/sdk.provider.tsx
 
 import { createContext, useContext, type FC, type PropsWithChildren } from 'react';
@@ -578,7 +626,7 @@ export const useAnalytics = (): AnalyticsSdk => {
 }
 ```
 
-```typescript
+```typescript title="src/sdk/experiments/experiments.hooks.ts" collapse={1-4}
 // src/sdk/experiments/experiments.hooks.ts
 
 import { useEffect } from "react"
@@ -607,7 +655,7 @@ export const useFeatureFlag = (flagName: string): boolean => {
 
 The application shell provides concrete implementations:
 
-```typescript
+```typescript title="app/providers.tsx" collapse={1-8}
 // app/providers.tsx (framework-specific, outside src/)
 
 'use client'; // Next.js specific
@@ -852,7 +900,7 @@ src/
 
 #### Block Types
 
-```typescript
+```typescript title="src/blocks/blocks.types.ts" collapse={1-3}
 // src/blocks/blocks.types.ts
 
 import type { FC, PropsWithChildren } from "react"
@@ -895,7 +943,7 @@ export interface TrackingProps {
 
 #### Widget Types
 
-```typescript
+```typescript title="src/widgets/types/widget.types.ts" collapse={1-3}
 // src/widgets/types/widget.types.ts
 
 import type { ComponentType, ReactNode } from "react"
@@ -949,7 +997,7 @@ export interface WidgetHookResult<TData> {
 
 #### Registry Types
 
-```typescript
+```typescript title="src/registries/registry.types.ts" collapse={1-4}
 // src/registries/registry.types.ts
 
 import type { ComponentType, ReactNode } from "react"
@@ -990,7 +1038,7 @@ export type WidgetRegistry = Record<string, WidgetConfig>
 
 ### Block Implementation Example
 
-```typescript
+```typescript title="src/blocks/add-to-cart-button/add-to-cart-button.types.ts" collapse={1-3}
 // src/blocks/add-to-cart-button/add-to-cart-button.types.ts
 
 import type { TrackingProps, BlockHookResult } from "../blocks.types"
@@ -1022,7 +1070,7 @@ export interface AddToCartActions {
 export type UseAddToCartResult = BlockHookResult<{ cartId: string }, AddToCartActions>
 ```
 
-```typescript
+```typescript title="src/blocks/add-to-cart-button/add-to-cart-button.hooks.ts" collapse={1-5}
 // src/blocks/add-to-cart-button/add-to-cart-button.hooks.ts
 
 import { useState, useCallback } from "react"
@@ -1079,7 +1127,7 @@ export const useAddToCart = (
 }
 ```
 
-```typescript
+```typescript title="src/blocks/add-to-cart-button/add-to-cart-button.view.tsx" collapse={1-5}
 // src/blocks/add-to-cart-button/add-to-cart-button.view.tsx
 
 import type { FC } from 'react';
@@ -1122,7 +1170,7 @@ export const AddToCartButtonView: FC<AddToCartViewProps> = ({
 );
 ```
 
-```typescript
+```typescript title="src/blocks/add-to-cart-button/add-to-cart-button.component.tsx" collapse={1-6}
 // src/blocks/add-to-cart-button/add-to-cart-button.component.tsx
 
 import type { FC } from 'react';
@@ -1168,7 +1216,7 @@ export type { AddToCartButtonProps, AddToCartViewProps } from "./add-to-cart-but
 
 ### Widget Implementation Example
 
-```typescript
+```typescript title="src/widgets/product-carousel/product-carousel.types.ts" collapse={1-3}
 // src/widgets/product-carousel/product-carousel.types.ts
 
 import type { WidgetPayload, WidgetHookResult } from "../types"
@@ -1204,7 +1252,7 @@ export interface ProductCarouselViewProps {
 export type UseProductCarouselResult = WidgetHookResult<ProductCarouselData>
 ```
 
-```typescript
+```typescript title="src/widgets/product-carousel/product-carousel.hooks.ts" collapse={1-5}
 // src/widgets/product-carousel/product-carousel.hooks.ts
 
 import { useState, useCallback, useEffect } from "react"
@@ -1269,7 +1317,7 @@ export const useProductCarousel = (payload: ProductCarouselPayload): UseProductC
 }
 ```
 
-```typescript
+```typescript title="src/widgets/product-carousel/product-carousel.view.tsx" collapse={1-6}
 // src/widgets/product-carousel/product-carousel.view.tsx
 
 import type { FC } from 'react';
@@ -1329,7 +1377,7 @@ export const ProductCarouselView: FC<ProductCarouselViewProps> = ({
 );
 ```
 
-```typescript
+```typescript title="src/widgets/product-carousel/product-carousel.widget.tsx" collapse={1-6}
 // src/widgets/product-carousel/product-carousel.widget.tsx
 
 import type { FC } from 'react';
@@ -1368,7 +1416,7 @@ export const ProductCarouselWidget: FC<ProductCarouselWidgetProps> = ({ payload 
 
 ### Registry Implementation
 
-```typescript
+```typescript title="src/registries/home.registry.ts" collapse={1-4}
 // src/registries/home.registry.ts
 
 import { lazy } from "react"
@@ -1402,7 +1450,7 @@ export const homeRegistry: WidgetRegistry = {
 }
 ```
 
-```typescript
+```typescript title="src/registries/index.ts" collapse={1-11}
 // src/registries/index.ts
 
 import type { WidgetRegistry } from "./registry.types"
@@ -1441,7 +1489,7 @@ export const getRegistryByPageType = (pageType: string): WidgetRegistry => {
 
 ### ESLint Configuration
 
-```javascript
+```javascript title="eslint.config.js" collapse={1-5}
 // eslint.config.js
 
 import boundaries from "eslint-plugin-boundaries"
@@ -1618,7 +1666,7 @@ export default [
 
 ### Test SDK Provider
 
-```typescript
+```typescript title="src/sdk/testing/create-mock-sdk.ts" collapse={1-4}
 // src/sdk/testing/create-mock-sdk.ts
 
 import { vi } from "vitest"
@@ -1667,7 +1715,7 @@ export const createMockSdk = (overrides: DeepPartial<SdkServices> = {}): SdkServ
 })
 ```
 
-```typescript
+```typescript title="src/sdk/testing/test-sdk.provider.tsx" collapse={1-6}
 // src/sdk/testing/test-sdk.provider.tsx
 
 import type { FC, PropsWithChildren } from 'react';
@@ -1695,7 +1743,7 @@ export const TestSdkProvider: FC<PropsWithChildren<TestSdkProviderProps>> = ({
 
 ### Block Test Example
 
-```typescript
+```typescript title="src/blocks/add-to-cart-button/add-to-cart-button.test.tsx" collapse={1-6}
 // src/blocks/add-to-cart-button/add-to-cart-button.test.tsx
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -1899,78 +1947,6 @@ describe('AddToCartButton', () => {
   },
 }
 ```
-
----
-
-## Migration Guide
-
-### Phase 1: Foundation (Week 1-2)
-
-1. **Set up SDK layer**
-   - [ ] Create `src/sdk/` folder structure
-   - [ ] Define all SDK interfaces
-   - [ ] Implement mock SDK for testing
-   - [ ] Create `TestSdkProvider`
-
-2. **Configure tooling**
-   - [ ] Update `tsconfig.json` with path aliases
-   - [ ] Configure ESLint with boundary rules
-   - [ ] Add pre-commit hooks for validation
-
-3. **Create application providers**
-   - [ ] Implement framework-specific SDK services
-   - [ ] Wrap application with `SdkProvider`
-
-### Phase 2: Blocks Migration (Week 3-4)
-
-1. **Identify block candidates**
-   - [ ] Audit existing components for reusability
-   - [ ] List components used in 2+ places
-   - [ ] Prioritize by usage frequency
-
-2. **Migrate first blocks**
-   - [ ] Create `src/blocks/` structure
-   - [ ] Migrate 2-3 high-value components
-   - [ ] Add comprehensive tests
-   - [ ] Document patterns for team
-
-3. **Replace framework dependencies**
-   - [ ] Update components to use SDK hooks
-   - [ ] Remove direct `next/` imports
-   - [ ] Verify tests pass with mocked SDK
-
-### Phase 3: Widgets Migration (Week 5-6)
-
-1. **Set up registries**
-   - [ ] Create `src/registries/` structure
-   - [ ] Define `WidgetConfig` type
-   - [ ] Create page-specific registries
-
-2. **Migrate widgets**
-   - [ ] Move BFF-connected components to `src/widgets/`
-   - [ ] Ensure widgets compose Blocks
-   - [ ] Register in appropriate page registries
-
-3. **Update layout engine**
-   - [ ] Integrate registries with layout renderer
-   - [ ] Add error boundaries and suspense
-
-### Phase 4: Validation & Documentation (Week 7-8)
-
-1. **Validate boundaries**
-   - [ ] Run `lint:strict` with zero warnings
-   - [ ] Verify no cross-boundary imports
-   - [ ] Audit for framework leakage
-
-2. **Documentation**
-   - [ ] Update team documentation
-   - [ ] Create component contribution guide
-   - [ ] Record architecture decision records (ADRs)
-
-3. **Team enablement**
-   - [ ] Conduct architecture walkthrough
-   - [ ] Pair on first new component
-   - [ ] Establish code review checklist
 
 ---
 

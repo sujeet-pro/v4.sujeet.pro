@@ -310,6 +310,7 @@ estimatedArticles: 1-3
 - **Ignoring contradictions**: Not noting when sources disagree
 - **Missing practical angle**: Only theory, no production experience
 - **Over-scoping**: Trying to cover too much in one research effort
+- **Migration timelines/development plans**: Do NOT include phased rollout plans, week-by-week timelines, or development schedules in research outlines unless explicitly requested by user
 
 ## Reference Documents
 

@@ -169,10 +169,17 @@ Create inventory of:
 
 Every code block must:
 - Have `title` attribute for context
-- Use `collapse` for imports, boilerplate, helpers
-- Use line highlighting `{n-m}` for key concepts
+- Use `collapse` for any lines not essential to the key concept:
+  - Imports and type definitions
+  - Setup, configuration, and boilerplate
+  - **Middle sections** (helpers between key functions)
+  - Utilities and cleanup code
+- Use **multiple collapse ranges** when needed: `collapse={1-5, 12-18, 25-30}`
+- Use line highlighting `{n-m}` for key concepts within visible sections
 - Be syntactically correct
 - Follow idiomatic patterns for the language
+
+**Key principle**: Only the lines demonstrating the key concept should be visible. Everything else should be collapsed but expandable.
 
 #### 3.6 TLDR Quality Check
 - [ ] Main concept defined (1-2 sentences, not vague)
@@ -276,6 +283,7 @@ Score each area (1-5):
 - [ ] Filler statements
 - [ ] Unsubstantiated claims
 - [ ] Silver bullet thinking
+- [ ] Migration timelines/development plans (should be removed unless explicitly requested)
 
 ## Recommendations
 ### High Priority (Critical)
@@ -446,7 +454,8 @@ npm run validate:build
 
 ### Code Blocks
 
-- [ ] Boilerplate collapsed
+- [ ] All non-essential lines collapsed (imports, setup, middle sections, helpers)
+- [ ] Multiple collapse ranges used when needed: `collapse={1-5, 12-18, 25-30}`
 - [ ] Titles present
 - [ ] Key lines highlighted
 

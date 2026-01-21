@@ -219,37 +219,75 @@ Code should be:
 
 **CRITICAL: Code Block Collapse**
 
-All code blocks MUST use the `collapse` directive to hide irrelevant lines. Only the lines that demonstrate the key concept should be visible by default.
+All code blocks MUST use the `collapse` directive to hide irrelevant lines. Only the lines demonstrating the key concept should be visible. Use **multiple collapse ranges** to hide any section not directly relevant—including middle sections of functions.
 
 **Always collapse:**
 - Import statements (unless demonstrating import patterns)
 - Setup and boilerplate code
 - Type definitions (unless discussing types)
 - Helper functions (unless directly relevant)
+- **Middle implementation details** (when only specific lines matter)
 - Error handling (unless that's the topic)
 - Configuration objects
 
-````markdown
-```typescript title="example.ts" collapse={1-6, 15-20}
-// Collapsed: imports
-import { something } from 'somewhere'
-import { another } from 'elsewhere'
-import type { Type } from 'types'
-const config = { /* ... */ }
-// end imports
+**Collapse Syntax:** `collapse={start-end}` or `collapse={1-5, 12-20, 30-35}` for multiple ranges.
 
-// VISIBLE: The key insight
-export function mainFunction(): Result {
-  // This is what readers care about
-  const meaningful = computeValue()
-  return meaningful
+#### Example: Collapsing Multiple Ranges Including Middle Sections
+
+````markdown
+```typescript title="event-handler.ts" collapse={1-7, 15-25, 33-40}
+// Lines 1-7: Imports and setup (collapsed)
+import { EventEmitter } from 'events'
+import { Logger } from './logger'
+import { validateEvent, sanitizePayload } from './utils'
+import type { Event, Handler, EventResult } from './types'
+
+const logger = new Logger('events')
+const emitter = new EventEmitter()
+
+// Lines 8-14: VISIBLE - Key event registration pattern
+export function registerHandler(eventName: string, handler: Handler): () => void {
+  const wrappedHandler = (payload: unknown) => {
+    const result = handler(sanitizePayload(payload))
+    logger.debug(`Event ${eventName} handled`, { result })
+  }
+  emitter.on(eventName, wrappedHandler)
+  return () => emitter.off(eventName, wrappedHandler)
 }
 
-// Collapsed: helpers
-function helper1() { /* ... */ }
-function helper2() { /* ... */ }
+// Lines 15-25: Internal event processing (collapsed)
+function processEvent(event: Event): EventResult {
+  if (!validateEvent(event)) {
+    return { success: false, error: 'Invalid event' }
+  }
+  const startTime = Date.now()
+  emitter.emit(event.name, event.payload)
+  return {
+    success: true,
+    processingTime: Date.now() - startTime
+  }
+}
+
+// Lines 26-32: VISIBLE - Key dispatch function
+export function dispatch(event: Event): EventResult {
+  logger.info(`Dispatching ${event.name}`)
+  const result = processEvent(event)
+  if (!result.success) logger.error(`Failed: ${result.error}`)
+  return result
+}
+
+// Lines 33-40: Cleanup utilities (collapsed)
+export function clearAllHandlers(): void {
+  emitter.removeAllListeners()
+}
+
+export function getHandlerCount(eventName: string): number {
+  return emitter.listenerCount(eventName)
+}
 ```
 ````
+
+**Result**: Only lines 8-14 and 26-32 are visible—the two key functions readers need. Everything else is collapsed but expandable.
 
 **Collapsing Partial Code:**
 
