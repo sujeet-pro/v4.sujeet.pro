@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from "astro:transitions"
 import "@/styles/global.css"
 import Header from "./header.astro"
 import Footer from "./footer.astro"
@@ -34,6 +35,7 @@ const searchIndexPath = getFilePath("search/index.json")
 <!doctype html>
 <html lang="en">
   <head>
+    <ClientRouter />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />

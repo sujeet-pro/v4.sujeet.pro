@@ -38,7 +38,7 @@ const sortedContent = [...content].sort((a, b) => b.publishedOn.getTime() - a.pu
 ---
 
 <Layout title={`Tag: ${tag.name}`} description={`Content tagged with ${tag.name}`} {crumbs} pageType="default">
-  <h1 class="page-title">#{tag.name}</h1>
+  <h1 class="page-title" transition:animate="fade">#{tag.name}</h1>
   <p class="page-description">{sortedContent.length} items</p>
 
   <ul class="content-list">

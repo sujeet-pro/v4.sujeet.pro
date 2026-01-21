@@ -31,7 +31,7 @@ const crumbs = [{ name: parentLabel, href: `/posts/${postType}` }]
 ---
 
 <Layout title={category.title} description={category.description} {crumbs} pageType="default">
-  <h1 class="page-title">{category.title}</h1>
+  <h1 class="page-title" transition:animate="fade">{category.title}</h1>
   <p class="page-description">{category.description}</p>
 
   {
