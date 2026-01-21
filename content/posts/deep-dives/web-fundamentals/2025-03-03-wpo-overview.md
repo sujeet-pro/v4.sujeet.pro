@@ -57,7 +57,7 @@ flowchart TB
 
 Infrastructure optimization addresses the foundation of web performance: network protocols, edge computing, and server architecture. Proper infrastructure can reduce TTFB by 85-95% and offload 80%+ of traffic to the edge.
 
-**Detailed coverage**: [Infrastructure Optimization for Web Performance](/posts/deep-dives/web-fundamentals/wpo-infrastructure/)
+**Detailed coverage**: [Infrastructure Optimization for Web Performance](./2025-02-04-wpo-infrastructure.md)
 
 ### Quick Reference
 
@@ -81,7 +81,7 @@ Infrastructure optimization addresses the foundation of web performance: network
 
 JavaScript optimization focuses on reducing bundle size, managing long tasks, and offloading computation. Proper optimization can reduce bundles by 50-80% and keep INP under 200ms.
 
-**Detailed coverage**: [JavaScript Performance Optimization](/posts/deep-dives/web-fundamentals/wpo-js/)
+**Detailed coverage**: [JavaScript Performance Optimization](./2025-01-09-wpo-js.md)
 
 ### Quick Reference
 
@@ -105,7 +105,7 @@ JavaScript optimization focuses on reducing bundle size, managing long tasks, an
 
 CSS and typography optimization targets render-blocking resources, layout stability, and font loading. Proper optimization can achieve sub-14KB critical CSS and zero-CLS font swaps.
 
-**Detailed coverage**: [CSS and Typography Optimization](/posts/deep-dives/web-fundamentals/wpo-css-typography/)
+**Detailed coverage**: [CSS and Typography Optimization](./2024-07-31-wpo-css-typography.md)
 
 ### Quick Reference
 
@@ -130,7 +130,7 @@ CSS and typography optimization targets render-blocking resources, layout stabil
 
 Image optimization delivers the largest bandwidth savings through modern formats, responsive sizing, and strategic loading. Proper optimization achieves 50-80% bandwidth reduction and 40-60% faster LCP.
 
-**Detailed coverage**: [Image Optimization for Web Performance](/posts/deep-dives/web-fundamentals/wpo-images/)
+**Detailed coverage**: [Image Optimization for Web Performance](./2024-07-05-wpo-images.md)
 
 ### Quick Reference
 
@@ -240,10 +240,10 @@ Continuous monitoring ensures optimizations remain effective and regressions are
 
 | Article | Focus Area | Key Topics |
 |---------|------------|------------|
-| [Infrastructure Optimization](/posts/deep-dives/web-fundamentals/wpo-infrastructure/) | Network & Architecture | DNS, HTTP/3, CDN, Edge, BFF, Caching |
-| [JavaScript Optimization](/posts/deep-dives/web-fundamentals/wpo-js/) | Client-side Performance | Code splitting, Workers, React, Scheduling |
-| [CSS & Typography](/posts/deep-dives/web-fundamentals/wpo-css-typography/) | Rendering & Fonts | Critical CSS, Containment, Font loading |
-| [Image Optimization](/posts/deep-dives/web-fundamentals/wpo-images/) | Media Delivery | Formats, Responsive, Lazy loading |
+| [Infrastructure Optimization](./2025-02-04-wpo-infrastructure.md) | Network & Architecture | DNS, HTTP/3, CDN, Edge, BFF, Caching |
+| [JavaScript Optimization](./2025-01-09-wpo-js.md) | Client-side Performance | Code splitting, Workers, React, Scheduling |
+| [CSS & Typography](./2024-07-31-wpo-css-typography.md) | Rendering & Fonts | Critical CSS, Containment, Font loading |
+| [Image Optimization](./2024-07-05-wpo-images.md) | Media Delivery | Formats, Responsive, Lazy loading |
 
 ## References
 

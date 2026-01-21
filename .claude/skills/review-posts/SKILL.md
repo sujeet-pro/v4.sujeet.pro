@@ -64,6 +64,45 @@ content/in-research/**/*[topic]*.md
    - Follow existing format: `{ "id": "slug-format", "name": "Display Name" }`
 5. **Validate** all tags in the post exist in tags.jsonc
 
+### Title Review (IMPORTANT)
+Review the H1 title for quality and appropriateness:
+1. **Accuracy**: Does the title accurately reflect the content?
+2. **Specificity**: Is it specific enough to distinguish from similar topics?
+3. **No clickbait**: Avoid sensationalism, focus on clarity
+4. **Format**: Use descriptive technical titles (e.g., "Node.js Event Loop: Phases, Microtasks, and Common Pitfalls")
+5. **Length**: Keep under 70 characters for SEO, but prioritize clarity
+
+**Good titles:**
+- "Understanding Connection Pooling in PostgreSQL"
+- "HTTP/2 Server Push: Trade-offs and When to Use It"
+- "Distributed Caching Strategies: Redis vs Memcached"
+
+**Bad titles:**
+- "The Complete Guide to Everything You Need to Know About Caching"
+- "Why You Should Use Redis"
+- "Performance Tips"
+
+### Slug Review (IMPORTANT)
+Review the folder slug (the folder name containing the post):
+1. **Match content**: Slug should reflect the main topic
+2. **Concise**: Keep slug short but descriptive (3-5 words max)
+3. **Format**: Use lowercase, hyphens, no special characters
+4. **Date prefix**: Keep the YYYY-MM-DD prefix intact
+5. **Update if needed**: If content has significantly changed, update slug
+
+**Slug format:** `content/posts/[category]/YYYY-MM-DD-[slug]/index.md`
+
+**Examples:**
+- ✅ `2024-03-15-connection-pooling`
+- ✅ `2024-03-15-nodejs-event-loop`
+- ❌ `2024-03-15-the-complete-guide-to-understanding-connection-pooling-in-postgresql`
+- ❌ `2024-03-15-stuff`
+
+**Renaming process:**
+1. Rename the folder with new slug
+2. Update any internal links referencing the old path
+3. Verify build succeeds after rename
+
 ### Structure Analysis
 - [ ] Clear title (H1)
 - [ ] Abstract paragraph (2-4 sentences)
@@ -320,6 +359,28 @@ Always collapse imports and boilerplate.
 
 Delete any manual Table of Contents - it's auto-generated.
 
+#### Updating Title
+
+If the title doesn't accurately reflect the content:
+```markdown
+// Before
+# Performance Tips
+
+// After
+# Browser Rendering Performance: Layout, Paint, and Composite Optimization
+```
+
+#### Updating Slug (Folder Rename)
+
+If the slug doesn't match the content:
+```bash
+# Rename folder
+mv content/posts/web/2024-03-15-tips content/posts/web/2024-03-15-browser-rendering-performance
+
+# Search for any internal links to update
+grep -r "2024-03-15-tips" content/
+```
+
 #### Adding Missing Tags
 
 1. Read `content/tags.jsonc` to get valid tags
@@ -355,6 +416,9 @@ tags:
 - **Wall of text**: No diagrams, tables, or code breaking up prose
 - **Shallow TLDR**: Just a teaser, not comprehensive summary
 - **Missing/invalid tags**: No tags, insufficient tags, or tags not in tags.jsonc
+- **Vague title**: Title doesn't reflect actual content (e.g., "Tips" instead of specific topic)
+- **Mismatched slug**: Folder name doesn't match the content topic
+- **Overly long slug**: Slug exceeds 5 words or includes unnecessary words
 
 ### Tone Anti-Patterns
 - **Too formal**: Academic/corporate speak, passive voice
@@ -370,6 +434,35 @@ tags:
 - **Unidiomatic code**: Not following language conventions
 - **Missing error handling**: Where it would be present in production
 - **Toy examples**: Over-simplified to the point of being misleading
+
+## Internal Linking
+
+When reviewing, verify all internal links use relative paths to `.md` files. This enables IDE navigation (Cmd+Click) and the rehype plugin transforms them to proper URLs at build time.
+
+**Correct format:**
+```markdown
+[Link Text](../YYYY-MM-DD-slug.md)
+[Link Text](../../category/YYYY-MM-DD-slug/index.md)
+```
+
+**Examples:**
+```markdown
+<!-- Correct - relative .md paths -->
+[Web Performance Overview](../2025-03-03-wpo-overview.md)
+[JavaScript Optimization](../2025-01-09-wpo-js.md)
+
+<!-- Wrong formats (flag and fix) -->
+[Wrong](/posts/deep-dives/web-fundamentals/wpo-overview)  <!-- Direct URL, not IDE navigable -->
+[Wrong](wpo-overview)  <!-- Missing .md extension -->
+```
+
+**Key rules:**
+- Use relative paths from current file to target `.md` file
+- Include the full filename with date prefix
+- The rehype plugin transforms these to `/posts/<type>/<category>/<slug>` URLs
+- Enables Cmd+Click navigation in VS Code and other IDEs
+
+**During review:** Convert direct URL links to relative `.md` paths where possible.
 
 ## Reference Documents
 

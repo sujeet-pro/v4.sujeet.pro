@@ -449,6 +449,10 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - **Missing References**: No sources for claims and numbers
 - **Invalid tags**: Tags not in tags.jsonc, using display names instead of IDs
 - **Missing tags**: No tags or missing system-design/architecture base tags
+- **Generic title**: "System Design" or "Architecture Guide" without specific system
+- **Tutorial-style title**: "How to Design..." instead of direct topic
+- **Generic slug**: "system-design" or "design" without identifying the system
+- **Overly long slug**: Including unnecessary words like "designing-a-highly-scalable..."
 
 ## Save Document
 
@@ -463,6 +467,47 @@ tags:
   - distributed-systems
 ---
 ```
+
+### Title Selection (IMPORTANT)
+
+Choose a title that captures the system and core challenge:
+
+1. **Format**: "[System Name]: A Deep Dive into [Core Challenge]"
+2. **Be specific**: Focus on the interesting technical challenge, not generic "design"
+3. **No clickbait**: Avoid "Ultimate Guide" or "Everything You Need to Know"
+4. **Length**: Under 70 characters for SEO, but prioritize clarity
+
+**Good titles:**
+- "URL Shortener: Designing for Billions of Redirects"
+- "Rate Limiter Design: Distributed Algorithms and Trade-offs"
+- "Message Queue Architecture: Durability vs Throughput"
+- "Notification System: Real-time Delivery at Scale"
+
+**Bad titles:**
+- "How to Design a URL Shortener" (tutorial-style)
+- "Complete System Design Guide" (too vague)
+- "Building Scalable Systems" (not specific to a system)
+- "Everything About Message Queues" (too broad)
+
+### Slug Selection (IMPORTANT)
+
+Choose a folder slug that identifies the system:
+
+1. **Format**: `YYYY-MM-DD-[system-name]` or `YYYY-MM-DD-[system-name]-design`
+2. **Concise**: 2-4 words maximum
+3. **System-focused**: Name the system, not the challenge
+4. **Lowercase**: Use hyphens, no special characters
+
+**Good slugs:**
+- `2024-03-15-url-shortener`
+- `2024-03-15-rate-limiter`
+- `2024-03-15-notification-system`
+- `2024-03-15-distributed-cache`
+
+**Bad slugs:**
+- `2024-03-15-system-design` (too generic)
+- `2024-03-15-designing-a-highly-scalable-url-shortening-service` (too long)
+- `2024-03-15-design` (meaningless)
 
 ### Tag Selection (IMPORTANT)
 
@@ -479,6 +524,27 @@ tags:
    - Place new tag in appropriate category section
    - Follow existing format: `{ "id": "slug-format", "name": "Display Name" }`
 5. **Validate** all tags exist in tags.jsonc before using them
+
+## Internal Linking
+
+When referencing other posts, use relative paths to `.md` files. This enables IDE navigation (Cmd+Click) and the rehype plugin transforms them to proper URLs at build time.
+
+```markdown
+[Link Text](../YYYY-MM-DD-slug.md)
+[Link Text](../../category/YYYY-MM-DD-slug/index.md)
+```
+
+**Examples:**
+```markdown
+[Caching Strategies](../../system-design-fundamentals/2024-12-06-caching.md)
+[URL Shortener Design](../2024-03-15-url-shortener.md)
+```
+
+**Key rules:**
+- Use relative paths from current file to target `.md` file
+- Include the full filename with date prefix
+- The rehype plugin transforms these to `/posts/<type>/<category>/<slug>` URLs
+- Enables Cmd+Click navigation in VS Code and other IDEs
 
 ## Reference Documents
 

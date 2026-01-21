@@ -399,6 +399,50 @@ tags:
 ---
 ```
 
+### Title Selection (IMPORTANT)
+
+Choose a title that accurately represents the content:
+
+1. **Be specific**: "Node.js Event Loop: Phases, Microtasks, and Common Pitfalls" not "Node.js Guide"
+2. **Reflect actual content**: Title must match what the article covers
+3. **No clickbait**: Avoid sensationalism, focus on clarity and accuracy
+4. **Format options**:
+   - Topic + Colon + Specifics: "Redis Caching: Strategies, Pitfalls, and Best Practices"
+   - Question format: "How Does the Node.js Event Loop Work?"
+   - Direct statement: "Understanding Connection Pooling in PostgreSQL"
+5. **Length**: Under 70 characters for SEO, but prioritize clarity over length
+
+**Good titles:**
+- "Browser Rendering Pipeline: Layout, Paint, and Composite"
+- "Distributed Locking with Redis: Implementation and Gotchas"
+- "PostgreSQL MVCC: How Transactions See Data"
+
+**Bad titles:**
+- "Complete Guide to Redis" (too vague)
+- "Everything About Databases" (too broad)
+- "Tips and Tricks" (not descriptive)
+- "The Ultimate Performance Guide You Need" (clickbait)
+
+### Slug Selection (IMPORTANT)
+
+Choose a folder slug that matches the content:
+
+1. **Format**: `YYYY-MM-DD-[slug]` (e.g., `2024-03-15-nodejs-event-loop`)
+2. **Concise**: 3-5 words maximum
+3. **Descriptive**: Should hint at the topic
+4. **Lowercase**: Use hyphens, no special characters
+5. **Match title**: Slug should align with the title topic
+
+**Good slugs:**
+- `2024-03-15-nodejs-event-loop`
+- `2024-03-15-redis-distributed-locking`
+- `2024-03-15-postgres-mvcc`
+
+**Bad slugs:**
+- `2024-03-15-guide` (too vague)
+- `2024-03-15-the-complete-comprehensive-guide-to-understanding-nodejs-event-loop` (too long)
+- `2024-03-15-stuff` (meaningless)
+
 ### Tag Selection (IMPORTANT)
 
 1. **Read** `content/tags.jsonc` to get all valid tag IDs
@@ -441,6 +485,10 @@ tags:
 - **No overview diagram**: Complex topics need visual context
 - **Invalid tags**: Tags not in tags.jsonc, using display names instead of IDs
 - **Missing tags**: No tags or insufficient tags for content topics
+- **Vague title**: Generic titles like "Guide", "Tips", "Overview" without specifics
+- **Clickbait title**: Sensationalist titles that don't match content depth
+- **Mismatched slug**: Folder name doesn't reflect the actual content
+- **Overly long slug**: Slug exceeds 5 words or contains unnecessary words
 
 ### Tone Anti-Patterns
 - **Too formal**: Academic/corporate speak, excessive passive voice
@@ -456,6 +504,28 @@ tags:
 - **Missing context**: Code without title or explanation
 - **Toy examples**: Over-simplified to point of being misleading
 - **Outdated information**: Old versions, deprecated patterns
+
+## Internal Linking
+
+When referencing other posts, use relative paths to `.md` files. This enables IDE navigation (Cmd+Click) and the rehype plugin transforms them to proper URLs at build time.
+
+```markdown
+[Link Text](../YYYY-MM-DD-slug.md)
+[Link Text](../../category/YYYY-MM-DD-slug/index.md)
+```
+
+**Examples:**
+```markdown
+[Web Performance Overview](../2025-03-03-wpo-overview.md)
+[JavaScript Optimization](../2025-01-09-wpo-js.md)
+[Caching Strategies](../../system-design-fundamentals/2024-12-06-caching.md)
+```
+
+**Key rules:**
+- Use relative paths from current file to target `.md` file
+- Include the full filename with date prefix
+- The rehype plugin transforms these to `/posts/<type>/<category>/<slug>` URLs
+- Enables Cmd+Click navigation in VS Code and other IDEs
 
 ## Reference Documents
 

@@ -21,7 +21,7 @@ tags:
 
 Master infrastructure optimization strategies including DNS optimization, HTTP/3 adoption, CDN configuration, edge computing, caching strategies, and modern architectural patterns for building high-performance web applications with sub-100ms TTFB.
 
-> Part of the [Web Performance Optimization series](/posts/deep-dives/web-fundamentals/wpo-overview/). See also: [JavaScript](/posts/deep-dives/web-fundamentals/wpo-js/), [CSS & Typography](/posts/deep-dives/web-fundamentals/wpo-css-typography/), [Images](/posts/deep-dives/web-fundamentals/wpo-images/).
+> Part of the [Web Performance Optimization series](./2025-03-03-wpo-overview.md). See also: [JavaScript](./2025-01-09-wpo-js.md), [CSS & Typography](./2024-07-31-wpo-css-typography.md), [Images](./2024-07-05-wpo-images.md).
 
 <figure>
 

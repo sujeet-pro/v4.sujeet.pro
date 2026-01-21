@@ -127,6 +127,36 @@ For each article, execute ALL of the following checks:
    - Follow existing format: `{ "id": "slug-format", "name": "Display Name" }`
 5. **Validate** all tags in the post exist in tags.jsonc
 
+#### 3.1.2 Title Review (IMPORTANT)
+Review the H1 title for quality and appropriateness:
+- [ ] Title accurately reflects the content
+- [ ] Specific enough to distinguish from similar topics
+- [ ] No clickbait or sensationalism
+- [ ] Under 70 characters (SEO), but prioritize clarity
+- [ ] Uses descriptive technical format
+
+**Update title if:**
+- Content has evolved beyond original title scope
+- Title is too vague (e.g., "Tips" instead of specific topic)
+- Title doesn't match what the article actually covers
+
+#### 3.1.3 Slug Review (IMPORTANT)
+Review the folder slug (folder name containing the post):
+- [ ] Slug reflects main topic
+- [ ] Concise (3-5 words max)
+- [ ] Lowercase with hyphens, no special characters
+- [ ] Date prefix intact (YYYY-MM-DD)
+
+**Rename folder if:**
+- Content topic has significantly changed
+- Slug is too vague or generic
+- Slug doesn't match updated title
+
+**Renaming process:**
+1. Rename folder with new slug
+2. Update any internal links referencing old path
+3. Verify build succeeds
+
 #### 3.2 Structure Analysis
 - [ ] Clear title (H1) - descriptive, not clickbait
 - [ ] Abstract paragraph (2-4 sentences) - sets context
@@ -472,6 +502,13 @@ npm run validate:build
 - [ ] New tags added to tags.jsonc if needed
 - [ ] Existing tags NOT removed
 
+### Title & Slug
+
+- [ ] Title accurately reflects content
+- [ ] Title is specific and descriptive
+- [ ] Slug matches content topic
+- [ ] Slug is concise (3-5 words)
+
 ## Example Session
 
 ### Dry Run
@@ -522,6 +559,35 @@ Found **24** articles. Auto-fixing enabled.
 ## Final Summary
 [Complete report]
 ```
+
+## Internal Linking
+
+When reviewing, verify all internal links use relative paths to `.md` files. This enables IDE navigation (Cmd+Click) and the rehype plugin transforms them to proper URLs at build time.
+
+**Correct format:**
+```markdown
+[Link Text](../YYYY-MM-DD-slug.md)
+[Link Text](../../category/YYYY-MM-DD-slug/index.md)
+```
+
+**Examples:**
+```markdown
+<!-- Correct - relative .md paths -->
+[Web Performance Overview](../2025-03-03-wpo-overview.md)
+[JavaScript Optimization](../2025-01-09-wpo-js.md)
+
+<!-- Wrong formats (flag and fix) -->
+[Wrong](/posts/deep-dives/web-fundamentals/wpo-overview)  <!-- Direct URL, not IDE navigable -->
+[Wrong](wpo-overview)  <!-- Missing .md extension -->
+```
+
+**Key rules:**
+- Use relative paths from current file to target `.md` file
+- Include the full filename with date prefix
+- The rehype plugin transforms these to `/posts/<type>/<category>/<slug>` URLs
+- Enables Cmd+Click navigation in VS Code and other IDEs
+
+**During review:** Convert direct URL links to relative `.md` paths where possible.
 
 ## Reference Documents
 
