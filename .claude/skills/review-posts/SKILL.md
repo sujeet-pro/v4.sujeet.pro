@@ -51,6 +51,19 @@ content/in-research/**/*[topic]*.md
 - [ ] Tags from `content/tags.jsonc` (NOT `src/content/tags.json`)
 - [ ] Valid YAML frontmatter
 
+### Tag Review (IMPORTANT)
+1. **Read** `content/tags.jsonc` to get all valid tag IDs
+2. **Analyze** post content to identify relevant topics
+3. **Add relevant tags** that match the post content:
+   - Use tag `id` values (e.g., `web-performance`, not `Web Performance`)
+   - Add all applicable tags based on content topics
+   - **NEVER remove existing tags** from the post
+4. **Add new tags to tags.jsonc** if needed:
+   - If a relevant topic has no matching tag, add it to `content/tags.jsonc`
+   - Place new tag in appropriate category section
+   - Follow existing format: `{ "id": "slug-format", "name": "Display Name" }`
+5. **Validate** all tags in the post exist in tags.jsonc
+
 ### Structure Analysis
 - [ ] Clear title (H1)
 - [ ] Abstract paragraph (2-4 sentences)
@@ -284,6 +297,18 @@ Always collapse imports and boilerplate.
 
 Delete any manual Table of Contents - it's auto-generated.
 
+#### Adding Missing Tags
+
+1. Read `content/tags.jsonc` to get valid tags
+2. Identify topics covered in the post
+3. Add relevant tag IDs to frontmatter:
+```yaml
+tags:
+  - existing-tag  # Keep existing
+  - new-relevant-tag  # Add relevant tags
+```
+4. If a relevant topic has no tag, add it to `content/tags.jsonc` first
+
 ## Anti-Patterns to Flag (CRITICAL)
 
 ### Content Anti-Patterns
@@ -305,6 +330,7 @@ Delete any manual Table of Contents - it's auto-generated.
 - **Missing References section**: No sources cited
 - **Wall of text**: No diagrams, tables, or code breaking up prose
 - **Shallow TLDR**: Just a teaser, not comprehensive summary
+- **Missing/invalid tags**: No tags, insufficient tags, or tags not in tags.jsonc
 
 ### Tone Anti-Patterns
 - **Too formal**: Academic/corporate speak, passive voice

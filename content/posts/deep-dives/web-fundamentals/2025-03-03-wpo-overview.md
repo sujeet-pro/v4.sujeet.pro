@@ -24,6 +24,38 @@ featuredRank: 1
 
 Advanced techniques for optimizing web application performance across infrastructure, frontend, and modern browser capabilities. Covers Islands Architecture, HTTP/3, edge computing, JavaScript optimization, CSS rendering, image formats, font loading, caching strategies, and performance monitoring.
 
+<figure>
+
+```mermaid
+flowchart TB
+    subgraph "Performance Layers"
+        direction LR
+        ARCH["Architecture<br/>Islands, BFF, Edge"]
+        INFRA["Infrastructure<br/>HTTP/3, CDN, DNS"]
+        ASSETS["Assets<br/>JS, CSS, Images, Fonts"]
+        MONITOR["Monitoring<br/>CWV, RUM, Budgets"]
+    end
+
+    ARCH --> INFRA
+    INFRA --> ASSETS
+    ASSETS --> MONITOR
+    MONITOR -->|Feedback| ARCH
+
+    subgraph "Target Metrics"
+        LCP["LCP <2.5s"]
+        INP["INP <200ms"]
+        CLS["CLS <0.1"]
+    end
+
+    ASSETS --> LCP
+    ARCH --> INP
+    ASSETS --> CLS
+```
+
+<figcaption>Web performance optimization ecosystem covering architecture patterns, infrastructure, asset optimization, and continuous monitoring</figcaption>
+
+</figure>
+
 ## Executive Summary
 
 Web performance optimization is a multi-layered discipline that requires expertise across infrastructure, network protocols, asset optimization, and modern browser capabilities. This comprehensive guide synthesizes advanced techniques from architectural patterns to granular optimizations, providing a complete framework for building high-performance web applications.
@@ -1231,3 +1263,15 @@ The modern web performance landscape requires sophisticated understanding of bro
 Remember that performance optimization is an iterative process. Start with measurement, identify the biggest bottlenecks, apply targeted optimizations, and measure again. The comprehensive checklist provided offers a systematic approach to ensuring your applications leverage all available optimization opportunities for maximum performance impact.
 
 As web applications continue to grow in complexity, staying current with emerging browser APIs and optimization techniques becomes increasingly important. The techniques and patterns presented here provide a solid foundation for building performant web applications that deliver exceptional user experiences across all devices and network conditions.
+
+## References
+
+- [Core Web Vitals](https://web.dev/articles/vitals) - Google's essential metrics for user experience
+- [Astro Islands Architecture](https://docs.astro.build/en/concepts/islands/) - Partial hydration documentation
+- [HTTP/3 Explained](https://http3-explained.haxx.se/) - QUIC and HTTP/3 guide
+- [Web Workers API - MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) - Background thread processing
+- [CSS Containment - MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment) - Layout optimization
+- [Responsive Images - MDN](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) - Image optimization guide
+- [Variable Fonts - MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide) - Font optimization
+- [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci) - Performance testing in CI/CD
+- [size-limit](https://github.com/ai/size-limit) - Bundle size monitoring

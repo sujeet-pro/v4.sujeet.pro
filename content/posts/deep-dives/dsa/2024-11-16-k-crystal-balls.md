@@ -11,6 +11,59 @@ tags:
 
 This note explains how to derive the optimal jump size of `n^(1/k)` for the k-crystal-balls problem.
 
+<figure>
+
+```mermaid
+flowchart LR
+    subgraph "k=1"
+        L1["Linear O(n)"]
+    end
+
+    subgraph "k=2"
+        J2["Jump √n"] --> L2["Linear √n"]
+        style J2 fill:#e3f2fd
+    end
+
+    subgraph "k=3"
+        J31["Jump n^(2/3)"] --> J32["Jump n^(1/3)"] --> L3["Linear n^(1/3)"]
+        style J31 fill:#e8f5e9
+        style J32 fill:#e8f5e9
+    end
+
+    subgraph "Complexity"
+        C1["O(n)"]
+        C2["O(√n)"]
+        C3["O(n^(1/3))"]
+    end
+```
+
+<figcaption>K crystal balls problem: more balls enable larger jumps, reducing worst-case complexity from O(n) to O(n^(1/k))</figcaption>
+
+</figure>
+
+## TLDR
+
+**K Crystal Balls** is an optimization problem demonstrating how additional resources (balls) enable more aggressive search strategies.
+
+### Core Formula
+
+- **Jump size**: n^(1/k) where k = number of balls
+- **Worst-case drops**: k × n^(1/k)
+- **Complexity**: O(n^(1/k)) for fixed k
+
+### Key Cases
+
+- **k=1**: Linear search only, O(n) drops (can't risk breaking the single ball)
+- **k=2**: Jump by √n, then linear search; 2√n drops worst case
+- **k=3**: Two jump phases then linear; 3 × ∛n drops worst case
+- **k=∞**: Binary search, O(log n) drops
+
+### The Insight
+
+- Balance work across all k phases by making each phase do equal work
+- If phases are unequal, redistribute effort to minimize the maximum
+- Setting all terms equal gives n/j₁ = j₁/j₂ = ... = j_{k-1} = x, solving to x = n^(1/k)
+
 ## Problem Recap
 
 Given `k` identical crystal balls and a building with `n` floors, find the exact floor where balls start breaking using the minimum number of drops in the **worst case**.

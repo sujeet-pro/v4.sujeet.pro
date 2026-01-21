@@ -939,3 +939,12 @@ Microfrontends offer a powerful path to building scalable, maintainable, and res
 By deliberately choosing the architecture that best aligns with your organization's specific needs, you can unlock the full potential of this transformative approach. The key is to start with a clear understanding of your goals, constraints, and team capabilities, then select the composition strategy that provides the best balance of performance, maintainability, and developer experience for your specific use case.
 
 Remember that microfrontends are not just a technical decision—they're an organizational decision that requires changes to how teams work together, how code is deployed, and how applications are architected. With the right approach and careful implementation, microfrontends can enable unprecedented scalability and team autonomy in frontend development.
+
+## References
+
+- [Micro Frontends](https://micro-frontends.org/) - Techniques, strategies and recipes for building a modern web app with multiple teams
+- [Martin Fowler - Micro Frontends](https://martinfowler.com/articles/micro-frontends.html) - Defining the approach and patterns
+- [Webpack Module Federation](https://webpack.js.org/concepts/module-federation/) - Official documentation for Module Federation
+- [single-spa Framework](https://single-spa.js.org/) - A javascript framework for front-end microservices
+- [Web Components](https://developer.mozilla.org/en-US/docs/Web/API/Web_components) - MDN documentation on Web Components standards
+- [Cloudflare Workers](https://developers.cloudflare.com/workers/) - Edge computing platform for serverless functions

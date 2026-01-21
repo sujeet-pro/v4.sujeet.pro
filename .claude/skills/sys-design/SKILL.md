@@ -401,6 +401,14 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - [ ] Code/config blocks use collapse for boilerplate
 - [ ] References section complete with authoritative sources
 
+### Tags
+- [ ] All tags valid (exist in `content/tags.jsonc`)
+- [ ] Includes `system-design` and `architecture` tags
+- [ ] Domain-specific tags added (caching, scalability, etc.)
+- [ ] Technology tags added if discussed (redis, postgres, etc.)
+- [ ] New tags added to tags.jsonc if needed
+- [ ] Uses tag IDs, not display names
+
 ## Anti-Patterns to Avoid (STRICT)
 
 ### Content Anti-Patterns
@@ -437,6 +445,8 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - **Wall of text**: No tables, diagrams, or code breaking up prose
 - **Shallow TLDR**: Just a teaser, not comprehensive summary
 - **Missing References**: No sources for claims and numbers
+- **Invalid tags**: Tags not in tags.jsonc, using display names instead of IDs
+- **Missing tags**: No tags or missing system-design/architecture base tags
 
 ## Save Document
 
@@ -451,6 +461,22 @@ tags:
   - distributed-systems
 ---
 ```
+
+### Tag Selection (IMPORTANT)
+
+1. **Read** `content/tags.jsonc` to get all valid tag IDs
+2. **Analyze** document content to identify relevant topics
+3. **Add relevant tags** that match the content:
+   - Always include: `system-design`, `architecture`
+   - Add domain-specific tags (e.g., `caching`, `distributed-systems`, `scalability`)
+   - Add technology tags if discussed (e.g., `redis`, `postgres`, `aws`)
+   - Use tag `id` values (e.g., `web-performance`, not `Web Performance`)
+   - Typically 4-10 tags per system design document
+4. **Add new tags to tags.jsonc** if needed:
+   - If a relevant topic has no matching tag, add it to `content/tags.jsonc` first
+   - Place new tag in appropriate category section
+   - Follow existing format: `{ "id": "slug-format", "name": "Display Name" }`
+5. **Validate** all tags exist in tags.jsonc before using them
 
 ## Reference Documents
 

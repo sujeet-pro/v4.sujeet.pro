@@ -114,6 +114,19 @@ For each article, execute ALL of the following checks:
 - [ ] Valid YAML frontmatter
 - [ ] Date in folder name matches content
 
+#### 3.1.1 Tag Review (IMPORTANT)
+1. **Read** `content/tags.jsonc` to get all valid tag IDs
+2. **Analyze** post content to identify relevant topics
+3. **Add relevant tags** that match the post content:
+   - Use tag `id` values (e.g., `web-performance`, not `Web Performance`)
+   - Add all applicable tags based on content topics
+   - **NEVER remove existing tags** from the post
+4. **Add new tags to tags.jsonc** if needed:
+   - If a relevant topic has no matching tag, add it to `content/tags.jsonc`
+   - Place new tag in appropriate category section
+   - Follow existing format: `{ "id": "slug-format", "name": "Display Name" }`
+5. **Validate** all tags in the post exist in tags.jsonc
+
 #### 3.2 Structure Analysis
 - [ ] Clear title (H1) - descriptive, not clickbait
 - [ ] Abstract paragraph (2-4 sentences) - sets context
@@ -442,6 +455,13 @@ npm run validate:build
 - [ ] No manual ToC
 - [ ] References section
 - [ ] Proper hierarchy
+
+### Tags
+
+- [ ] All tags valid (exist in `content/tags.jsonc`)
+- [ ] Relevant tags added based on content
+- [ ] New tags added to tags.jsonc if needed
+- [ ] Existing tags NOT removed
 
 ## Example Session
 

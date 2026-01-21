@@ -19,6 +19,45 @@ featuredRank: 1
 
 Master advanced web performance patterns including Islands Architecture, caching strategies, performance monitoring, and CI/CD automation for building high-performance web applications.
 
+<figure>
+
+```mermaid
+flowchart TB
+    subgraph Architecture["Architectural Patterns"]
+        direction LR
+        Islands["Islands Architecture"]
+        Resume["Resumability"]
+        BFF["Backend for Frontend"]
+        Edge["Edge Computing"]
+    end
+
+    subgraph Optimization["Optimization Techniques"]
+        direction LR
+        Cache["Multi-Layer Caching"]
+        Budget["Performance Budgets"]
+        ThirdParty["Third-Party Management"]
+    end
+
+    subgraph Monitoring["Performance Management"]
+        direction LR
+        RUM["Real User Monitoring"]
+        CI["CI/CD Automation"]
+        Alerts["Automated Alerting"]
+    end
+
+    Architecture --> Optimization
+    Optimization --> Monitoring
+    Monitoring --> |Feedback Loop| Architecture
+
+    style Islands fill:#e1f5fe
+    style Resume fill:#f3e5f5
+    style BFF fill:#e8f5e9
+    style Edge fill:#fff3e0
+```
+
+<figcaption>Web performance optimization ecosystem showing the relationship between architectural patterns, optimization techniques, and performance management</figcaption>
+
+</figure>
 
 ## TLDR; Strategic Performance Architecture
 
@@ -1008,3 +1047,14 @@ The techniques presented typically yield 40-70% improvement in page load times, 
 The modern web performance landscape requires sophisticated understanding of browser internals, network protocols, and system architecture. By applying the advanced techniques and understanding the trade-offs outlined in this guide, development teams can build applications that are not just fast, but sustainably performant across diverse user conditions and device capabilities.
 
 Remember that performance optimization is not a one-time task but an ongoing discipline that must evolve with changing user expectations, device capabilities, and web platform features. The techniques presented here provide a foundation for building this discipline within development teams.
+
+## References
+
+- [Web Vitals](https://web.dev/articles/vitals) - Google's guide to Core Web Vitals metrics
+- [Astro Islands Architecture](https://docs.astro.build/en/concepts/islands/) - Astro's implementation of partial hydration
+- [Qwik Resumability](https://qwik.dev/docs/concepts/resumable/) - Zero-hydration approach documentation
+- [Workbox](https://developer.chrome.com/docs/workbox) - Service worker caching strategies
+- [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci) - Automated performance testing in CI/CD
+- [Partytown](https://partytown.builder.io/) - Off-main thread third-party script execution
+- [size-limit](https://github.com/ai/size-limit) - JavaScript bundle size monitoring tool
+- [HTTP 103 Early Hints](https://developer.chrome.com/docs/web-platform/early-hints) - Server think-time optimization

@@ -11,6 +11,68 @@ tags:
 
 A comprehensive guide to sorting algorithms covering fundamental concepts, implementation details, performance characteristics, and real-world applications. Learn when to use each algorithm and understand the engineering trade-offs behind production sorting implementations.
 
+<figure>
+
+```mermaid
+flowchart TB
+    subgraph "Comparison Sorts O(n log n)"
+        direction LR
+        QS["Quick Sort<br/>In-place, Cache-friendly"]
+        MS["Merge Sort<br/>Stable, External"]
+        HS["Heap Sort<br/>Guaranteed O(n log n)"]
+    end
+
+    subgraph "Linear Time Sorts O(n)"
+        direction LR
+        CS["Counting Sort<br/>Small range integers"]
+        RS["Radix Sort<br/>Fixed-width keys"]
+        BS["Bucket Sort<br/>Uniform distribution"]
+    end
+
+    subgraph "Simple Sorts O(n²)"
+        direction LR
+        IS["Insertion Sort<br/>Small arrays, adaptive"]
+        SS["Selection Sort<br/>Minimal swaps"]
+    end
+
+    QS -->|"Production hybrid"| IS
+    MS -->|"Tim Sort"| IS
+```
+
+<figcaption>Sorting algorithm taxonomy showing complexity classes and key characteristics</figcaption>
+
+</figure>
+
+## TLDR
+
+**Sorting algorithms** organize data with different trade-offs between time complexity, space usage, stability, and cache efficiency.
+
+### Algorithm Selection
+
+- **General purpose**: Quick Sort (randomized pivot) offers best practical performance
+- **Stability required**: Merge Sort maintains relative order of equal elements
+- **Small arrays (n < 50)**: Insertion Sort beats complex algorithms due to lower overhead
+- **Guaranteed worst-case**: Heap Sort provides O(n log n) with O(1) space
+
+### Linear-Time Alternatives
+
+- **Counting Sort**: O(n + k) for integers with small range k; stable and fast
+- **Radix Sort**: O(d × n) for d-digit integers; sorts digit-by-digit
+- **Bucket Sort**: O(n) average for uniformly distributed data; degrades to O(n²) if skewed
+
+### Production Realities
+
+- **Tim Sort**: Python/Java hybrid of Merge Sort + Insertion Sort; exploits existing order
+- **Introsort**: C++ STL uses Quick Sort + Heap Sort + Insertion Sort; guarantees O(n log n)
+- **Cache locality**: Quick Sort's sequential access pattern is 2-3× faster than Heap Sort in practice
+- **The O(n log n) barrier**: Comparison-based sorting cannot do better (log₂(n!) comparisons needed)
+
+### Key Trade-offs
+
+- **Time vs Space**: Merge Sort uses O(n) extra space for guaranteed O(n log n)
+- **Stability vs Speed**: Quick Sort is faster but unstable; Merge Sort is stable but uses more memory
+- **Worst case vs Average**: Quick Sort O(n²) worst but randomization makes it practically impossible
+
 ## Core Philosophies
 
 ### The Fundamental Trade-offs
@@ -1168,3 +1230,12 @@ Guarantees O(n log n) worst case while being practical.
 5. **Use sorting as a tool**: Many complex problems become trivial after sorting (interval merging, finding duplicates, etc.)
 
 The best sorting algorithm isn't determined by theoretical complexity alone—it depends on data characteristics, system constraints, and practical performance requirements.
+
+## References
+
+- [Tim Sort](https://en.wikipedia.org/wiki/Timsort) - Python and Java's hybrid sorting algorithm
+- [Introsort](https://en.wikipedia.org/wiki/Introsort) - C++ STL's introspective sort implementation
+- [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/) - Comprehensive algorithm analysis
+- [The Art of Computer Programming, Vol. 3](https://www-cs-faculty.stanford.edu/~knuth/taocp.html) - Knuth's definitive sorting reference
+- [Pattern-defeating Quicksort](https://github.com/orlp/pdqsort) - Go and Rust's optimized quicksort
+- [V8 Array.sort() Implementation](https://v8.dev/blog/array-sort) - JavaScript engine sorting internals

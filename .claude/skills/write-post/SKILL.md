@@ -349,6 +349,12 @@ The event loop uses a single thread for JavaScript execution but delegates I/O t
 - [ ] References section complete
 - [ ] Text diagrams use `plain`
 
+### Tags
+- [ ] All tags valid (exist in `content/tags.jsonc`)
+- [ ] Relevant tags added based on content (typically 3-8)
+- [ ] New tags added to tags.jsonc if needed
+- [ ] Uses tag IDs, not display names
+
 ## Phase 6: Save Article
 
 Move from drafts to production:
@@ -364,6 +370,20 @@ tags:
   - tag-two
 ---
 ```
+
+### Tag Selection (IMPORTANT)
+
+1. **Read** `content/tags.jsonc` to get all valid tag IDs
+2. **Analyze** post content to identify relevant topics
+3. **Add relevant tags** that match the post content:
+   - Use tag `id` values (e.g., `web-performance`, not `Web Performance`)
+   - Add all applicable tags (typically 3-8 tags per post)
+   - Include both broad tags (e.g., `frontend`) and specific tags (e.g., `react`)
+4. **Add new tags to tags.jsonc** if needed:
+   - If a relevant topic has no matching tag, add it to `content/tags.jsonc` first
+   - Place new tag in appropriate category section
+   - Follow existing format: `{ "id": "slug-format", "name": "Display Name" }`
+5. **Validate** all tags exist in tags.jsonc before using them
 
 3. Copy images/assets
 4. Verify build: `npm run build`
@@ -390,6 +410,8 @@ tags:
 - **Missing references**: Every article needs complete References section
 - **Shallow TLDR**: Must be comprehensive, not just a teaser
 - **No overview diagram**: Complex topics need visual context
+- **Invalid tags**: Tags not in tags.jsonc, using display names instead of IDs
+- **Missing tags**: No tags or insufficient tags for content topics
 
 ### Tone Anti-Patterns
 - **Too formal**: Academic/corporate speak, excessive passive voice

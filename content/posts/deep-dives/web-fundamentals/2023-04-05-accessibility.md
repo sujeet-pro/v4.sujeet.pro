@@ -2,12 +2,9 @@
 lastReviewedOn: 2026-01-21
 tags:
   - accessibility
-  - a11y
-  - wcag
-  - aria
   - frontend
   - html
-  - ux
+  - web
 ---
 
 # Web Accessibility

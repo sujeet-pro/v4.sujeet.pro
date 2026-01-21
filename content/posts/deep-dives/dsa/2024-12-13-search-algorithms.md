@@ -13,6 +13,68 @@ tags:
 
 A comprehensive guide to search algorithms covering fundamental concepts, implementation details, performance characteristics, and real-world applications. Learn when to use each algorithm and understand the engineering trade-offs behind production search implementations.
 
+<figure>
+
+```mermaid
+flowchart TB
+    subgraph "Array Search"
+        direction LR
+        LS["Linear O(n)<br/>Unsorted"]
+        BS["Binary O(log n)<br/>Sorted"]
+        JS["Jump O(√n)<br/>Disk-friendly"]
+        IS["Interpolation O(log log n)<br/>Uniform data"]
+    end
+
+    subgraph "Graph Search"
+        direction LR
+        BFS["BFS O(V+E)<br/>Shortest path"]
+        DFS["DFS O(V+E)<br/>Memory efficient"]
+        DIJ["Dijkstra O((V+E)logV)<br/>Weighted"]
+        ASTAR["A* O(E)<br/>Heuristic-guided"]
+    end
+
+    LS -->|"Sort first"| BS
+    BFS -->|"Add weights"| DIJ
+    DIJ -->|"Add heuristic"| ASTAR
+```
+
+<figcaption>Search algorithm taxonomy showing array and graph search strategies with their complexity characteristics</figcaption>
+
+</figure>
+
+## TLDR
+
+**Search algorithms** find elements in data structures with different trade-offs between preprocessing, query time, and optimality.
+
+### Array Search Strategies
+
+- **Linear Search**: O(n) but works on unsorted data; use for small arrays or single queries
+- **Binary Search**: O(log n) requires sorted data; the standard for large sorted datasets
+- **Jump Search**: O(√n) with fewer random accesses; better for disk-based searches
+- **Interpolation Search**: O(log log n) average for uniformly distributed data; O(n) worst case
+
+### Graph Search Strategies
+
+- **BFS**: Level-by-level exploration; guarantees shortest path in unweighted graphs
+- **DFS**: Deep exploration with backtracking; O(h) space vs BFS's O(width)
+- **Dijkstra**: Shortest path in weighted graphs; requires non-negative weights
+- **A***: Dijkstra with heuristic guidance; faster when good heuristic available
+
+### When to Use What
+
+- **Unweighted shortest path**: BFS (guaranteed optimal)
+- **Any path / cycle detection**: DFS (memory efficient)
+- **Weighted shortest path**: Dijkstra (no heuristic) or A* (with heuristic)
+- **Sorted array lookup**: Binary Search (guaranteed O(log n))
+- **Unsorted single query**: Linear Search (no preprocessing cost)
+
+### Key Trade-offs
+
+- **Preprocessing vs Query Time**: Binary search needs sorted data but fast queries
+- **Completeness vs Optimality**: DFS finds any path; BFS finds shortest
+- **Space vs Time**: BFS uses O(width) space; DFS uses O(depth)
+- **Informed vs Uninformed**: A* with good heuristic dramatically outperforms Dijkstra
+
 ## Core Philosophies
 
 ### The Fundamental Trade-offs
@@ -1813,3 +1875,13 @@ function dfsLimited(
 - **Binary search on answer**: "Find minimum/maximum value such that condition holds"
 
 The best search algorithm depends on your data structure, query patterns, and constraints—not just theoretical complexity.
+
+## References
+
+- [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/) - Comprehensive algorithm reference
+- [A* Search Algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm) - Heuristic pathfinding
+- [Dijkstra's Algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) - Weighted graph shortest path
+- [Red-Black Trees](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree) - Balanced BST for O(log n) operations
+- [OSPF Protocol](https://datatracker.ietf.org/doc/html/rfc2328) - Dijkstra in network routing
+- [Git Bisect](https://git-scm.com/docs/git-bisect) - Binary search for bug-finding
+- [A* for Video Games](http://theory.stanford.edu/~amitp/GameProgramming/) - Amit's game programming guide
