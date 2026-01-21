@@ -2,6 +2,7 @@
 lastReviewedOn: 2026-01-21
 tags:
   - productivity
+  - browser-apis
 ---
 
 # Chrome Power User Setup
@@ -55,7 +56,7 @@ flowchart LR
 
 - **Desktop app** (`Opt + Space`) for quick questions without context-switching
 - **CLI + IDE extensions** for all coding tasks: debugging, refactoring, generation
-- **Browser extension** for webpage summaries, content analysis, data extraction
+- **Browser extension** for automation: navigating sites, filling forms, extracting data
 
 ---
 
@@ -149,7 +150,7 @@ I frequently switch browsers to test features (Arc, Firefox, Brave, etc.), so br
 
 | Extension | Purpose |
 | :-------- | :------ |
-| **[Claude](https://chromewebstore.google.com/detail/claude/danfoobphdgcjkkpopfngjfnfckhpnhl)** | Browser extension for using Claude on any webpage. Most ChatGPT Atlas and Perplexity features are available here—summarize pages, ask questions about content, extract data. |
+| **[Claude](https://claude.com/chrome)** | Browser automation and AI assistant. Claude works in a side panel while you browse—automating tasks, clicking buttons, filling forms, navigating websites, and extracting data on your behalf. Requires a paid subscription. |
 
 **My Claude Workflow:**
 
@@ -157,7 +158,7 @@ I'm a heavy Claude user across multiple surfaces:
 
 - **Desktop app** (`Opt + Space`) — Quick questions and searches without leaving current context
 - **Claude Code CLI + IDE extensions** — All coding tasks: debugging, refactoring, code generation
-- **Browser extension** — AI assistance on any website: summarizing articles, analyzing content, extracting structured data
+- **Browser extension** — Browser automation: navigating sites, filling forms, clicking buttons, extracting data
 
 This combination covers every AI use case without context-switching between tools.
 
@@ -167,5 +168,7 @@ This combination covers every AI use case without context-switching between tool
 - [GPT and Claude from your URL bar](https://treyhunner.com/2024/07/chatgpt-and-claude-from-your-browser-url-bar/) - Trey Hunner's guide to AI tool URL shortcuts
 - [Raindrop.io](https://raindrop.io/) - Cross-browser bookmark manager
 - [Bitwarden](https://bitwarden.com/) - Open-source password manager
-- [Claude Browser Extension](https://chromewebstore.google.com/detail/claude/danfoobphdgcjkkpopfngjfnfckhpnhl) - Anthropic's official Chrome extension
+- [Claude in Chrome](https://claude.com/chrome) - Anthropic's official browser extension page
+- [Piloting Claude in Chrome](https://www.anthropic.com/news/claude-for-chrome) - Anthropic's announcement of Claude browser extension
 - [uBlock Origin vs uBlock Origin Lite](https://adblock-tester.com/ad-blockers/ublock-origin-vs-ublock-origin-lite/) - Comparison of MV2 vs MV3 ad blocking capabilities
+- [Manifest V2 support timeline](https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline) - Chrome's MV2 deprecation schedule

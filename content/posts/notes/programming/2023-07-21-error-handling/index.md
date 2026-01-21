@@ -9,6 +9,8 @@ tags:
   - architecture
   - backend
   - frontend
+  - design-patterns
+  - resilience
 ---
 
 # Error Handling Paradigms in JavaScript
@@ -82,7 +84,7 @@ flowchart LR
 
 - **Pipeline Operator (Stage 2)**: Native syntax for Result chaining with `|>`
 - **Pattern Matching (Stage 1)**: Exhaustive Result unwrapping with `match` expression
-- **Try Operator (Stage 1)**: Native `?` operator converting exceptions to Result objects
+- **Safe Assignment Operator (Pre-Stage)**: Community proposal for `?=` converting exceptions to Result tuples
 
 ## Introduction
 
@@ -220,7 +222,7 @@ However, upon closer architectural scrutiny, the Go-style tuple pattern reveals 
 
 ### 2.2 The Functional Evolution: Monadic Error Handling
 
-A more sophisticated and powerful implementation of the "error as value" pattern is found in the concept of monads, specifically the `Result` (or `Either`) monad. This approach formalizes the idea of a computation having two possible outcomes and is a cornerstone of a methodology known as Railway Oriented Programming.
+A more sophisticated and powerful implementation of the "error as value" pattern is found in the concept of monads, specifically the `Result` (or `Either`) monad. This approach formalizes the idea of a computation having two possible outcomes and is a cornerstone of a methodology known as [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/).
 
 In Railway Oriented Programming, a sequence of operations is visualized as a railway with two parallel tracks: a "happy path" (the success track) and a "sad path" (the failure track). A function's result starts on the success track. Each subsequent operation is a station. If an operation succeeds, the result continues along the success track to the next station. However, if any operation fails, the result is switched to the failure track. Once on the failure track, all subsequent success-track stations are bypassed entirely, and the failure value is carried directly to the end of the line.
 
@@ -261,11 +263,11 @@ The theoretical benefits of monadic error handling are realized through a growin
 
 ### 3.1 The Comprehensive Toolkit: fp-ts
 
-`fp-ts` is a library for rigorous, type-safe functional programming in TypeScript. It is not merely an error-handling library but a complete FP toolkit. Its `Either<E, A>` type is a canonical implementation of the Result pattern, where `Left<E>` represents failure and `Right<A>` represents success.
+[fp-ts](https://gcanti.github.io/fp-ts/) is a library for rigorous, type-safe functional programming in TypeScript. It is not merely an error-handling library but a complete FP toolkit. Its `Either<E, A>` type is a canonical implementation of the Result pattern, where `Left<E>` represents failure and `Right<A>` represents success.
 
 The API of `fp-ts` is characterized by its use of standalone, pipeable functions. Instead of chaining methods on an object, data is passed as the first argument to a `pipe` function, followed by a sequence of operations:
 
-```typescript
+```typescript title="fp-ts-example.ts" collapse={1-2}
 import { pipe } from "fp-ts/function"
 import * as E from "fp-ts/Either"
 
@@ -292,11 +294,11 @@ The primary strength of `fp-ts` is its uncompromising commitment to functional p
 
 ### 3.2 The Pragmatic Choice: neverthrow
 
-`neverthrow` is a library that focuses specifically on providing an ergonomic and type-safe `Result` type, without the extensive scope of a full FP toolkit like `fp-ts`. This makes it a more approachable and pragmatic choice for many teams.
+[neverthrow](https://github.com/supermacro/neverthrow) is a library that focuses specifically on providing an ergonomic and type-safe `Result` type, without the extensive scope of a full FP toolkit like `fp-ts`. This makes it a more approachable and pragmatic choice for many teams.
 
 Its API is designed around a more conventional class-based, method-chaining style, which is immediately familiar to developers with an object-oriented background:
 
-```typescript
+```typescript title="neverthrow-example.ts" collapse={1}
 import { ok, err, Result } from "neverthrow"
 
 function parseNumber(s: string): Result<number, string> {
@@ -315,15 +317,15 @@ const result = parseNumber("10")
 // result is "Computation succeeded: 20"
 ```
 
-`neverthrow` strikes an excellent balance between functional correctness and developer ergonomics. Its most compelling feature is the optional ESLint plugin, `eslint-plugin-neverthrow`. When enabled, this plugin enforces that every function returning a `Result` must have its value consumed. This prevents developers from accidentally ignoring a potential error, effectively eliminating a major class of bugs related to unhandled failures.
+`neverthrow` strikes an excellent balance between functional correctness and developer ergonomics. Its most compelling feature is the optional [ESLint plugin](https://github.com/mdbetancourt/eslint-plugin-neverthrow). When enabled, this plugin enforces that every function returning a `Result` must have its value consumed (via `.match`, `.unwrapOr`, or `._unsafeUnwrap`). This prevents developers from accidentally ignoring a potential error, effectively eliminating a major class of bugs related to unhandled failures.
 
 ### 3.3 The Broader Ecosystem
 
 The popularity of the Result pattern is evidenced by the existence of several other high-quality libraries:
 
-- **oxide.ts**: A lightweight, zero-dependency library that provides `Result` and `Option` types directly inspired by their counterparts in the Rust programming language.
+- [oxide.ts](https://github.com/andogq/oxide): A lightweight, zero-dependency library that provides `Result` and `Option` types directly inspired by their counterparts in the Rust programming language.
 
-- **ts-results**: Another popular and simple library providing `Ok` and `Err` types. It focuses on being a minimal, unopinionated, and type-safe implementation of the pattern.
+- [ts-results](https://github.com/vultix/ts-results): Another popular and simple library providing `Ok` and `Err` types. It focuses on being a minimal, unopinionated, and type-safe implementation of the pattern.
 
 The existence of this diverse ecosystem demonstrates a clear demand among expert developers for more explicit and robust error-handling tools than what the base language currently provides.
 
@@ -344,13 +346,13 @@ The JavaScript language, through the TC39 committee, is continually evolving. Se
 
 ### 4.1 The Pipeline Operator (|>): Streamlining Composition
 
-The Pipeline Operator proposal, currently at Stage 2, aims to provide a more readable and fluent syntax for function composition. The current iteration, known as the "Hack Pipe" proposal, is particularly powerful due to its use of a topic reference (proposed as `%`).
+The [Pipeline Operator proposal](https://github.com/tc39/proposal-pipeline-operator), currently at Stage 2, aims to provide a more readable and fluent syntax for function composition. The current iteration, known as the "Hack Pipe" proposal, is particularly powerful due to its use of a topic reference (proposed as `%`).
 
 This feature is the syntactic glue that could make monadic error handling feel native to JavaScript. It directly addresses the primary ergonomic complaint against libraries like `fp-ts`: the verbosity of wrapping every chain of operations in a `pipe(...)` function call.
 
 Consider how it could streamline an `fp-ts` workflow:
 
-```javascript
+```javascript title="pipeline-operator-example.js" collapse={1-5}
 import * as E from 'fp-ts/Either';
 
 // A function returning an Either
@@ -371,7 +373,7 @@ The flow of data from one failable operation to the next becomes clear and left-
 
 ### 4.2 Pattern Matching: The Definitive Result Consumer
 
-The Pattern Matching proposal, currently at Stage 1, introduces a powerful `match` expression and an `is` operator to the language. This proposal is far more advanced than a simple `switch` statement, allowing for deep, recursive destructuring of objects and arrays while simultaneously checking for specific values, types, and structures.
+The [Pattern Matching proposal](https://github.com/tc39/proposal-pattern-matching), currently at Stage 1, introduces a powerful `match` expression and an `is` operator to the language. This proposal is far more advanced than a simple `switch` statement, allowing for deep, recursive destructuring of objects and arrays while simultaneously checking for specific values, types, and structures.
 
 Pattern matching is the ideal native consumer for `Result` and `Either` types. It provides a declarative, exhaustive, and type-safe syntax for "unwrapping" the monadic container:
 
@@ -398,11 +400,11 @@ const message = match (result) {
 
 A key advantage is the potential for exhaustiveness checking. A `match` expression without a `default` clause can be statically analyzed by tools to ensure that all possible variants of the input type are handled.
 
-### 4.3 The Try Operator (?): Native Result Types
+### 4.3 The Safe Assignment Operator (?=): Native Result Types
 
-The Try Operator proposal, currently at Stage 1, represents one of the most ambitious attempts to bring value-based error handling directly into the JavaScript language itself. This proposal introduces a new operator `?` that automatically converts thrown exceptions into `Result`-like objects, effectively bridging the gap between the traditional exception model and the functional "error as value" paradigm.
+The [Safe Assignment Operator proposal](https://github.com/arthurfiorette/proposal-safe-assignment-operator), currently being discussed in the TC39 Ideas forum, represents one of the most ambitious community attempts to bring value-based error handling directly into the JavaScript language itself. This proposal introduces a new operator `?=` that automatically converts thrown exceptions into tuple-style results, effectively bridging the gap between the traditional exception model and the functional "error as value" paradigm.
 
-The core idea is elegantly simple: any expression that might throw an exception can be wrapped with the `?` operator, which will catch any thrown value and return it as a structured result object instead of propagating the exception up the call stack.
+The core idea is elegantly simple: any expression that might throw an exception can be assigned using the `?=` operator, which will catch any thrown value and return it as a `[error, value]` tuple instead of propagating the exception up the call stack.
 
 ```javascript
 // Current exception-based approach
@@ -416,92 +418,85 @@ function parseUserData(jsonString) {
   }
 }
 
-// Future syntax with the try operator
-function parseUserData(jsonString) {
-  const data = ?JSON.parse(jsonString);
-  const user = ?validateUser(data);
+// Future syntax with the safe assignment operator
+async function parseUserData(jsonString) {
+  const [parseErr, data] ?= JSON.parse(jsonString);
+  if (parseErr) return null;
+
+  const [validateErr, user] ?= validateUser(data);
+  if (validateErr) return null;
+
   return user;
 }
 ```
 
-In this example, if `JSON.parse()` throws a `SyntaxError`, the `?` operator catches it and returns a result object. Similarly, if `validateUser()` throws a validation error, it too is caught and returned as a result. The function `parseUserData()` would then return either a success result containing the user object or a failure result containing the error.
+In this example, if `JSON.parse()` throws a `SyntaxError`, the `?=` operator catches it and assigns the error to `parseErr` while `data` is `undefined`. Similarly, if `validateUser()` throws a validation error, it too is caught and assigned to `validateErr`.
 
-The proposal defines a standard result structure that would be returned by the `?` operator:
+The proposal uses a tuple structure similar to Go's error handling pattern:
 
 ```javascript
-// Success case
-{ success: true, value: actualResult }
+// Success case: error is null, value contains the result
+[null, actualResult]
 
-// Failure case
-{ success: false, error: thrownValue }
+// Failure case: error contains the thrown value, value is undefined
+[thrownValue, undefined]
 ```
 
 This structure is intentionally simple and familiar, avoiding the complexity of full monadic implementations while still providing the core benefits of explicit error handling.
 
-The try operator shines in scenarios where multiple fallible operations need to be chained:
+The safe assignment operator shines in scenarios where multiple fallible operations need to be chained:
 
 ```javascript
 // Complex data processing pipeline
-function processUserRequest(requestId) {
-  const request = ?fetchRequest(requestId);
-  const user = ?parseUser(request.body);
-  const permissions = ?fetchPermissions(user.id);
-  const result = ?processWithPermissions(user, permissions);
-  return result;
+async function processUserRequest(requestId) {
+  const [err1, request] ?= await fetchRequest(requestId);
+  if (err1) return { error: "Failed to fetch request" };
+
+  const [err2, user] ?= parseUser(request.body);
+  if (err2) return { error: "Failed to parse user" };
+
+  const [err3, permissions] ?= await fetchPermissions(user.id);
+  if (err3) return { error: "Failed to fetch permissions" };
+
+  const [err4, result] ?= processWithPermissions(user, permissions);
+  if (err4) return { error: "Failed to process" };
+
+  return { data: result };
 }
 ```
 
-Each step in this pipeline is protected by the `?` operator. If any step fails, the function returns a failure result immediately, without the need for explicit error handling at each level.
-
-The proposal also includes a complementary "try expression" syntax that allows for more granular control:
-
-```javascript
-// Try expression with explicit error handling
-const result = try {
-  const data = JSON.parse(input);
-  const processed = processData(data);
-  processed
-} catch (error) {
-  // Handle specific error types
-  if (error instanceof SyntaxError) {
-    return { success: false, error: "Invalid JSON format" };
-  }
-  return { success: false, error: error.message };
-}
-```
+The proposal also leverages `Symbol.result` to allow objects to define their own result behavior, enabling integration with existing Result/Either types from libraries like neverthrow.
 
 This approach provides several compelling advantages:
 
-**Seamless Integration**: The try operator works with existing code that throws exceptions, requiring no refactoring of library functions or legacy code.
+**Seamless Integration**: The operator works with existing code that throws exceptions, requiring no refactoring of library functions or legacy code.
 
-**Reduced Boilerplate**: It eliminates the repetitive `try...catch` blocks that often clutter code, especially in data processing pipelines.
+**Reduced Boilerplate**: It eliminates the need for `try...catch` blocks while still making error handling explicit at each step.
 
-**Type Safety**: When combined with TypeScript, the result structure can be properly typed, providing compile-time guarantees about error handling.
-
-**Composability**: The standardized result format makes it easy to compose operations and build robust error handling chains.
+**Type Safety**: When combined with TypeScript, the tuple structure can be properly typed using discriminated unions.
 
 However, the proposal also faces some challenges:
 
-**Learning Curve**: Developers need to understand when to use `?` versus traditional `try...catch`, and the mental model of "exceptions as values" requires a paradigm shift.
+**Still Verbose**: Unlike monadic approaches, each failable call still requires an explicit `if (err)` check, similar to Go's pattern.
 
-**Error Context Loss**: Converting exceptions to result objects might lose some debugging information, such as stack traces, unless explicitly preserved.
+**Not Composable**: The tuple pattern doesn't chain as elegantly as monadic `.andThen()` calls.
 
-**Performance Considerations**: The overhead of creating result objects for every operation might be significant in performance-critical code paths.
+**Pre-Stage Status**: As a community proposal not yet in the TC39 process, adoption timeline is uncertain.
 
-The try operator represents a bold step toward making value-based error handling a first-class feature of JavaScript. If adopted, it could significantly reduce the barrier to entry for developers wanting to adopt more robust error handling patterns while maintaining compatibility with the existing ecosystem.
+The safe assignment operator represents a pragmatic attempt to bring value-based error handling to JavaScript in a familiar form. Its success depends on whether the TC39 committee sees value in standardizing a Go-style error pattern rather than the more expressive monadic approaches already available through libraries.
 
 ### 4.4 Supporting Syntax: do and throw Expressions
 
 Other TC39 proposals further enhance error handling ergonomics:
 
-**throw Expressions**: This feature, which is now finished and part of the ECMAScript standard (Stage 4), allows the `throw` statement to be used in expression contexts:
+**throw Expressions** ([Stage 2](https://github.com/tc39/proposal-throw-expressions)): This proposal allows the `throw` statement to be used in expression contexts:
 
 ```javascript
 // Example: Parameter validation
 const greet = (name) => (name ? `Hello, ${name}` : throw new Error("Name is required"))
 ```
 
-**do Expressions**: This Stage 1 proposal allows block statements, including `try...catch`, to be used as expressions that evaluate to a value:
+**do Expressions** ([Stage 1](https://github.com/tc39/proposal-do-expressions)): This proposal allows block statements, including `try...catch`, to be used as expressions that evaluate to a value:
 
 ```javascript
 // Example: Safely parsing JSON
@@ -572,10 +567,15 @@ As we look toward the future, the convergence of functional programming principl
 
 ## References
 
-- [neverthrow](https://github.com/supermacro/neverthrow) - Type-safe Result and Option types for TypeScript with ESLint plugin
+- [neverthrow](https://github.com/supermacro/neverthrow) - Type-safe Result and Option types for TypeScript
+- [eslint-plugin-neverthrow](https://github.com/mdbetancourt/eslint-plugin-neverthrow) - ESLint plugin enforcing Result consumption
 - [fp-ts](https://gcanti.github.io/fp-ts/) - Typed functional programming library for TypeScript
-- [TC39 Pipeline Operator Proposal](https://github.com/tc39/proposal-pipeline-operator) - Stage 2 proposal for `|>` operator
-- [TC39 Pattern Matching Proposal](https://github.com/tc39/proposal-pattern-matching) - Stage 1 proposal for `match` expression
+- [oxide.ts](https://github.com/andogq/oxide) - Rust-inspired Result and Option types for TypeScript
+- [ts-results](https://github.com/vultix/ts-results) - Minimal Result type implementation for TypeScript
 - [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/) - Scott Wlaschin's functional error handling patterns
 - [Error Handling in Go](https://go.dev/blog/error-handling-and-go) - Go's explicit error handling philosophy
-- [oxide.ts](https://github.com/andogq/oxide) - Rust-inspired Result and Option types for TypeScript
+- [TC39 Pipeline Operator Proposal](https://github.com/tc39/proposal-pipeline-operator) - Stage 2 proposal for `|>` operator
+- [TC39 Pattern Matching Proposal](https://github.com/tc39/proposal-pattern-matching) - Stage 1 proposal for `match` expression
+- [TC39 throw expressions Proposal](https://github.com/tc39/proposal-throw-expressions) - Stage 2 proposal for throw in expression contexts
+- [TC39 do expressions Proposal](https://github.com/tc39/proposal-do-expressions) - Stage 1 proposal for block expressions
+- [Safe Assignment Operator Proposal](https://github.com/arthurfiorette/proposal-safe-assignment-operator) - Community proposal for `?=` error handling

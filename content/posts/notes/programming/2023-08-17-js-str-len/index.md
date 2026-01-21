@@ -6,7 +6,7 @@ tags:
   - unicode
   - encoding
   - frontend
-  - performance
+  - browser-apis
 ---
 
 # JavaScript String Length and Unicode
@@ -22,9 +22,76 @@ Photo by <a href="https://unsplash.com/@rikku72?utm_content=creditCopyText&utm_m
 </figcaption>
 </figure>
 
+<figure>
+
+```mermaid
+flowchart TD
+    subgraph "User Perception"
+        G["👨‍👩‍👧‍👦<br/>1 grapheme cluster"]
+    end
+
+    subgraph "Unicode Code Points"
+        CP1["👨 U+1F468"]
+        ZWJ1["‍ U+200D"]
+        CP2["👩 U+1F469"]
+        ZWJ2["‍ U+200D"]
+        CP3["👧 U+1F467"]
+        ZWJ3["‍ U+200D"]
+        CP4["👦 U+1F466"]
+    end
+
+    subgraph "UTF-16 Code Units (string.length = 11)"
+        CU1["D83D DC68"]
+        CU2["200D"]
+        CU3["D83D DC69"]
+        CU4["200D"]
+        CU5["D83D DC67"]
+        CU6["200D"]
+        CU7["D83D DC66"]
+    end
+
+    G --> CP1 & CP2 & CP3 & CP4
+    CP1 --> CU1
+    ZWJ1 --> CU2
+    CP2 --> CU3
+    ZWJ2 --> CU4
+    CP3 --> CU5
+    ZWJ3 --> CU6
+    CP4 --> CU7
+```
+
+<figcaption>Text exists at multiple abstraction layers: grapheme clusters (what users see), code points (Unicode characters), and code units (what JavaScript counts)</figcaption>
+</figure>
+
 ## TL;DR
 
-JavaScript's `string.length` property counts UTF-16 code units, not user-perceived characters. Modern Unicode text—especially emoji and combining characters—requires multiple code units per visual character. Use `Intl.Segmenter` for grapheme-aware operations.
+JavaScript's `string.length` property counts UTF-16 code units, not user-perceived characters. This mismatch causes bugs when handling emoji, combining characters, and international text.
+
+### The Core Problem
+
+- **`string.length`** returns UTF-16 code units, not characters
+- **Emoji** require 2+ code units (surrogate pairs for supplementary plane characters)
+- **Complex emoji** like `👨‍👩‍👧‍👦` combine multiple code points with Zero-Width Joiners (ZWJ)
+- **Grapheme clusters** represent what users perceive as single characters
+
+### Three Abstraction Layers
+
+- **Grapheme clusters**: User-perceived characters (use `Intl.Segmenter`)
+- **Code points**: Unicode abstract characters (use spread `[...str]` or `codePointAt`)
+- **Code units**: What JavaScript counts (what `string.length` returns)
+
+### Safe APIs
+
+- **`Intl.Segmenter`**: Correct grapheme-aware iteration ([Baseline since April 2024](https://web.dev/blog/intl-segmenter))
+- **Spread `[...str]`**: Code point iteration (handles surrogate pairs)
+- **`/regex/u` flag**: Unicode-aware regex matching
+- **`normalize()`**: Handle equivalent character representations
+
+### Unsafe APIs (operate on code units)
+
+- **`string.length`**, **`charAt()`**, **`charCodeAt()`**
+- **`substring()`**, **`slice()`** with arbitrary indices
+- **`split('')`** (splits surrogate pairs)
 
 ```typescript
 console.log("👨‍👩‍👧‍👦".length) // 11 - UTF-16 code units
@@ -34,7 +101,7 @@ console.log(getGraphemeLength("👨‍👩‍👧‍👦")) // 1 - User-perceive
 
 ## The Problem: What You See vs. What You Get
 
-The JavaScript string `.length` property operates at the lowest level of text abstraction—UTF-16 code units. What developers perceive as a single character is often a complex composition of multiple code units.
+The JavaScript string [`.length` property](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length) operates at the lowest level of text abstraction—UTF-16 code units. What developers perceive as a single character is often a complex composition of multiple code units.
 
 ```typescript
 const logLengths = (...items) => console.log(items.map((item) => `${item}: ${item.length}`))
@@ -54,7 +121,7 @@ logLengths("🧘", "🧘🏻‍♂️", "👨‍👩‍👧‍👦")
 
 ## The Solution: Intl.Segmenter
 
-The `Intl.Segmenter` API provides the correct abstraction for user-perceived characters (grapheme clusters):
+The [`Intl.Segmenter` API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter) provides the correct abstraction for user-perceived characters (grapheme clusters). It became [Baseline Newly Available](https://web.dev/blog/intl-segmenter) in April 2024, with full support across all modern browsers:
 
 ```typescript
 function getGraphemeLength(str, locale = "en") {
@@ -102,7 +169,7 @@ The result was `mojibake`—garbled text when documents crossed encoding boundar
 
 ### The Unicode Revolution
 
-Unicode introduced a fundamental separation between abstract characters and their byte representations:
+[Unicode](https://unicode.org/standard/standard.html) introduced a fundamental separation between abstract characters and their byte representations:
 
 - **Character Set**: Abstract code points (U+0000 to U+10FFFF)
 - **Encoding**: Concrete byte representations (UTF-8, UTF-16, UTF-32)
@@ -146,7 +213,7 @@ Each encoding uses fixed-size code units:
 
 ## JavaScript's UTF-16 Legacy
 
-JavaScript's string representation is a historical artifact from the UCS-2 era (1995). When Unicode expanded beyond 16 bits, JavaScript maintained backward compatibility by adopting UTF-16's surrogate pair mechanism.
+JavaScript's string representation is a [historical artifact from the UCS-2 era](https://mathiasbynens.be/notes/javascript-encoding) (1995). When Unicode expanded beyond 16 bits, JavaScript maintained backward compatibility by adopting UTF-16's surrogate pair mechanism.
 
 ### Surrogate Pairs
 
@@ -255,7 +322,7 @@ console.log(e1.normalize() === e2.normalize()) // true
 
 ### Database Storage
 
-MySQL's legacy `utf8` charset only supports 3 bytes per character, excluding supplementary plane characters:
+MySQL's [legacy `utf8` charset only supports 3 bytes](https://dev.mysql.com/blog-archive/mysql-8-0-when-to-use-utf8mb3-over-utf8mb4/) per character, excluding supplementary plane characters (emoji, mathematical symbols). The `utf8` alias is deprecated in MySQL 8.0:
 
 ```sql
 -- Legacy (incomplete UTF-8)
@@ -372,8 +439,11 @@ For expert developers, mastery of Unicode is no longer optional. In a globalized
 
 ## References
 
-- [String:Length - MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length)
-- [Intl.Segmenter - MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter)
-- [Unicode Standard](https://unicode.org/standard/standard.html)
-- [UTF-8 Everywhere](http://utf8everywhere.org/)
-- [JavaScript has a Unicode Problem](https://mathiasbynens.be/notes/javascript-unicode)
+- [String.length - MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length) - UTF-16 code unit counting behavior
+- [Intl.Segmenter - MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter) - Grapheme-aware text segmentation
+- [Intl.Segmenter is now part of Baseline - web.dev](https://web.dev/blog/intl-segmenter) - Browser support announcement (April 2024)
+- [JavaScript's internal character encoding - Mathias Bynens](https://mathiasbynens.be/notes/javascript-encoding) - UCS-2 vs UTF-16 history
+- [JavaScript has a Unicode Problem - Mathias Bynens](https://mathiasbynens.be/notes/javascript-unicode) - Comprehensive Unicode handling guide
+- [Unicode Standard](https://unicode.org/standard/standard.html) - Official specification
+- [UTF-8 Everywhere](http://utf8everywhere.org/) - UTF-8 advocacy and encoding comparisons
+- [MySQL utf8mb4 - MySQL Blog](https://dev.mysql.com/blog-archive/mysql-8-0-when-to-use-utf8mb3-over-utf8mb4/) - Database character set guidance

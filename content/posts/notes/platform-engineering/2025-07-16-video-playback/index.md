@@ -10,6 +10,9 @@ tags:
   - architecture
   - performance
   - frontend
+  - cdn
+  - web
+  - browser-apis
 ---
 
 # Modern Video Playback Stack
@@ -139,7 +142,7 @@ This pressure gave rise to Adaptive Bitrate (ABR) streaming, the foundational te
 
 ## The Foundation - Codecs and Compression
 
-At the most fundamental layer of the video stack lies the codec (coder-decoder), the compression algorithm that makes the transmission of high-resolution video over bandwidth-constrained networks possible. Codecs work by removing spatial and temporal redundancy from video data, dramatically reducing file size.
+At the most fundamental layer of the video stack lies the codec (coder-decoder), the compression algorithm that makes the transmission of high-resolution video over bandwidth-constrained networks possible. Codecs work by removing spatial and temporal redundancy from video data, dramatically reducing file size ([ITU-T Video Coding Standards](https://www.itu.int/rec/T-REC-H.264)).
 
 ### Video Codecs: A Comparative Analysis
 
@@ -158,7 +161,7 @@ Released in 2003, H.264 remains the most widely used video codec in the world. I
 
 #### H.265 (HEVC - High Efficiency Video Coding)
 
-Developed as the direct successor to H.264 and standardized in 2013, HEVC was designed to meet the demands of 4K and High Dynamic Range (HDR) content. It achieves this with a significant improvement in compression efficiency, reducing bitrate by 25-50% compared to H.264 at a similar level of visual quality.
+Developed as the direct successor to H.264 and standardized in 2013, HEVC was designed to meet the demands of 4K and High Dynamic Range (HDR) content. It achieves this with a significant improvement in compression efficiency, reducing bitrate by 25-50% compared to H.264 at a similar level of visual quality ([ITU-T H.265 Specification](https://www.itu.int/rec/T-REC-H.265)).
 
 **Key Characteristics:**
 
@@ -171,7 +174,7 @@ Developed as the direct successor to H.264 and standardized in 2013, HEVC was de
 
 #### AV1 (AOMedia Video 1)
 
-AV1, released in 2018, is the product of the Alliance for Open Media (AOM), a consortium of tech giants including Google, Netflix, Amazon, Microsoft, and Meta. Its creation was a direct strategic response to the licensing complexities of HEVC.
+AV1, released in 2018, is the product of the Alliance for Open Media (AOM), a consortium of tech giants including Google, Netflix, Amazon, Microsoft, and Meta. Its creation was a direct strategic response to the licensing complexities of HEVC ([AOM AV1 Specification](https://aomedia.org/av1/)).
 
 **Key Characteristics:**
 
@@ -199,7 +202,7 @@ AAC is the de facto standard for audio in video streaming, much as H.264 is for 
 
 #### Opus
 
-Opus is a highly versatile, open-source, and royalty-free audio codec developed by the IETF. Its standout feature is its exceptional performance at low bitrates.
+Opus is a highly versatile, open-source, and royalty-free audio codec developed by the IETF. Its standout feature is its exceptional performance at low bitrates ([IETF RFC 6716](https://datatracker.ietf.org/doc/html/rfc6716)).
 
 **Key Characteristics:**
 
@@ -228,7 +231,7 @@ For streaming, the key element within an MP4 file is the `moov` atom, which cont
 
 #### The Role of CMAF (Common Media Application Format)
 
-The Common Media Application Format (CMAF) is not a new container format itself, but rather a standardization of fMP4 for streaming. Its introduction was a watershed moment for the industry.
+The Common Media Application Format (CMAF) is not a new container format itself, but rather a standardization of fMP4 for streaming ([ISO/IEC 23000-19](https://www.iso.org/standard/79106.html)). Its introduction was a watershed moment for the industry.
 
 Historically, to support both Apple devices (requiring HLS with .ts segments) and all other devices (typically using DASH with .mp4 segments), content providers were forced to encode, package, and store two complete, separate sets of video files. This doubled storage costs and dramatically reduced the efficiency of CDN caches.
 
@@ -283,7 +286,7 @@ The protocols for adaptive bitrate streaming define the rules of communication b
 
 ### HLS (HTTP Live Streaming): An In-Depth Look
 
-Created by Apple, HLS is the most common streaming protocol in use today, largely due to its mandatory status for native playback on Apple's vast ecosystem of devices. It works by breaking video into a sequence of small HTTP-based file downloads, which makes it highly scalable as it can leverage standard HTTP servers and CDNs.
+Created by Apple, HLS is the most common streaming protocol in use today, largely due to its mandatory status for native playback on Apple's vast ecosystem of devices ([Apple HLS Specification](https://developer.apple.com/streaming/)). It works by breaking video into a sequence of small HTTP-based file downloads, which makes it highly scalable as it can leverage standard HTTP servers and CDNs.
 
 #### Master Playlist
 
@@ -332,7 +335,7 @@ segment2.ts
 
 ### MPEG-DASH: The Codec-Agnostic International Standard
 
-Dynamic Adaptive Streaming over HTTP (DASH), standardized by MPEG as ISO/IEC 23009-1, was developed to create a unified, international standard for adaptive streaming. Unlike HLS, which was created by a single company, DASH was developed through an open, collaborative process.
+Dynamic Adaptive Streaming over HTTP (DASH), standardized by MPEG as ISO/IEC 23009-1, was developed to create a unified, international standard for adaptive streaming ([MPEG-DASH ISO Standard](https://www.iso.org/standard/79329.html)). Unlike HLS, which was created by a single company, DASH was developed through an open, collaborative process.
 
 Its most significant feature is that it is codec-agnostic, meaning it can deliver video and audio compressed with any format (e.g., H.264, HEVC, AV1, VP9).
 
@@ -394,7 +397,7 @@ The DRM process involves two main phases:
 1. **Encryption and Packaging**: Video content is encrypted using AES-128, with a Content Key and Key ID generated
 2. **License Acquisition**: When a user presses play, the player initiates a secure handshake with the license server to obtain the Content Key
 
-A critical technical standard in this process is Common Encryption (CENC), which allows a single encrypted file to contain the necessary metadata to be decrypted by multiple DRM systems.
+A critical technical standard in this process is Common Encryption (CENC), which allows a single encrypted file to contain the necessary metadata to be decrypted by multiple DRM systems ([ISO/IEC 23001-7 CENC](https://www.iso.org/standard/68042.html)).
 
 ## The New Frontier: Ultra-Low Latency
 
@@ -402,7 +405,7 @@ For decades, internet streaming has lagged significantly behind traditional broa
 
 ### Low-Latency HLS (LL-HLS)
 
-LL-HLS is an extension to the existing HLS standard, designed to reduce latency while preserving the massive scalability of HTTP-based delivery. It achieves this through several optimizations:
+LL-HLS is an extension to the existing HLS standard, designed to reduce latency while preserving the massive scalability of HTTP-based delivery ([Apple LL-HLS Documentation](https://developer.apple.com/documentation/http-live-streaming/enabling-low-latency-http-live-streaming-hls)). It achieves this through several optimizations:
 
 - **Partial Segments**: Breaking segments into smaller "parts" that can be downloaded and played before the full segment is available
 - **Blocking Playlist Reloads**: Server can "block" player requests until new content is available
@@ -410,7 +413,7 @@ LL-HLS is an extension to the existing HLS standard, designed to reduce latency 
 
 ### WebRTC (Web Real-Time Communication)
 
-WebRTC is fundamentally different from HLS. It is designed for true real-time, bidirectional communication with sub-second latency (<500ms). Its technical underpinnings are optimized for speed:
+WebRTC is fundamentally different from HLS. It is designed for true real-time, bidirectional communication with sub-second latency (<500ms) ([W3C WebRTC Specification](https://www.w3.org/TR/webrtc/)). Its technical underpinnings are optimized for speed:
 
 - **UDP-based Transport**: Uses UDP for "fire-and-forget" packet delivery
 - **Stateful, Peer-to-Peer Connections**: Establishes persistent connections between peers

@@ -13,6 +13,11 @@ tags:
   - performance
   - architecture
   - backend
+  - concurrency
+  - event-loop
+  - resilience
+  - redis
+  - kafka
 ---
 
 # Asynchronous Task Processing in Node.js
@@ -64,7 +69,7 @@ graph LR
 ### In-Memory Task Queues
 
 - **p-queue**: Promise-based with concurrency control, priority support, timeout handling—recommended for most local use cases ([npm](https://www.npmjs.com/package/p-queue))
-- **fastq**: Fastest in-memory queue, minimal footprint (33KB), good for high-volume processing ([GitHub](https://github.com/mcollina/fastq))
+- **fastq**: Fastest in-memory queue, minimal footprint, good for high-volume processing ([GitHub](https://github.com/mcollina/fastq))
 - **Event loop aware**: Queues yield to event loop between tasks; avoid sync-heavy processors that block
 
 ### Distributed Task Queues
@@ -157,7 +162,7 @@ The Event Loop orchestrates execution between the Call Stack, where synchronous 
 
 The event loop executes in six phases: timers → pending callbacks → idle/prepare → poll → check → close callbacks. Each phase has a FIFO queue of callbacks to execute.
 
-- **Microtask Queue**: Holds callbacks from `process.nextTick()` and Promise callbacks (`.then()`, `.catch()`). Processed after each phase completes, before moving to the next phase—higher priority than macrotasks.
+- **Microtask Queue**: Holds Promise callbacks (`.then()`, `.catch()`). The `process.nextTick()` queue processes after the current operation completes, regardless of current phase. Both run before the event loop continues—higher priority than macrotasks.
 - **Macrotask Queues**: Phase-specific queues hold callbacks from timers, I/O operations, `setImmediate()`, and close events.
 
 ### 1.2 In-Memory Task Queues: Controlling Local Concurrency
@@ -246,8 +251,7 @@ A distributed task queue system consists of three main components:
 
 **Producer: Adding a Job to the Queue**
 
-```typescript
-// producer.ts
+```typescript title="producer.ts" collapse={1-5}
 import { Queue } from "bullmq"
 
 // Connect to a local Redis instance
@@ -263,8 +267,7 @@ queueEmailJob(123, "welcome-email")
 
 **Worker: Processing the Job**
 
-```typescript
-// worker.ts
+```typescript title="worker.ts" collapse={1-2}
 import { Worker } from "bullmq"
 
 const emailWorker = new Worker(
@@ -329,8 +332,7 @@ graph LR
 - Desynchronizes retry attempts from different clients
 - Smooths load on downstream services
 
-```typescript
-// producer.ts - adding a job with a backoff strategy
+```typescript title="producer.ts"
 await apiCallQueue.add(
   "call-flaky-api",
   { some: "data" },
@@ -387,8 +389,7 @@ The Dead Letter Queue (DLQ) pattern moves messages to a separate queue after a c
 
 Most distributed messaging systems offer at-least-once delivery guarantees, meaning messages might be delivered more than once under certain failure conditions.
 
-```typescript
-// idempotent-consumer.ts
+```typescript title="idempotent-consumer.ts" collapse={1-3}
 import { Worker } from "bullmq"
 import { db } from "./database"
 
@@ -459,8 +460,7 @@ graph TD
 
 The Transactional Outbox pattern writes events to an "outbox" table within the same database transaction as business data. A separate message relay process then reads from this table and publishes events to the message broker.
 
-```typescript
-// transactional-outbox.ts
+```typescript title="transactional-outbox.ts"
 async function createUserWithEvent(userData: UserData) {
   return await db.transaction(async (t) => {
     // 1. Create user
@@ -521,8 +521,7 @@ graph LR
    - Centralized logic, easier to monitor
    - Potential single point of failure
 
-```typescript
-// saga-orchestrator.ts
+```typescript title="saga-orchestrator.ts" collapse={23-29}
 class OrderSagaOrchestrator {
   async executeOrderSaga(orderData: OrderData) {
     try {
@@ -593,8 +592,7 @@ graph TD
 
 Apache Kafka's durable, replayable log is ideal for event stores. Key features include log compaction, which retains the last known value for each message key.
 
-```typescript
-// event-sourcing-example.ts
+```typescript title="event-sourcing-example.ts" collapse={17-28}
 class UserEventStore {
   async appendEvent(userId: string, event: UserEvent) {
     await kafka.produce({
@@ -615,7 +613,6 @@ class UserEventStore {
       topic: "user-events",
       key: userId,
     })
-
     return events.map((event) => JSON.parse(event.value))
   }
 

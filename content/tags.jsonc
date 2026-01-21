@@ -58,6 +58,7 @@
   // =============================================================================
   { "id": "postgres", "name": "PostgreSQL" },
   { "id": "redis", "name": "Redis" },
+  { "id": "kafka", "name": "Apache Kafka" },
   { "id": "rabbitmq", "name": "RabbitMQ" },
   { "id": "minio", "name": "MinIO" },
 

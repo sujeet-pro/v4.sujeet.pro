@@ -13,6 +13,9 @@ tags:
   - performance
   - web-performance
   - scalability
+  - architecture
+  - security
+  - infrastructure
 ---
 
 # Building a Multi-Tenant Image Service Platform

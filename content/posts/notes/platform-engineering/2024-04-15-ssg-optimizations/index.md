@@ -6,6 +6,7 @@ tags:
   - web-performance
   - aws
   - cloudfront
+  - cdn
   - architecture
   - deployment
   - performance
@@ -14,10 +15,11 @@ tags:
   - redirection
   - rollback
   - frontend
-  - backend
   - ssr
   - csr
   - scalability
+  - caching
+  - edge-computing
 ---
 
 # High-Performance Static Site Generation on AWS
@@ -290,8 +292,6 @@ Add a custom origin header in CloudFront's origin configuration that is always u
 exports.handler = (event, context, callback) => {
   const request = event.Records[0].cf.request
   const headers = request.headers
-
-  // Get the build version from the origin custom header
   const buildVersion = headers["x-build-version"] ? headers["x-build-version"][0].value : "build_004"
 
   // Add the build version prefix to the request URI
@@ -341,7 +341,7 @@ This approach provides several advantages:
 
 Performance is a primary driver for adopting Static Site Generation, but raw speed is only part of the user experience equation. Visual stability is equally critical. **Cumulative Layout Shift (CLS)** is a Core Web Vital metric that measures the unexpected shifting of page content as it loads.
 
-A good user experience corresponds to a [CLS score below 0.1](https://web.dev/articles/cls). Even though a site's content is static, CLS issues are common because the problem is often not about dynamic content, but about the browser's inability to correctly predict the layout of the page from the initial HTML.
+A good user experience corresponds to a [CLS score of 0.1 or less](https://web.dev/articles/cls), measured at the 75th percentile across both mobile and desktop. Even though a site's content is static, CLS issues are common because the problem is often not about dynamic content, but about the browser's inability to correctly predict the layout of the page from the initial HTML.
 
 ### 4.1 Understanding and Diagnosing CLS
 
@@ -412,12 +412,8 @@ Generate two separate build outputs—one optimized for mobile and another for d
 exports.handler = (event, context, callback) => {
   const request = event.Records[0].cf.request
   const headers = request.headers
-
-  // Check if the viewer is on a mobile device
   const userAgent = headers["user-agent"] ? headers["user-agent"][0].value : ""
   const isMobile = /Mobile|Android|iPhone|iPad/.test(userAgent)
-
-  // Add device-specific prefix to the request URI
   const devicePrefix = isMobile ? "/mobile" : "/desktop"
 
   if (request.uri === "/") {
@@ -465,7 +461,7 @@ When enabling automatic compression in CloudFront:
 - Objects below 1,000 bytes or exceeding 10,000,000 bytes are not compressed
 - If an uncompressed copy is already in the cache, CloudFront may serve it without re-compressing
 - CloudFront compresses objects on a best-effort basis, occasionally skipping compression
-- CloudFront may favor Gzip over Brotli, even on browsers supporting Brotli
+- Brotli requires HTTPS; Chrome and Firefox only support Brotli over secure connections
 
 ### 5.3 Architecture for Serving Pre-Compressed Assets
 
@@ -508,8 +504,6 @@ graph TD
 exports.handler = (event, context, callback) => {
   const request = event.Records[0].cf.request
   const headers = request.headers
-
-  // Get the Accept-Encoding header
   const acceptEncoding = headers["accept-encoding"] ? headers["accept-encoding"][0].value.toLowerCase() : ""
 
   // Determine the best compression format (prefer Brotli over Gzip)
@@ -593,7 +587,7 @@ This approach is simple but requires requests to reach the origin server.
 
 When an Amazon S3 bucket is configured for static website hosting, it provides a mechanism to define routing rules. These rules, specified in a JSON document in the bucket's properties, allow you to conditionally redirect requests based on the object key prefix or an HTTP error code returned by a request.
 
-This method is well-suited for simple, sitewide redirection scenarios but is [limited to 50 routing rules per website configuration](https://docs.aws.amazon.com/AmazonS3/latest/userguide/how-to-page-redirect.html). Common use cases include:
+This method is well-suited for simple, sitewide redirection scenarios but is [limited to 50 routing rules per website configuration](https://docs.aws.amazon.com/AmazonS3/latest/userguide/how-to-page-redirect.html). For more than 50 redirects, AWS recommends using object-level redirects via the `x-amz-website-redirect-location` metadata property. Common use cases include:
 
 - Redirecting a renamed folder: If you rename a directory from `/blog/` to `/articles/`
 - Creating vanity URLs: A rule can redirect a simple path like `/twitter` to an external profile URL
@@ -795,11 +789,11 @@ By integrating these strategies, development teams can build and operate web app
 ## References
 
 - [CloudFront Serving Compressed Files](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/ServingCompressedFiles.html)
+- [S3 Website Routing Rules](https://docs.aws.amazon.com/AmazonS3/latest/userguide/how-to-page-redirect.html)
 - [Lambda@Edge Redirection](https://aws.amazon.com/blogs/networking-and-content-delivery/handling-redirectsedge-part1/)
-- [Compression Benchmark](https://quixdb.github.io/squash-benchmark/#results)
-- [Compression Comparison](https://projects.sujeet.pro/compression-comparision/)
-- [Redirection - MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections)
-- [http-equiv - MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#http-equiv)
-- [canonical - MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel#canonical)
-- [robots - MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta/name#other_metadata_names)
-- [Nginx Rewrite Rules](https://www.nginx.com/blog/creating-nginx-rewrite-rules/)
+- [Squash Compression Benchmark](https://quixdb.github.io/squash-benchmark/#results)
+- [Cumulative Layout Shift (CLS)](https://web.dev/articles/cls)
+- [HTTP Redirections - MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections)
+- [Meta Element - MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta)
+- [Canonical Link - MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel#canonical)
+- [NGINX Rewrite Rules](https://blog.nginx.org/blog/creating-nginx-rewrite-rules)

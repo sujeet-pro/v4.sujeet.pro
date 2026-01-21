@@ -10,6 +10,8 @@ tags:
   - architecture
   - backend
   - performance
+  - error-handling
+  - sre
 ---
 
 # Exponential Backoff and Retry Strategies
@@ -178,7 +180,7 @@ Key design goals include:
 
 ### Core Implementation
 
-```typescript
+```typescript title="retry-with-backoff.ts" collapse={1-22, 63-85}
 // Type Definitions
 export type JitterStrategy = (delay: number) => number
 
@@ -267,7 +269,7 @@ const delay = (ms: number, signal?: AbortSignal): Promise<void> => {
 
 ### Example Usage
 
-```typescript
+```typescript title="example-usage.ts" collapse={1-22}
 class HttpError extends Error {
   constructor(
     public status: number,
