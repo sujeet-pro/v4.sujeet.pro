@@ -7,6 +7,7 @@ tags:
   - performance
   - typography
   - core-web-vitals
+  - fonts
 ---
 
 # CSS and Typography Optimization
@@ -172,7 +173,7 @@ Extends containment with lazy rendering; `content-visibility: auto` skips layout
 
 - Gains up to 7× faster initial render on long documents
 - Must specify `contain-intrinsic-size` to avoid layout shifts
-- Safari support pending; progressive enhancement required
+- Now Baseline available (September 2025) across all major browsers
 
 ### 2.3 will-change
 
@@ -354,7 +355,7 @@ h1 {
 ```
 
 **Browser fallback:**
-```css
+```css title="variable-font-fallback.css" collapse={1-14}
 /* Static fonts for legacy browsers */
 @font-face {
   font-family: "MyStaticFallback";
@@ -424,8 +425,8 @@ Preload critical fonts to discover them early:
 
 | Value | Block Period | Swap Period | Behavior | CWV Impact | Use Case |
 |-------|--------------|-------------|----------|------------|----------|
-| `block` | ~3s | Infinite | FOIT | Bad FCP/LCP | Icon fonts |
-| `swap` | ~0-100ms | Infinite | FOUT | Good FCP, risk CLS | Headlines with CLS mitigation |
+| `block` | Short (~3s) | Infinite | FOIT | Bad FCP/LCP | Icon fonts |
+| `swap` | Minimal (~100ms) | Infinite | FOUT | Good FCP, risk CLS | Headlines with CLS mitigation |
 | `fallback` | ~100ms | ~3s | Compromise | Balanced | Body text |
 | `optional` | ~100ms | None | Performance-first | Excellent CLS | Non-critical text |
 
@@ -555,7 +556,7 @@ These compile to CSS at build time, regaining performance while retaining compon
 
 ### 7.3 Custom Metrics
 
-```javascript
+```javascript title="performance-monitoring.js"
 // Monitor font loading
 const fontObserver = new PerformanceObserver((list) => {
   list.getEntries().forEach((entry) => {

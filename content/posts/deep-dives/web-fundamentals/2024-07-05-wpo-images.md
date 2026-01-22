@@ -6,6 +6,7 @@ tags:
   - frontend
   - performance
   - compression
+  - core-web-vitals
 ---
 
 # Image Optimization for Web Performance
@@ -47,8 +48,8 @@ flowchart TB
 
 ### Format Selection
 
-- **AVIF**: 1.5-2× smaller than JPEG, supports HDR and alpha; 90%+ browser support
-- **WebP**: 1.25-1.34× smaller than JPEG; 96% browser support
+- **AVIF**: 1.5-2× smaller than JPEG, supports HDR and alpha; [~94% browser support](https://caniuse.com/avif)
+- **WebP**: 1.25-1.34× smaller than JPEG; [~97% browser support](https://caniuse.com/webp)
 - **JPEG/PNG**: Universal fallback for older browsers
 - **Progressive enhancement**: Use `<picture>` element for format negotiation
 
@@ -63,12 +64,12 @@ flowchart TB
 
 - **loading="lazy"**: Defer offscreen images; saves ~50-100KB initial payload
 - **loading="eager"**: Load immediately for above-the-fold images
-- **fetchpriority="high"**: Prioritize LCP images; improves LCP by 10-25%
-- **decoding="async"**: Offload decode work; improves LCP by up to 20%
+- **fetchpriority="high"**: Prioritize LCP images; [improves LCP by 5-30%](https://web.dev/articles/optimize-lcp)
+- **decoding="async"**: Offload decode work for non-LCP images; use `sync` for LCP images
 
 ### Best Practices
 
-- **Above-the-fold**: Use `loading="eager"`, `fetchpriority="high"`, `decoding="async"`
+- **Above-the-fold LCP**: Use `loading="eager"`, `fetchpriority="high"`, `decoding="sync"` ([MDN](https://developer.mozilla.org/en-US/blog/fix-image-lcp/))
 - **Below-the-fold**: Use `loading="lazy"`, `decoding="async"`, `fetchpriority="auto"`
 - **Preload LCP images**: `<link rel="preload" as="image" href="..." fetchpriority="high">`
 - **Always set dimensions**: Prevent CLS with explicit width/height attributes
@@ -154,7 +155,7 @@ WebP offers both lossy and lossless modes with excellent compression, making it 
 **Trade-offs:**
 - No HDR support
 - No progressive loading (loads frame-by-frame)
-- 96%+ browser support
+- [~97% browser support](https://caniuse.com/webp)
 
 **Use Case:** General web delivery for photos and UI elements.
 
@@ -176,7 +177,7 @@ AVIF leverages AV1 video codec technology to achieve the highest compression eff
 **Trade-offs:**
 - Encoding is 8-10× slower than JPEG
 - Multi-threaded decoding available
-- 90%+ browser support
+- [~94% browser support](https://caniuse.com/avif) (Baseline 2024)
 
 **Use Case:** HDR photography, immersive media, highest quality web delivery.
 
@@ -199,7 +200,7 @@ JPEG XL is designed as the next-generation format with unique features like loss
 - Encode: ~50 MP/s (libjxl reference)
 
 **Trade-offs:**
-- Limited browser support (experimental in some browsers)
+- Browser support expanding: Safari 17+ native, [Chrome re-adding support](https://devclass.com/2025/11/24/googles-chromium-team-decides-it-will-add-jpeg-xl-support-reverses-obsolete-declaration/), Firefox behind flag
 - Licensing fully open (royalty-free)
 
 **Use Case:** Future-proof archival, web migration from JPEG legacy.
@@ -336,22 +337,24 @@ The `<picture>` element enables format negotiation and art direction:
 | Attribute | Purpose | Typical Benefit |
 |-----------|---------|-----------------|
 | `loading="lazy"/"eager"` | Defer offscreen fetch vs immediate | ↓ Initial bytes ~50-100KB |
-| `decoding="async"/"sync"` | Offload decode vs main-thread blocking | ↑ LCP by up to 20% |
-| `fetchpriority="high"` | Signal importance to fetch scheduler | ↑ LCP by 10-25% |
+| `decoding="async"/"sync"` | Offload decode vs main-thread blocking | Use `sync` for LCP, `async` for others |
+| `fetchpriority="high"` | Signal importance to fetch scheduler | [↑ LCP by 5-30%](https://web.dev/articles/optimize-lcp) |
 
 ```html
-<!-- Critical above-the-fold image -->
-<img src="hero.jpg" loading="eager" decoding="async" fetchpriority="high" alt="Hero" />
+<!-- Critical LCP image: use decoding="sync" to prioritize -->
+<img src="hero.jpg" loading="eager" decoding="sync" fetchpriority="high" alt="Hero" />
 
 <!-- Below-the-fold image -->
 <img src="gallery.jpg" loading="lazy" decoding="async" fetchpriority="auto" alt="Gallery" />
 ```
 
+> **Note:** For LCP images, `decoding="sync"` ensures the image is decoded on the main thread immediately, preventing render delays. Use `decoding="async"` for non-critical images to avoid blocking other content ([MDN](https://developer.mozilla.org/en-US/blog/fix-image-lcp/)).
+
 ### 3.2 Lazy Loading with Intersection Observer
 
 For enhanced control over lazy loading behavior:
 
-```javascript
+```javascript title="lazy-loading.js" {3-14}
 const io = new IntersectionObserver(
   (entries, obs) => {
     entries.forEach(({ isIntersecting, target }) => {
@@ -383,12 +386,17 @@ document.querySelectorAll("img.lazy").forEach((img) => io.observe(img))
 
 ### 3.3 Decoding Control
 
-**HTML hint:**
+**HTML hint for non-LCP images:**
 ```html
-<img src="hero.webp" decoding="async" alt="Hero" />
+<img src="gallery.webp" decoding="async" alt="Gallery item" />
 ```
 
-**Programmatic decode:**
+**For LCP images, use `sync` to prioritize decoding:**
+```html
+<img src="hero.webp" decoding="sync" fetchpriority="high" alt="Hero" />
+```
+
+**Programmatic decode for dynamically loaded images:**
 ```javascript
 async function loadDecoded(url) {
   const img = new Image()
@@ -403,15 +411,18 @@ async function loadDecoded(url) {
 }
 ```
 
-**Benefit:** Eliminates render-blocking jank, improving LCP by up to 20%.
+**When to use each:**
+- `decoding="sync"`: LCP images—decode immediately on main thread
+- `decoding="async"`: Non-critical images—allow browser to parallelize decoding
+- Programmatic `decode()`: Dynamic images where you need to ensure decoding before display
 
 ### 3.4 Fetch Priority for LCP
 
 ```html
-<img src="lcp.jpg" fetchpriority="high" loading="eager" decoding="async" alt="LCP Image" />
+<img src="lcp.jpg" fetchpriority="high" loading="eager" decoding="sync" alt="LCP Image" />
 ```
 
-**Benefit:** Pushes LCP image ahead in HTTP/2 queues—LCP ↓ 10-25%.
+**Benefit:** Pushes LCP image ahead in HTTP/2 queues—[LCP improvement of 5-30%](https://web.dev/articles/optimize-lcp), with some sites seeing [up to 50%+ improvement](https://www.debugbear.com/blog/fetchpriority-attribute).
 
 ## Part 4: Advanced Optimization
 
@@ -481,13 +492,14 @@ function resizeImage(file, maxWidth, maxHeight) {
 
 ### 4.4 Network-Aware Loading
 
-```javascript
+```javascript title="network-aware-loader.js" collapse={1-6, 29-42} {7-17}
 class NetworkAwareImageLoader {
   constructor() {
     this.connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
     this.setupOptimization()
   }
 
+  // Key method: determine quality based on connection
   getOptimalQuality() {
     if (!this.connection) return 80
 
@@ -508,6 +520,7 @@ class NetworkAwareImageLoader {
     return "webp"
   }
 
+  // Setup and utility methods
   setupOptimization() {
     const images = document.querySelectorAll("img[data-network-aware]")
 
@@ -574,7 +587,7 @@ lcpObserver.observe({ type: "largest-contentful-paint" })
 
 ## Part 6: Smart Image Optimizer Implementation
 
-```javascript
+```javascript title="smart-image-optimizer.js" collapse={1-15, 17-33, 41-58, 79-104} {59-78}
 class SmartImageOptimizer {
   constructor(options = {}) {
     this.options = {
@@ -590,6 +603,7 @@ class SmartImageOptimizer {
     this.setupOptimization()
   }
 
+  // Network and preference detection
   getNetworkQuality() {
     if (!navigator.connection) return "unknown"
 
@@ -614,6 +628,7 @@ class SmartImageOptimizer {
     this.setupMediaQueryListeners()
   }
 
+  // Image optimization logic
   optimizeExistingImages() {
     const images = document.querySelectorAll("img:not([data-optimized])")
 
@@ -629,20 +644,14 @@ class SmartImageOptimizer {
   }
 
   getOptimizationStrategy(img) {
-    const isAboveFold = this.isAboveFold(img)
-    const isCritical = img.hasAttribute("data-critical")
-
-    if (isAboveFold || isCritical) return "above-fold"
-    if (this.userPreference === "data-saver" || this.networkQuality === "low") {
-      return "data-saver"
-    }
-    return this.networkQuality
+    // ... strategy selection
   }
 
+  // Key method: apply correct loading attributes based on strategy
   applyLoadingAttributes(img, strategy) {
     if (strategy === "above-fold") {
       img.loading = "eager"
-      img.decoding = "async"
+      img.decoding = "sync" // Use sync for LCP images
       img.fetchPriority = "high"
     } else {
       img.loading = "lazy"
@@ -656,6 +665,7 @@ class SmartImageOptimizer {
     return rect.top < window.innerHeight && rect.bottom > 0
   }
 
+  // Lazy loading and event listeners
   setupLazyLoading() {
     const lazyImages = document.querySelectorAll('img[loading="lazy"]')
 
@@ -715,7 +725,7 @@ class SmartImageOptimizer {
 
 ### Loading Optimization
 - [ ] Use `loading="lazy"` for below-the-fold images
-- [ ] Implement `decoding="async"` for non-critical images
+- [ ] Use `decoding="sync"` for LCP images, `decoding="async"` for others
 - [ ] Use `fetchpriority="high"` for LCP images
 - [ ] Preload critical above-the-fold images
 

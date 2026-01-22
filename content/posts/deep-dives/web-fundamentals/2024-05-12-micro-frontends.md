@@ -1,17 +1,20 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-22
 tags:
-  - web-performance
   - micro-frontends
   - architecture
   - frontend
+  - frontend-architecture
+  - distributed-systems
   - scalability
   - js
   - react
   - vue
   - angular
   - svelte
-  - "design-patterns"
+  - design-patterns
+  - deployment
+  - ci-cd
 ---
 
 # Microfrontends Architecture
@@ -188,7 +191,7 @@ In this model, an application shell is loaded in the browser, which then dynamic
 
 Iframes offer the strongest possible isolation in terms of styling and JavaScript execution. This makes them an excellent choice for integrating legacy applications or third-party content where trust is low. However, they introduce complexity in communication (requiring `postMessage` APIs) and can create a disjointed user experience.
 
-```html
+```html collapse={1-20}
 <!-- Example: Iframe-based microfrontend integration -->
 <div class="app-shell">
   <header>
@@ -234,7 +237,7 @@ Iframes offer the strongest possible isolation in terms of styling and JavaScrip
 
 By using a combination of Custom Elements and the Shadow DOM, Web Components provide a standards-based, framework-agnostic way to create encapsulated UI widgets. They serve as a neutral interface, allowing a React-based shell to seamlessly host a component built in Vue or Angular.
 
-```javascript
+```javascript title="product-card.js" collapse={1-9, 14-36}
 // Example: Custom Element for a product card microfrontend
 class ProductCard extends HTMLElement {
   constructor() {
@@ -286,8 +289,8 @@ class ProductCard extends HTMLElement {
     `
   }
 
+  // Key pattern: Custom events enable framework-agnostic communication
   addToCart() {
-    // Dispatch custom event for communication
     this.dispatchEvent(
       new CustomEvent("addToCart", {
         detail: {
@@ -310,7 +313,7 @@ A revolutionary feature in Webpack 5+, Module Federation allows a JavaScript app
 
 **How it works:** A host application consumes code from a remote application. The remote exposes specific modules (like components or functions) via a `remoteEntry.js` file. Crucially, both can define shared dependencies (e.g., React), allowing the host and remote to negotiate and use a single version, preventing the library from being downloaded multiple times.
 
-```javascript
+```javascript title="webpack.config.js (Host)" collapse={1-4}
 // Host application webpack.config.js
 const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin")
 
@@ -319,17 +322,21 @@ module.exports = {
     new ModuleFederationPlugin({
       name: "host",
       remotes: {
+        // Remote entry points - each microfrontend exposes its modules via remoteEntry.js
         productCatalog: "productCatalog@http://localhost:3001/remoteEntry.js",
         shoppingCart: "shoppingCart@http://localhost:3002/remoteEntry.js",
       },
       shared: {
+        // singleton: true ensures only one React instance across all microfrontends
         react: { singleton: true, requiredVersion: "^18.0.0" },
         "react-dom": { singleton: true, requiredVersion: "^18.0.0" },
       },
     }),
   ],
 }
+```
 
+```javascript title="webpack.config.js (Remote)" collapse={1-4}
 // Remote application webpack.config.js
 const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin")
 
@@ -339,6 +346,7 @@ module.exports = {
       name: "productCatalog",
       filename: "remoteEntry.js",
       exposes: {
+        // Components exposed to consuming applications
         "./ProductList": "./src/components/ProductList",
         "./ProductCard": "./src/components/ProductCard",
       },
@@ -351,29 +359,23 @@ module.exports = {
 }
 ```
 
-```javascript
+```javascript title="App.jsx (Host)"
 // Host application consuming remote components
 import React, { Suspense } from "react"
 
+// Dynamic imports load remote microfrontends at runtime
 const ProductList = React.lazy(() => import("productCatalog/ProductList"))
 const ShoppingCart = React.lazy(() => import("shoppingCart/ShoppingCart"))
 
 function App() {
   return (
     <div className="app">
-      <header>
-        <h1>E-commerce Platform</h1>
-      </header>
-
-      <main>
-        <Suspense fallback={<div>Loading products...</div>}>
-          <ProductList />
-        </Suspense>
-
-        <Suspense fallback={<div>Loading cart...</div>}>
-          <ShoppingCart />
-        </Suspense>
-      </main>
+      <Suspense fallback={<div>Loading products...</div>}>
+        <ProductList />
+      </Suspense>
+      <Suspense fallback={<div>Loading cart...</div>}>
+        <ShoppingCart />
+      </Suspense>
     </div>
   )
 }
@@ -425,43 +427,41 @@ While effective for caching, ESI is limited by its declarative nature and incons
 
 The modern successor to ESI, programmable edge environments provide a full JavaScript runtime on the CDN. Using APIs like Cloudflare's `HTMLRewriter`, a worker can stream an application shell, identify placeholder elements, and stream microfrontend content directly into them from different origins.
 
-```javascript
+```javascript title="worker.js" collapse={1-5}
 // Example: Cloudflare Worker for edge-side composition
-addEventListener("fetch", (event) => {
-  event.respondWith(handleRequest(event.request))
-})
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url)
 
-async function handleRequest(request) {
-  const url = new URL(request.url)
+    // Fetch the application shell from origin
+    const shellResponse = await fetch("https://shell.microfrontend.com" + url.pathname)
 
-  // Get the application shell
-  let response = await fetch("https://shell.microfrontend.com" + url.pathname)
-  let html = await response.text()
+    // Fetch microfrontend fragments in parallel
+    const [headerHtml, catalogHtml, cartHtml] = await Promise.all([
+      fetch("https://header.microfrontend.com").then((r) => r.text()),
+      fetch("https://catalog.microfrontend.com/products").then((r) => r.text()),
+      fetch("https://cart.microfrontend.com").then((r) => r.text()),
+    ])
 
-  // Use HTMLRewriter to inject microfrontend content
-  return new HTMLRewriter()
-    .on('[data-microfrontend="header"]', {
-      element(element) {
-        element.replace(`<esi:include src="https://header.microfrontend.com" />`, {
-          html: true,
-        })
-      },
-    })
-    .on('[data-microfrontend="catalog"]', {
-      element(element) {
-        element.replace(`<esi:include src="https://catalog.microfrontend.com/products" />`, {
-          html: true,
-        })
-      },
-    })
-    .on('[data-microfrontend="cart"]', {
-      element(element) {
-        element.replace(`<esi:include src="https://cart.microfrontend.com" />`, {
-          html: true,
-        })
-      },
-    })
-    .transform(new Response(html, response))
+    // Use HTMLRewriter to inject microfrontend content into placeholders
+    return new HTMLRewriter()
+      .on('[data-microfrontend="header"]', {
+        element(el) {
+          el.replace(headerHtml, { html: true })
+        },
+      })
+      .on('[data-microfrontend="catalog"]', {
+        element(el) {
+          el.replace(catalogHtml, { html: true })
+        },
+      })
+      .on('[data-microfrontend="cart"]', {
+        element(el) {
+          el.replace(cartHtml, { html: true })
+        },
+      })
+      .transform(shellResponse)
+  },
 }
 ```
 
@@ -513,7 +513,7 @@ graph TB
 
 Teams often face a choice between a single monorepo or multiple repositories (polyrepo). A monorepo can simplify dependency management and ensure consistency, but it can also reduce team autonomy and create tight coupling if not managed carefully.
 
-```yaml
+```yaml title=".github/workflows/deploy-catalog.yml" collapse={1-6, 14-36}
 # Example: GitHub Actions workflow for independent deployment
 name: Deploy Product Catalog Microfrontend
 
@@ -521,6 +521,7 @@ on:
   push:
     branches: [main]
     paths:
+      # Key pattern: Only trigger when this specific microfrontend changes
       - "microfrontends/product-catalog/**"
 
 jobs:
@@ -528,12 +529,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "20"
           cache: "npm"
           cache-dependency-path: "microfrontends/product-catalog/package-lock.json"
 
@@ -552,20 +553,18 @@ jobs:
           cd microfrontends/product-catalog
           npm run build
 
+      # Independent deployment - no coordination with other teams
       - name: Deploy to staging
-        run: |
-          cd microfrontends/product-catalog
-          npm run deploy:staging
+        run: npm run deploy:staging
+        working-directory: microfrontends/product-catalog
 
       - name: Run integration tests
-        run: |
-          npm run test:integration
+        run: npm run test:integration
 
       - name: Deploy to production
         if: success()
-        run: |
-          cd microfrontends/product-catalog
-          npm run deploy:production
+        run: npm run deploy:production
+        working-directory: microfrontends/product-catalog
 ```
 
 ### Automation and Tooling
@@ -590,7 +589,7 @@ Managing state is one of the most complex aspects of a microfrontend architectur
 
 The default and most resilient pattern is for each microfrontend to manage its own state independently.
 
-```javascript
+```javascript title="ProductCatalog.jsx" collapse={1-3, 11-24}
 // Example: Local state management in a React microfrontend
 import React, { useState, useEffect } from "react"
 
@@ -599,9 +598,7 @@ function ProductCatalog() {
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({})
 
-  useEffect(() => {
-    fetchProducts(filters)
-  }, [filters])
+  useEffect(() => { fetchProducts(filters) }, [filters])
 
   const fetchProducts = async (filters) => {
     setLoading(true)
@@ -616,16 +613,16 @@ function ProductCatalog() {
     }
   }
 
+  // Key pattern: Sync local state to URL for shareability
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters)
-    // Update URL for shareable state
     window.history.replaceState(null, "", `?${new URLSearchParams(newFilters)}`)
   }
 
   return (
     <div className="product-catalog">
       <FilterPanel filters={filters} onFilterChange={handleFilterChange} />
-      {loading ? <div>Loading products...</div> : <ProductGrid products={products} />}
+      {loading ? <div>Loading...</div> : <ProductGrid products={products} />}
     </div>
   )
 }
@@ -635,7 +632,7 @@ function ProductCatalog() {
 
 For ephemeral state that needs to be shared across fragments (e.g., search filters), the URL is the ideal, stateless medium.
 
-```javascript
+```javascript title="url-state-manager.js" collapse={1-6, 27-36}
 // Example: URL-based state management
 class URLStateManager {
   constructor() {
@@ -643,6 +640,7 @@ class URLStateManager {
     window.addEventListener("popstate", this.handlePopState.bind(this))
   }
 
+  // Key pattern: URL as the source of truth for cross-microfrontend state
   setState(key, value) {
     const url = new URL(window.location)
     if (value === null || value === undefined) {
@@ -674,14 +672,9 @@ class URLStateManager {
   }
 }
 
-// Usage across microfrontends
+// Usage across microfrontends - any microfrontend can read/write
 const stateManager = new URLStateManager()
-
-// In product catalog
 stateManager.setState("category", "electronics")
-stateManager.setState("priceRange", { min: 100, max: 500 })
-
-// In shopping cart
 const category = stateManager.getState("category")
 ```
 
@@ -689,7 +682,7 @@ const category = stateManager.getState("category")
 
 For client-side communication after composition, native browser events provide a simple and effective publish-subscribe mechanism, allowing fragments to communicate without direct knowledge of one another.
 
-```javascript
+```javascript title="event-bus.js" collapse={1-26}
 // Example: Event-based communication between microfrontends
 class MicrofrontendEventBus {
   constructor() {
@@ -716,10 +709,10 @@ class MicrofrontendEventBus {
   }
 }
 
-// Global event bus
 window.microfrontendEvents = new MicrofrontendEventBus()
 
-// Product catalog emits events
+// Key pattern: Loose coupling via pub-sub
+// Product catalog emits events (doesn't know who listens)
 function addToCart(product) {
   window.microfrontendEvents.emit("addToCart", {
     productId: product.id,
@@ -729,13 +722,9 @@ function addToCart(product) {
   })
 }
 
-// Shopping cart listens for events
+// Shopping cart subscribes (doesn't know who publishes)
 window.microfrontendEvents.on("addToCart", (productData) => {
   updateCart(productData)
-})
-
-window.microfrontendEvents.on("removeFromCart", (productId) => {
-  removeFromCart(productId)
 })
 ```
 
@@ -743,11 +732,11 @@ window.microfrontendEvents.on("removeFromCart", (productId) => {
 
 For truly global state like user authentication, a shared store (e.g., Redux) can be used. However, this should be a last resort, as it introduces a strong dependency between fragments and the shared module, reducing modularity.
 
-```javascript
-// Example: Shared Redux store (use sparingly)
+```javascript title="shared-store.js" collapse={1-4, 8-16, 19-32}
+// Example: Shared Redux store (use sparingly - reduces modularity)
 import { createStore, combineReducers } from "redux"
 
-// Shared user state
+// Shared user state - authentication is a valid use case for shared state
 const userReducer = (state = null, action) => {
   switch (action.type) {
     case "SET_USER":
@@ -759,7 +748,7 @@ const userReducer = (state = null, action) => {
   }
 }
 
-// Shared cart state
+// Shared cart state - consider URL-based or event-based alternatives first
 const cartReducer = (state = [], action) => {
   switch (action.type) {
     case "ADD_TO_CART":
@@ -775,12 +764,9 @@ const cartReducer = (state = [], action) => {
   }
 }
 
-const rootReducer = combineReducers({
-  user: userReducer,
-  cart: cartReducer,
-})
+const rootReducer = combineReducers({ user: userReducer, cart: cartReducer })
 
-// Shared store instance
+// Warning: All microfrontends now depend on this store version
 window.sharedStore = createStore(rootReducer)
 ```
 
@@ -792,39 +778,33 @@ Routing logic is intrinsically tied to the composition model.
 
 In architectures using an application shell (common with Module Federation or single-spa), a global router within the shell manages navigation between different microfrontends, while each microfrontend can handle its own internal, nested routes.
 
-```javascript
+```javascript title="root-config.js" collapse={16-32}
 // Example: Client-side routing with single-spa
 import { registerApplication, start } from "single-spa"
 
-// Register microfrontends
+// Key pattern: Route-based microfrontend mounting
+// Each microfrontend mounts/unmounts based on URL patterns
 registerApplication({
   name: "product-catalog",
   app: () => import("./product-catalog"),
   activeWhen: ["/products", "/"],
-  customProps: {
-    domElement: document.getElementById("product-catalog-container"),
-  },
+  customProps: { domElement: document.getElementById("product-catalog-container") },
 })
 
 registerApplication({
   name: "shopping-cart",
   app: () => import("./shopping-cart"),
   activeWhen: ["/cart"],
-  customProps: {
-    domElement: document.getElementById("shopping-cart-container"),
-  },
+  customProps: { domElement: document.getElementById("shopping-cart-container") },
 })
 
 registerApplication({
   name: "user-profile",
   app: () => import("./user-profile"),
   activeWhen: ["/profile"],
-  customProps: {
-    domElement: document.getElementById("user-profile-container"),
-  },
+  customProps: { domElement: document.getElementById("user-profile-container") },
 })
 
-// Start the application
 start()
 ```
 
@@ -832,36 +812,24 @@ start()
 
 In server or edge-composed systems, routing is typically handled by the webserver or edge worker. Each URL corresponds to a page that is assembled from a specific set of fragments, simplifying the client-side logic at the cost of a full network round trip for each navigation.
 
-```javascript
+```javascript title="pages/products/[category].js" collapse={13-24}
 // Example: Server-side routing with Next.js
-// pages/products/[category].js
 export default function ProductCategory({ products, category }) {
   return (
     <div className="product-category-page">
-      <header>
-        <h1>{category} Products</h1>
-      </header>
-
-      <main>
-        <ProductCatalog products={products} />
-        <ShoppingCart />
-      </main>
+      <h1>{category} Products</h1>
+      {/* Microfrontend components composed server-side */}
+      <ProductCatalog products={products} />
+      <ShoppingCart />
     </div>
   )
 }
 
+// Key pattern: Data fetched at request time, page assembled server-side
 export async function getServerSideProps({ params }) {
   const { category } = params
-
-  // Fetch products for this category
   const products = await fetchProductsByCategory(category)
-
-  return {
-    props: {
-      products,
-      category,
-    },
-  }
+  return { props: { products, category } }
 }
 ```
 
@@ -934,11 +902,15 @@ flowchart TD
 
 ## Conclusion
 
-Microfrontends offer a powerful path to building scalable, maintainable, and resilient frontend applications. However, they are not a silver bullet. Success requires careful planning, a mature CI/CD culture, and a deep understanding of the trade-offs between different composition and deployment strategies.
+Microfrontends enable scalable frontend development but introduce complexity that must be justified by organizational needs. The architecture works best when:
 
-By deliberately choosing the architecture that best aligns with your organization's specific needs, you can unlock the full potential of this transformative approach. The key is to start with a clear understanding of your goals, constraints, and team capabilities, then select the composition strategy that provides the best balance of performance, maintainability, and developer experience for your specific use case.
+- **Multiple teams** need to deploy independently without coordination
+- **Technology diversity** is required across different parts of the application
+- **Domain boundaries** are clear and stable
 
-Remember that microfrontends are not just a technical decision—they're an organizational decision that requires changes to how teams work together, how code is deployed, and how applications are architected. With the right approach and careful implementation, microfrontends can enable unprecedented scalability and team autonomy in frontend development.
+The composition strategy should match your constraints: client-side for SPAs with complex state sharing, edge-side for global performance requirements, server-side for SEO-critical applications.
+
+Microfrontends are fundamentally an organizational decision. The technical implementation follows from how teams are structured, how releases are managed, and what trade-offs are acceptable. Start with the simplest approach that enables independent deployment, then add complexity only when needed.
 
 ## References
 

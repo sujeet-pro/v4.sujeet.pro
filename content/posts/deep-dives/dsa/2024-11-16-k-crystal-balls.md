@@ -1,10 +1,9 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-23
 tags:
   - algorithms
   - dsa
   - optimization
-  - dynamic-programming
 ---
 
 # K Crystal Balls - Generalized Formula Derivation
@@ -338,16 +337,10 @@ When explaining this in an interview:
 
 ---
 
-## Related Problems
+## References
 
-- [887. Super Egg Drop](https://leetcode.com/problems/super-egg-drop/) - The classic DP formulation
-- [1884. Egg Drop With 2 Eggs and N Floors](https://leetcode.com/problems/egg-drop-with-2-eggs-and-n-floors/)
-- Two Crystal Balls (this repo) - Simplified version with k=2
-
----
-
-## Further Reading
-
-- Square Root Decomposition (used in range query problems)
-- Block decomposition techniques
-- The "Egg Drop Problem" in algorithm textbooks
+- [Egg Dropping - Brilliant Math & Science Wiki](https://brilliant.org/wiki/egg-dropping/) - Comprehensive mathematical derivation with binomial approach
+- [Egg Dropping Puzzle | DP-11 - GeeksforGeeks](https://www.geeksforgeeks.org/dsa/egg-dropping-puzzle-dp-11/) - DP-based solution approaches and complexity analysis
+- [The Egg-Drop Numbers - Michael Boardman (PDF)](https://users.math.msu.edu/users/magyarp/math481/Egg-Drop-Recurrence.pdf) - Academic treatment with binomial coefficient proofs
+- [887. Super Egg Drop - LeetCode](https://leetcode.com/problems/super-egg-drop/) - The classic DP formulation
+- [1884. Egg Drop With 2 Eggs and N Floors - LeetCode](https://leetcode.com/problems/egg-drop-with-2-eggs-and-n-floors/) - Simplified k=2 variant

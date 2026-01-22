@@ -1,5 +1,5 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-22
 tags:
   - js
   - node
@@ -10,6 +10,7 @@ tags:
   - scalability
   - libuv
   - concurrency
+  - event-loop
 ---
 
 # Node.js Architecture Deep Dive
@@ -108,9 +109,7 @@ flowchart TB
 
 ## The Pillars of the Node.js Runtime
 
-To comprehend the inner workings of Node.js, one must first recognize that it is not a monolithic entity. It is a composite system, an elegant orchestration of several distinct components, each with a clearly defined and specialized role. The architecture is founded on a deliberate separation of concerns, which is the very mechanism that enables its signature non-blocking, asynchronous behavior.
-
-The primary components are Google's V8 engine, the libuv library, a set of C++ bindings that act as an intermediary, and the high-level Node.js Core API that developers interact with.
+Node.js is a composite system with four primary components: Google's V8 engine for JavaScript execution, libuv for asynchronous I/O, C++ bindings as the integration layer, and the Node.js Core API that developers interact with. This separation of concerns enables its non-blocking, asynchronous behavior.
 
 <figure>
 
@@ -238,7 +237,7 @@ This C++ code acts as a translator: it uses V8 APIs to unpack the JavaScript arg
 
 The final pillar is the Node.js Core API itself. This is the collection of built-in modules, written in JavaScript, that developers use to build applications (e.g., `fs`, `http`, `crypto`, `path`). These modules provide a high-level, idiomatic JavaScript interface that abstracts away the complexity of the underlying C++ bindings and libuv operations.
 
-The architectural design of Node.js is a masterclass in the separation of concerns. It deliberately isolates the execution of JavaScript from the handling of I/O. This decoupling is not an incidental detail but the core innovation that underpins the entire platform.
+This architecture deliberately isolates JavaScript execution from I/O handling—the core design decision that enables Node.js's event-driven model.
 
 ## The V8 Engine: High-Performance JavaScript Execution
 
@@ -260,9 +259,9 @@ While the interpreter is running the bytecode, V8's profiler is simultaneously c
 
 - **The Ignition/TurboFan Revolution**: Around V8 version 5.9, the pipeline was redesigned around Ignition and TurboFan. This created a cleaner separation of concerns. Ignition provides a consistent bytecode baseline for all code, which is far more maintainable and less complex than the old Full-Codegen output. TurboFan acts as the new top-tier optimizing compiler.
 
-- **Sparkplug (The "Fast" Compiler)**: A significant performance gap existed between the Ignition interpreter and the TurboFan optimizing compiler. To bridge this gap, V8 version 9.1 introduced Sparkplug, a very fast, non-optimizing JIT compiler. Sparkplug's key design feature is that it compiles directly from bytecode to machine code in a single, linear pass, without generating any intermediate representation (IR).
+- **Sparkplug (The "Fast" Compiler)**: A significant performance gap existed between the Ignition interpreter and the TurboFan optimizing compiler. To bridge this gap, V8 version 9.1 introduced Sparkplug ([V8 Blog - Sparkplug](https://v8.dev/blog/sparkplug)), a very fast, non-optimizing JIT compiler. Sparkplug's key design feature is that it compiles directly from bytecode to machine code in a single, linear pass, without generating any intermediate representation (IR).
 
-- **Maglev (The "Mid-Tier" Optimizing Compiler)**: Maglev began rolling out in Chrome 114 and was officially launched in Chrome 117 (2023). It sits between Sparkplug and TurboFan, filling the role of a mid-tier optimizing compiler. Unlike Sparkplug, Maglev is an SSA (Static Single-Assignment) based compiler that uses an IR, allowing it to perform optimizations that Sparkplug cannot. Maglev compiles roughly 10x slower than Sparkplug but 10x faster than TurboFan, striking a balance between compilation speed and code quality.
+- **Maglev (The "Mid-Tier" Optimizing Compiler)**: Maglev began rolling out in Chrome 114 and was officially launched in Chrome 117 (2023) ([V8 Blog - Maglev](https://v8.dev/blog/maglev)). It sits between Sparkplug and TurboFan, filling the role of a mid-tier optimizing compiler. Unlike Sparkplug, Maglev is an SSA (Static Single-Assignment) based compiler that uses an IR, allowing it to perform optimizations that Sparkplug cannot. Maglev compiles roughly 10x slower than Sparkplug but 10x faster than TurboFan, striking a balance between compilation speed and code quality.
 
 ### Memory Management and Generational Garbage Collection
 
@@ -274,7 +273,7 @@ To capitalize on this behavior, V8 divides its memory heap into distinct generat
 
 **The Heap Structure**:
 
-- **New Space (Young Generation)**: This is where all newly created JavaScript objects are initially allocated. The New Space is kept relatively small—the default `max_semi_space_size` is 16 MB on 64-bit systems and 8 MB on 32-bit systems, configurable via the `--max-semi-space-size` V8 flag. It is optimized for frequent, very fast garbage collection cycles. To facilitate this, it is further divided into two equal-sized "semi-spaces," often referred to as "From-Space" and "To-Space".
+- **New Space (Young Generation)**: This is where all newly created JavaScript objects are initially allocated. The New Space is kept relatively small—the default `max_semi_space_size` is 16 MB on 64-bit systems and 8 MB on 32-bit systems ([V8 ResourceConstraints](https://v8.github.io/api/head/classv8_1_1ResourceConstraints.html)), configurable via the `--max-semi-space-size` V8 flag. Note: In Node.js 20+, the default scales with the memory limit and may differ. It is optimized for frequent, very fast garbage collection cycles, further divided into two equal-sized "semi-spaces" (From-Space and To-Space).
 
 - **Old Space (Old Generation)**: This area is for long-lived objects. Objects that survive one or more garbage collection cycles in the New Space are "promoted" and moved into the Old Space. This space is much larger than the New Space, and garbage collection here is performed less frequently because it is a more resource-intensive process.
 
@@ -309,7 +308,7 @@ A common misconception is that the event loop manages a single callback queue. I
 
 </figure>
 
-The phases of a single event loop iteration are as follows:
+The phases of a single event loop iteration are as follows ([Node.js Event Loop Documentation](https://nodejs.org/en/learn/asynchronous-work/event-loop-timers-and-nexttick)):
 
 1. **timers**: This phase executes callbacks that have been scheduled by `setTimeout()` and `setInterval()`. The event loop checks the current time against the scheduled timers and runs the callbacks of any that have expired.
 
@@ -348,7 +347,7 @@ To solve this, libuv implements a thread pool. When a Node.js API that correspon
 
 </figure>
 
-**Size and Configuration**: By default, the libuv thread pool consists of 4 threads. This number is intentionally small to limit resource consumption but can be a bottleneck for applications performing many concurrent blocking operations. The size can be configured via the `UV_THREADPOOL_SIZE` environment variable.
+**Size and Configuration**: By default, the libuv thread pool consists of 4 threads ([libuv Thread Pool Documentation](https://docs.libuv.org/en/v1.x/threadpool.html)). This number is intentionally small to limit resource consumption but can be a bottleneck for applications performing many concurrent blocking operations. The size can be configured via the `UV_THREADPOOL_SIZE` environment variable (maximum 1024 as of libuv 1.30.0).
 
 **Operations Handled**: The thread pool is used for most functions in the `fs` module, DNS functions like `dns.lookup`, and CPU-intensive crypto functions like `crypto.pbkdf2` and `crypto.scrypt`. It is critical to reiterate that network I/O (e.g., from the `net` or `http` modules) does not use the thread pool; it is handled asynchronously on the main thread.
 
@@ -400,7 +399,7 @@ The most significant architectural limitation of Node.js has always been its sin
 - **Communication**: Communication between the parent and child process relies on an Inter-Process Communication (IPC) channel established by Node.js. Data sent over this channel must be serialized (e.g., to JSON) on one side and deserialized on the other, which introduces performance overhead.
 - **Overhead**: Spawning a new OS process is resource-intensive. It consumes more memory and has a slower startup time compared to creating a thread within an existing process.
 
-**The Modern Solution (worker_threads)**: Recognizing the limitations of `child_process` for high-performance computation, Node.js introduced the `worker_threads` module, first as an experimental feature in version 10.5.0 and later stabilized in version 12. This module provides true, in-process multithreading.
+**The Modern Solution (worker_threads)**: Recognizing the limitations of `child_process` for high-performance computation, Node.js introduced the `worker_threads` module ([Node.js Worker Threads Documentation](https://nodejs.org/api/worker_threads.html)), first as an experimental feature in version 10.5.0 and later stabilized in version 12. This module provides true, in-process multithreading.
 
 - **Mechanism**: It creates lightweight threads that execute in parallel within the same process as the main thread. Each worker thread gets its own V8 instance and event loop, allowing for true parallel execution of JavaScript, but they exist within the parent's process boundary.
 - **Communication**: Workers support the same IPC-style message passing as child processes. However, their key advantage is the ability to share memory directly using `SharedArrayBuffer` objects. When data is shared this way, no serialization or copying is required, allowing multiple threads to access and manipulate the same block of memory with very low latency.
@@ -408,7 +407,7 @@ The most significant architectural limitation of Node.js has always been its sin
 
 **Practical Example: CPU-Intensive Work with Worker Threads**
 
-```typescript title="worker-pool.ts"
+```typescript title="worker-pool.ts" collapse={1-10}
 import { Worker, isMainThread, parentPort, workerData } from "node:worker_threads"
 import { cpus } from "node:os"
 
@@ -453,7 +452,7 @@ Many Node.js applications rely on native addons—libraries written in C or C++�
 
 **The Nan Stopgap**: To ease this pain, the Native Abstractions for Node.js (Nan) library was created. Nan is a C++ header-only library that provides a set of macros and helper functions that wrap the underlying V8 APIs. While Nan made addon maintenance easier, it did not solve the fundamental problem of ABI instability.
 
-**The N-API Revolution**: The true solution arrived with N-API (now officially named Node-API), introduced as experimental in Node.js v8.0.0 and stabilized in v8.12.0. Node-API is a C-based API that is completely independent of the underlying JavaScript engine.
+**The N-API Revolution**: The true solution arrived with N-API (now officially named Node-API), introduced as experimental in Node.js v8.0.0 and stabilized in v8.12.0 ([Node-API Documentation](https://nodejs.org/api/n-api.html)). Node-API is a C-based API that is completely independent of the underlying JavaScript engine.
 
 - **ABI Stability**: This is the core promise and most important benefit of Node-API. A native addon compiled once against a specific Node-API version will continue to run on any later version of Node.js that supports that Node-API version, without needing to be recompiled. Node-API versions are additive—each new version is a strict superset of the previous, ensuring forward compatibility.
 - **Engine Agnostic**: Because Node-API is a pure C API that abstracts away all V8-specific details, it makes addons independent of the JavaScript engine.
@@ -520,7 +519,7 @@ This automatic flow control mechanism is the essence of backpressure. It ensures
 
 **Practical Example: Manual Backpressure Handling**
 
-```typescript title="backpressure-example.ts"
+```typescript title="backpressure-example.ts" collapse={1-4}
 import { createReadStream, createWriteStream } from "node:fs"
 import { pipeline } from "node:stream/promises"
 import { Transform } from "node:stream"

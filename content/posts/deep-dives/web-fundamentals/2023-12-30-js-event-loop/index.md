@@ -1,19 +1,21 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-22
 tags:
   - js
   - node
   - performance
-  - "event-loop"
+  - event-loop
   - concurrency
   - libuv
   - architecture
   - backend
   - frontend
+  - browser-apis
+  - v8-engine
 featuredRank: 30
 ---
 
-# JavaScript Event Loop
+# JavaScript Event Loop: Browser and Node.js Deep Dive
 
 Master the JavaScript event loop architecture across browser and Node.js environments, understanding task scheduling, microtasks, and performance optimization techniques.
 
@@ -82,7 +84,7 @@ Master the JavaScript event loop architecture across browser and Node.js environ
 
 ## The Abstract Concurrency Model
 
-JavaScript's characterization as a "single-threaded, non-blocking, asynchronous, concurrent language" obscures the sophisticated interplay between the JavaScript engine and its host environment. The event loop is not a language feature but the central mechanism provided by the host to orchestrate asynchronous operations around the engine's single-threaded execution.
+JavaScript's characterization as a "single-threaded, non-blocking, asynchronous, concurrent language" obscures the sophisticated interplay between the JavaScript engine and its host environment. The event loop is not a language feature but the central mechanism provided by the host to orchestrate asynchronous operations around the engine's single-threaded execution ([WHATWG HTML Standard](https://html.spec.whatwg.org/multipage/webappapis.html#event-loops)).
 
 ### Runtime Architecture
 
@@ -130,7 +132,7 @@ graph TB
 
 ### Core Execution Primitives
 
-The ECMAScript specification defines three fundamental primitives:
+The [ECMAScript specification](https://tc39.es/ecma262/#sec-jobs-and-job-queues) defines three fundamental primitives:
 
 1. **Call Stack**: LIFO data structure tracking execution context
 2. **Heap**: Unstructured memory region for object allocation
@@ -183,7 +185,7 @@ graph TD
 
 ## Universal Priority System: Tasks and Microtasks
 
-All modern JavaScript environments implement a two-tiered priority system governing asynchronous operation scheduling.
+All modern JavaScript environments implement a two-tiered priority system governing asynchronous operation scheduling. The microtask checkpoint runs after each task execution, before rendering—any additional microtasks queued during processing are added to the queue and also processed before the next macrotask ([WHATWG HTML Standard](https://html.spec.whatwg.org/multipage/webappapis.html#event-loops)).
 
 ### Queue Processing Model
 
@@ -248,6 +250,8 @@ graph TD
 
 ### Microtask Starvation Pattern
 
+The event loop keeps calling microtasks until the queue is empty, even if more keep getting added. This can "starve" the I/O by preventing the event loop from reaching subsequent phases ([MDN - Using Microtasks](https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide)):
+
 ```javascript
 // Pathological microtask starvation
 function microtaskFlood() {
@@ -263,7 +267,7 @@ setTimeout(() => {
 
 ## Browser Event Loop Architecture
 
-The browser event loop is optimized for UI responsiveness, integrating directly with the rendering pipeline.
+The browser event loop is optimized for UI responsiveness, integrating directly with the rendering pipeline. At 60fps, each frame has approximately 16.7ms for JavaScript execution, style calculation, layout, paint, and composite operations ([MDN - Animation Performance](https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/Animation_performance_and_frame_rate)).
 
 ### WHATWG Processing Model
 
@@ -345,7 +349,7 @@ graph TD
 
 ## Node.js Event Loop: libuv Integration
 
-Node.js implements a phased event loop architecture optimized for high-throughput I/O operations.
+Node.js implements a phased event loop architecture optimized for high-throughput I/O operations. The event loop serves as libuv's central component, operating within a single thread and abstracting platform-specific I/O mechanisms: epoll on Linux, kqueue on macOS/BSD, and IOCP on Windows ([libuv Design Overview](https://docs.libuv.org/en/v1.x/design.html)).
 
 ### libuv Architecture
 
@@ -383,6 +387,8 @@ graph TB
 </figure>
 
 ### Phased Event Loop Structure
+
+The Node.js event loop executes in six phases: timers, pending callbacks, idle/prepare, poll, check, and close callbacks. Each phase has a FIFO queue of callbacks, processing all callbacks before moving to the next phase ([Node.js Event Loop Documentation](https://nodejs.org/en/learn/asynchronous-work/event-loop-timers-and-nexttick)):
 
 <figure>
 
@@ -435,6 +441,8 @@ graph TD
 
 ### Thread Pool vs Direct I/O
 
+Network I/O is **always** performed on the event loop's thread, while file system operations, DNS lookups (getaddrinfo/getnameinfo), and user-specified work use the thread pool ([libuv Design](https://docs.libuv.org/en/v1.x/design.html)):
+
 <figure>
 
 ```mermaid
@@ -462,7 +470,7 @@ graph LR
 
 ## Node.js-Specific Scheduling
 
-Node.js provides unique scheduling primitives with distinct priority levels.
+Node.js provides unique scheduling primitives with distinct priority levels. Critically, `process.nextTick()` is **not part of the event loop**—it executes after the current operation completes, regardless of the current phase ([Node.js Documentation](https://nodejs.org/en/learn/asynchronous-work/event-loop-timers-and-nexttick)).
 
 ### Priority Hierarchy
 
@@ -514,6 +522,8 @@ graph TD
 </figure>
 
 ### setTimeout vs setImmediate Ordering
+
+Within an I/O cycle, `setImmediate()` always executes before `setTimeout(fn, 0)` because the poll phase proceeds to the check phase before wrapping back to timers. Outside I/O cycles, the order is non-deterministic and depends on process performance ([Node.js Documentation](https://nodejs.org/en/learn/asynchronous-work/event-loop-timers-and-nexttick)):
 
 <figure>
 
@@ -699,12 +709,14 @@ The unified mental model requires appreciating common foundations while recogniz
 
 ## References
 
-- [The Node.js Event Loop Official Docs](https://nodejs.org/en/learn/asynchronous-work/event-loop-timers-and-nexttick)
-- [Libuv Design - The I/O Loop](https://docs.libuv.org/en/v1.x/design.html#the-i-o-loop)
-- [Node Interactive 2016 Talk - Everything You Need to Know About Node.js Event Loop - Bert Belder, IBM](https://youtu.be/PNa9OMajw9w?si=CFxugIEBeZTGIHrD)
-- [Node Interactive 2016 Talk Presentation](https://drive.google.com/file/d/0B1ENiZwmJ_J2a09DUmZROV9oSGc/view?resourcekey=0-lR-GaBV1Bmjy086Fp3J4Uw)
-- [A Deep Dive Into the Node js Event Loop - Tyler Hawkins](https://youtu.be/KKM_4-uQpow?si=zlsK2g3p1TkQGE3l)
-- [A Deep Dive Into the Node js Event Loop - Code & Slides](https://github.com/thawkin3/nodejs-event-loop-presentation)
-- [Node's Event Loop From the Inside Out by Sam Roberts, IBM](https://youtu.be/P9csgxBgaZ8?si=sU_LGUgWYAT-yFTR)
-- [WHATWG HTML Living Standard - Event Loops](https://html.spec.whatwg.org/multipage/webappapis.html#event-loops)
-- [ECMAScript 2024 - Jobs and Job Queues](https://tc39.es/ecma262/#sec-jobs-and-job-queues)
+- [The Node.js Event Loop Official Docs](https://nodejs.org/en/learn/asynchronous-work/event-loop-timers-and-nexttick) - Phases, `process.nextTick`, `setImmediate` behavior
+- [Libuv Design - The I/O Loop](https://docs.libuv.org/en/v1.x/design.html) - Thread pool, OS abstraction, network vs file I/O
+- [WHATWG HTML Living Standard - Event Loops](https://html.spec.whatwg.org/multipage/webappapis.html#event-loops) - Browser processing model, microtask checkpoints
+- [ECMAScript 2024 - Jobs and Job Queues](https://tc39.es/ecma262/#sec-jobs-and-job-queues) - Language specification for async scheduling
+- [MDN - Using Microtasks](https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide) - Microtask behavior, `queueMicrotask`
+- [MDN - Animation Performance and Frame Rate](https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/Animation_performance_and_frame_rate) - 60fps target, frame budgets
+- [MDN - requestAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame) - Browser animation scheduling
+- [Video: Everything You Need to Know About Node.js Event Loop - Bert Belder, IBM](https://youtu.be/PNa9OMajw9w?si=CFxugIEBeZTGIHrD)
+- [Video: A Deep Dive Into the Node.js Event Loop - Tyler Hawkins](https://youtu.be/KKM_4-uQpow?si=zlsK2g3p1TkQGE3l)
+- [Video: Node's Event Loop From the Inside Out - Sam Roberts, IBM](https://youtu.be/P9csgxBgaZ8?si=sU_LGUgWYAT-yFTR)
+- [Tasks, Microtasks, Queues and Schedules - Jake Archibald](https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/) - Interactive visualization of event loop

@@ -1,5 +1,5 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-22
 featured: true
 tags:
   - ssg
@@ -25,6 +25,33 @@ tags:
 # High-Performance Static Site Generation on AWS
 
 Master production-grade SSG architecture with deployment strategies, performance optimization techniques, and advanced AWS patterns for building fast, scalable static sites.
+
+<figure>
+
+```mermaid
+flowchart LR
+    subgraph Build["Build Phase"]
+        A[Content Sources] --> B[SSG Engine]
+        C[Templates] --> B
+        B --> D[Static Assets]
+        D --> E[Pre-Compression]
+    end
+
+    subgraph Deploy["AWS Infrastructure"]
+        E --> F[S3 Versioned Buckets]
+        F --> G[CloudFront CDN]
+        H["Lambda@Edge"] --> G
+    end
+
+    subgraph Serve["Edge Delivery"]
+        G --> I[Global Edge Locations]
+        I --> J[Users Worldwide]
+    end
+```
+
+<figcaption>High-level architecture showing the build-time rendering, AWS deployment, and edge delivery flow for SSG sites</figcaption>
+
+</figure>
 
 ## TLDR
 
@@ -288,7 +315,11 @@ Add a custom origin header in CloudFront's origin configuration that is always u
 
 **Lambda@Edge Function:**
 
-```javascript title="build-version-router.js"
+```javascript title="build-version-router.js" collapse={1-5}
+// Lambda@Edge function for build version routing
+// Reads x-build-version header set in CloudFront origin configuration
+// and routes requests to the appropriate versioned S3 directory
+
 exports.handler = (event, context, callback) => {
   const request = event.Records[0].cf.request
   const headers = request.headers
@@ -307,8 +338,11 @@ exports.handler = (event, context, callback) => {
 
 **Rollback Script:**
 
-```bash title="version-deployment.sh"
+```bash title="version-deployment.sh" collapse={1-6}
 #!/bin/bash
+# Deployment script for updating CloudFront build version
+# Updates the origin custom header and invalidates cache
+# Usage: ./version-deployment.sh build_003 E1234567890ABCD
 
 update_build_version() {
     local version=$1
@@ -326,7 +360,6 @@ update_build_version() {
         --paths "/*"
 }
 
-# Usage: ./version-deployment.sh build_003 E1234567890ABCD
 update_build_version $1 $2
 ```
 
@@ -408,7 +441,11 @@ Generate two separate build outputs—one optimized for mobile and another for d
 
 **Implementation with Lambda@Edge:**
 
-```javascript title="device-router.js"
+```javascript title="device-router.js" collapse={1-4}
+// Lambda@Edge function for device-based routing
+// Routes to mobile/ or desktop/ prefixed paths based on user agent
+// Configure CloudFront cache key to include CloudFront-Is-Mobile-Viewer header
+
 exports.handler = (event, context, callback) => {
   const request = event.Records[0].cf.request
   const headers = request.headers
@@ -500,7 +537,11 @@ graph TD
 
 **Lambda@Edge Function**: Create a Lambda@Edge function that triggers on the viewer request event. This function's sole purpose is to perform content negotiation. It inspects the Accept-Encoding header sent by the user's browser and rewrites the request URI accordingly.
 
-```javascript title="compression-negotiator.js"
+```javascript title="compression-negotiator.js" collapse={1-4}
+// Lambda@Edge content negotiation function
+// Inspects Accept-Encoding header and rewrites URI to serve pre-compressed files
+// Requires pre-compressed .br and .gz files in S3 with correct Content-Encoding metadata
+
 exports.handler = (event, context, callback) => {
   const request = event.Records[0].cf.request
   const headers = request.headers
@@ -741,7 +782,11 @@ Canary releases allow you to gradually shift traffic to a new version, enabling 
 
 **Implementation with Lambda@Edge:**
 
-```javascript title="canary-router.js"
+```javascript title="canary-router.js" collapse={1-4}
+// Lambda@Edge canary release router
+// Routes a percentage of traffic to canary origin based on IP hash
+// Provides consistent routing per user for session stability
+
 exports.handler = async (event) => {
   const request = event.Records[0].cf.request
   const headers = request.headers

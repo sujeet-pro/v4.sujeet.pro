@@ -1,14 +1,17 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-23
 tags:
   - platform-engineering
   - system-design
   - security
   - web-security
   - csp
+  - http-headers
   - scalability
   - backend
   - infrastructure
+  - observability
+  - grafana
 ---
 
 # High-Throughput CSP Violation Reporting at Scale
@@ -232,7 +235,7 @@ CLUSTER BY (EVENT_DATE, VIOLATED_DIRECTIVE);
 
 ### 5.3 Postgres DDL (Development)
 
-```sql title="postgres/csp_violations.sql"
+```sql title="postgres/csp_violations.sql" collapse={2-6}
 CREATE TABLE csp_violations (
   event_id UUID PRIMARY KEY,
   event_ts TIMESTAMPTZ NOT NULL,
@@ -240,6 +243,7 @@ CREATE TABLE csp_violations (
   blocked_uri TEXT
 );
 
+-- Trigram index for text search on blocked URIs
 CREATE INDEX idx_blocked_uri_trgm ON csp_violations USING gin (blocked_uri gin_trgm_ops);
 ```
 
@@ -332,6 +336,16 @@ Optimizing the Netty engine for 50k+ RPS:
 - **Snowpipe vs COPY:**
   - For < 50k RPS: Direct Batch Inserts (JDBC) or small batch `COPY`.
   - For > 50k RPS: Write to S3 -> Trigger **[Snowpipe](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro)**. This decouples consumer logic from warehouse loading latency.
+
+## Conclusion
+
+CSP-Sentinel balances throughput, cost, and operational simplicity through three key design decisions:
+
+1. **Fire-and-forget ingestion** - WebFlux returns `204` without database interaction, ensuring sub-millisecond response times regardless of downstream load
+2. **Kafka as a buffer** - Decouples ingestion from processing, allowing the system to absorb 10x traffic spikes without backpressure reaching browsers
+3. **Redis deduplication** - Reduces storage costs and noise by 70-90% in typical scenarios where browsers retry identical violations
+
+The technology choices (Java 25 with ZGC, Valkey for Redis compatibility, Snowflake for OLAP) prioritize operational simplicity over marginal performance gains. The system handles 50k-500k+ RPS with infrastructure that a single engineer can maintain.
 
 ## References
 

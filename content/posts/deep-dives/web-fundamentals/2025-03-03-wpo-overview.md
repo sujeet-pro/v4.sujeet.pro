@@ -5,12 +5,52 @@ tags:
   - performance-optimization
   - frontend
   - core-web-vitals
+  - cdn
+  - caching
+  - http
 featuredRank: 1
 ---
 
-# Web Performance Optimization - Complete Guide
+# Web Performance Optimization: Infrastructure, JavaScript, CSS, and Media
 
-Overview of web performance optimization covering infrastructure, JavaScript, CSS, images, and fonts. This guide provides quick reference tables and links to detailed articles in the series.
+Overview of web performance optimization covering infrastructure, JavaScript, CSS, images, and fonts. Provides quick reference tables and links to detailed articles in the series.
+
+## TLDR
+
+**Web Performance Optimization (WPO)** maximizes user experience by reducing load times, improving responsiveness, and ensuring visual stability across four optimization layers.
+
+### Core Web Vitals Targets
+
+- **LCP (Largest Contentful Paint)**: ≤2.5s for good, measures perceived load speed
+- **INP (Interaction to Next Paint)**: ≤200ms for good, measures interaction responsiveness
+- **CLS (Cumulative Layout Shift)**: ≤0.1 for good, measures visual stability
+- **TTFB**: ≤200ms for good server response (not a Core Web Vital but critical)
+
+### Infrastructure Optimization
+
+- **Protocol stack**: HTTP/3 + QUIC eliminates TCP head-of-line blocking, TLS 1.3 with 0-RTT
+- **Edge computing**: CDN with edge functions for personalization, A/B testing, auth
+- **Caching layers**: Service Worker + CDN + Redis for >80% origin offload
+- **Architecture patterns**: BFF for 30-50% payload reduction, Islands for selective hydration
+
+### JavaScript Optimization
+
+- **Code splitting**: Route-based with `React.lazy()` + `Suspense` for 50-80% initial reduction
+- **Task scheduling**: `scheduler.yield()` every 50ms to maintain INP <200ms
+- **Offloading**: Web Workers for heavy computation, worker pools for parallelism
+- **Tree shaking**: ES modules + `sideEffects: false` for dead code elimination
+
+### CSS & Typography
+
+- **Critical CSS**: Inline ≤14KB above-the-fold, defer rest with media query swap
+- **Font loading**: WOFF2 + subsetting for 65-90% size reduction, metric overrides for zero-CLS
+- **Compositor animations**: Only `transform` and `opacity` for 60fps rendering
+
+### Image Optimization
+
+- **Modern formats**: AVIF (30-50% smaller than JPEG), WebP as fallback, both have 93%+ support
+- **Loading strategy**: `fetchpriority="high"` for LCP images, `loading="lazy"` for below-fold
+- **Responsive delivery**: `srcset` with width descriptors, `sizes` for layout hints
 
 <figure>
 
@@ -46,12 +86,14 @@ flowchart TB
 
 ## Core Web Vitals Targets
 
-| Metric | Excellent | Good | Needs Improvement |
-|--------|-----------|------|-------------------|
-| **LCP** (Largest Contentful Paint) | <2.5s | <4.0s | >4.0s |
-| **INP** (Interaction to Next Paint) | <200ms | <500ms | >500ms |
-| **CLS** (Cumulative Layout Shift) | <0.1 | <0.25 | >0.25 |
-| **TTFB** (Time to First Byte) | <100ms | <200ms | >200ms |
+| Metric | Good | Needs Improvement | Poor |
+|--------|------|-------------------|------|
+| **LCP** (Largest Contentful Paint) | ≤2.5s | 2.5s–4.0s | >4.0s |
+| **INP** (Interaction to Next Paint) | ≤200ms | 200ms–500ms | >500ms |
+| **CLS** (Cumulative Layout Shift) | ≤0.1 | 0.1–0.25 | >0.25 |
+| **TTFB** (Time to First Byte) | ≤200ms | 200ms–500ms | >500ms |
+
+Google evaluates Core Web Vitals at the 75th percentile of page views—a site passes only when all three metrics (LCP, INP, CLS) are "good" ([web.dev Core Web Vitals](https://web.dev/articles/vitals)).
 
 ## 1. Infrastructure & Architecture
 
@@ -72,7 +114,7 @@ Infrastructure optimization addresses the foundation of web performance: network
 ### Key Techniques
 
 - **DNS Protocol Discovery**: HTTPS records enable HTTP/3 discovery, saving 100-300ms on connection establishment
-- **HTTP/3 and QUIC**: Eliminates TCP head-of-line blocking, 55% faster under packet loss
+- **HTTP/3 and QUIC**: Eliminates TCP head-of-line blocking; up to 55% faster page loads in high packet loss scenarios ([Cloudflare HTTP/3 benchmarks](https://blog.cloudflare.com/http-3-vs-http-2/))
 - **Edge Computing**: Run logic at CDN edge for personalization, A/B testing, auth
 - **BFF Pattern**: 30-50% payload reduction, 60-80% fewer API requests
 - **Multi-layer Caching**: Service Worker + IndexedDB + CDN for comprehensive caching
@@ -146,8 +188,8 @@ Image optimization delivers the largest bandwidth savings through modern formats
 
 | Format | Compression vs JPEG | Browser Support | Best Use Case |
 |--------|---------------------|-----------------|---------------|
-| **AVIF** | 1.5-2× smaller | 90%+ | HDR photos, rich media |
-| **WebP** | 1.25-1.34× smaller | 96%+ | General web photos & UI |
+| **AVIF** | 1.5-2× smaller | ~94% | HDR photos, rich media |
+| **WebP** | 1.25-1.34× smaller | ~97% | General web photos & UI |
 | **JPEG** | 1× (baseline) | 100% | Universal fallback |
 | **PNG** | Lossless | 100% | Graphics, transparency |
 
@@ -229,7 +271,7 @@ Continuous monitoring ensures optimizations remain effective and regressions are
   "metrics": {
     "lcp": "2.5s",
     "fcp": "1.8s",
-    "ttfb": "600ms",
+    "ttfb": "200ms",
     "inp": "200ms",
     "cls": "0.1"
   }

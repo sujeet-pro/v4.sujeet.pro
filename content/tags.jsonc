@@ -115,6 +115,7 @@
   { "id": "dsa", "name": "DSA" },
   { "id": "data-structures", "name": "Data Structures" },
   { "id": "algorithms", "name": "Algorithms" },
+  { "id": "graphs", "name": "Graphs" },
 
   // =============================================================================
   // Programming Paradigms & Patterns
@@ -125,11 +126,23 @@
   { "id": "event-loop", "name": "Event Loop" },
 
   // =============================================================================
+  // Observability & Monitoring
+  // =============================================================================
+  { "id": "observability", "name": "Observability" },
+  { "id": "monitoring", "name": "Monitoring" },
+  { "id": "grafana", "name": "Grafana" },
+
+  // =============================================================================
   // Reliability & Error Handling
   // =============================================================================
   { "id": "resilience", "name": "Resilience" },
   { "id": "error-handling", "name": "Error Handling" },
   { "id": "sre", "name": "SRE" },
+
+  // =============================================================================
+  // Accessibility
+  // =============================================================================
+  { "id": "accessibility", "name": "Accessibility" },
 
   // =============================================================================
   // Security

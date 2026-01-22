@@ -72,7 +72,7 @@ flowchart TB
 
 ### Compression
 
-- **Static Content**: Brotli level 11 pre-compression (14-21% better than Gzip)
+- **Static Content**: Brotli level 11 pre-compression ([14-17% smaller](https://www.akamai.com/blog/performance/understanding-brotlis-potential) than Gzip for JS/CSS)
 - **Dynamic Content**: Brotli level 4-5 or Zstandard for speed/ratio balance
 - **Edge Compression**: Offload compression to CDN to free origin CPU
 
@@ -95,7 +95,7 @@ The initial moments of a user's interaction with a website are defined by the sp
 
 ### 1.1 DNS as a Performance Lever
 
-Modern DNS has evolved from a simple directory into a sophisticated signaling mechanism through SVCB and HTTPS record types (RFC 9460).
+Modern DNS has evolved from a simple directory into a sophisticated signaling mechanism through SVCB and HTTPS record types ([RFC 9460](https://datatracker.ietf.org/doc/html/rfc9460)).
 
 **HTTPS Record Benefits:**
 - **alpn parameter**: Advertises HTTP/3 support (`alpn="h3"`), allowing browsers to skip protocol upgrade negotiation
@@ -112,7 +112,7 @@ _service.example.com. 300 IN SVCB 1 svc.example.net. alpn="h3" port="8443"
 
 **Measurement:**
 
-```javascript
+```javascript title="dns-timing.js"
 const measureDNSTiming = () => {
   const navigation = performance.getEntriesByType("navigation")[0]
   const dnsTime = navigation.domainLookupEnd - navigation.domainLookupStart
@@ -126,9 +126,9 @@ const measureDNSTiming = () => {
 
 ### 1.2 HTTP/3 and QUIC
 
-HTTP/3 abandons TCP for QUIC (built on UDP), providing transformative benefits:
+HTTP/3 abandons TCP for QUIC (built on UDP), providing transformative benefits ([HTTP/3 Explained](https://http3-explained.haxx.se/)):
 
-**Elimination of Head-of-Line Blocking**: QUIC implements streams as first-class citizens. Packet loss in one stream doesn't impact others—critical for complex web pages loading dozens of parallel resources.
+**Elimination of Head-of-Line Blocking**: QUIC implements streams as first-class citizens. Packet loss in one stream doesn't impact others—critical for complex web pages loading dozens of parallel resources. Research shows HTTP/3 can achieve [up to 81.5% improvement](https://arxiv.org/pdf/2409.16267) in extreme loss scenarios.
 
 **Faster Connection Establishment**: QUIC integrates cryptographic and transport handshakes, resulting in connections up to 33% faster and directly lowering TTFB.
 
@@ -156,11 +156,11 @@ graph TD
 
 ### 1.3 TLS 1.3 Optimization
 
-TLS 1.3 was redesigned with performance as a core feature:
+TLS 1.3 was redesigned with performance as a core feature ([RFC 8446](https://datatracker.ietf.org/doc/html/rfc8446)):
 
-**1-RTT Handshake**: Streamlined negotiation requires only a single round trip (vs 2 RTT for TLS 1.2), halving handshake latency.
+**1-RTT Handshake**: Streamlined negotiation requires only a single round trip (vs 2 RTT for TLS 1.2), [reducing latency by 30-50%](https://www.catchpoint.com/http2-vs-http3/tls1-2-vs-1-3).
 
-**0-RTT Resumption**: Returning visitors can send encrypted data in the first packet, effectively eliminating handshake latency for subsequent connections.
+**0-RTT Resumption**: Returning visitors can send encrypted data in the first packet, eliminating handshake latency for [~40% of connections that are resumptions](https://blog.cloudflare.com/introducing-0-rtt/).
 
 ```mermaid
 graph LR
@@ -176,8 +176,8 @@ graph LR
 
 | Optimization | Benefits | Trade-offs | Constraints |
 |--------------|----------|------------|-------------|
-| **SVCB/HTTPS Records** | Faster protocol discovery, reduced RTTs | 71% desktop, 71% mobile support | DNS infrastructure updates |
-| **HTTP/3 Adoption** | 33% faster connections, 55% better under packet loss | UDP configuration required | 30% server support |
+| **SVCB/HTTPS Records** | Faster protocol discovery, reduced RTTs | All major browsers (Chrome 117+, Firefox 118+, Safari) | DNS infrastructure updates |
+| **HTTP/3 Adoption** | 33% faster connections, [significant gains under packet loss](https://www.fastly.com/blog/how-http3-and-quic-help-long-tail-connections) | UDP configuration required | ~35% global adoption |
 | **TLS 1.3 Migration** | 50% faster handshake | Certificate updates needed | High browser compatibility |
 | **0-RTT Resumption** | Zero reconnection overhead | Replay attack mitigation | Security considerations |
 
@@ -198,7 +198,7 @@ A CDN's primary goal is to reduce latency by serving content from geographically
 
 Cache-hit ratio treats all requests equally. **Origin offload** measures percentage of bytes from cache—a more meaningful KPI that reflects actual infrastructure savings.
 
-```javascript
+```javascript title="cdn-strategy.js"
 const cdnStrategy = {
   static: {
     maxAge: 31536000, // 1 year
@@ -233,7 +233,7 @@ Edge computing extends CDNs from content delivery to distributed application pla
 - **A/B Testing**: Execute variant selection at edge without origin round-trip
 - **Edge Authentication**: Block invalid requests immediately, protecting origin
 
-```javascript
+```javascript title="edge-worker.js" collapse={1-3}
 addEventListener("fetch", (event) => {
   event.respondWith(handleRequest(event.request))
 })
@@ -283,7 +283,7 @@ Use the most effective algorithm at highest quality since compression time doesn
 - Server serves appropriate pre-compressed file
 
 **Dynamic Content (On-the-fly):**
-Compression happens in real-time, so speed matters:
+Compression happens in real-time, so speed matters ([compression benchmarks](https://paulcalvano.com/2024-03-19-choosing-between-gzip-brotli-and-zstandard-compression/)):
 - Brotli level 4-5: Better than Gzip at similar speed
 - Zstandard: Brotli-like compression at Gzip-like speeds
 
@@ -348,7 +348,7 @@ An in-memory caching layer (Redis, Memcached) stores expensive query results, se
 - **Memcached**: Pure volatile cache, multi-threaded, simple and fast
 - **Redis**: Data structures server, persistence, replication, clustering—more versatile
 
-```javascript
+```javascript title="cache-helper.js"
 const getCachedData = async (key, fetchFunction, ttl = 3600) => {
   try {
     const cached = await redis.get(key)
@@ -388,14 +388,14 @@ const getCachedData = async (key, fetchFunction, ttl = 3600) => {
 
 ### 5.1 Islands Architecture
 
-Renders pages as static HTML by default, hydrating only interactive components (islands) on demand.
+Renders pages as static HTML by default, hydrating only interactive components (islands) on demand ([Astro Islands](https://docs.astro.build/en/concepts/islands/)).
 
 **Core Principles:**
 - **Static by Default**: No JavaScript required for initial display
 - **Selective Hydration**: Interactive components hydrate based on triggers
 - **Progressive Enhancement**: Functionality adds incrementally
 
-```javascript
+```astro title="index.astro"
 ---
 const posts = await getPosts();
 ---
@@ -427,7 +427,7 @@ const posts = await getPosts();
 
 ### 5.2 Resumability (Qwik)
 
-Zero-hydration approach: serializes execution state into HTML and resumes exactly where server left off on user interaction.
+Zero-hydration approach: serializes execution state into HTML and resumes exactly where server left off on user interaction ([Qwik Resumability](https://qwik.dev/docs/concepts/resumable/)).
 
 **Key Advantages:**
 - Zero JavaScript execution on initial load
@@ -447,7 +447,7 @@ Creates specialized backend services that aggregate data from multiple microserv
 | **Response Time** | 800-1200ms | 200-400ms | 60-75% faster |
 | **Cache Hit Rate** | 30-40% | 70-85% | 40-45% improvement |
 
-```javascript
+```javascript title="product-bff.js"
 class ProductPageBFF {
   async getProductPageData(productId, userId) {
     const [product, reviews, inventory, recommendations] = await Promise.all([
@@ -478,7 +478,7 @@ Differentiate network paths for client-side and server-side data fetching.
 
 **Implementation:**
 
-```javascript
+```javascript title="api-client.js"
 class APIClient {
   constructor() {
     this.publicUrl = process.env.NEXT_PUBLIC_API_URL
@@ -512,7 +512,7 @@ class APIClient {
 
 ### 6.1 Service Worker Caching
 
-```javascript
+```javascript title="service-worker.js" collapse={1-4}
 import { registerRoute } from "workbox-routing"
 import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from "workbox-strategies"
 import { ExpirationPlugin } from "workbox-expiration"
@@ -557,7 +557,7 @@ registerRoute(
 
 ### 6.2 IndexedDB for Large Data
 
-```javascript
+```javascript title="data-cache.js"
 class DataCache {
   async cacheApiResponse(url, data, ttl = 300000) {
     const transaction = this.db.transaction(["apiResponses"], "readwrite")
@@ -586,7 +586,7 @@ class DataCache {
 
 ### 7.1 RUM-Based Monitoring
 
-```javascript
+```javascript title="rum-monitor.js" collapse={1-14, 46-56}
 class RUMBudgetMonitor {
   constructor() {
     this.budgets = {

@@ -1,5 +1,5 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-22
 featured: true
 tags:
   - platform-engineering
@@ -867,7 +867,7 @@ Examples:
 
 To ensure cache hit consistency, operations must be canonicalized:
 
-```javascript
+```javascript title="canonicalize-operations.js"
 /**
  * Canonicalizes transformation operations to ensure consistent cache keys
  */

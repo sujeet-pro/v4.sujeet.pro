@@ -1,5 +1,5 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-23
 featured: true
 tags:
   - next
@@ -12,6 +12,14 @@ tags:
   - core-web-vitals
   - caching
   - experimentation
+  - web-performance
+  - cdn
+  - cloudfront
+  - aws
+  - frontend-architecture
+  - stakeholder-management
+  - change-management
+  - web-security
 ---
 
 # Migrating E-commerce Platforms from SSG to SSR: A Strategic Architecture Transformation
@@ -94,7 +102,7 @@ flowchart TB
 
 ### Key Success Metrics
 
-- **Core Web Vitals targets**: LCP < 2.5s, CLS < 0.1, INP < 200ms
+- **[Core Web Vitals](https://web.dev/articles/vitals) targets**: LCP < 2.5s, CLS < 0.1, INP < 200ms
 - **Content publishing time**: Reduce from ~15 minutes to < 30 seconds
 - **Business metrics**: Maintain or improve conversion rates, CTR, and ROAS throughout migration
 - **Rollback triggers**: Quantitative thresholds (e.g., >10% drop in add-to-cart rate) for automatic decisions
@@ -127,7 +135,7 @@ Based on real production experience with our SSG implementation, several critica
 
 **Operational and Cost Issues**
 
-- **Occasional Increased CloudFront Costs**: Home page launches with 200+ products caused ~10x cost for the day when content exceeded 10MB—CloudFront's automatic compression limit—resulting in uncompressed transfers and higher egress costs.
+- **Occasional Increased CloudFront Costs**: Home page launches with 200+ products caused ~10x cost for the day when content exceeded 10MB—[CloudFront's automatic compression limit](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/ServingCompressedFiles.html)—resulting in uncompressed transfers and higher egress costs.
 
 - **Content-Code Coupling**: Marketing teams cannot publish content independently, requiring engineering coordination for simple banner updates and page launches.
 
@@ -435,7 +443,8 @@ function handler(event) {
 
 **Origin Request Function** — Runs on cache miss, selects origin:
 
-```javascript title="origin-request.js"
+```javascript title="origin-request.js" collapse={1-16}
+// Lines 1-16: Origin configuration (collapsed)
 const ORIGINS = {
   ssr: {
     domainName: "ssr-app.example.com",
@@ -453,6 +462,7 @@ const ORIGINS = {
   },
 }
 
+// Lines 17-27: Key routing logic (visible)
 function handler(event) {
   const request = event.request
   const bucket = request.headers["x-platform-bucket"]?.value || "ssg"

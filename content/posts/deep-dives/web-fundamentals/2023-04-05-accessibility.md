@@ -1,5 +1,5 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-22
 tags:
   - accessibility
   - frontend
@@ -7,9 +7,9 @@ tags:
   - web
 ---
 
-# Web Accessibility
+# Web Accessibility: WCAG 2.2, ARIA, and Inclusive Design
 
-Learn WCAG guidelines, semantic HTML, ARIA attributes, and screen reader optimization to create inclusive websites that work for everyone, including users with disabilities.
+Implement WCAG 2.2 guidelines, semantic HTML, ARIA patterns, and screen reader optimization for inclusive web experiences.
 
 <figure>
 
@@ -23,8 +23,8 @@ flowchart TB
     end
 
     subgraph "Compliance Levels"
-        A["Level A<br/>Essential<br/>35 criteria"]
-        AA["Level AA<br/>Recommended<br/>+28 criteria"]
+        A["Level A<br/>Essential<br/>25 criteria"]
+        AA["Level AA<br/>Recommended<br/>+22 criteria"]
         AAA["Level AAA<br/>Specialized<br/>+23 criteria"]
     end
 
@@ -45,9 +45,9 @@ flowchart TB
 
 ### WCAG Compliance Levels
 
-- **Level A (Essential)**: 35 criteria for minimum accessibility—without these, assistive technologies cannot operate the site
-- **Level AA (Recommended)**: Additional 28 criteria, required by ADA/EU laws, balance between accessibility and feasibility
-- **Level AAA (Specialized)**: 23 more criteria, not a blanket requirement as some content cannot meet all criteria
+- **Level A (Essential)**: 25 criteria for minimum accessibility—without these, assistive technologies cannot operate the site
+- **Level AA (Recommended)**: Additional 22 criteria (47 cumulative), required by ADA/EU laws, balance between accessibility and feasibility
+- **Level AAA (Specialized)**: 23 more criteria (70 total), not a blanket requirement as some content cannot meet all criteria
 - **POUR Principles**: Perceivable, Operable, Understandable, Robust—foundation of all accessibility
 
 ### Semantic HTML and Structure
@@ -68,12 +68,12 @@ flowchart TB
 
 - **Color Contrast**: 4.5:1 minimum for normal text, 3:1 for large text (18pt+) and UI components
 - **Focus Indicators**: Visible 2px+ outline with offset, never `outline: none` without alternative
-- **Touch Targets**: 44×44px minimum for mobile, 8px spacing between targets
+- **Touch Targets**: 24×24px minimum for Level AA ([WCAG 2.5.8](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html)), 44×44px for Level AAA, 8px spacing between targets
 - **Color Independence**: Never rely solely on color—use icons, text, or patterns alongside
 
 ### Testing and Automation
 
-- **Automated Tools**: axe-core, Lighthouse, Pa11y for CI/CD integration (catch ~30% of issues)
+- **Automated Tools**: axe-core, Lighthouse, Pa11y for CI/CD integration (catch 30-50% of issues—[manual testing required](https://accessibility-manual.dwp.gov.uk/best-practice/automated-testing-using-axe-core-and-pa11y) for the rest)
 - **Manual Testing**: Keyboard navigation, screen reader testing (NVDA, VoiceOver, JAWS)
 - **User Testing**: Include users with disabilities in testing process
 - **Quality Gates**: Fail builds on critical accessibility violations
@@ -81,11 +81,11 @@ flowchart TB
 ## Understanding Web Content Accessibility Guidelines (WCAG)
 
 The Web Content Accessibility Guidelines (WCAG) 2.2, developed by the W3C, serve as the international standard for web accessibility. These guidelines are organized into a hierarchical structure with three compliance levels, each building upon the previous one.
-**Level A (Essential Support)** represents the minimum accessibility requirements. Without meeting these criteria, assistive technologies may not be able to read, understand, or operate your website. This level includes 35 success criteria covering fundamental accessibility barriers.
+**Level A (Essential Support)** represents the minimum accessibility requirements. Without meeting these criteria, assistive technologies may not be able to read, understand, or operate your website. This level includes 25 success criteria covering fundamental accessibility barriers.
 
-**Level AA (Ideal Support)** is the recommended standard for most websites and is required by many accessibility laws worldwide, including the ADA in the United States. This level includes an additional 28 success criteria and represents a balance between accessibility improvement and implementation feasibility.
+**Level AA (Ideal Support)** is the recommended standard for most websites and is required by many accessibility laws worldwide, including the ADA in the United States. This level includes an additional 22 success criteria (47 cumulative) and represents a balance between accessibility improvement and implementation feasibility.
 
-**Level AAA (Specialized Support)** provides the highest level of accessibility with 23 additional success criteria. However, it's not recommended as a blanket requirement for entire websites, as some content cannot meet all AAA criteria.
+**Level AAA (Specialized Support)** provides the highest level of accessibility with 23 additional success criteria (70 total). However, it's not recommended as a blanket requirement for entire websites, as some content cannot meet all AAA criteria.
 
 ## The POUR Principles: Foundation of Accessible Design
 
@@ -464,13 +464,10 @@ Use ARIA live regions to announce dynamic content changes:
 **Focus Management in SPAs**
 Manage focus appropriately when content changes dynamically:
 
-```javascript
+```javascript title="focus-management.js"
 // Focus management for route changes
 function navigateToPage(pageContent, pageTitle) {
-  // Update page content
   document.getElementById("main-content").innerHTML = pageContent
-
-  // Update page title
   document.title = pageTitle
 
   // Move focus to main content area
@@ -484,10 +481,8 @@ function navigateToPage(pageContent, pageTitle) {
 
 // Modal dialog focus management
 function openModal(modalElement) {
-  // Store currently focused element
   const previouslyFocused = document.activeElement
 
-  // Show modal
   modalElement.style.display = "block"
   modalElement.setAttribute("aria-hidden", "false")
 
@@ -497,7 +492,6 @@ function openModal(modalElement) {
   )
   if (firstFocusable) firstFocusable.focus()
 
-  // Trap focus within modal
   trapFocus(modalElement)
 
   // Return focus when modal closes
@@ -552,7 +546,7 @@ Integrating accessibility testing into your continuous integration and deploymen
 
 **GitHub Actions Example**:
 
-```yaml
+```yaml title=".github/workflows/accessibility.yml" collapse={1-22}
 name: Accessibility Testing
 on: [push, pull_request]
 
@@ -589,7 +583,7 @@ jobs:
 
 **Cypress with axe-core**:
 
-```javascript
+```javascript title="cypress/integration/accessibility.spec.js" collapse={1-6}
 // cypress/integration/accessibility.spec.js
 describe("Accessibility Tests", () => {
   beforeEach(() => {
@@ -617,7 +611,7 @@ describe("Accessibility Tests", () => {
 
 **Playwright with axe-core**:
 
-```javascript
+```javascript title="tests/accessibility.spec.js" collapse={1-3}
 const { test, expect } = require("@playwright/test")
 const AxeBuilder = require("@axe-core/playwright")
 
@@ -683,7 +677,7 @@ This comprehensive checklist covers all major aspects of web accessibility, orga
 
 When building web components, accessibility requires special consideration:
 
-```javascript
+```javascript title="accessible-button.js" collapse={1-5, 9-24}
 class AccessibleButton extends HTMLElement {
   constructor() {
     super()

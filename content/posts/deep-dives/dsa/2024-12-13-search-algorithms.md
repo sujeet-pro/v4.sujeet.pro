@@ -1,5 +1,5 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-23
 featured: true
 tags:
   - algorithms
@@ -112,7 +112,7 @@ flowchart TB
 
 **Philosophy**: Check every element one by one until you find the target or reach the end.
 
-```typescript
+```typescript collapse={10-33}
 function linearSearch<T>(arr: T[], target: T): number {
   for (let i = 0; i < arr.length; i++) {
     if (arr[i] === target) {
@@ -200,13 +200,14 @@ function sentinelLinearSearch(arr: number[], target: number): number {
 ```typescript
 function jumpSearch(arr: number[], target: number): number {
   const n = arr.length
-  const step = Math.floor(Math.sqrt(n))
+  const blockSize = Math.floor(Math.sqrt(n))
+  let step = blockSize
   let prev = 0
 
   // Jump to find the block
   while (arr[Math.min(step, n) - 1] < target) {
     prev = step
-    step += Math.floor(Math.sqrt(n))
+    step += blockSize
     if (prev >= n) return -1
   }
 
@@ -246,7 +247,7 @@ function jumpSearch(arr: number[], target: number): number {
 
 **Philosophy**: Divide the search space in half by comparing the middle element. Repeat on the appropriate half.
 
-```typescript
+```typescript collapse={21-38}
 // Iterative implementation
 function binarySearch(arr: number[], target: number): number {
   let left = 0
@@ -324,7 +325,7 @@ while (left <= right) {
 **Practical applications**:
 - **Database indexes**: B-tree and B+ tree searches in SQL databases
 - **System libraries**: `bsearch()` in C stdlib, `Arrays.binarySearch()` in Java
-- **Version control**: Finding the commit that introduced a bug (git bisect)
+- **Version control**: Finding the commit that introduced a bug ([git bisect](https://git-scm.com/docs/git-bisect))
 - **Dictionary/spell checkers**: Looking up words in sorted dictionaries
 - **File systems**: Searching directory entries in sorted file systems
 - **Network routing tables**: IP address lookup in routing tables
@@ -452,7 +453,7 @@ function searchRotated(arr: number[], target: number): number {
 
 ### 5. Interpolation Search
 
-**Philosophy**: Like binary search, but guess the position based on value distribution (interpolation).
+**Philosophy**: Like binary search, but guess the position based on value distribution (interpolation). Under the assumption of uniformly distributed data, interpolation search achieves [O(log log n) average-case performance](https://en.wikipedia.org/wiki/Interpolation_search).
 
 ```typescript
 function interpolationSearch(arr: number[], target: number): number {
@@ -521,11 +522,25 @@ function exponentialSearch(arr: number[], target: number): number {
     bound *= 2
   }
 
-  // Binary search in the found range
-  return binarySearch(
-    arr.slice(Math.floor(bound / 2), Math.min(bound + 1, n)),
-    target
-  ) + Math.floor(bound / 2)
+  // Binary search in the found range [bound/2, min(bound, n-1)]
+  const left = Math.floor(bound / 2)
+  const right = Math.min(bound, n - 1)
+  return binarySearchRange(arr, target, left, right)
+}
+
+function binarySearchRange(
+  arr: number[],
+  target: number,
+  left: number,
+  right: number
+): number {
+  while (left <= right) {
+    const mid = left + Math.floor((right - left) / 2)
+    if (arr[mid] === target) return mid
+    if (arr[mid] < target) left = mid + 1
+    else right = mid - 1
+  }
+  return -1
 }
 ```
 
@@ -578,7 +593,7 @@ function createGraph(edges: [number, number][]): Graph {
 
 **Philosophy**: Explore level by level - visit all neighbors before moving to the next level. Uses a queue (FIFO).
 
-```typescript
+```typescript collapse={19-67}
 function bfs(graph: Graph, start: number): void {
   const visited = new Set<number>()
   const queue: number[] = [start]
@@ -679,7 +694,7 @@ function bfsWithDistance(
 
 **Philosophy**: Explore as deep as possible before backtracking. Uses a stack (LIFO) or recursion.
 
-```typescript
+```typescript collapse={17-39, 62-119}
 // Recursive DFS
 function dfsRecursive(
   graph: Graph,
@@ -1064,11 +1079,11 @@ function dijkstraWithPath(
 | Optimality   | Yes (for non-negative weights) |
 | Use case     | Shortest path in weighted graphs |
 
-**Critical constraint**: Does NOT work with negative edge weights (use Bellman-Ford instead).
+**Critical constraint**: Does NOT work with negative edge weights (use Bellman-Ford instead). With a binary heap implementation, Dijkstra achieves [O((V + E) log V) time complexity](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm).
 
 **Practical applications**:
 - **GPS navigation**: Finding shortest route considering road lengths, traffic
-- **Network routing**: OSPF protocol for packet routing (finds least-cost paths)
+- **Network routing**: [OSPF protocol](https://datatracker.ietf.org/doc/html/rfc2328) uses Dijkstra for shortest path routing
 - **Flight planning**: Cheapest flights considering prices as weights
 - **Telecommunications**: Optimal routing in communication networks
 - **Robot motion planning**: Finding shortest path with movement costs
@@ -1082,7 +1097,7 @@ function dijkstraWithPath(
 
 **Philosophy**: Like Dijkstra, but uses a heuristic to guide search toward the goal. More efficient than Dijkstra when a good heuristic is available.
 
-```typescript
+```typescript collapse={1-14, 68-155}
 interface Point {
   x: number
   y: number
@@ -1247,7 +1262,7 @@ function astarGrid(
 | Optimality   | Yes (with admissible heuristic) |
 | Use case     | Pathfinding with known goal   |
 
-**Heuristic requirements**:
+**Heuristic requirements** ([A* optimality conditions](https://en.wikipedia.org/wiki/A*_search_algorithm)):
 - **Admissible**: Never overestimates actual cost (h(n) ≤ actual cost)
 - **Consistent**: h(n) ≤ cost(n, n') + h(n') (triangle inequality)
 

@@ -1,17 +1,18 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-22
 featured: true
 tags:
   - js
   - html
   - css
+  - dom
+  - browser-apis
   - web-performance
   - performance
   - ssg
   - ssr
   - frontend
   - architecture
-  - cls
 ---
 
 # Critical Rendering Path
@@ -1103,9 +1104,7 @@ The `content-visibility` property tells browsers to skip rendering for off-scree
 - `hidden`: Never render (like `display: none` but preserves state)
 - `auto`: Render when needed (approaching viewport)
 
-**Caveats**:
-- Safari: "Find in page" doesn't search `content-visibility: auto` content (see [WebKit Bug 283846](https://bugs.webkit.org/show_bug.cgi?id=283846) for status)
-- Requires `contain-intrinsic-size` for stable scrolling
+**Caveat**: Requires `contain-intrinsic-size` for stable scrolling.
 
 #### CSS Containment
 

@@ -1,10 +1,12 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-23
 tags:
   - algorithms
   - dsa
   - performance
   - data-structures
+  - ts
+  - system-design
 ---
 
 # Sorting Algorithms - Deep Dive into Theory and Practice
@@ -87,7 +89,7 @@ flowchart TB
 
 ### The O(n log n) Barrier
 
-**Key insight**: Comparison-based sorting cannot do better than O(n log n) in the average/worst case.
+**Key insight**: Comparison-based sorting cannot do better than O(n log n) in the average/worst case ([CLRS, Chapter 8.1](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/)).
 
 **Why?** There are n! permutations of n elements. A comparison tree needs log₂(n!) ≈ n log n comparisons to distinguish all permutations.
 
@@ -210,7 +212,7 @@ function insertionSort(arr: number[]): number[] {
 
 **Philosophy**: Divide and conquer. Split array in half, recursively sort each half, merge the sorted halves.
 
-```typescript
+```typescript collapse={12-26}
 function mergeSort(arr: number[]): number[] {
   if (arr.length <= 1) return arr
 
@@ -221,6 +223,7 @@ function mergeSort(arr: number[]): number[] {
   return merge(left, right)
 }
 
+// Merge helper: combines two sorted arrays
 function merge(left: number[], right: number[]): number[] {
   const result: number[] = []
   let i = 0,
@@ -269,7 +272,8 @@ function merge(left: number[], right: number[]): number[] {
 
 **Philosophy**: Pick a pivot, partition array so elements smaller than pivot are on left, larger on right. Recursively sort partitions.
 
-```typescript
+```typescript collapse={1-9}
+// Main quicksort - divide and conquer
 function quickSort(arr: number[], low: number = 0, high: number = arr.length - 1): number[] {
   if (low < high) {
     const pivotIdx = partition(arr, low, high)
@@ -279,6 +283,7 @@ function quickSort(arr: number[], low: number = 0, high: number = arr.length - 1
   return arr
 }
 
+// Partition: the core of Quick Sort (Lomuto scheme)
 function partition(arr: number[], low: number, high: number): number {
   const pivot = arr[high] // Using last element as pivot
   let i = low - 1
@@ -316,11 +321,12 @@ Essential for arrays with many duplicates:
 function quickSort3Way(arr: number[], low: number, high: number): void {
   if (low >= high) return
 
-  let lt = low, // arr[low..lt-1] < pivot
-    gt = high, // arr[gt+1..high] > pivot
-    i = low + 1
+  let lt = low   // arr[low..lt-1] < pivot
+  let gt = high  // arr[gt+1..high] > pivot
+  let i = low + 1
   const pivot = arr[low]
 
+  // Partition into three regions: <pivot, ==pivot, >pivot
   while (i <= gt) {
     if (arr[i] < pivot) {
       ;[arr[lt], arr[i]] = [arr[i], arr[lt]]
@@ -330,12 +336,12 @@ function quickSort3Way(arr: number[], low: number, high: number): void {
       ;[arr[i], arr[gt]] = [arr[gt], arr[i]]
       gt--
     } else {
-      i++
+      i++ // Equal elements stay in middle
     }
   }
 
-  quickSort3Way(arr, low, lt - 1)
-  quickSort3Way(arr, gt + 1, high)
+  quickSort3Way(arr, low, lt - 1)  // Sort < pivot
+  quickSort3Way(arr, gt + 1, high) // Sort > pivot
 }
 ```
 
@@ -352,24 +358,25 @@ function quickSort3Way(arr: number[], low: number, high: number): void {
 
 **Philosophy**: Build a max-heap, repeatedly extract the maximum to build sorted array from the end.
 
-```typescript
+```typescript collapse={18-31}
 function heapSort(arr: number[]): number[] {
   const n = arr.length
 
-  // Build max heap
+  // Build max heap (bottom-up)
   for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
     heapify(arr, n, i)
   }
 
-  // Extract elements from heap
+  // Extract elements from heap one by one
   for (let i = n - 1; i > 0; i--) {
-    ;[arr[0], arr[i]] = [arr[i], arr[0]]
-    heapify(arr, i, 0)
+    ;[arr[0], arr[i]] = [arr[i], arr[0]] // Move max to end
+    heapify(arr, i, 0) // Restore heap property
   }
 
   return arr
 }
 
+// Heapify: maintain max-heap property
 function heapify(arr: number[], n: number, i: number): void {
   let largest = i
   const left = 2 * i + 1
@@ -414,7 +421,8 @@ These break the O(n log n) barrier by not comparing elements directly.
 
 **Philosophy**: Count occurrences of each value, then place elements based on counts.
 
-```typescript
+```typescript collapse={1-9}
+// Setup: find range and initialize arrays
 function countingSort(arr: number[]): number[] {
   if (arr.length === 0) return arr
 
@@ -467,13 +475,13 @@ function countingSort(arr: number[]): number[] {
 
 **Philosophy**: Sort by individual digits, from least significant to most significant (LSD) or vice versa (MSD).
 
-```typescript
+```typescript collapse={14-37}
 function radixSort(arr: number[]): number[] {
   if (arr.length === 0) return arr
 
   const max = Math.max(...arr)
 
-  // Sort by each digit using counting sort as subroutine
+  // Sort by each digit using counting sort as subroutine (LSD)
   for (let exp = 1; Math.floor(max / exp) > 0; exp *= 10) {
     countingSortByDigit(arr, exp)
   }
@@ -481,6 +489,7 @@ function radixSort(arr: number[]): number[] {
   return arr
 }
 
+// Stable counting sort for a single digit position
 function countingSortByDigit(arr: number[], exp: number): void {
   const n = arr.length
   const output = new Array(n)
@@ -627,11 +636,11 @@ Heap Sort: Jumps between parent and children (2i+1, 2i+2)
 - **Quick Sort**: The partition step scans the array sequentially. Adjacent elements are accessed together, maximizing L1/L2 cache hits.
 - **Heap Sort**: Heapify jumps between index `i` and indices `2i+1`, `2i+2`. For large arrays, parent and children are far apart in memory, causing frequent cache misses.
 
-**Real impact**: On modern CPUs, a cache miss costs 100-300 cycles. Quick Sort's sequential access pattern can be 2-3x faster than Heap Sort for large arrays purely due to cache behavior.
+**Real impact**: On modern CPUs, a cache miss costs 100-300 cycles ([Intel Optimization Manual](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html)). Quick Sort's sequential access pattern can be 2-3x faster than Heap Sort for large arrays purely due to cache behavior.
 
 ### 2. Lower Constant Factors
 
-Quick Sort does less work per element:
+Quick Sort does less work per element ([Sedgewick & Wayne, Algorithms 4th Ed](https://algs4.cs.princeton.edu/)):
 
 | Operation          | Quick Sort        | Heap Sort            |
 | ------------------ | ----------------- | -------------------- |
@@ -1157,12 +1166,12 @@ Quick Sort (randomized)              Merge Sort
 
 | Language   | Array Sort         | Notes                         |
 | ---------- | ------------------ | ----------------------------- |
-| JavaScript | Tim Sort (V8)      | Stable, hybrid                |
+| JavaScript | Tim Sort (V8)      | Stable since ES2019 ([V8](https://v8.dev/features/stable-sort)) |
 | Python     | Tim Sort           | Stable, hybrid                |
 | Java       | Tim Sort (objects) | Dual-pivot Quick Sort (prims) |
 | C++        | Introsort          | Quick + Heap + Insertion      |
-| Go         | Pattern-defeating  | Quick Sort variant            |
-| Rust       | Tim Sort (stable)  | Pattern-defeating (unstable)  |
+| Go         | pdqsort            | Since Go 1.19 ([Go Issue](https://github.com/golang/go/issues/50154)) |
+| Rust       | Tim Sort (stable)  | pdqsort (unstable)            |
 
 **Key insight**: Production implementations are always hybrids that combine the strengths of multiple algorithms.
 
@@ -1172,7 +1181,7 @@ Quick Sort (randomized)              Merge Sort
 
 ### Tim Sort (Used in Python, Java, JavaScript)
 
-Hybrid of Merge Sort and Insertion Sort:
+Tim Sort is a hybrid of Merge Sort and Insertion Sort, developed by Tim Peters for Python in 2002 ([V8 Blog](https://v8.dev/blog/array-sort)):
 
 1. Divide array into "runs" (32-64 elements)
 2. Sort runs with Insertion Sort
@@ -1186,7 +1195,7 @@ Key optimizations:
 
 ### Introsort (Used in C++ STL)
 
-Hybrid of Quick Sort, Heap Sort, and Insertion Sort:
+Introsort (introspective sort) was invented by David Musser in 1997 ([Wikipedia](https://en.wikipedia.org/wiki/Introsort)). It's a hybrid of Quick Sort, Heap Sort, and Insertion Sort:
 
 1. Start with Quick Sort
 2. If recursion depth exceeds 2*log(n), switch to Heap Sort
@@ -1233,9 +1242,13 @@ The best sorting algorithm isn't determined by theoretical complexity alone—it
 
 ## References
 
+- [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/) - Comprehensive algorithm analysis including comparison sort lower bound proofs
+- [Algorithms, 4th Edition (Sedgewick & Wayne)](https://algs4.cs.princeton.edu/) - Practical algorithm analysis with comparison counts
+- [The Art of Computer Programming, Vol. 3](https://www-cs-faculty.stanford.edu/~knuth/taocp.html) - Knuth's definitive sorting reference
 - [Tim Sort](https://en.wikipedia.org/wiki/Timsort) - Python and Java's hybrid sorting algorithm
 - [Introsort](https://en.wikipedia.org/wiki/Introsort) - C++ STL's introspective sort implementation
-- [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/) - Comprehensive algorithm analysis
-- [The Art of Computer Programming, Vol. 3](https://www-cs-faculty.stanford.edu/~knuth/taocp.html) - Knuth's definitive sorting reference
 - [Pattern-defeating Quicksort](https://github.com/orlp/pdqsort) - Go and Rust's optimized quicksort
 - [V8 Array.sort() Implementation](https://v8.dev/blog/array-sort) - JavaScript engine sorting internals
+- [V8 Stable Sort](https://v8.dev/features/stable-sort) - ECMAScript 2019 stable sort requirement
+- [Go pdqsort Issue](https://github.com/golang/go/issues/50154) - Discussion and implementation of pdqsort in Go 1.19
+- [Intel 64 and IA-32 Optimization Manual](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html) - CPU cache behavior and latency

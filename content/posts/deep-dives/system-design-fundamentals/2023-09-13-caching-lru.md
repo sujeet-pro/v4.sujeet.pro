@@ -1,5 +1,5 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-22
 tags:
   - js
   - ts
@@ -82,7 +82,7 @@ flowchart TB
 
 - **PostgreSQL**: Uses clock sweep algorithm for buffer management since version 8.1 (briefly used ARC in 8.0.0, then 2Q in 8.0.2 due to patent concerns)
 - **Redis**: Uses approximated LRU with random sampling for cache eviction
-- **Linux Kernel**: Page cache historically used a two-list active/inactive approach; modern kernels (5.18+) support Multi-Generational LRU (MGLRU) for improved performance
+- **Linux Kernel**: Page cache historically used a two-list active/inactive approach; modern kernels (6.1+) support Multi-Generational LRU (MGLRU) for improved performance (some distros backported MGLRU patches to 5.18)
 - **Memcached**: Implements LRU with slab allocator for memory efficiency
 - **CDNs**: Often use LRU variants with size-aware eviction for content delivery
 
@@ -157,7 +157,7 @@ graph LR
 
 ### Implementation 1: Utilizing JavaScript Map's Insertion Order
 
-```ts
+```ts collapse={1-9}
 class LRUCache<K, V> {
   capacity: number
   cache: Map<K, V>
@@ -338,7 +338,7 @@ LRU-K extends the classic LRU by tracking the timestamps of the last K accesses 
 
 **Trade-offs**: The choice of K is critical and workload-dependent. If K is too large, legitimate items might be evicted before they are accessed K times; if it's too small, the algorithm degenerates back to LRU.
 
-```ts
+```ts collapse={1-10, 45-74}
 class LRUKCache {
   capacity: number
   k: number
@@ -440,7 +440,7 @@ When an item is accessed for the first time, it's placed in the A1 probationary 
 - **Effective Filtering**: Prevents scan pollution effectively
 - **Tunable**: Queue sizes can be adjusted based on workload
 
-```ts
+```ts collapse={1-18, 70-85}
 class TwoQueueCache {
   capacity: number
   a1Size: number
@@ -570,7 +570,7 @@ This patent had significant historical implications for the open-source communit
 - **Memory Overhead**: Maintains 4 data structures (T1, T2, B1, B2) plus adaptation parameter
 - **Complexity**: More complex to implement and debug than simpler algorithms
 
-```ts
+```ts collapse={1-21, 68-137}
 class ARCCache {
   capacity: number
   p: number // Adaptation parameter
@@ -906,7 +906,7 @@ class ConcurrentLRU<K, V> {
 
 Here's a comprehensive benchmark to compare the performance characteristics of different algorithms:
 
-```ts
+```ts collapse={1-14, 26-51}
 function benchmarkCache(cache: any, operations: Array<{ type: "get" | "put"; key: number; value?: number }>) {
   const start = performance.now()
 

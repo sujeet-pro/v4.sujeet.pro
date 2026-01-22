@@ -1,5 +1,5 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-23
 featured: true
 tags:
   - design-system
@@ -1074,7 +1074,7 @@ flowchart LR
 
 **Implementation Approach**
 
-```typescript title="scripts/repo-scanner/index.ts"
+```typescript title="scripts/repo-scanner/index.ts" collapse={1-12}
 interface RepoConfig {
   name: string;
   url: string;
@@ -1177,7 +1177,7 @@ Beyond knowing which repos use the design system, you need to understand _how_ t
 
 Scrape production codebases to build a usage database:
 
-```typescript title="scripts/usage-analyzer/index.ts"
+```typescript title="scripts/usage-analyzer/index.ts" collapse={1-14}
 interface ComponentUsage {
   component: string;
   repo: string;

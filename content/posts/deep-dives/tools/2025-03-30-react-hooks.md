@@ -1,5 +1,5 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-22
 featured: true
 tags:
   - react
@@ -7,9 +7,11 @@ tags:
   - architecture
   - performance
   - frontend
+  - ts
+  - design-patterns
 ---
 
-# React Hooks
+# React Hooks: Architecture, Patterns, and Production-Ready Implementations
 
 Master React Hooks' architectural principles, design patterns, and implementation strategies for building scalable, maintainable applications with functional components.
 
@@ -122,13 +124,13 @@ Hooks solve these problems by enabling:
 
 ## The Rules of Hooks: A Contract with React's Renderer
 
-Hooks operate under strict rules that are fundamental to React's internal state management mechanism.
+Hooks operate under strict rules that are fundamental to React's internal state management mechanism ([Rules of Hooks](https://react.dev/reference/rules/rules-of-hooks)).
 
 ### Rule 1: Only Call Hooks at the Top Level
 
-Hooks must be called in the same order on every render. This is because React relies on call order to associate state with each hook call.
+Hooks must be called in the same order on every render. React relies on call order to associate state with each hook call—internally, hooks are stored as a linked list, and React walks through this list sequentially on each render ([Why Do Hooks Rely on Call Order?](https://overreacted.io/why-do-hooks-rely-on-call-order/)).
 
-```tsx
+```tsx title="hook-rules-example.tsx"
 // ❌ Violates the rule
 function BadComponent({ condition }) {
   const [count, setCount] = useState(0)
@@ -169,7 +171,7 @@ This ensures all stateful logic is encapsulated within component scope.
 
 ### useState: The Foundation of State Management
 
-`useState` is the most fundamental hook for adding state to functional components.
+`useState` is the most fundamental hook for adding state to functional components ([useState Reference](https://react.dev/reference/react/useState)).
 
 ```tsx
 const [state, setState] = useState(initialValue)
@@ -193,7 +195,7 @@ setCount((prevCount) => prevCount + 1)
 
 ### useReducer: Complex State Logic
 
-`useReducer` provides a more structured approach to state management, inspired by Redux.
+`useReducer` provides a more structured approach to state management, inspired by Redux ([useReducer Reference](https://react.dev/reference/react/useReducer)).
 
 ```tsx
 const [state, dispatch] = useReducer(reducer, initialState)
@@ -210,7 +212,7 @@ const [state, dispatch] = useReducer(reducer, initialState)
 
 **Example: Form State Management**
 
-```tsx
+```tsx title="form-reducer.tsx" collapse={1-12}
 type FormState = {
   email: string
   password: string
@@ -242,11 +244,11 @@ function formReducer(state: FormState, action: FormAction): FormState {
 
 ### useEffect: Synchronization with External Systems
 
-`useEffect` is React's primary tool for managing side effects and synchronizing with external systems.
+`useEffect` is React's primary tool for managing side effects and synchronizing with external systems ([useEffect Reference](https://react.dev/reference/react/useEffect)).
 
 **Mental Model: Synchronization, Not Lifecycle**
 
-Think of `useEffect` as a synchronization primitive that keeps external systems in sync with your component's state.
+Think of `useEffect` as a synchronization primitive that keeps external systems in sync with your component's state ([Synchronizing with Effects](https://react.dev/learn/synchronizing-with-effects)).
 
 ```tsx
 useEffect(() => {
@@ -287,14 +289,14 @@ useEffect(() => {
 
 ### useRef: The Imperative Escape Hatch
 
-`useRef` provides a way to hold mutable values that don't trigger re-renders.
+`useRef` provides a way to hold mutable values that don't trigger re-renders ([useRef Reference](https://react.dev/reference/react/useRef)).
 
 **Two Primary Use Cases:**
 
 1. **DOM References**: Accessing DOM nodes directly
 2. **Mutable Values**: Storing values outside the render cycle
 
-```tsx
+```tsx title="text-input-focus.tsx"
 function TextInputWithFocus() {
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -313,7 +315,7 @@ function TextInputWithFocus() {
 
 **Mutable Values Pattern:**
 
-```tsx
+```tsx title="timer-component.tsx"
 function TimerComponent() {
   const intervalRef = useRef<NodeJS.Timeout>()
 
@@ -337,7 +339,7 @@ function TimerComponent() {
 
 JavaScript objects and functions are reference types, meaning they're recreated on every render.
 
-```tsx
+```tsx title="referential-equality-problem.tsx"
 function ParentComponent() {
   const [count, setCount] = useState(0)
 
@@ -353,7 +355,7 @@ function ParentComponent() {
 
 ### useMemo: Memoizing Expensive Calculations
 
-`useMemo` caches the result of expensive calculations.
+`useMemo` caches the result of expensive calculations ([useMemo Reference](https://react.dev/reference/react/useMemo)).
 
 ```tsx
 const memoizedValue = useMemo(() => {
@@ -369,7 +371,7 @@ const memoizedValue = useMemo(() => {
 
 ### useCallback: Memoizing Functions
 
-`useCallback` returns a memoized version of a function.
+`useCallback` returns a memoized version of a function ([useCallback Reference](https://react.dev/reference/react/useCallback)).
 
 ```tsx
 const memoizedCallback = useCallback(() => {
@@ -399,7 +401,7 @@ const expensiveList = useMemo(() => {
 
 ## Custom Hooks: The Art of Abstraction
 
-Custom hooks are the most powerful feature of the Hooks paradigm, enabling the creation of reusable logic abstractions.
+Custom hooks are the most powerful feature of the Hooks paradigm, enabling the creation of reusable logic abstractions ([Reusing Logic with Custom Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks)).
 
 ### Design Principles
 
@@ -412,7 +414,7 @@ Custom hooks are the most powerful feature of the Hooks paradigm, enabling the c
 
 Instead of creating monolithic hooks, compose smaller, focused hooks:
 
-```tsx
+```tsx title="hook-composition.tsx"
 // ❌ Monolithic hook
 function useUserData(userId) {
   // Handles fetching, caching, real-time updates, error handling
@@ -1358,10 +1360,12 @@ export function useThrottle<T extends (...args: any[]) => any>(
 
 The true power of custom hooks lies in their ability to compose into more complex abstractions.
 
-```tsx
+```tsx title="hook-composition-example.tsx"
 // Example: Composed data fetching with caching and real-time updates
 function useUserProfile(userId: string) {
-  const { data: user, error, isLoading, refetch } = useFetch(`/api/users/${userId}`, { cacheTime: 5 * 60 * 1000 })
+  const { data: user, error, isLoading, refetch } = useFetch(`/api/users/${userId}`, {
+    cacheTime: 5 * 60 * 1000,
+  })
 
   const [isOnline, setIsOnline] = useLocalStorage(`user-${userId}-online`, false)
 
@@ -1377,21 +1381,13 @@ function useUserProfile(userId: string) {
     }
   }, [isVisible, user, refetch])
 
-  return {
-    user,
-    error,
-    isLoading,
-    isOnline,
-    isVisible,
-    ref,
-    refetch,
-  }
+  return { user, error, isLoading, isOnline, isVisible, ref, refetch }
 }
 ```
 
 ### Performance Optimization Patterns
 
-```tsx
+```tsx title="virtualized-list-hook.tsx"
 // Example: Optimized list rendering with virtualization
 function useVirtualizedList<T>(items: T[], itemHeight: number, containerHeight: number) {
   const [scrollTop, setScrollTop] = useState(0)
@@ -1403,16 +1399,9 @@ function useVirtualizedList<T>(items: T[], itemHeight: number, containerHeight: 
     return { start, end }
   }, [scrollTop, itemHeight, containerHeight, items.length])
 
-  const visibleItems = useMemo(() => {
-    return items.slice(visibleRange.start, visibleRange.end)
-  }, [items, visibleRange])
+  const visibleItems = useMemo(() => items.slice(visibleRange.start, visibleRange.end), [items, visibleRange])
 
-  return {
-    visibleItems,
-    visibleRange,
-    totalHeight: items.length * itemHeight,
-    onScroll: throttledSetScrollTop,
-  }
+  return { visibleItems, visibleRange, totalHeight: items.length * itemHeight, onScroll: throttledSetScrollTop }
 }
 ```
 
@@ -1438,7 +1427,7 @@ React has introduced several new hooks that address specific use cases and enabl
 
 ### useId: Stable Unique Identifiers
 
-**Problem Statement**: In server-rendered applications, generating unique IDs can cause hydration mismatches between server and client. We need stable, unique identifiers that work consistently across renders and environments.
+**Problem Statement**: In server-rendered applications, generating unique IDs can cause hydration mismatches between server and client. We need stable, unique identifiers that work consistently across renders and environments ([useId Reference](https://react.dev/reference/react/useId)).
 
 **Key Questions to Consider**:
 
@@ -1521,7 +1510,7 @@ function ComplexForm() {
 
 ### use: Consuming Promises and Context
 
-**Problem Statement**: React needs a way to consume promises and context values in a way that integrates with Suspense and concurrent features. The `use` hook provides a unified API for consuming both promises and context.
+**Problem Statement**: React needs a way to consume promises and context values in a way that integrates with Suspense and concurrent features. The `use` hook provides a unified API for consuming both promises and context ([use Reference](https://react.dev/reference/react/use)).
 
 **Key Questions to Consider**:
 
@@ -1581,9 +1570,11 @@ function UserProfileWithErrorBoundary({ userId }: { userId: string }) {
 }
 ```
 
+**Important Caveat**: Prefer creating promises in Server Components and passing them to Client Components. Promises created in Client Components are recreated on every render. For Client Components, use a Suspense-compatible library or framework that supports caching for promises.
+
 **Advanced Patterns with use**:
 
-```tsx
+```tsx title="use-hook-patterns.tsx"
 // Multiple promises in the same component
 function UserDashboard({ userId }: { userId: string }) {
   const user = use(fetchUser(userId))
@@ -1637,7 +1628,7 @@ function UserProfileAdvanced({ userId }: { userId: string }) {
 
 ### useLayoutEffect: Synchronous DOM Measurements
 
-**Problem Statement**: Sometimes we need to perform DOM measurements and updates synchronously before the browser paints. `useLayoutEffect` runs synchronously after all DOM mutations but before the browser repaints.
+**Problem Statement**: Sometimes we need to perform DOM measurements and updates synchronously before the browser paints. `useLayoutEffect` runs synchronously after all DOM mutations but before the browser repaints ([useLayoutEffect Reference](https://react.dev/reference/react/useLayoutEffect)).
 
 **Key Questions to Consider**:
 
@@ -1761,7 +1752,7 @@ function useScrollRestoration(key: string) {
 
 ### useSyncExternalStore: External State Synchronization
 
-**Problem Statement**: React components need to subscribe to external state stores (like Redux, Zustand, or browser APIs) and re-render when that state changes. `useSyncExternalStore` provides a way to safely subscribe to external data sources.
+**Problem Statement**: React components need to subscribe to external state stores (like Redux, Zustand, or browser APIs) and re-render when that state changes. `useSyncExternalStore` provides a way to safely subscribe to external data sources in a way that's compatible with concurrent rendering ([useSyncExternalStore Reference](https://react.dev/reference/react/useSyncExternalStore)).
 
 **Key Questions to Consider**:
 
@@ -1779,8 +1770,8 @@ function useScrollRestoration(key: string) {
 
 **Production Implementation**:
 
-```tsx
-import { useSyncExternalStore } from "react"
+```tsx title="sync-external-store.tsx" collapse={1-2, 5-32}
+import { useSyncExternalStore, useCallback } from "react"
 
 // Example: Custom store implementation
 class CounterStore {
@@ -1925,6 +1916,12 @@ function UserProfile() {
 }
 ```
 
+**Important Considerations**:
+
+- **Tearing Prevention**: While `useEffect` and `useState` can subscribe to external stores, this pattern is prone to tearing in concurrent rendering. `useSyncExternalStore` guarantees consistent snapshots across render passes.
+- **SSR Support**: Pass a `getServerSnapshot` function as the third argument to provide initial values during server-side rendering.
+- **Suspense Caveat**: Avoid suspending based on store values—mutations to external stores cannot be marked as non-blocking transitions.
+
 **Food for Thought**:
 
 - **Server-Side Rendering**: How does `useSyncExternalStore` handle SSR?
@@ -1934,7 +1931,7 @@ function UserProfile() {
 
 ### useInsertionEffect: CSS-in-JS and Style Injection
 
-**Problem Statement**: CSS-in-JS libraries need to inject styles into the DOM before other effects run. `useInsertionEffect` runs synchronously before all other effects, making it perfect for style injection.
+**Problem Statement**: CSS-in-JS libraries need to inject styles into the DOM before other effects run. `useInsertionEffect` runs synchronously before all other effects, making it perfect for style injection ([useInsertionEffect Reference](https://react.dev/reference/react/useInsertionEffect)).
 
 **Key Questions to Consider**:
 
@@ -2069,7 +2066,7 @@ function useStyledComponent(componentId: string, css: string) {
 
 ### useDeferredValue: Deferring Expensive Updates
 
-**Problem Statement**: Sometimes we need to defer expensive updates to prevent blocking the UI. `useDeferredValue` allows us to defer updates to non-critical values while keeping the UI responsive.
+**Problem Statement**: Sometimes we need to defer expensive updates to prevent blocking the UI. `useDeferredValue` allows us to defer updates to non-critical values while keeping the UI responsive ([useDeferredValue Reference](https://react.dev/reference/react/useDeferredValue)).
 
 **Key Questions to Consider**:
 
@@ -2192,7 +2189,7 @@ function DataVisualization({ data }: { data: number[] }) {
 
 ### useTransition: Managing Loading States
 
-**Problem Statement**: We need to manage loading states for non-urgent updates without blocking the UI. `useTransition` allows us to mark updates as non-urgent and track their loading state.
+**Problem Statement**: We need to manage loading states for non-urgent updates without blocking the UI. `useTransition` allows us to mark updates as non-urgent and track their loading state ([useTransition Reference](https://react.dev/reference/react/useTransition)).
 
 **Key Questions to Consider**:
 

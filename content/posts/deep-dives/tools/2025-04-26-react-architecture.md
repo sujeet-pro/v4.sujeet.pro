@@ -1,5 +1,5 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-22
 tags:
   - react
   - architecture
@@ -7,6 +7,7 @@ tags:
   - next
   - frontend
   - ssr
+  - csr
   - web-performance
 ---
 
@@ -89,7 +90,7 @@ flowchart TB
 
 React's original reconciliation algorithm operated on a synchronous, recursive model that was inextricably bound to the JavaScript call stack. When state updates triggered re-renders, React would recursively traverse the component tree, calling render methods and building a new element tree in a single, uninterruptible pass. This approach, while conceptually straightforward, created significant performance bottlenecks in complex applications where large component trees could block the main thread for extended periods.
 
-React Fiber, introduced in React 16, represents a complete architectural reimplementation of the reconciliation process. The core innovation lies in **replacing the native call stack with a controllable, in-memory data structure**—a tree of "fiber" nodes linked together in a parent-child-sibling relationship. This virtual stack enables React's scheduler to pause rendering work at any point, yield control to higher-priority tasks, and resume processing later.
+React Fiber, introduced in React 16, represents a complete architectural reimplementation of the reconciliation process. The core innovation lies in **replacing the native call stack with a controllable, in-memory data structure**—a tree of "fiber" nodes linked together in a parent-child-sibling relationship ([React Fiber Architecture](https://github.com/acdlite/react-fiber-architecture)). This virtual stack enables React's scheduler to pause rendering work at any point, yield control to higher-priority tasks, and resume processing later.
 
 ### 1.2 Anatomy of a Fiber Node
 
@@ -137,24 +138,28 @@ The render phase determines what changes need to be applied to the UI. This phas
 1. **Work Loop Initiation**: React begins from the root fiber, traversing down the tree
 2. **Unit of Work Processing**: Each fiber is processed by `performUnitOfWork`, which calls `beginWork()` to diff the component against its previous state
 3. **Progressive Tree Construction**: New fibers are created and linked, gradually building the work-in-progress tree
-4. **Time-Slicing Integration**: Work can be paused when exceeding time budgets (typically 5ms), yielding control to the browser for high-priority tasks
+4. **Time-Slicing Integration**: Work pauses after 5ms time slices, yielding to the browser via MessageChannel for layout, paint, and user input handling
 
 ```javascript
-// Simplified work loop structure
-function workLoop(deadline) {
-  while (nextUnitOfWork && deadline.timeRemaining() > 1) {
+// Simplified work loop structure (conceptual)
+function workLoop() {
+  const deadline = performance.now() + 5 // 5ms time slice
+
+  while (nextUnitOfWork && performance.now() < deadline) {
     nextUnitOfWork = performUnitOfWork(nextUnitOfWork)
   }
 
   if (nextUnitOfWork) {
-    // More work remaining, schedule continuation
-    requestIdleCallback(workLoop)
+    // More work remaining, schedule continuation via MessageChannel
+    scheduleCallback(workLoop)
   } else {
     // Work complete, commit changes
     commitRoot()
   }
 }
 ```
+
+> **Note**: React's scheduler no longer uses `requestIdleCallback` because it fired too late, wasting CPU time. Instead, React implements its own scheduler using `MessageChannel` that yields every 5ms—small enough to maintain 60fps (16.67ms per frame) while leaving sufficient time for browser layout and paint operations.
 
 #### 1.3.2 Commit Phase (Synchronous)
 
@@ -168,7 +173,7 @@ This two-phase architecture is the foundational mechanism that enables React's c
 
 ### 1.4 The Heuristic Diffing Algorithm
 
-React implements an **O(n) heuristic diffing algorithm** based on two pragmatic assumptions that hold for the vast majority of UI patterns:
+React implements an **O(n) heuristic diffing algorithm** based on two pragmatic assumptions that hold for the vast majority of UI patterns ([Reconciliation](https://legacy.reactjs.org/docs/reconciliation.html)):
 
 1. **Different Element Types Produce Different Trees**: When comparing elements at the same position, different types (e.g., `<div>` vs `<span>`) cause React to tear down the entire subtree and rebuild from scratch, rather than attempting to diff their children.
 
@@ -176,7 +181,7 @@ React implements an **O(n) heuristic diffing algorithm** based on two pragmatic 
 
 ### 1.5 Hooks Integration with Fiber
 
-React Hooks are deeply integrated with the Fiber architecture. Each function component's fiber node maintains a linked list of hook objects, with a cursor tracking the current hook position during render:
+React Hooks are deeply integrated with the Fiber architecture. Each function component's fiber node maintains a linked list of hook objects stored in the `memoizedState` property, with a cursor tracking the current hook position during render ([How Hooks Work](https://incepter.github.io/how-react-works/docs/react-dom/how.hooks.work/)):
 
 ```javascript
 // Hook object structure
@@ -418,7 +423,7 @@ The **"use client" directive** establishes a client boundary, marking this compo
 
 ### 4.3 RSC Data Protocol and Progressive JSON
 
-RSC's power derives from its sophisticated data protocol that serializes the component tree into a streamable format, often referred to as "progressive JSON" or internally as "Flight".
+RSC's power derives from its sophisticated data protocol that serializes the component tree into a streamable format, often referred to as "progressive JSON" or internally as "Flight" ([Understanding React Server Components](https://tonyalicea.dev/blog/understanding-react-server-components/)).
 
 #### 4.3.1 RSC Payload Structure
 

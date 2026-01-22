@@ -1,5 +1,5 @@
 ---
-lastReviewedOn: 2026-01-21
+lastReviewedOn: 2026-01-23
 featured: true
 tags:
   - react
@@ -9,11 +9,12 @@ tags:
   - platform-engineering
   - system-design
   - component-library
+  - architecture
 ---
 
-# A Modern Approach to Loosely Coupled UI Components
+# Loosely Coupled UI Components: A Layered Architecture for React Applications
 
-This document provides a comprehensive guide for building **meta-framework-agnostic**, **testable**, and **boundary-controlled** UI components for modern web applications.
+Modern frontend applications face a common challenge: as codebases grow, coupling between UI components, business logic, and framework-specific APIs creates maintenance nightmares and testing friction. This architecture addresses these issues through strict layering, dependency injection via React Context, and boundary enforcement via ESLint.
 
 <figure>
 
@@ -61,18 +62,6 @@ flowchart TB
 <figcaption>Architecture overview: SDK Layer and Design System (Primitives) are independent with no dependencies. The Application Shell initializes SDK implementations, which are then injected via React Context into Blocks and Widgets. Each page type has its own widget registry for code splitting.</figcaption>
 
 </figure>
-
-## Introduction
-
-As web applications grow in complexity, maintaining a clean separation of concerns becomes critical. This guide presents an architecture that:
-
-- **Decouples business logic from UI primitives**
-- **Abstracts framework-specific APIs** for portability
-- **Enforces clear boundaries** between architectural layers
-- **Enables comprehensive testing** through dependency injection
-- **Supports server-driven UI** patterns common in modern applications
-
-Whether you're building an e-commerce platform, a content management system, or a SaaS dashboard, these patterns provide a solid foundation for scalable frontend architecture.
 
 ## TLDR
 
@@ -582,7 +571,7 @@ export interface StateSdk {
 
 ### SDK Provider Implementation
 
-```typescript title="src/sdk/core/sdk.provider.tsx" collapse={1-4}
+```typescript title="src/sdk/core/sdk.provider.tsx" collapse={1-6, 16-19}
 // src/sdk/core/sdk.provider.tsx
 
 import { createContext, useContext, type FC, type PropsWithChildren } from 'react';
@@ -590,6 +579,7 @@ import type { SdkServices } from './sdk.types';
 
 const SdkContext = createContext<SdkServices | null>(null);
 
+// Key pattern: useSdk hook with runtime validation
 export const useSdk = (): SdkServices => {
   const ctx = useContext(SdkContext);
   if (!ctx) {
@@ -602,6 +592,7 @@ export interface SdkProviderProps {
   services: SdkServices;
 }
 
+// Provider wraps application, injecting services
 export const SdkProvider: FC<PropsWithChildren<SdkProviderProps>> = ({
   children,
   services,
@@ -655,7 +646,7 @@ export const useFeatureFlag = (flagName: string): boolean => {
 
 The application shell provides concrete implementations:
 
-```typescript title="app/providers.tsx" collapse={1-8}
+```typescript title="app/providers.tsx" collapse={1-8, 15-42, 53-80}
 // app/providers.tsx (framework-specific, outside src/)
 
 'use client'; // Next.js specific
@@ -701,6 +692,7 @@ const createSdkServices = (): SdkServices => ({
     },
   },
 
+  // Key pattern: Router abstraction hides Next.js/Remix differences
   router: {
     push: (path) => window.location.href = path, // Simplified; use framework router
     replace: (path) => window.location.replace(path),
@@ -742,6 +734,7 @@ const createSdkServices = (): SdkServices => ({
   state: createStateAdapter(), // Implement based on your state management choice
 });
 
+// Application root wires up concrete implementations
 export const AppProviders: FC<PropsWithChildren> = ({ children }) => {
   const services = useMemo(() => createSdkServices(), []);
 
@@ -1070,7 +1063,7 @@ export interface AddToCartActions {
 export type UseAddToCartResult = BlockHookResult<{ cartId: string }, AddToCartActions>
 ```
 
-```typescript title="src/blocks/add-to-cart-button/add-to-cart-button.hooks.ts" collapse={1-5}
+```typescript title="src/blocks/add-to-cart-button/add-to-cart-button.hooks.ts" collapse={1-5, 14-18, 40-52}
 // src/blocks/add-to-cart-button/add-to-cart-button.hooks.ts
 
 import { useState, useCallback } from "react"
@@ -1089,6 +1082,7 @@ export const useAddToCart = (
   const [error, setError] = useState<Error | null>(null)
   const [data, setData] = useState<{ cartId: string } | null>(null)
 
+  // Key pattern: Business logic uses SDK abstractions, not framework APIs
   const addToCart = useCallback(async (): Promise<void> => {
     setIsLoading(true)
     setError(null)
@@ -1252,7 +1246,7 @@ export interface ProductCarouselViewProps {
 export type UseProductCarouselResult = WidgetHookResult<ProductCarouselData>
 ```
 
-```typescript title="src/widgets/product-carousel/product-carousel.hooks.ts" collapse={1-5}
+```typescript title="src/widgets/product-carousel/product-carousel.hooks.ts" collapse={1-5, 11-17, 52-61}
 // src/widgets/product-carousel/product-carousel.hooks.ts
 
 import { useState, useCallback, useEffect } from "react"
@@ -1278,6 +1272,7 @@ export const useProductCarousel = (payload: ProductCarouselPayload): UseProductC
     })
   }, [payload.id, payload.type, analytics, data.products.length])
 
+  // Key pattern: Widget handles pagination via SDK http abstraction
   const loadMore = useCallback(async (): Promise<void> => {
     if (!hasMore || isLoadingMore) return
 
@@ -1489,7 +1484,7 @@ export const getRegistryByPageType = (pageType: string): WidgetRegistry => {
 
 ### ESLint Configuration
 
-```javascript title="eslint.config.js" collapse={1-5}
+```javascript title="eslint.config.js" collapse={1-5, 49-74, 95-120, 123-162}
 // eslint.config.js
 
 import boundaries from "eslint-plugin-boundaries"
@@ -1498,7 +1493,7 @@ import tseslint from "typescript-eslint"
 export default [
   ...tseslint.configs.strictTypeChecked,
 
-  // Boundary definitions
+  // Key pattern: Define architectural layers as boundary elements
   {
     plugins: { boundaries },
     settings: {
@@ -1514,6 +1509,7 @@ export default [
       "boundaries/ignore": ["**/*.test.tsx", "**/*.test.ts", "**/*.spec.tsx", "**/*.spec.ts"],
     },
     rules: {
+      // Enforces dependency rules between layers
       "boundaries/element-types": [
         "error",
         {
@@ -1715,7 +1711,7 @@ export const createMockSdk = (overrides: DeepPartial<SdkServices> = {}): SdkServ
 })
 ```
 
-```typescript title="src/sdk/testing/test-sdk.provider.tsx" collapse={1-6}
+```typescript title="src/sdk/testing/test-sdk.provider.tsx" collapse={1-6, 8-14}
 // src/sdk/testing/test-sdk.provider.tsx
 
 import type { FC, PropsWithChildren } from 'react';
@@ -1731,6 +1727,7 @@ interface TestSdkProviderProps {
   overrides?: DeepPartial<SdkServices>;
 }
 
+// Key pattern: Test provider wraps components with mocked SDK
 export const TestSdkProvider: FC<PropsWithChildren<TestSdkProviderProps>> = ({
   children,
   overrides = {},
@@ -1743,7 +1740,7 @@ export const TestSdkProvider: FC<PropsWithChildren<TestSdkProviderProps>> = ({
 
 ### Block Test Example
 
-```typescript title="src/blocks/add-to-cart-button/add-to-cart-button.test.tsx" collapse={1-6}
+```typescript title="src/blocks/add-to-cart-button/add-to-cart-button.test.tsx" collapse={1-6, 8-14, 57-98}
 // src/blocks/add-to-cart-button/add-to-cart-button.test.tsx
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
@@ -1759,6 +1756,7 @@ describe('AddToCartButton', () => {
     vi.clearAllMocks();
   });
 
+  // Key pattern: TestSdkProvider injects mocked SDK services
   const renderComponent = (props = {}) => {
     return render(
       <TestSdkProvider
@@ -1772,6 +1770,7 @@ describe('AddToCartButton', () => {
     );
   };
 
+  // Key pattern: Tests verify behavior, not implementation
   it('adds item to cart on click', async () => {
     mockPost.mockResolvedValueOnce({ cartId: 'cart-123' });
 
