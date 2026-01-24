@@ -51,13 +51,13 @@ git diff --name-only
 
 ### File Categories
 
-| Category | Pattern | Review Type |
-|----------|---------|-------------|
-| Code | `src/**/*.{ts,astro}` | Code standards |
-| Plugins | `plugins/**/*.ts` | Code standards |
-| Config | `*.config.*` | Code standards |
-| Content | `content/**/*.md` | Content guidelines |
-| Styles | `**/*.css` | CSS patterns |
+| Category | Pattern               | Review Type        |
+| -------- | --------------------- | ------------------ |
+| Code     | `src/**/*.{ts,astro}` | Code standards     |
+| Plugins  | `plugins/**/*.ts`     | Code standards     |
+| Config   | `*.config.*`          | Code standards     |
+| Content  | `content/**/*.md`     | Content guidelines |
+| Styles   | `**/*.css`            | CSS patterns       |
 
 ## Phase 2: Review Code Changes
 
@@ -117,6 +117,7 @@ For changed `.md` files in `content/`, apply `/review-posts` checks:
 ### `--focus=types`
 
 Only check:
+
 - Type annotations
 - `import type` usage
 - Null handling
@@ -125,6 +126,7 @@ Only check:
 ### `--focus=css`
 
 Only check:
+
 - Inline Tailwind vs classes
 - CSS variable usage
 - Tailwind value compliance
@@ -132,6 +134,7 @@ Only check:
 ### `--focus=unused`
 
 Only check:
+
 - Unused imports
 - Unused variables
 - Unused functions
@@ -139,6 +142,7 @@ Only check:
 ### `--focus=lint`
 
 Only run:
+
 ```bash
 npm run lint -- [changed-files]
 npm run format -- --check [changed-files]
@@ -174,6 +178,7 @@ npm run build     # Build
 # Changes Review Report
 
 ## Files Changed
+
 - Code files: [count]
 - Content files: [count]
 - Style files: [count]
@@ -181,22 +186,28 @@ npm run build     # Build
 ## Issues Found
 
 ### Critical (Must Fix)
+
 - [ ] [File]: [Issue]
 
 ### Warnings
+
 - [ ] [File]: [Issue]
 
 ### Suggestions
+
 - [ ] [File]: [Suggestion]
 
 ## Fixes Applied (with --fix)
+
 - [Fix 1]
 - [Fix 2]
 
 ## Manual Fixes Needed
+
 - [File]: [What to fix]
 
 ## Validation
+
 - TypeScript: PASS/FAIL
 - ESLint: PASS/FAIL
 - Build: PASS/FAIL
@@ -206,36 +217,36 @@ npm run build     # Build
 
 ### TypeScript Files
 
-| Issue | Auto-fix | Manual |
-|-------|----------|--------|
-| Missing return type | No | Add type |
-| Unused import | Yes | - |
-| Implicit any | No | Add type |
-| Missing null check | No | Add guard |
+| Issue               | Auto-fix | Manual    |
+| ------------------- | -------- | --------- |
+| Missing return type | No       | Add type  |
+| Unused import       | Yes      | -         |
+| Implicit any        | No       | Add type  |
+| Missing null check  | No       | Add guard |
 
 ### Astro Files
 
-| Issue | Auto-fix | Manual |
-|-------|----------|--------|
-| Missing prop type | No | Add interface |
-| Inline Tailwind | No | Extract class |
-| Missing aria | No | Add attribute |
+| Issue             | Auto-fix | Manual        |
+| ----------------- | -------- | ------------- |
+| Missing prop type | No       | Add interface |
+| Inline Tailwind   | No       | Extract class |
+| Missing aria      | No       | Add attribute |
 
 ### CSS Files
 
-| Issue | Auto-fix | Manual |
-|-------|----------|--------|
-| Hardcoded color | No | Use variable |
-| Custom value | No | Use Tailwind |
-| Missing dark mode | No | Add variant |
+| Issue             | Auto-fix | Manual       |
+| ----------------- | -------- | ------------ |
+| Hardcoded color   | No       | Use variable |
+| Custom value      | No       | Use Tailwind |
+| Missing dark mode | No       | Add variant  |
 
 ### Markdown Files
 
-| Issue | Auto-fix | Manual |
-|-------|----------|--------|
-| Missing collapse | No | Add directive |
-| No TLDR | No | Write TLDR |
-| No references | No | Add section |
+| Issue            | Auto-fix | Manual        |
+| ---------------- | -------- | ------------- |
+| Missing collapse | No       | Add directive |
+| No TLDR          | No       | Write TLDR    |
+| No references    | No       | Add section   |
 
 ## Integration with Git Hooks
 
@@ -263,11 +274,11 @@ npm run format -- --check $(git diff --name-only)
 
 **IMPORTANT**: Before reviewing changes, read these documents from the project root:
 
-| Document | Path (from project root) | Purpose |
-|----------|--------------------------|---------|
-| Code Standards | `llm_docs/code-standards.md` | TypeScript, CSS, accessibility requirements |
-| Content Guidelines | `llm_docs/content-guidelines.md` | Writing standards for content changes |
-| Project Instructions | `CLAUDE.md` | Project structure, commands, styling conventions |
+| Document             | Path (from project root)         | Purpose                                          |
+| -------------------- | -------------------------------- | ------------------------------------------------ |
+| Code Standards       | `llm_docs/code-standards.md`     | TypeScript, CSS, accessibility requirements      |
+| Content Guidelines   | `llm_docs/content-guidelines.md` | Writing standards for content changes            |
+| Project Instructions | `CLAUDE.md`                      | Project structure, commands, styling conventions |
 
 **Usage**: Use the Read tool with absolute paths (e.g., `/path/to/project/llm_docs/code-standards.md`) to read these files before starting work.
 

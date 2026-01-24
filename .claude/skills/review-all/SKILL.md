@@ -109,12 +109,14 @@ Proceed with review? [Y/n]
 For each article, execute ALL of the following checks:
 
 #### 3.1 Metadata Check
+
 - [ ] `lastReviewedOn` present and recent
 - [ ] Tags from `content/tags.jsonc` (NOT `src/content/tags.json`)
 - [ ] Valid YAML frontmatter
 - [ ] Date in folder name matches content
 
 #### 3.1.1 Tag Review (IMPORTANT)
+
 1. **Read** `content/tags.jsonc` to get all valid tag IDs
 2. **Analyze** post content to identify relevant topics
 3. **Add relevant tags** that match the post content:
@@ -128,7 +130,9 @@ For each article, execute ALL of the following checks:
 5. **Validate** all tags in the post exist in tags.jsonc
 
 #### 3.1.2 Title Review (IMPORTANT)
+
 Review the H1 title for quality and appropriateness:
+
 - [ ] Title accurately reflects the content
 - [ ] Specific enough to distinguish from similar topics
 - [ ] No clickbait or sensationalism
@@ -136,28 +140,34 @@ Review the H1 title for quality and appropriateness:
 - [ ] Uses descriptive technical format
 
 **Update title if:**
+
 - Content has evolved beyond original title scope
 - Title is too vague (e.g., "Tips" instead of specific topic)
 - Title doesn't match what the article actually covers
 
 #### 3.1.3 Slug Review (IMPORTANT)
+
 Review the folder slug (folder name containing the post):
+
 - [ ] Slug reflects main topic
 - [ ] Concise (3-5 words max)
 - [ ] Lowercase with hyphens, no special characters
 - [ ] Date prefix intact (YYYY-MM-DD)
 
 **Rename folder if:**
+
 - Content topic has significantly changed
 - Slug is too vague or generic
 - Slug doesn't match updated title
 
 **Renaming process:**
+
 1. Rename folder with new slug
 2. Update any internal links referencing old path
 3. Verify build succeeds
 
 #### 3.2 Structure Analysis
+
 - [ ] Clear title (H1) - descriptive, not clickbait
 - [ ] Abstract paragraph (2-4 sentences) - sets context
 - [ ] Overview mermaid diagram - visualizes core concept
@@ -167,7 +177,9 @@ Review the folder slug (folder name containing the post):
 - [ ] NO manual Table of Contents (auto-generated)
 
 #### 3.3 Content Inventory
+
 Create inventory of:
+
 - All claims made (with/without citations)
 - All code examples (collapse usage, correctness)
 - All diagrams (mermaid/ASCII/images)
@@ -176,12 +188,14 @@ Create inventory of:
 #### 3.4 Fact-Check (CRITICAL)
 
 **Verify Technical Claims:**
+
 1. Search official documentation for each claim
 2. Cross-reference multiple authoritative sources
 3. Flag discrepancies, outdated info, or speculation stated as fact
 4. Ensure terminology is correct and current
 
 **Check Code Examples:**
+
 1. Syntax correct for stated language/version?
 2. Logic correct and idiomatic?
 3. Follows current best practices?
@@ -190,6 +204,7 @@ Create inventory of:
 6. Would a staff engineer find issues?
 
 **Validate References:**
+
 1. URLs accessible and not 404?
 2. Content at URL actually supports the claim?
 3. Better/more authoritative sources available?
@@ -198,6 +213,7 @@ Create inventory of:
 #### 3.5 Code Block Review
 
 Every code block must:
+
 - Have `title` attribute for context
 - Use `collapse` for any lines not essential to the key concept:
   - Imports and type definitions
@@ -212,6 +228,7 @@ Every code block must:
 **Key principle**: Only the lines demonstrating the key concept should be visible. Everything else should be collapsed but expandable.
 
 #### 3.6 TLDR Quality Check
+
 - [ ] Main concept defined (1-2 sentences, not vague)
 - [ ] 3-6 themed subsections covering key areas
 - [ ] 3-6 bullet points per subsection
@@ -223,6 +240,7 @@ Every code block must:
 #### 3.7 Quality Assessment
 
 **Technical Accuracy (HIGHEST PRIORITY):**
+
 - [ ] All claims verifiable and verified
 - [ ] Inline references present for claims
 - [ ] No speculation presented as fact
@@ -230,12 +248,14 @@ Every code block must:
 - [ ] Code would pass PR review
 
 **Authoritative Tone:**
+
 - [ ] Assertive, not hedging unnecessarily
 - [ ] Direct statements, not "might be" or "could possibly"
 - [ ] Confident where evidence supports
 - [ ] Honest about unknowns and limitations
 
 **Conciseness (NO FILLER):**
+
 - [ ] No padding or filler sentences
 - [ ] No tutorial-style hand-holding
 - [ ] No obvious statements ("security is important")
@@ -244,6 +264,7 @@ Every code block must:
 - [ ] Reading time < 30 minutes (60 max)
 
 **Completeness:**
+
 - [ ] Covers design reasoning (why, not just what)
 - [ ] Documents assumptions and constraints
 - [ ] Historical context where relevant
@@ -253,6 +274,7 @@ Every code block must:
 - [ ] Nothing presented as "the best solution"
 
 **Staff/Principal Engineer Standard:**
+
 - [ ] Could be cited as authoritative reference
 - [ ] Handles edge cases and subtleties
 - [ ] Discusses failure modes
@@ -276,39 +298,49 @@ Score each area (1-5):
 # Review Report: [Article Title]
 
 ## Summary
+
 **Overall Quality**: [Excellent/Good/Needs Work/Major Issues]
 **Technical Accuracy**: [Score/5]
 **Staff Engineer Ready**: [Yes/No]
 **Last Reviewed**: [Date]
 
 ## Critical Issues (Must Fix)
+
 ### Issue 1: [Title]
+
 - **Location**: [Section/line]
 - **Problem**: [Description]
 - **Evidence**: [Research findings with source]
 - **Fix**: [Specific recommended change]
 
 ## Fact-Check Results
-| Claim | Verified | Source | Notes |
-|-------|----------|--------|-------|
-| [Claim] | ✓/✗ | [URL] | [Notes] |
+
+| Claim   | Verified | Source | Notes   |
+| ------- | -------- | ------ | ------- |
+| [Claim] | ✓/✗      | [URL]  | [Notes] |
 
 ## Code Review Results
-| Block | File | Issues | Collapse Needed |
-|-------|------|--------|-----------------|
-| [Title] | [Line] | [Issues] | [Yes/No] |
+
+| Block   | File   | Issues   | Collapse Needed |
+| ------- | ------ | -------- | --------------- |
+| [Title] | [Line] | [Issues] | [Yes/No]        |
 
 ## Improvements Needed
+
 ### Structure
+
 - [Issues]
 
 ### Missing Elements
+
 - [ ] Item
 
 ### Outdated Information
+
 - [Items needing updates]
 
 ## Anti-Patterns Found
+
 - [ ] Tutorial-style content
 - [ ] Filler statements
 - [ ] Unsubstantiated claims
@@ -316,13 +348,17 @@ Score each area (1-5):
 - [ ] Migration timelines/development plans (should be removed unless explicitly requested)
 
 ## Recommendations
+
 ### High Priority (Critical)
+
 1. [Fix]
 
 ### Medium Priority (Improvements)
+
 1. [Enhancement]
 
 ### Low Priority (Polish)
+
 1. [Polish item]
 ```
 
@@ -565,23 +601,28 @@ Found **24** articles. Auto-fixing enabled.
 When reviewing, verify all internal links use relative paths to `.md` files. This enables IDE navigation (Cmd+Click) and the rehype plugin transforms them to proper URLs at build time.
 
 **Correct format:**
+
 ```markdown
 [Link Text](../YYYY-MM-DD-slug.md)
 [Link Text](../../category/YYYY-MM-DD-slug/index.md)
 ```
 
 **Examples:**
+
 ```markdown
 <!-- Correct - relative .md paths -->
+
 [Web Performance Overview](../2025-03-03-wpo-overview.md)
 [JavaScript Optimization](../2025-01-09-wpo-js.md)
 
 <!-- Wrong formats (flag and fix) -->
-[Wrong](/posts/deep-dives/web-fundamentals/wpo-overview)  <!-- Direct URL, not IDE navigable -->
-[Wrong](wpo-overview)  <!-- Missing .md extension -->
+
+[Wrong](/posts/deep-dives/web-fundamentals/wpo-overview) <!-- Direct URL, not IDE navigable -->
+[Wrong](wpo-overview) <!-- Missing .md extension -->
 ```
 
 **Key rules:**
+
 - Use relative paths from current file to target `.md` file
 - Include the full filename with date prefix
 - The rehype plugin transforms these to `/posts/<type>/<category>/<slug>` URLs

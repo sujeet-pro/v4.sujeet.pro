@@ -4,7 +4,7 @@
  */
 
 import { create, insert, save } from "@orama/orama"
-import { getAllContentItems } from "./content.utils"
+import { getAllArticles } from "./content"
 import { SEARCH_SCHEMA, type FacetItem, type SearchDocument, type SearchFacets } from "./search.types"
 
 /**
@@ -12,11 +12,11 @@ import { SEARCH_SCHEMA, type FacetItem, type SearchDocument, type SearchFacets }
  * Returns serialized index as JSON string
  */
 export async function buildSearchIndex(): Promise<string> {
-  const db = await create({
+  const db = create({
     schema: SEARCH_SCHEMA,
   })
 
-  const allContent = await getAllContentItems()
+  const allContent = await getAllArticles()
 
   // Index each content item
   for (const item of allContent) {
@@ -24,13 +24,12 @@ export async function buildSearchIndex(): Promise<string> {
       id: item.id,
       title: item.title,
       description: item.description,
-      type: item.type,
-      category: item.category?.id ?? "",
-      categoryName: item.category?.name ?? "",
-      tags: item.tags.map((t) => t.id),
-      tagNames: item.tags.map((t) => t.name),
+      type: "article",
+      category: item.category.id,
+      categoryName: item.category.name,
+      topic: item.topic.id,
+      topicName: item.topic.name,
       href: item.href,
-      publishedOn: item.publishedOn.getTime(),
       minutesRead: item.minutesRead,
     }
 
@@ -38,7 +37,7 @@ export async function buildSearchIndex(): Promise<string> {
   }
 
   // Serialize and return
-  const serialized = await save(db)
+  const serialized = save(db)
   return JSON.stringify(serialized)
 }
 
@@ -48,32 +47,34 @@ export async function buildSearchIndex(): Promise<string> {
  * Results are sorted by count (descending)
  */
 export async function getSearchFacets(): Promise<SearchFacets> {
-  const allContent = await getAllContentItems()
+  const allContent = await getAllArticles()
 
   // Use Maps to track counts
   const categoryMap = new Map<string, { name: string; title: string; count: number }>()
-  const tagMap = new Map<string, { name: string; count: number }>()
+  const topicMap = new Map<string, { name: string; title: string; categoryId: string; count: number }>()
 
   for (const item of allContent) {
-    // Collect categories from all content types
-    if (item.category) {
-      const catId = item.category.id
-      const existing = categoryMap.get(catId)
-      if (existing) {
-        existing.count++
-      } else {
-        categoryMap.set(catId, { name: item.category.name, title: item.category.title, count: 1 })
-      }
+    // Collect categories
+    const catId = item.category.id
+    const existingCat = categoryMap.get(catId)
+    if (existingCat) {
+      existingCat.count++
+    } else {
+      categoryMap.set(catId, { name: item.category.name, title: item.category.title, count: 1 })
     }
 
-    // Collect all tags
-    for (const tag of item.tags) {
-      const existing = tagMap.get(tag.id)
-      if (existing) {
-        existing.count++
-      } else {
-        tagMap.set(tag.id, { name: tag.name, count: 1 })
-      }
+    // Collect topics
+    const topicId = item.topic.id
+    const existingTopic = topicMap.get(topicId)
+    if (existingTopic) {
+      existingTopic.count++
+    } else {
+      topicMap.set(topicId, {
+        name: item.topic.name,
+        title: item.topic.title,
+        categoryId: item.category.id,
+        count: 1,
+      })
     }
   }
 
@@ -82,9 +83,9 @@ export async function getSearchFacets(): Promise<SearchFacets> {
     .map(([id, { name, title, count }]) => ({ id, name, title, count }))
     .sort((a, b) => b.count - a.count)
 
-  const tags: FacetItem[] = Array.from(tagMap.entries())
-    .map(([id, { name, count }]) => ({ id, name, count }))
+  const topics: FacetItem[] = Array.from(topicMap.entries())
+    .map(([id, { name, title, categoryId, count }]) => ({ id, name, title, categoryId, count }))
     .sort((a, b) => b.count - a.count)
 
-  return { categories, tags }
+  return { categories, topics }
 }

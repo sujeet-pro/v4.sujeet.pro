@@ -25,115 +25,173 @@ function parseJsonc(content: string): JsoncResult {
 // JSONC Config Collections
 // =============================================================================
 
-// Tags config (optional display names - tags can exist without being in this file)
-const tags = defineCollection({
-  loader: file("./content/tags.jsonc", {
-    parser: (fileContent) => parseJsonc(fileContent),
-  }),
-  schema: z.object({
-    id: z.string(),
-    name: z.string(),
-    featured: z.boolean().optional().default(false),
-  }),
-})
-
-// Vanity URLs
+// Vanity URLs - supports both external URLs and internal redirects (starting with /)
 const vanity = defineCollection({
   loader: file("./content/vanity.jsonc", {
     parser: (fileContent) => parseJsonc(fileContent),
   }),
   schema: z.object({
     id: z.string(),
-    target: z.string().url(),
+    target: z.string(), // URL or internal path starting with /
   }),
 })
 
-// Post Types (deep-dives, notes) - metadata for each post type
-const postTypes = defineCollection({
-  loader: file("./content/postTypes.jsonc", {
-    parser: (fileContent) => parseJsonc(fileContent),
+// Home Page Configuration
+const home = defineCollection({
+  loader: file("./content/home.jsonc", {
+    parser: (fileContent) => {
+      const data = parseJsonc(fileContent) as Record<string, unknown>
+      // Wrap in array with id for Astro collection format
+      return [{ id: "home", ...data }]
+    },
   }),
   schema: z.object({
     id: z.string(),
-    title: z.string(), // Full title for display
-    name: z.string(), // Short name for navigation
-    description: z.string(), // Description for listings
-    href: z.string(), // URL path to the post type page
+    pageTitle: z.string(),
+    pageDescription: z.string(),
+    profile: z.object({
+      name: z.string(),
+      title: z.string(),
+      bio: z.string(),
+      imageAlt: z.string(),
+    }),
+    profileActions: z.object({
+      viewCv: z.string(),
+      allArticles: z.string(),
+    }),
   }),
 })
 
-// Shared category schema for all content types
-// Simplified 2-level structure: posts/<post-type>/<category>
-// Category is derived from folder path via remark plugin
-// Categories are only visible if they have at least 1 article (including drafts)
-const categorySchema = z.object({
-  id: z.string(),
-  title: z.string(), // Full descriptive title used for h1, meta, and title attributes
-  name: z.string(), // Short name used for display (footer, breadcrumbs, cards)
-  description: z.string(),
-})
-
-// Unified categories collection (parses nested structure from categories.jsonc)
-const categories = defineCollection({
-  loader: file("./content/categories.jsonc", {
+// Site Configuration
+const site = defineCollection({
+  loader: file("./content/site.jsonc", {
     parser: (fileContent) => {
-      const parsed = parseJsonc(fileContent) as Record<string, unknown[]>
-      // Flatten nested structure: { "deep-dives": [...], "notes": [...] }
-      // into array with postType field and composite ID
-      return Object.entries(parsed).flatMap(([postType, cats]) =>
-        (cats as Array<{ id: string }>).map((cat) => ({
-          ...cat,
-          id: `${postType}/${cat.id}`, // e.g., "deep-dives/web-fundamentals"
-          postType,
-        })),
-      )
+      const data = parseJsonc(fileContent) as Record<string, unknown>
+      // Wrap in array with id for Astro collection format
+      return [{ id: "site", ...data }]
     },
   }),
-  schema: categorySchema.extend({
-    postType: z.enum(["deep-dives", "notes"]),
+  schema: z.object({
+    id: z.string(),
+    origin: z.string(),
+    name: z.string(),
+    title: z.string(),
+    description: z.string(),
+    language: z.string(),
+    locale: z.string(),
+    navItems: z.array(
+      z.object({
+        path: z.string(),
+        label: z.string(),
+      }),
+    ),
+    footerLinks: z.array(
+      z.object({
+        path: z.string(),
+        label: z.string(),
+      }),
+    ),
+    social: z.object({
+      twitter: z.object({
+        handle: z.string(),
+        url: z.string(),
+      }),
+      github: z.object({
+        handle: z.string(),
+        url: z.string(),
+      }),
+      linkedin: z.object({
+        handle: z.string(),
+        url: z.string(),
+      }),
+    }),
+    copyright: z.object({
+      holder: z.string(),
+      startYear: z.number(),
+    }),
   }),
 })
 
-// =============================================================================
-// Content Collections - Markdown
-// =============================================================================
-
-// Shared schema for all content types
-// Category is automatically injected from folder path by remark-frontmatter-plugin
-// Format: content/posts/<post-type>/<category>/[optional-nesting/]<date>-<slug>.md
-const baseContentSchema = z.object({
-  lastReviewedOn: z.coerce.date().optional(),
-  tags: z.array(z.string()).optional().default([]),
-  // Category is derived from folder structure (posts/<post-type>/<category>/...)
-  // Can be overridden in frontmatter if needed
-  category: z.string().optional(),
-  // Featured posts appear on the home page
-  featured: z.boolean().optional().default(false),
-})
-
-// Unified posts collection (deep-dives and notes)
-// Post type is derived from the first-level folder (deep-dives or notes)
-const posts = defineCollection({
-  loader: glob({
-    pattern: "**/[^_]*.md",
-    base: "./content/posts",
-  }),
-  schema: baseContentSchema.extend({
-    // Optional note type (only applicable for notes)
-    type: z.enum(["design-doc", "architecture", "case-study"]).optional(),
-  }),
-})
-
-// In-research collection (no categories, no date requirement)
-// Simple flat structure: content/in-research/<slug>.md or content/in-research/<slug>/index.md
-const inResearch = defineCollection({
-  loader: glob({
-    pattern: "**/[^_]*.md",
-    base: "./content/in-research",
+// Unified Ordering Configuration
+// References IDs from: category, topic, and article collections
+const ordering = defineCollection({
+  loader: file("./content/ordering.jsonc", {
+    parser: (fileContent) => {
+      const data = parseJsonc(fileContent) as Record<string, unknown>
+      // Wrap in array with id for Astro collection format
+      return [{ id: "ordering", ...data }]
+    },
   }),
   schema: z.object({
-    lastReviewedOn: z.coerce.date().optional(),
-    tags: z.array(z.string()).optional().default([]),
+    id: z.string(),
+    // Complete lists - IDs must match entries in respective collections
+    categoryOrder: z.array(z.string()), // IDs from 'category' collection
+    topicsOrder: z.array(z.string()), // IDs from 'topic' collection
+    articlesOrder: z.array(z.string()), // IDs from 'article' collection
+    // Hierarchical mappings
+    categoryVsTopics: z.record(z.string(), z.array(z.string())), // category ID -> topic IDs
+    topicVsArticlesOrder: z.record(z.string(), z.array(z.string())), // topic ID -> article IDs
+    // Featured subsets (for homepage)
+    featuredArticles: z.array(z.string()), // IDs from 'article' collection
+    featuredTopics: z.array(z.string()), // IDs from 'topic' collection
+  }),
+})
+
+// =============================================================================
+// Content Collections - Categories, Topics, and Articles
+// =============================================================================
+
+// Structure:
+// - Categories: content/articles/<category>/README.md
+// - Topics: content/articles/<category>/<topic>/README.md
+// - Articles: content/articles/<category>/<topic>/<article>/README.md
+
+// Category collection - top-level content groupings
+// ID format: "programming", "sys-design", etc. (folder name only)
+const category = defineCollection({
+  loader: glob({
+    pattern: "*/README.md",
+    base: "./content/articles",
+    generateId: ({ entry }) => {
+      // entry is like "programming/README.md" -> extract "programming"
+      return entry.split("/")[0] ?? entry
+    },
+  }),
+  schema: z.object({}),
+})
+
+// Topic collection - sub-categories within a category
+// ID format: "algo", "js-patterns", etc. (folder name only)
+const topic = defineCollection({
+  loader: glob({
+    pattern: "*/*/README.md",
+    base: "./content/articles",
+    generateId: ({ entry }) => {
+      // entry is like "programming/algo/README.md" -> extract "algo"
+      return entry.split("/")[1] ?? entry
+    },
+  }),
+  schema: z.object({
+    // Category is derived from folder structure
+    category: z.string().optional(),
+  }),
+})
+
+// Article collection - individual blog posts
+// ID format: "sorting-algorithms", "k-crystal-balls", etc. (folder name only)
+const article = defineCollection({
+  loader: glob({
+    pattern: "*/*/*/README.md",
+    base: "./content/articles",
+    generateId: ({ entry }) => {
+      // entry is like "programming/algo/sorting-algorithms/README.md" -> extract "sorting-algorithms"
+      return entry.split("/")[2] ?? entry
+    },
+  }),
+  schema: z.object({
+    // Category and topic are derived from folder structure
+    category: z.string().optional(),
+    topic: z.string().optional(),
   }),
 })
 
@@ -142,10 +200,11 @@ const inResearch = defineCollection({
 // =============================================================================
 
 export const collections = {
-  posts,
-  inResearch,
-  categories,
-  postTypes,
-  tags,
+  category,
+  topic,
+  article,
   vanity,
+  home,
+  site,
+  ordering,
 }

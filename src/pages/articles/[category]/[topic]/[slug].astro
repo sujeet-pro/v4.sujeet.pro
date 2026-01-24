@@ -1,0 +1,117 @@
+---
+import { Icon } from "astro-icon/components"
+import ArticleCard from "@/components/article-card.astro"
+import CategoryNav from "@/components/category-nav.astro"
+import TOC from "@/components/toc.astro"
+import Frontmatter from "@/components/frontmatter.astro"
+import Layout from "@/layout/layout.astro"
+import ReadingProgress from "@/layout/reading-progress.astro"
+import { getAllArticlePaths, getAllArticlesDetailed } from "@/utils/content"
+
+// Generate static paths for all articles (including drafts)
+export async function getStaticPaths() {
+  const paths = await getAllArticlePaths()
+  return paths.map(({ category, topic, slug }) => ({
+    params: { category, topic, slug },
+  }))
+}
+
+const { slug } = Astro.params
+const allArticles = await getAllArticlesDetailed()
+const articleDetail = allArticles.find((entry) => entry.card.id === slug)
+
+if (!articleDetail) {
+  return Astro.redirect("/404")
+}
+
+const { article, topic: topicCard, next: nextArticle, prev: prevArticle } = articleDetail
+
+// Map topic articles for category nav
+const topicArticles = topicCard.articles.map((a) => ({
+  id: a.id,
+  title: a.title,
+  href: a.href,
+}))
+const { description, title, minutesRead, Content, isDraft, category, topic: articleTopic } = article
+
+const crumbs = [
+  { name: category.name, href: category.href },
+  { name: articleTopic.name, href: articleTopic.href, title: articleTopic.title },
+]
+
+// Show category nav when there are other articles in the same topic
+const showCategoryNav = topicArticles.length > 1
+---
+
+<Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft} layout="3col">
+  <!-- Category Nav in left sidebar (desktop only) -->
+  {
+    showCategoryNav && (
+      <CategoryNav
+        slot="sidebar-left"
+        categoryName={topicCard.title}
+        articles={topicArticles}
+        currentArticleId={article.id}
+      />
+    )
+  }
+
+  <!-- TOC in right sidebar -->
+  <TOC slot="sidebar-right" />
+
+  <!-- Content top (above main) -->
+  <ReadingProgress slot="content-top" />
+
+  <!-- Category Nav inline (mobile/tablet only) -->
+  {
+    showCategoryNav && (
+      <details slot="content-top" class="category-nav-inline" id="category-nav-inline">
+        <summary class="category-nav-inline-summary">
+          <span class="category-nav-inline-title">
+            <Icon name="carbon:list" class="icon-sm" />
+            {topicCard.title}
+          </span>
+          <Icon name="carbon:chevron-down" class="category-nav-inline-icon" />
+        </summary>
+        <nav class="category-nav-inline-content" aria-label={`${topicCard.title} articles`}>
+          <ul class="category-nav-list">
+            {topicArticles.map((item) => {
+              const isCurrent = item.id === article.id
+              return (
+                <li class="category-nav-item">
+                  <a
+                    href={item.href}
+                    class:list={["category-nav-link", { "category-nav-link-active": isCurrent }]}
+                    aria-current={isCurrent ? "page" : undefined}
+                  >
+                    {item.title}
+                  </a>
+                </li>
+              )
+            })}
+          </ul>
+        </nav>
+      </details>
+    )
+  }
+
+  <Frontmatter slot="content-top" {minutesRead} {isDraft} class="my-4" />
+
+  <!-- Main content (default slot) -->
+  <article class="article-prose-content">
+    <Content />
+  </article>
+
+  <!-- Article Navigation (prev/next) -->
+  {
+    (prevArticle || nextArticle) && (
+      <section slot="content-bottom" class="mt-12">
+        <h2 class="mb-6 text-2xl font-light">Read more</h2>
+        <ul class="article-list">
+          {prevArticle && <ArticleCard textHeading="Next" article={prevArticle} />}
+          {nextArticle && <ArticleCard textHeading="Previous" article={nextArticle} />}
+        </ul>
+      </section>
+    )
+  }
+</Layout>

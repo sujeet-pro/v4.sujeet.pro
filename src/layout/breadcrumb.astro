@@ -1,0 +1,35 @@
+---
+import { Icon } from "astro-icon/components"
+import Link from "@/components/link.astro"
+
+export interface Crumb {
+  name: string
+  href: string
+  title?: string
+}
+
+interface Props {
+  crumbs: Crumb[]
+}
+
+const { crumbs } = Astro.props
+---
+
+{
+  crumbs.length > 0 && (
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <Link href="/" class="nav-link" title="Home" aria-label="Home">
+        <Icon name="carbon:home" class="icon-sm" />
+      </Link>
+      <Icon name="carbon:chevron-right" class="breadcrumb-separator icon-sm" />
+      {crumbs.map((crumb, index) => (
+        <>
+          <Link href={crumb.href} class="nav-link" title={crumb.title}>
+            {crumb.name}
+          </Link>
+          {index < crumbs.length - 1 && <Icon name="carbon:chevron-right" class="breadcrumb-separator icon-sm" />}
+        </>
+      ))}
+    </nav>
+  )
+}

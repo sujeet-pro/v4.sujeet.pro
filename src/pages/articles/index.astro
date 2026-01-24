@@ -1,0 +1,29 @@
+---
+import ArticleCard from "@/components/article-card.astro"
+import Layout from "@/layout/layout.astro"
+import { getAllArticleCards } from "@/utils/content"
+import { formatCount } from "@/utils/format.utils"
+
+const allArticles = await getAllArticleCards()
+---
+
+<Layout title="All Articles" description="Browse all articles" crumbs={null} pageType="default">
+  <h1 class="page-title" transition:animate="fade">All Articles</h1>
+  <p class="page-description">
+    {formatCount(allArticles.length, "article")} on programming, system design, web platform, and more.
+  </p>
+
+  <section>
+    {
+      allArticles.length > 0 ? (
+        <ul class="article-list">
+          {allArticles.map((article) => (
+            <ArticleCard article={article} />
+          ))}
+        </ul>
+      ) : (
+        <p class="text-muted">No articles yet. Check back soon!</p>
+      )
+    }
+  </section>
+</Layout>

@@ -111,7 +111,7 @@ const { class: className } = Astro.props
                     ${h3.text}
                   </a>
                 </li>
-              `
+              `,
               )
               .join("")
 
@@ -334,7 +334,7 @@ const { class: className } = Astro.props
   }
 
   .toc-heading {
-    @apply mb-4 text-sm font-medium uppercase tracking-wide opacity-60;
+    @apply mb-4 text-sm font-medium tracking-wide uppercase opacity-60;
   }
 
   .toc-list {
@@ -408,7 +408,7 @@ const { class: className } = Astro.props
      ========================================================================== */
 
   .toc-mobile-btn {
-    @apply fixed bottom-6 right-6 z-40 hidden cursor-pointer rounded-full border-none p-3.5 shadow-lg;
+    @apply fixed right-6 bottom-6 z-40 hidden cursor-pointer rounded-full border-none p-3.5 shadow-lg;
     background-color: var(--color-accent);
     color: white;
     min-width: var(--min-touch-target);

@@ -10,12 +10,13 @@ Astro-based technical blog for experienced software professionals (senior/staff/
 
 **IMPORTANT**: This project uses a non-standard Astro layout:
 
-| Directory | Purpose |
-|-----------|---------|
-| `src/` | Source code (components, pages, styles, utils) |
-| `content/` | Content collections (NOT `src/content/`) |
+| Directory  | Purpose                                        |
+| ---------- | ---------------------------------------------- |
+| `src/`     | Source code (components, pages, styles, utils) |
+| `content/` | Content collections (NOT `src/content/`)       |
 
 **Key content files** (all at project root `content/` folder):
+
 - `content/posts/` - Blog post markdown files
 - `content/in-research/` - Research material
 - `content/tags.jsonc` - Tag definitions (NOT `src/content/tags.json`)
@@ -24,13 +25,13 @@ Astro-based technical blog for experienced software professionals (senior/staff/
 
 **IMPORTANT**: Before executing any skill, read the relevant documentation files using absolute paths from the project root:
 
-| Document | Path (from project root) | Description |
-|----------|--------------------------|-------------|
-| Content Structure | `llm_docs/content.md` | Content categories, schemas, frontmatter |
+| Document           | Path (from project root)         | Description                                       |
+| ------------------ | -------------------------------- | ------------------------------------------------- |
+| Content Structure  | `llm_docs/content.md`            | Content categories, schemas, frontmatter          |
 | Content Guidelines | `llm_docs/content-guidelines.md` | Writing standards, conciseness, quality checklist |
-| Markdown Features | `llm_docs/markdown-features.md` | Expressive Code, Mermaid, KaTeX syntax |
-| Code Standards | `llm_docs/code-standards.md` | TypeScript, CSS, accessibility requirements |
-| Commands | `llm_docs/commands.md` | Build commands and workflow |
+| Markdown Features  | `llm_docs/markdown-features.md`  | Expressive Code, Mermaid, KaTeX syntax            |
+| Code Standards     | `llm_docs/code-standards.md`     | TypeScript, CSS, accessibility requirements       |
+| Commands           | `llm_docs/commands.md`           | Build commands and workflow                       |
 
 **Note**: These paths are relative to the project root, NOT relative to the `.claude/` directory.
 
@@ -38,21 +39,21 @@ Astro-based technical blog for experienced software professionals (senior/staff/
 
 ### Content Skills
 
-| Skill | Trigger | Description |
-|-------|---------|-------------|
-| `/write-post` | `/write-post <topic>` | Write new blog post with deep research |
-| `/review-posts` | `/review-posts <path/topic>` | Review and improve existing post |
-| `/sys-design` | `/sys-design <topic>` | Write system design solution document |
-| `/research-post` | `/research-post <topic>` | Generate research material for future article |
-| `/write-research` | `/write-research <type> <category> <path>` | Convert research into blog post |
-| `/review-all` | `/review-all` | Review all posts one by one |
+| Skill             | Trigger                                    | Description                                   |
+| ----------------- | ------------------------------------------ | --------------------------------------------- |
+| `/write-post`     | `/write-post <topic>`                      | Write new blog post with deep research        |
+| `/review-posts`   | `/review-posts <path/topic>`               | Review and improve existing post              |
+| `/sys-design`     | `/sys-design <topic>`                      | Write system design solution document         |
+| `/research-post`  | `/research-post <topic>`                   | Generate research material for future article |
+| `/write-research` | `/write-research <type> <category> <path>` | Convert research into blog post               |
+| `/review-all`     | `/review-all`                              | Review all posts one by one                   |
 
 ### Code Skills
 
-| Skill | Trigger | Description |
-|-------|---------|-------------|
-| `/review-code` | `/review-code` | Review entire codebase against standards |
-| `/review-changes` | `/review-changes` | Review uncommitted changes only |
+| Skill             | Trigger           | Description                              |
+| ----------------- | ----------------- | ---------------------------------------- |
+| `/review-code`    | `/review-code`    | Review entire codebase against standards |
+| `/review-changes` | `/review-changes` | Review uncommitted changes only          |
 
 ## Critical Rules
 
@@ -111,12 +112,13 @@ function main() {
 
 ## Content Collections
 
-| Collection | Path | Required Fields |
-|------------|------|-----------------|
-| posts | `content/posts/` | tags |
-| in-research | `content/in-research/` | topic, status |
+| Collection  | Path                   | Required Fields |
+| ----------- | ---------------------- | --------------- |
+| posts       | `content/posts/`       | tags            |
+| in-research | `content/in-research/` | topic, status   |
 
 **Content metadata files** (all JSONC format with comments):
+
 - Tags: `content/tags.jsonc`
 - Categories: `content/categories.jsonc`
 - Post Types: `content/postTypes.jsonc`

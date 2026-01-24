@@ -1,0 +1,199 @@
+---
+import ArticleCard from "@/components/article-card.astro"
+import Link from "@/components/link.astro"
+import Layout from "@/layout/layout.astro"
+import { getAllTopics } from "@/utils/content"
+import { formatCount } from "@/utils/format.utils"
+
+// Get all topics with their articles, ordered by topicsOrder and topicVsArticlesOrder
+const topicsWithCategory = await getAllTopics()
+
+const totalTopics = topicsWithCategory.length
+const totalArticles = topicsWithCategory.reduce((sum, t) => sum + t.articleCount, 0)
+
+const crumbs: { name: string; href: string }[] = []
+---
+
+<Layout title="Topics" description="Browse all topics" {crumbs} pageType="default">
+  <h1 class="page-title">Topics</h1>
+  <p class="page-description">Explore all content organized by topic.</p>
+
+  <p class="topics-stats">
+    {formatCount(totalTopics, "Topic")} · {formatCount(totalArticles, "Article")}
+  </p>
+
+  <div class="topics-container">
+    {
+      topicsWithCategory.map((topic) => (
+        <article class="topic-accordion">
+          <h2 class="topic-title">
+            <Link href={topic.href}>{topic.title}</Link>
+          </h2>
+
+          <button
+            class="topic-accordion-trigger"
+            type="button"
+            aria-expanded="false"
+            aria-controls={`topic-${topic.id}-content`}
+          >
+            <div class="topic-accordion-header">
+              <p class="topic-meta">
+                <>
+                  <Link href={topic.category.href} class="topic-meta-category">
+                    {topic.category.name}
+                  </Link>
+                  <span class="topic-meta-separator">·</span>
+                </>
+                <span>{formatCount(topic.articleCount, "article")}</span>
+              </p>
+              {topic.description && <p class="topic-description">{topic.description}</p>}
+            </div>
+            <span class="topic-accordion-icon" aria-hidden="true">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </span>
+          </button>
+
+          <div id={`topic-${topic.id}-content`} class="topic-accordion-content" hidden>
+            <ul class="article-list">
+              {topic.articles.map((article) => (
+                <ArticleCard {article} headingLevel="h3" />
+              ))}
+            </ul>
+          </div>
+        </article>
+      ))
+    }
+  </div>
+</Layout>
+
+<script>
+  function initAccordions() {
+    const triggers = document.querySelectorAll<HTMLButtonElement>(".topic-accordion-trigger")
+
+    triggers.forEach((trigger) => {
+      trigger.addEventListener("click", (e) => {
+        // Don't toggle if clicking a link inside the trigger
+        if ((e.target as HTMLElement).closest("a")) {
+          return
+        }
+
+        const expanded = trigger.getAttribute("aria-expanded") === "true"
+        const contentId = trigger.getAttribute("aria-controls")
+        const content = contentId ? document.getElementById(contentId) : null
+
+        if (content) {
+          trigger.setAttribute("aria-expanded", String(!expanded))
+          content.hidden = expanded
+        }
+      })
+    })
+  }
+
+  // Initialize on page load
+  initAccordions()
+
+  // Re-initialize after Astro page transitions
+  document.addEventListener("astro:after-swap", initAccordions)
+</script>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  .topics-stats {
+    @apply mb-8 text-xs;
+    color: var(--color-text-muted);
+  }
+
+  .topics-container {
+    @apply flex flex-col pb-6;
+  }
+
+  .topic-accordion {
+    @apply mb-6;
+  }
+
+  .topic-accordion:last-child {
+    @apply mb-0;
+  }
+
+  .topic-title {
+    @apply sticky z-10 font-sans text-xl font-semibold;
+    top: 3rem;
+    color: var(--color-text);
+  }
+
+  .topic-title a {
+    @apply no-underline;
+    color: inherit;
+    transition: color var(--transition-fast);
+  }
+
+  .topic-title a:hover {
+    color: var(--color-accent);
+  }
+
+  .topic-accordion-trigger {
+    @apply flex w-full cursor-pointer items-start justify-between gap-4 border-0 bg-transparent p-0 text-left;
+  }
+
+  .topic-accordion-trigger:hover .topic-accordion-icon {
+    color: var(--color-accent);
+  }
+
+  .topic-accordion-header {
+    @apply flex-1;
+  }
+
+  .topic-accordion-icon {
+    @apply pointer-events-none mt-1 shrink-0 transition-transform duration-200;
+    color: var(--color-text-muted);
+  }
+
+  .topic-accordion-trigger[aria-expanded="true"] .topic-accordion-icon {
+    transform: rotate(180deg);
+  }
+
+  .topic-meta {
+    @apply text-xs;
+    color: var(--color-text-muted);
+  }
+
+  .topic-meta-category {
+    @apply no-underline;
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast);
+  }
+
+  .topic-meta-category:hover {
+    color: var(--color-accent);
+  }
+
+  .topic-meta-separator {
+    @apply mx-1;
+  }
+
+  .topic-description {
+    @apply mt-1 text-sm;
+    color: var(--color-text-muted);
+  }
+
+  .topic-accordion-content {
+    @apply mt-4;
+  }
+
+  .topic-accordion-content[hidden] {
+    display: none;
+  }
+</style>

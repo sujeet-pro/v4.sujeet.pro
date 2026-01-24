@@ -18,6 +18,7 @@
     "all": "npm run setup && npm run build && npm run check-unused-images && npm run remove-unused-images",
     "test": "vitest run",
     "validate:build": "npx tsx scripts/validation/validate-static.ts",
+    "validate:content": "npx tsx scripts/validation/validate-content.ts",
     "validate:local": "npx tsx scripts/validation/validate-live.ts http://localhost:4321",
     "validate:prod": "npx tsx scripts/validation/validate-live.ts https://sujeet.pro",
     "lighthouse": "unlighthouse --site https://sujeet.pro",
@@ -74,6 +75,7 @@
     "remark-emoji": "^5.0.2",
     "remark-math": "^6.0.0",
     "remark-normalize-headings": "^4.0.0",
+    "svg-pan-zoom": "^3.6.2",
     "tailwindcss": "^4.1.18"
   },
   "volta": {

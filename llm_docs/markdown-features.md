@@ -89,7 +89,7 @@ function main() {
 }
 
 // Lines 20-25 collapsed (helpers)
-function helper1() { }
+function helper1() {}
 ```
 ````
 
@@ -100,21 +100,21 @@ Use collapse to show **only the key insight** while hiding surrounding implement
 ````markdown
 ```typescript title="user-service.ts" collapse={1-8, 16-28, 35-42}
 // Lines 1-8: Imports and type definitions (collapsed)
-import { Database } from './database'
-import { Logger } from './logger'
-import { validateEmail, hashPassword } from './utils'
-import type { User, CreateUserInput, UserResult } from './types'
+import { Database } from "./database"
+import { Logger } from "./logger"
+import { validateEmail, hashPassword } from "./utils"
+import type { User, CreateUserInput, UserResult } from "./types"
 
-const logger = new Logger('user-service')
+const logger = new Logger("user-service")
 const db = new Database()
 
 // Lines 9-15: VISIBLE - The key authentication logic
 export async function authenticateUser(email: string, password: string): Promise<UserResult> {
   const user = await db.users.findByEmail(email)
-  if (!user) return { success: false, error: 'User not found' }
+  if (!user) return { success: false, error: "User not found" }
 
   const isValid = await verifyPassword(password, user.passwordHash)
-  return isValid ? { success: true, user } : { success: false, error: 'Invalid password' }
+  return isValid ? { success: true, user } : { success: false, error: "Invalid password" }
 }
 
 // Lines 16-28: Password handling internals (collapsed)
@@ -125,7 +125,7 @@ async function verifyPassword(plain: string, hash: string): Promise<boolean> {
 
 async function createPasswordHash(password: string): Promise<string> {
   // ... bcrypt hashing logic
-  return ''
+  return ""
 }
 
 function validatePasswordStrength(password: string): boolean {
@@ -135,7 +135,7 @@ function validatePasswordStrength(password: string): boolean {
 
 // Lines 29-34: VISIBLE - The key user creation logic
 export async function createUser(input: CreateUserInput): Promise<UserResult> {
-  if (!validateEmail(input.email)) return { success: false, error: 'Invalid email' }
+  if (!validateEmail(input.email)) return { success: false, error: "Invalid email" }
   const hash = await createPasswordHash(input.password)
   const user = await db.users.create({ ...input, passwordHash: hash })
   return { success: true, user }

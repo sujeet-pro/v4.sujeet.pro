@@ -93,26 +93,37 @@ content/drafts/[slug]/
 # [Title]
 
 ## Abstract (before ToC)
+
 - Context paragraph
 - Overview mermaid diagram
 
 ## TLDR
+
 ### [Theme 1]
+
 - Point 1
 - Point 2
 
 ## Main Section 1: [Context/Why]
+
 ### The Problem Being Solved
+
 ### Constraints and Assumptions
+
 ### Why This Design?
 
 ## Main Section 2: [How It Works]
+
 ### Subsection 2.1
+
 ### Subsection 2.2
 
 ## Main Section 3: [Trade-offs and Real-World]
+
 ### Pros and Cons
+
 ### When to Use
+
 ### When NOT to Use
 
 ## Conclusion
@@ -127,6 +138,7 @@ content/drafts/[slug]/
 ### Quality Standard: Staff/Principal Engineer Reference
 
 Content must be usable as authoritative reference by senior technical leadership. Every article should:
+
 - Be citable in technical discussions and design reviews
 - Handle nuance and edge cases that matter in production
 - Provide complete context for informed decision-making
@@ -146,6 +158,7 @@ Content must be usable as authoritative reference by senior technical leadership
 ### Tone Guidelines
 
 **DO:**
+
 - Write directly and assertively
 - Make confident statements backed by evidence
 - Share insights like a staff engineer explaining to peers
@@ -153,6 +166,7 @@ Content must be usable as authoritative reference by senior technical leadership
 - Present trade-offs with clear context for decision-making
 
 **DON'T:**
+
 - Use academic/corporate speak
 - Be preachy or prescriptive ("You should...")
 - Use "Obviously...", "Simply...", or "Just..."
@@ -164,11 +178,13 @@ Content must be usable as authoritative reference by senior technical leadership
 ### Content Sections
 
 #### Abstract (2-4 sentences)
+
 - Set context for why this matters
 - What the reader will learn
 - Include overview mermaid diagram
 
 #### TLDR (Comprehensive Summary)
+
 - Main concept (1-2 sentences)
 - 3-6 themed subsections
 - 3-6 bullet points per subsection
@@ -176,6 +192,7 @@ Content must be usable as authoritative reference by senior technical leadership
 - Include key trade-offs
 
 #### Main Content
+
 - H2 → H3 → H4 hierarchy
 - Each section answers a specific question
 - Mermaid diagrams for complex concepts
@@ -200,15 +217,17 @@ This was influenced by [historical context](url).
 ```markdown
 ### Trade-offs
 
-| Aspect | Pros | Cons |
-|--------|------|------|
+| Aspect      | Pros  | Cons  |
+| ----------- | ----- | ----- |
 | Performance | [Pro] | [Con] |
-| Complexity | [Pro] | [Con] |
+| Complexity  | [Pro] | [Con] |
 
 ### When to Use
+
 - [Scenario 1]
 
 ### When NOT to Use
+
 - [Scenario 1] - [Why]
 ```
 
@@ -221,12 +240,12 @@ This was influenced by [historical context](url).
 ````markdown
 ```typescript title="cache-service.ts" collapse={1-6, 14-22, 30-38}
 // Lines 1-6: Imports (collapsed)
-import { Redis } from 'ioredis'
-import { Logger } from './logger'
-import type { CacheConfig, CacheResult } from './types'
+import { Redis } from "ioredis"
+import { Logger } from "./logger"
+import type { CacheConfig, CacheResult } from "./types"
 
 const redis = new Redis()
-const logger = new Logger('cache')
+const logger = new Logger("cache")
 
 // Lines 7-13: VISIBLE - Key caching pattern
 export async function getOrSet<T>(key: string, fetcher: () => Promise<T>, ttl: number): Promise<T> {
@@ -256,7 +275,7 @@ export async function invalidateUser(userId: string): Promise<void> {
 
 // Lines 30-38: Monitoring utilities (collapsed)
 export async function getCacheStats(): Promise<Record<string, number>> {
-  const info = await redis.info('stats')
+  const info = await redis.info("stats")
   // ... parse stats
   return {}
 }
@@ -264,6 +283,7 @@ export async function getCacheStats(): Promise<Record<string, number>> {
 ````
 
 **Collapse rules:**
+
 - Imports: Always collapse
 - Setup/config: Collapse initialization code
 - **Middle sections**: Collapse helper functions between key functions
@@ -272,6 +292,7 @@ export async function getCacheStats(): Promise<Record<string, number>> {
 - Use `{lineNumbers}` to highlight specific key lines within visible sections
 
 **Code quality:**
+
 - Use TypeScript when applicable
 - Include title for context
 - Comment non-obvious parts
@@ -293,7 +314,7 @@ Use `plain` for ASCII diagrams:
 
 Always wrap in figure tags:
 
-```markdown
+````markdown
 <figure>
 
 ```mermaid
@@ -301,6 +322,7 @@ flowchart LR
     A[Input] --> B[Process]
     B --> C[Output]
 ```
+````
 
 <figcaption>Description of diagram</figcaption>
 
@@ -318,6 +340,7 @@ The event loop uses a single thread for JavaScript execution but delegates I/O t
 ## Phase 5: Quality Checks
 
 ### Technical Accuracy (HIGHEST PRIORITY)
+
 - [ ] Every claim verified against authoritative sources
 - [ ] Inline references for all significant claims
 - [ ] Code examples syntactically correct and idiomatic
@@ -328,6 +351,7 @@ The event loop uses a single thread for JavaScript execution but delegates I/O t
 - [ ] Terminology correct and current
 
 ### Authoritative Tone
+
 - [ ] Assertive statements where evidence supports
 - [ ] No excessive hedging or unnecessary qualifiers
 - [ ] Confident presentation of verified facts
@@ -335,6 +359,7 @@ The event loop uses a single thread for JavaScript execution but delegates I/O t
 - [ ] Reads like staff engineer explaining to peers
 
 ### Completeness
+
 - [ ] Abstract sets clear context (2-4 sentences)
 - [ ] Overview diagram visualizes core concept
 - [ ] TLDR is comprehensive and standalone (usable as reference)
@@ -346,6 +371,7 @@ The event loop uses a single thread for JavaScript execution but delegates I/O t
 - [ ] Performance implications noted
 
 ### Trade-offs (MANDATORY)
+
 - [ ] Explicit pros/cons for every approach
 - [ ] When to use AND when NOT to use
 - [ ] Real-world examples demonstrating trade-offs
@@ -353,6 +379,7 @@ The event loop uses a single thread for JavaScript execution but delegates I/O t
 - [ ] Alternative approaches mentioned with reasoning
 
 ### Conciseness (ZERO FILLER)
+
 - [ ] No padding or filler sentences
 - [ ] No meta-commentary ("In this article...")
 - [ ] No tutorial-style hand-holding
@@ -362,6 +389,7 @@ The event loop uses a single thread for JavaScript execution but delegates I/O t
 - [ ] Reading time < 30 minutes (60 max)
 
 ### Staff/Principal Engineer Standard
+
 - [ ] Could be cited as authoritative reference
 - [ ] Handles nuance senior engineers care about
 - [ ] Addresses operational/production concerns
@@ -369,6 +397,7 @@ The event loop uses a single thread for JavaScript execution but delegates I/O t
 - [ ] Complete enough for informed decision-making
 
 ### Formatting
+
 - [ ] No manual Table of Contents
 - [ ] Mermaid diagrams render correctly
 - [ ] Code blocks use collapse for boilerplate
@@ -378,6 +407,7 @@ The event loop uses a single thread for JavaScript execution but delegates I/O t
 - [ ] Text diagrams use `plain`
 
 ### Tags
+
 - [ ] All tags valid (exist in `content/tags.jsonc`)
 - [ ] Relevant tags added based on content (typically 3-8)
 - [ ] New tags added to tags.jsonc if needed
@@ -413,11 +443,13 @@ Choose a title that accurately represents the content:
 5. **Length**: Under 70 characters for SEO, but prioritize clarity over length
 
 **Good titles:**
+
 - "Browser Rendering Pipeline: Layout, Paint, and Composite"
 - "Distributed Locking with Redis: Implementation and Gotchas"
 - "PostgreSQL MVCC: How Transactions See Data"
 
 **Bad titles:**
+
 - "Complete Guide to Redis" (too vague)
 - "Everything About Databases" (too broad)
 - "Tips and Tricks" (not descriptive)
@@ -434,11 +466,13 @@ Choose a folder slug that matches the content:
 5. **Match title**: Slug should align with the title topic
 
 **Good slugs:**
+
 - `2024-03-15-nodejs-event-loop`
 - `2024-03-15-redis-distributed-locking`
 - `2024-03-15-postgres-mvcc`
 
 **Bad slugs:**
+
 - `2024-03-15-guide` (too vague)
 - `2024-03-15-the-complete-comprehensive-guide-to-understanding-nodejs-event-loop` (too long)
 - `2024-03-15-stuff` (meaningless)
@@ -457,13 +491,19 @@ Choose a folder slug that matches the content:
    - Follow existing format: `{ "id": "slug-format", "name": "Display Name" }`
 5. **Validate** all tags exist in tags.jsonc before using them
 
-3. Copy images/assets
-4. Verify build: `npm run build`
-5. Validate: `npm run validate:build`
+6. Copy images/assets
+7. **Update configuration files:**
+   - Add article to topic's `meta.jsonc`: `content/articles/<category>/<topic>/meta.jsonc`
+   - Add article to `posts.jsonc`: `content/posts.jsonc`
+   - Consider adding to `home.jsonc` featured articles if cornerstone piece
+8. Verify build: `npm run build`
+9. Validate content: `npm run validate:content`
+10. Validate build: `npm run validate:build`
 
 ## Anti-Patterns to Avoid (STRICT)
 
 ### Content Anti-Patterns
+
 - **Tutorial-style**: "First, let's understand...", "Before we begin..."
 - **Obvious statements**: "Security is important", "Performance matters"
 - **Meta-commentary**: "In this article, we will...", "Let me explain..."
@@ -477,6 +517,7 @@ Choose a folder slug that matches the content:
 - **Migration timelines/development plans**: Do NOT include phased rollout plans, week-by-week timelines, or development schedules unless explicitly requested by user
 
 ### Structure Anti-Patterns
+
 - **Manual ToC**: Auto-generated by framework
 - **Missing trade-offs**: Every approach needs pros/cons
 - **No code collapse**: Imports/boilerplate must be collapsed
@@ -491,6 +532,7 @@ Choose a folder slug that matches the content:
 - **Overly long slug**: Slug exceeds 5 words or contains unnecessary words
 
 ### Tone Anti-Patterns
+
 - **Too formal**: Academic/corporate speak, excessive passive voice
 - **Preachy**: "You should...", "You must..."
 - **Dismissive**: "Obviously...", "Simply...", "Just..."
@@ -499,6 +541,7 @@ Choose a folder slug that matches the content:
 - **Condescending**: Explaining basics to senior audience
 
 ### Technical Anti-Patterns
+
 - **Incorrect code**: Syntax errors, logic bugs, deprecated APIs
 - **Unidiomatic code**: Not following language/framework conventions
 - **Missing context**: Code without title or explanation
@@ -515,6 +558,7 @@ When referencing other posts, use relative paths to `.md` files. This enables ID
 ```
 
 **Examples:**
+
 ```markdown
 [Web Performance Overview](../2025-03-03-wpo-overview.md)
 [JavaScript Optimization](../2025-01-09-wpo-js.md)
@@ -522,6 +566,7 @@ When referencing other posts, use relative paths to `.md` files. This enables ID
 ```
 
 **Key rules:**
+
 - Use relative paths from current file to target `.md` file
 - Include the full filename with date prefix
 - The rehype plugin transforms these to `/posts/<type>/<category>/<slug>` URLs
@@ -531,11 +576,11 @@ When referencing other posts, use relative paths to `.md` files. This enables ID
 
 **IMPORTANT**: Before writing, read these documents from the project root:
 
-| Document | Path (from project root) | Purpose |
-|----------|--------------------------|---------|
-| Content Guidelines | `llm_docs/content-guidelines.md` | Writing standards, conciseness rules, quality checklist |
-| Markdown Features | `llm_docs/markdown-features.md` | Expressive Code syntax, Mermaid diagrams, KaTeX |
-| Project Instructions | `CLAUDE.md` | Project structure, commands, styling conventions |
+| Document             | Path (from project root)         | Purpose                                                 |
+| -------------------- | -------------------------------- | ------------------------------------------------------- |
+| Content Guidelines   | `llm_docs/content-guidelines.md` | Writing standards, conciseness rules, quality checklist |
+| Markdown Features    | `llm_docs/markdown-features.md`  | Expressive Code syntax, Mermaid diagrams, KaTeX         |
+| Project Instructions | `CLAUDE.md`                      | Project structure, commands, styling conventions        |
 
 **Usage**: Use the Read tool with absolute paths (e.g., `/path/to/project/llm_docs/content-guidelines.md`) to read these files before starting work.
 

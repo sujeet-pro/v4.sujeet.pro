@@ -1,0 +1,49 @@
+{
+  // =============================================================================
+  // SITE CONFIGURATION
+  // =============================================================================
+  // Central configuration for site-wide settings, navigation, and social links.
+
+  // Site Metadata
+  "origin": "https://sujeet.pro",
+  "name": "Sujeet Jaiswal",
+  "title": "Sujeet Jaiswal - Principal Software Engineer",
+  "description": "Personal blog and portfolio of Sujeet Jaiswal, a Principal Software Engineer crafting exceptional user experiences through innovative frontend architecture and scalable design systems.",
+  "language": "en-US",
+  "locale": "en_US",
+
+  // Header Navigation
+  "navItems": [
+    { "path": "/articles", "label": "Articles" },
+    { "path": "/browse", "label": "Browse" },
+  ],
+
+  // Footer Links
+  "footerLinks": [
+    { "path": "/cv", "label": "Resume" },
+    { "path": "/topics", "label": "Topics" },
+    { "path": "/articles/drafts", "label": "Drafts" },
+  ],
+
+  // Social Links
+  "social": {
+    "twitter": {
+      "handle": "@sujeetpro",
+      "url": "https://twitter.com/sujeetpro",
+    },
+    "github": {
+      "handle": "sujeet-pro",
+      "url": "https://github.com/sujeet-pro",
+    },
+    "linkedin": {
+      "handle": "sujeetkrjaiswal",
+      "url": "https://www.linkedin.com/in/sujeetkrjaiswal/",
+    },
+  },
+
+  // Copyright
+  "copyright": {
+    "holder": "Sujeet Jaiswal",
+    "startYear": 2024,
+  },
+}

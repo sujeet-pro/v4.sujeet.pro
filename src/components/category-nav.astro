@@ -27,10 +27,7 @@ const { categoryName, articles, currentArticleId, class: className } = Astro.pro
             <li class="category-nav-item">
               <a
                 href={article.href}
-                class:list={[
-                  "category-nav-link",
-                  { "category-nav-link-active": isCurrent }
-                ]}
+                class:list={["category-nav-link", { "category-nav-link-active": isCurrent }]}
                 aria-current={isCurrent ? "page" : undefined}
               >
                 {article.title}
@@ -70,7 +67,7 @@ const { categoryName, articles, currentArticleId, class: className } = Astro.pro
      ========================================================================== */
 
   .category-nav-heading {
-    @apply mb-4 text-sm font-medium uppercase tracking-wide opacity-60;
+    @apply mb-4 text-sm font-medium tracking-wide uppercase opacity-60;
   }
 
   .category-nav-list {
@@ -83,6 +80,7 @@ const { categoryName, articles, currentArticleId, class: className } = Astro.pro
 
   .category-nav-link {
     @apply block rounded-md px-3 py-2;
+    border-left: 3px solid transparent;
     color: var(--color-text-muted);
     transition: all var(--transition-fast);
   }
@@ -93,8 +91,8 @@ const { categoryName, articles, currentArticleId, class: className } = Astro.pro
   }
 
   .category-nav-link-active {
-    @apply font-medium rounded-none;
-    border-left: 3px solid var(--color-accent);
+    @apply rounded-none;
+    border-left-color: var(--color-accent);
     color: var(--color-accent) !important;
   }
 

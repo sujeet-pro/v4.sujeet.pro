@@ -8,14 +8,14 @@ import Favicons from "./favicons.astro"
 import Seo from "./seo.astro"
 import type { Props as SeoProps } from "./seo.astro"
 import { getFilePath } from "@/utils/link.utils"
-import Breadcrumb from "@/components/breadcrumb.astro"
-import type { Props as BreadcrumbProps } from "@/components/breadcrumb.astro"
-import ImageModal from "@/components/image-modal.astro"
+import Breadcrumb from "./breadcrumb.astro"
+import type { Crumb } from "./breadcrumb.astro"
+import ImageModal from "./image-modal.astro"
 import GoogleAnalytics from "./google-analytics.astro"
 
 interface Props extends SeoProps {
   noIndex?: boolean | undefined | null
-  crumbs: BreadcrumbProps["crumbs"] | null
+  crumbs: Crumb[] | null
   /** Use "3col" for pages with sidebars (articles with TOC, search with filters) */
   layout?: "default" | "3col"
 }
@@ -41,7 +41,8 @@ const searchIndexPath = getFilePath("search/index.json")
     <meta name="color-scheme" content="light" />
     {noIndex ? <meta name="robots" content="noindex" /> : null}
     <!-- Inline font-face declarations with base path -->
-    <style set:html={`
+    <style
+      set:html={`
       @font-face {
         font-family: "Open Sans";
         font-style: normal;
@@ -60,7 +61,8 @@ const searchIndexPath = getFilePath("search/index.json")
         unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
           U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
       }
-    `} />
+    `}
+    ></style>
     <!-- Preload local fonts -->
     <link rel="preload" as="font" type="font/woff2" href={openSansFontPath} crossorigin="anonymous" />
     <link rel="preload" as="font" type="font/woff2" href={jetBrainsMonoFontPath} crossorigin="anonymous" />
@@ -77,38 +79,40 @@ const searchIndexPath = getFilePath("search/index.json")
   <body>
     <a href="#main" class="skip-link">Skip to main content</a>
     <Header />
-    {layout === "3col" ? (
-      <!-- 3-column layout: sidebars outside content, content centered -->
-      <div class="layout-3col-grid flex-1">
-        <!-- Left sidebar column -->
-        <aside class="layout-3col-sidebar layout-3col-sidebar-left">
-          {hasSidebarLeft && <slot name="sidebar-left" />}
-        </aside>
+    {
+      layout === "3col" ? (
+        /* 3-column layout: sidebars outside content, content centered */
+        <div class="layout-3col-grid page-content flex-1">
+          {/* Left sidebar column */}
+          <aside class="layout-3col-sidebar layout-3col-sidebar-left">
+            {hasSidebarLeft && <slot name="sidebar-left" />}
+          </aside>
 
-        <!-- Center content column -->
-        <div class="layout-3col-content">
-          {crumbs ? <Breadcrumb {crumbs} /> : null}
-          <slot name="content-top" />
-          <main id="main">
+          {/* Center content column */}
+          <div class="layout-3col-content">
+            {crumbs && <Breadcrumb {crumbs} />}
+            <slot name="content-top" />
+            <main id="main">
+              <slot />
+            </main>
+            <slot name="content-bottom" />
+          </div>
+
+          {/* Right sidebar column */}
+          <aside class="layout-3col-sidebar layout-3col-sidebar-right">
+            {hasSidebarRight && <slot name="sidebar-right" />}
+          </aside>
+        </div>
+      ) : (
+        /* Default layout: constrained width */
+        <main id="main" class="flex-1">
+          <div class="content-container page-content">
+            {crumbs && <Breadcrumb {crumbs} />}
             <slot />
-          </main>
-          <slot name="content-bottom" />
-        </div>
-
-        <!-- Right sidebar column -->
-        <aside class="layout-3col-sidebar layout-3col-sidebar-right">
-          {hasSidebarRight && <slot name="sidebar-right" />}
-        </aside>
-      </div>
-    ) : (
-      <!-- Default layout: constrained width -->
-      <main id="main" class="flex-1">
-        <div class="content-container">
-          {crumbs ? <Breadcrumb {crumbs} /> : null}
-          <slot />
-        </div>
-      </main>
-    )}
+          </div>
+        </main>
+      )
+    }
     <Footer />
     <ImageModal />
     <KatexCSS />

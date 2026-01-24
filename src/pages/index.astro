@@ -1,57 +1,101 @@
 ---
+import { getEntry } from "astro:content"
+import { Icon } from "astro-icon/components"
 import Layout from "@/layout/layout.astro"
-import Profile from "@/components/profile.astro"
-import Item from "@/components/item.astro"
+import ArticleCard from "@/components/article-card.astro"
 import Link from "@/components/link.astro"
-import { SITE } from "@/constants/site"
-import {
-  getFeaturedDeepDives,
-  getFeaturedNotes,
-  getPostTypeMetadata,
-} from "@/utils/content-collection.utils"
+import { getFeaturedArticlesCards, getFeaturedTopics } from "@/utils/content"
+import { formatCount } from "@/utils/format.utils"
+import sujeetImage from "@/assets/sujeet.jpg"
 
-// Get featured items from each section (sorted by date, newest first)
-const [featuredDeepDives, featuredNotes, deepDivesMetadata, notesMetadata] = await Promise.all([
-  getFeaturedDeepDives(),
-  getFeaturedNotes(),
-  getPostTypeMetadata("deep-dives"),
-  getPostTypeMetadata("notes"),
-])
+// Get home page content
+const homeEntry = await getEntry("home", "home")
+if (!homeEntry) {
+  throw new Error("Home page content not found. Ensure content/home.jsonc exists.")
+}
+const { pageTitle, pageDescription, profile, profileActions } = homeEntry.data
 
-// Define sections with their data from content
-const sections = [
-  {
-    ...deepDivesMetadata,
-    items: featuredDeepDives,
-  },
-  {
-    ...notesMetadata,
-    items: featuredNotes,
-  },
-].filter((section) => section.items.length > 0)
+// Get ordered content using centralized utilities
+const featuredArticles = await getFeaturedArticlesCards()
+const featuredTopics = await getFeaturedTopics()
 ---
 
-<Layout title={SITE.title} description={SITE.description} crumbs={null} pageType="default">
-  <Profile />
+<Layout title={pageTitle} description={pageDescription} crumbs={null} pageType="default">
+  <!-- Profile Section -->
+  <section class="profile">
+    <div class="profile-container">
+      <div class="profile-image-wrapper">
+        <img src={sujeetImage.src} alt={profile.imageAlt} class="profile-image" />
+      </div>
 
+      <div class="profile-header">
+        <h1 class="profile-name">{profile.name}</h1>
+        <h2 class="profile-title">{profile.title}</h2>
+      </div>
+
+      <div class="profile-bio">
+        <p class="profile-bio-text">{profile.bio}</p>
+      </div>
+
+      <div class="profile-actions">
+        <Link href="/cv" class="btn-outline">
+          <Icon name="carbon:document" class="icon-md" />
+          {profileActions.viewCv}
+        </Link>
+        <Link href="/articles" class="btn-outline">
+          <Icon name="carbon:blog" class="icon-md" />
+          {profileActions.allArticles}
+        </Link>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Topics Section -->
   {
-    sections.map((section) => (
+    featuredTopics.length > 0 && (
       <section class="my-12 md:my-16">
         <div class="mb-6 flex items-baseline justify-between gap-4">
           <div>
-            <h2 class="text-2xl font-semibold">{section.title}</h2>
-            <p class="text-muted text-sm">{section.description}</p>
+            <h2 class="text-2xl font-semibold">Featured Topics</h2>
+            <p class="text-muted text-sm">Deep-dive into specific areas</p>
           </div>
-          <Link href={section.href} class="nav-link shrink-0 text-sm">
-            View all &rarr;
+          <Link href="/topics" class="nav-link shrink-0 text-sm">
+            All topics &rarr;
           </Link>
         </div>
-        <ul class="content-list">
-          {section.items.map((item) => (
-            <Item item={item} />
+        <div class="category-list">
+          {featuredTopics.map((topic) => (
+            <Link href={topic.href} class="category-card">
+              <h3 class="category-card-title">{topic.name}</h3>
+              <p class="category-card-meta">
+                <span class="category-card-count">{formatCount(topic.articleCount, "article")}</span>
+              </p>
+            </Link>
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- Featured Articles Section -->
+  {
+    featuredArticles.length > 0 && (
+      <section class="my-12 md:my-16">
+        <div class="mb-6 flex items-baseline justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-semibold">Featured Articles</h2>
+            <p class="text-muted text-sm">Hand-picked articles worth reading</p>
+          </div>
+          <Link href="/articles" class="nav-link shrink-0 text-sm">
+            All articles &rarr;
+          </Link>
+        </div>
+        <ul class="article-list">
+          {featuredArticles.map((article) => (
+            <ArticleCard article={article} />
           ))}
         </ul>
       </section>
-    ))
+    )
   }
 </Layout>

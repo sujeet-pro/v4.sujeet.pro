@@ -1,11 +1,12 @@
-import { getAllContentChronological } from "@/utils/content-filters.utils"
+import { getAllArticles } from "@/utils/content"
 import { getFilePath, getLinkProps } from "@/utils/link.utils"
 import rss, { type RSSOptions } from "@astrojs/rss"
 import type { APIRoute } from "astro"
 import { site } from "astro:config/server"
+
 export const GET: APIRoute = async () => {
-  // Get all content from all types, sorted chronologically (newest first)
-  const allContent = await getAllContentChronological()
+  // Get all articles ordered by articlesOrder
+  const allContent = await getAllArticles()
 
   // Use Astro's site and base config for URLs
   const rssOptions: RSSOptions = {
@@ -15,14 +16,12 @@ export const GET: APIRoute = async () => {
     stylesheet: getFilePath("rss", "styles.xsl"),
     items: allContent.map((item) => {
       const postUrl = getLinkProps({ href: item.href }).href
-      const lastModDate = item.lastReviewedOn ?? item.publishedOn
       return {
         title: item.title,
         description: item.description,
         link: postUrl,
-        pubDate: item.publishedOn,
-        categories: item.tags.map((tag) => tag.name),
-        customData: [`<lastmod>${lastModDate.toDateString()}</lastmod>`].join("\n"),
+        // Use category and topic as RSS categories
+        categories: [item.category.name, item.topic.name],
       }
     }),
     customData: [

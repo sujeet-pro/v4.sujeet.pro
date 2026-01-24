@@ -56,11 +56,11 @@ flowchart TD
 
 **IMPORTANT**: Before reviewing code, read these documents from the project root:
 
-| Document | Path (from project root) | Purpose |
-|----------|--------------------------|---------|
-| Code Standards | `llm_docs/code-standards.md` | TypeScript, CSS, accessibility requirements |
-| Project Instructions | `CLAUDE.md` | Project structure, commands, styling conventions |
-| Astro Docs | https://docs.astro.build/llms-full.txt | Framework documentation (fetch via WebFetch) |
+| Document             | Path (from project root)               | Purpose                                          |
+| -------------------- | -------------------------------------- | ------------------------------------------------ |
+| Code Standards       | `llm_docs/code-standards.md`           | TypeScript, CSS, accessibility requirements      |
+| Project Instructions | `CLAUDE.md`                            | Project structure, commands, styling conventions |
+| Astro Docs           | https://docs.astro.build/llms-full.txt | Framework documentation (fetch via WebFetch)     |
 
 **Usage**: Use the Read tool with absolute paths (e.g., `/path/to/project/llm_docs/code-standards.md`) to read these files before starting work.
 
@@ -77,12 +77,14 @@ flowchart TD
 - [ ] Dead code (unreachable blocks)
 
 **Detection:**
+
 ```bash
 npx ts-prune    # Unused exports
 npm run lint    # Unused variables
 ```
 
 **Fix pattern:**
+
 ```typescript
 // Before
 import { unused, used } from "./utils"
@@ -98,6 +100,7 @@ npx depcheck
 ```
 
 Review criteria:
+
 - Not imported anywhere
 - Not in config files
 - Not used by build tools
@@ -124,15 +127,17 @@ Project uses `astro/tsconfigs/strictest`.
 - [ ] Null/undefined handled explicitly
 
 **Detection:**
+
 ```bash
 npm run check
 ```
 
 **Common fixes:**
+
 ```typescript
 // Before - implicit any
 function processData(data) {
-  return data.map(item => item.name)
+  return data.map((item) => item.name)
 }
 
 // After - explicit types
@@ -156,9 +161,9 @@ import { someFunction } from "./module"
 
 ### Path Alias Usage
 
-| Alias | Path |
-|-------|------|
-| `@/*` | `./src/*` |
+| Alias          | Path                |
+| -------------- | ------------------- |
+| `@/*`          | `./src/*`           |
 | `@constants/*` | `./src/constants/*` |
 
 ```typescript
@@ -174,6 +179,7 @@ import { helper } from "@/utils/helper"
 ### Function Review
 
 For each function verify:
+
 - [ ] Handles empty inputs
 - [ ] Handles boundary conditions
 - [ ] Handles invalid inputs
@@ -181,6 +187,7 @@ For each function verify:
 - [ ] Async functions handle rejections
 
 **Fix pattern:**
+
 ```typescript
 // Before
 function getFirstItem<T>(items: T[]): T {
@@ -211,15 +218,15 @@ HTML should use semantic class names, not inline Tailwind (exception: <=2 utilit
 
 ```astro
 <!-- BAD -->
-<div class="flex items-center gap-4 p-4 bg-white rounded-lg shadow-md">
-
-<!-- GOOD -->
-<div class="card">
+<div class="flex items-center gap-4 rounded-lg bg-white p-4 shadow-md">
+  <!-- GOOD -->
+  <div class="card"></div>
+</div>
 ```
 
 ```css
 .card {
-  @apply flex items-center gap-4 p-4 rounded-lg shadow-md;
+  @apply flex items-center gap-4 rounded-lg p-4 shadow-md;
   background: var(--color-bg);
 }
 ```
@@ -302,11 +309,13 @@ export function getData(): DataType[] {
 ### Component Creation Rules
 
 Only create components when:
+
 - Used in 2+ places
 - Encapsulates significant logic
 - Improves organization substantially
 
 Don't create for:
+
 - One-time use code
 - Simple HTML structures
 - Minor variations (use props)
@@ -353,7 +362,8 @@ const formatted = formatDate(new Date())
 
 <!-- 8. Styles -->
 <style>
-  article { }
+  article {
+  }
 </style>
 ```
 
@@ -364,16 +374,21 @@ const formatted = formatDate(new Date())
 ```typescript
 // BAD
 const d = new Date()
-function proc(x: number): number { return x * 2 }
+function proc(x: number): number {
+  return x * 2
+}
 
 // GOOD
 const currentDate = new Date()
-function doubleValue(input: number): number { return input * 2 }
+function doubleValue(input: number): number {
+  return input * 2
+}
 ```
 
 ### Remove Unnecessary Comments
 
 Comments only for:
+
 - Complex algorithms
 - Non-obvious business logic
 - Workarounds with context
@@ -432,38 +447,46 @@ npm run validate:build  # Validation
 # Code Review Report
 
 ## Scope
+
 - Files analyzed: [count]
 - Files modified: [count]
 
 ## Changes Summary
 
 ### Unused Code Removed
+
 - Variables: [count]
 - Functions: [count]
 - Imports: [count]
 - NPM packages: [list]
 
 ### Type Safety Improvements
+
 - `any` types removed: [count]
 - Return types added: [count]
 - Null checks added: [count]
 
 ### Edge Cases Fixed
+
 - [Function list with fixes]
 
 ### CSS Pattern Fixes
+
 - Inline Tailwind → custom classes: [count]
 - Custom values → Tailwind tokens: [count]
 
 ### Lint/Format Fixes
+
 - ESLint errors: [count]
 - Prettier applied: [count]
 
 ### Readability Improvements
+
 - Variables renamed: [count]
 - Functions simplified: [count]
 
 ## Validation Results
+
 - TypeScript: PASS/FAIL
 - ESLint: PASS/FAIL
 - Build: PASS/FAIL

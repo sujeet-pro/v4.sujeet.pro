@@ -26,11 +26,11 @@ This document defines the standards for creating technical content for sujeet.pr
 
 Articles must be **in-depth but not exhaustive**. Every sentence should earn its place.
 
-| Reading Time | Guidance |
-|--------------|----------|
-| **< 30 minutes** | Ideal target. Achievable for most topics with disciplined writing. |
+| Reading Time      | Guidance                                                                  |
+| ----------------- | ------------------------------------------------------------------------- |
+| **< 30 minutes**  | Ideal target. Achievable for most topics with disciplined writing.        |
 | **30-60 minutes** | Acceptable for complex topics. Actively look for content to cut or split. |
-| **> 60 minutes** | **Not acceptable.** Split into a series or aggressively cut scope. |
+| **> 60 minutes**  | **Not acceptable.** Split into a series or aggressively cut scope.        |
 
 **Length Guidelines:**
 
@@ -59,14 +59,14 @@ This site prioritizes **production-tested knowledge** over academic theory. Cont
 
 #### What Qualifies as Real-World Content
 
-| Real-World (Preferred) | Theoretical (Use Sparingly) |
-|------------------------|----------------------------|
+| Real-World (Preferred)                               | Theoretical (Use Sparingly)                        |
+| ---------------------------------------------------- | -------------------------------------------------- |
 | "We hit a race condition when deploying to 50+ pods" | "Race conditions can occur in distributed systems" |
-| "Our p99 latency spiked 3x after this change" | "This approach may have performance implications" |
-| "The migration broke 12% of user sessions" | "Migrations require careful planning" |
-| Specific error messages and stack traces | Generic error categories |
-| Actual metrics from production systems | Hypothetical performance numbers |
-| Code that ran in production (sanitized) | Toy examples that compile but weren't deployed |
+| "Our p99 latency spiked 3x after this change"        | "This approach may have performance implications"  |
+| "The migration broke 12% of user sessions"           | "Migrations require careful planning"              |
+| Specific error messages and stack traces             | Generic error categories                           |
+| Actual metrics from production systems               | Hypothetical performance numbers                   |
+| Code that ran in production (sanitized)              | Toy examples that compile but weren't deployed     |
 
 #### Guidelines for Real-World Content
 
@@ -193,9 +193,9 @@ The TLDR provides a comprehensive summary that stands alone. Structure it as:
 
 Every technical decision should be explained with its rationale:
 
-| Bad | Good |
-|-----|------|
-| "CSS is render-blocking" | "CSS is render-blocking because the browser needs complete style information before painting pixels. Without this, users would see FOUC (Flash of Unstyled Content)" |
+| Bad                              | Good                                                                                                                                                                                    |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| "CSS is render-blocking"         | "CSS is render-blocking because the browser needs complete style information before painting pixels. Without this, users would see FOUC (Flash of Unstyled Content)"                    |
 | "Use a thread pool for file I/O" | "File I/O uses a thread pool because, unlike network I/O, operating systems lack consistent cross-platform async file APIs. This is a pragmatic solution to real-world OS limitations." |
 
 ### Focus on "How" (Edge Cases Included)
@@ -222,6 +222,7 @@ Code should be:
 All code blocks MUST use the `collapse` directive to hide irrelevant lines. Only the lines demonstrating the key concept should be visible. Use **multiple collapse ranges** to hide any section not directly relevant—including middle sections of functions.
 
 **Always collapse:**
+
 - Import statements (unless demonstrating import patterns)
 - Setup and boilerplate code
 - Type definitions (unless discussing types)
@@ -237,12 +238,12 @@ All code blocks MUST use the `collapse` directive to hide irrelevant lines. Only
 ````markdown
 ```typescript title="event-handler.ts" collapse={1-7, 15-25, 33-40}
 // Lines 1-7: Imports and setup (collapsed)
-import { EventEmitter } from 'events'
-import { Logger } from './logger'
-import { validateEvent, sanitizePayload } from './utils'
-import type { Event, Handler, EventResult } from './types'
+import { EventEmitter } from "events"
+import { Logger } from "./logger"
+import { validateEvent, sanitizePayload } from "./utils"
+import type { Event, Handler, EventResult } from "./types"
 
-const logger = new Logger('events')
+const logger = new Logger("events")
 const emitter = new EventEmitter()
 
 // Lines 8-14: VISIBLE - Key event registration pattern
@@ -258,13 +259,13 @@ export function registerHandler(eventName: string, handler: Handler): () => void
 // Lines 15-25: Internal event processing (collapsed)
 function processEvent(event: Event): EventResult {
   if (!validateEvent(event)) {
-    return { success: false, error: 'Invalid event' }
+    return { success: false, error: "Invalid event" }
   }
   const startTime = Date.now()
   emitter.emit(event.name, event.payload)
   return {
     success: true,
-    processingTime: Date.now() - startTime
+    processingTime: Date.now() - startTime,
   }
 }
 
@@ -332,7 +333,7 @@ Every article should include mermaid diagrams for:
 
 **Example:**
 
-```markdown
+````markdown
 <figure>
 
 ```mermaid
@@ -346,6 +347,7 @@ flowchart LR
         Close --> T
     end
 ```
+````
 
 <figcaption>The six phases of the libuv event loop executed in order each iteration</figcaption>
 
@@ -363,11 +365,11 @@ Use tables when comparing:
 **Example:**
 
 ```markdown
-| Feature | epoll (Linux) | kqueue (BSD/macOS) | IOCP (Windows) |
-|---------|---------------|--------------------| ---------------|
-| Model | Readiness-based | Readiness-based | Completion-based |
-| Multiplexing | Yes | Yes | Yes |
-| File I/O | Not suitable | Limited | Native support |
+| Feature      | epoll (Linux)   | kqueue (BSD/macOS) | IOCP (Windows)   |
+| ------------ | --------------- | ------------------ | ---------------- |
+| Model        | Readiness-based | Readiness-based    | Completion-based |
+| Multiplexing | Yes             | Yes                | Yes              |
+| File I/O     | Not suitable    | Limited            | Native support   |
 ```
 
 ## Research Requirements
@@ -431,6 +433,7 @@ Present trade-offs explicitly:
 ### Trade-off: Thread Pool Size
 
 **Increasing pool size:**
+
 - Pro: More concurrent blocking operations
 - Con: Higher memory usage (8MB per thread stack)
 - Con: More context switching overhead
@@ -445,8 +448,8 @@ higher for I/O-bound work with high latency.
 
 ```yaml
 ---
-lastReviewedOn: YYYY-MM-DD  # ISO date of last significant update
-tags:                       # Relevant tags from tags.jsonc
+lastReviewedOn: YYYY-MM-DD # ISO date of last significant update
+tags: # Relevant tags from tags.jsonc
   - tag-one
   - tag-two
 ---
@@ -455,8 +458,8 @@ tags:                       # Relevant tags from tags.jsonc
 ### Optional Fields
 
 ```yaml
-featuredRank: 10  # Lower number = more prominent (writing collection only)
-type: design-doc  # For work collection: design-doc | architecture | case-study
+featuredRank: 10 # Lower number = more prominent (writing collection only)
+type: design-doc # For work collection: design-doc | architecture | case-study
 ```
 
 ## File Organization
@@ -539,14 +542,14 @@ The target audience is experienced software professionals (senior/staff/principa
 
 ### Opening and Context
 
-- **Hook with business impact**: Start with a 2-3 sentence scenario that grounds the reader in why this topic matters *now*. Senior engineers don't need hand-holding, but context for business relevance is valuable.
+- **Hook with business impact**: Start with a 2-3 sentence scenario that grounds the reader in why this topic matters _now_. Senior engineers don't need hand-holding, but context for business relevance is valuable.
 - **Expand acronyms on first use**: The first time an acronym or short-form appears, include the full form in parentheses, e.g., `SSR (Server-Side Rendering)`. After that, use the short form only.
 - **Terminology table for jargon-heavy articles**: If an article uses many domain-specific terms that readers should understand upfront, add a "Terminology" section near the beginning (after the TLDR). Use a two-column table:
 
-  | Term | Definition |
-  |------|------------|
-  | SSR | Server-Side Rendering — HTML generated on each request by the server |
-  | CLS | Cumulative Layout Shift — measures visual stability as elements load |
+  | Term | Definition                                                           |
+  | ---- | -------------------------------------------------------------------- |
+  | SSR  | Server-Side Rendering — HTML generated on each request by the server |
+  | CLS  | Cumulative Layout Shift — measures visual stability as elements load |
 
 - **Forward reference lessons learned**: If the article has a "Lessons Learned" or "War Stories" section, reference it in the introduction. Senior engineers value real failures over theory.
 
@@ -554,12 +557,12 @@ The target audience is experienced software professionals (senior/staff/principa
 
 - **TLDR summarizes; body provides evidence**: When Part 1 follows a TLDR, add a transition like "The TLDR above summarizes the core drivers. This section provides the detailed evidence and quantified business impact."
 - **Reduce TLDR/body redundancy**: Don't repeat the same points. TLDR gives the summary; body sections expand with quantified impacts and detailed analysis.
-- **Lessons Learned before Conclusion**: Place real-world missteps and war stories *before* the Conclusion—this differentiated content should be prominent, not buried.
+- **Lessons Learned before Conclusion**: Place real-world missteps and war stories _before_ the Conclusion—this differentiated content should be prominent, not buried.
 
 ### Code Examples
 
 - **Production-ready patterns**: Code examples must address real concerns like session persistence, error handling, and security.
-- **Annotate non-obvious decisions**: Add comments explaining *why* a particular approach was chosen, not just what it does.
+- **Annotate non-obvious decisions**: Add comments explaining _why_ a particular approach was chosen, not just what it does.
 - **Include production notes**: After code blocks, add callouts for production considerations (e.g., "For true user-level consistency, persist the UUID in a cookie").
 
 ### Warning Callouts
@@ -625,11 +628,11 @@ content/drafts/your-slug/
 
 ```yaml
 # _meta.yaml
-target: deep-dives        # Target collection
+target: deep-dives # Target collection
 tags:
   - relevant-tag
 workingTitle: Article Title
-status: research          # research | outlining | drafting | review | ready
+status: research # research | outlining | drafting | review | ready
 ```
 
 ### Status Progression

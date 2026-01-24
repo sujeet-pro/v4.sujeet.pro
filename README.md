@@ -163,21 +163,21 @@ This repo is configured for Claude Code with specialized skills for content crea
 
 #### Content Skills
 
-| Command | Description |
-|---------|-------------|
-| `/write-post <topic>` | Write new blog post with deep research |
-| `/review-posts <path/topic>` | Review and improve existing post |
-| `/sys-design <topic>` | Write system design solution document |
-| `/research-post <topic>` | Generate research material for future article |
-| `/write-research <type> <category> <path>` | Convert research into blog post |
-| `/review-all` | Review all posts one by one |
+| Command                                    | Description                                   |
+| ------------------------------------------ | --------------------------------------------- |
+| `/write-post <topic>`                      | Write new blog post with deep research        |
+| `/review-posts <path/topic>`               | Review and improve existing post              |
+| `/sys-design <topic>`                      | Write system design solution document         |
+| `/research-post <topic>`                   | Generate research material for future article |
+| `/write-research <type> <category> <path>` | Convert research into blog post               |
+| `/review-all`                              | Review all posts one by one                   |
 
 #### Code Skills
 
-| Command | Description |
-|---------|-------------|
-| `/review-code` | Review entire codebase against standards |
-| `/review-changes` | Review uncommitted changes only |
+| Command           | Description                              |
+| ----------------- | ---------------------------------------- |
+| `/review-code`    | Review entire codebase against standards |
+| `/review-changes` | Review uncommitted changes only          |
 
 ### Example Workflows
 
@@ -188,6 +188,7 @@ This repo is configured for Claude Code with specialized skills for content crea
 ```
 
 Claude will:
+
 1. Research from official docs, source code, expert blogs
 2. Create draft structure with outline
 3. Write content with mermaid diagrams and inline references
@@ -200,6 +201,7 @@ Claude will:
 ```
 
 Claude will:
+
 1. Analyze structure and content
 2. Fact-check claims via web research
 3. Check code blocks for collapse usage

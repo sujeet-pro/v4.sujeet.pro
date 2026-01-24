@@ -10,28 +10,25 @@ export const SEARCH_SCHEMA = {
   type: "string",
   category: "string",
   categoryName: "string",
-  tags: "string[]",
-  tagNames: "string[]",
+  topic: "string",
+  topicName: "string",
   href: "string",
-  publishedOn: "number",
   minutesRead: "string",
 } as const
 
 /**
  * Document interface for Orama search index
- * Note: Uses empty strings instead of null for Orama compatibility
  */
 export interface SearchDocument {
   id: string
   title: string
   description: string
-  type: string // "writing" | "deep-dive" | "work" | "uses"
-  category: string // empty string if not applicable
-  categoryName: string // empty string if not applicable
-  tags: string[]
-  tagNames: string[]
+  type: string // "article"
+  category: string
+  categoryName: string
+  topic: string
+  topicName: string
   href: string
-  publishedOn: number
   minutesRead: string
 }
 
@@ -40,9 +37,8 @@ export interface SearchDocument {
  */
 export interface SearchParams {
   q: string
-  sortBy: "relevance" | "date"
   categories: string[]
-  tags: string[]
+  topics: string[]
 }
 
 /**
@@ -51,8 +47,9 @@ export interface SearchParams {
 export interface FacetItem {
   id: string
   name: string // Short name for display
-  title?: string // Full descriptive title for categories
+  title?: string // Full descriptive title
   count: number
+  categoryId?: string // For topics, the parent category
 }
 
 /**
@@ -60,5 +57,5 @@ export interface FacetItem {
  */
 export interface SearchFacets {
   categories: FacetItem[]
-  tags: FacetItem[]
+  topics: FacetItem[]
 }

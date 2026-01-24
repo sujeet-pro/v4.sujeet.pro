@@ -15,10 +15,10 @@
  * - All vanity URLs (redirect pages that should not be indexed)
  */
 
-import fs from "node:fs"
-import path from "node:path"
 import { glob } from "glob"
 import { parse as parseJsonc } from "jsonc-parser"
+import fs from "node:fs"
+import path from "node:path"
 
 /** Content types to scan */
 const CONTENT_TYPES = ["writing", "deep-dives", "work", "uses"] as const
@@ -57,7 +57,7 @@ function getVanityPaths(): string[] {
 function isDraftFile(filePath: string): boolean {
   const content = fs.readFileSync(filePath, "utf-8")
   const h1Match = content.match(/^#\s+(.+)$/m)
-  if (!h1Match) return false
+  if (!h1Match || !h1Match[1]) return false
   return h1Match[1].trim().toLowerCase().startsWith("draft:")
 }
 

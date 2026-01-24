@@ -1,130 +1,209 @@
 ---
 import Link from "@/components/link.astro"
 import Layout from "@/layout/layout.astro"
-import { getAllContentByType } from "@/utils/content-filters.utils"
-import { getCategoriesForType, POST_TYPE_LABELS } from "@/utils/content-categories-generic.utils"
-import { getAllTagsWithCounts } from "@/utils/content-tags.utils"
-import type { PostType } from "@/utils/content.type"
+import { getBrowseContent } from "@/utils/content"
+import { formatCount } from "@/utils/format.utils"
 
-const contentByType = await getAllContentByType()
-const postTypes: PostType[] = ["deep-dives", "notes"]
+// Get full hierarchy: categories -> topics -> articles (all ordered by ordering.jsonc)
+const categoryData = await getBrowseContent()
 
-// Get categories for each type
-const categoriesByType = new Map()
-for (const type of postTypes) {
-  const items = contentByType.get(type) || []
-  const categories = await getCategoriesForType(type, items)
-  categoriesByType.set(type, categories)
-}
+// Calculate totals
+const totalCategories = categoryData.length
+const totalTopics = categoryData.reduce((sum, cat) => sum + cat.topicCount, 0)
+const totalArticles = categoryData.reduce((sum, cat) => sum + cat.articleCount, 0)
 
-// Get all tags with counts (already sorted by count descending)
-const sortedTags = await getAllTagsWithCounts()
-
-const crumbs: { title: string; href: string }[] = []
+const crumbs: { name: string; href: string }[] = []
 ---
 
-<Layout title="Browse" description="Browse content by category, type, or tag" {crumbs} pageType="default">
+<Layout title="Browse" description="Browse all content by category and topic" {crumbs} pageType="default">
   <h1 class="page-title">Browse</h1>
-  <p class="page-description">Explore content by category, type, or tag.</p>
+  <p class="page-description">Explore all content organized by category and topic.</p>
 
-  {/* Content by Type */}
-  <section class="mb-12">
-    <h2 class="mb-6 text-xl font-light">By Post Type</h2>
-    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-      {
-        postTypes.map((type) => {
-          const items = contentByType.get(type) || []
-          const categories = categoriesByType.get(type) || []
-          return (
-            <div class="browse-card">
-              <h3 class="mb-2 text-lg font-medium">
-                <Link href={`/posts/${type}`} class="hover:underline">
-                  {POST_TYPE_LABELS[type]}
-                </Link>
-              </h3>
-              <p class="text-muted text-sm mb-3">{items.length} items</p>
-              <ul class="text-sm space-y-1">
-                {categories.slice(0, 3).map((cat) => (
-                  <li>
-                    <Link href={cat.href} class="text-muted hover:underline" title={cat.title}>
-                      {cat.name} ({cat.items.length})
-                    </Link>
-                  </li>
-                ))}
-                {categories.length > 3 && (
-                  <li class="text-muted">+{categories.length - 3} more</li>
-                )}
-              </ul>
-            </div>
-          )
-        })
-      }
-    </div>
-  </section>
+  <p class="browse-stats">
+    {formatCount(totalCategories, "Category", "Categories")} · {formatCount(totalTopics, "Topic")} · {
+      formatCount(totalArticles, "Article")
+    }
+  </p>
 
-  {/* Categories by Type */}
-  {
-    postTypes.map((type) => {
-      const categories = categoriesByType.get(type) || []
-      if (categories.length === 0) return null
-      return (
-        <section class="mb-12">
-          <h2 class="mb-4 text-xl font-light">
-            <Link href={`/posts/${type}`} class="hover:underline">
-              {POST_TYPE_LABELS[type]}
-            </Link>
-            {" Categories"}
-          </h2>
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {categories.map((cat) => (
-              <div class="browse-card">
-                <h3 class="mb-2 font-medium">
-                  <Link href={cat.href} class="hover:underline">
-                    {cat.name}
-                  </Link>
-                  <span class="text-muted ml-2 text-sm">({cat.items.length})</span>
-                </h3>
-                <p class="text-muted text-sm">{cat.description}</p>
+  <div class="browse-categories">
+    {
+      categoryData.map((category, index) => (
+        <section class="browse-category">
+          {index > 0 && <hr class="browse-category-divider" />}
+          <div class="browse-category-header">
+            <h2 class="browse-category-title">
+              <Link href={category.href}>{category.name}</Link>
+            </h2>
+            <p class="browse-category-meta">
+              {formatCount(category.topicCount, "Topic")} · {formatCount(category.articleCount, "Article")}
+            </p>
+          </div>
+
+          <div class="browse-topics">
+            {category.topics.map((topic) => (
+              <div class="browse-topic">
+                <div class="browse-topic-header">
+                  <h3 class="browse-topic-title">
+                    <Link href={topic.href}>{topic.name}</Link>
+                  </h3>
+                  <p class="browse-topic-meta">{formatCount(topic.articleCount, "Article")}</p>
+                </div>
+
+                <div class="browse-articles">
+                  {topic.articles.map((article) => (
+                    <a href={article.href} class="browse-article">
+                      <h4 class="browse-article-title">{article.title}</h4>
+                      <p class="browse-article-excerpt">{article.description}</p>
+                    </a>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
         </section>
-      )
-    })
-  }
-
-  {/* Tag Cloud */}
-  <section class="mb-12">
-    <h2 class="mb-4 text-xl font-light">
-      <Link href="/tag" class="hover:underline">Tags</Link>
-    </h2>
-    <div class="flex flex-wrap gap-2">
-      {
-        sortedTags.slice(0, 50).map((tag) => (
-          <Link href={tag.href} class="tag">
-            {tag.name} ({tag.count})
-          </Link>
-        ))
-      }
-      {sortedTags.length > 50 && (
-        <Link href="/tag" class="tag">
-          +{sortedTags.length - 50} more
-        </Link>
-      )}
-    </div>
-  </section>
+      ))
+    }
+  </div>
 </Layout>
 
 <style is:global>
   @reference "tailwindcss";
 
-  .browse-card {
-    @apply rounded-lg border p-4;
-    border-color: var(--color-border);
-    transition: border-color var(--transition-fast);
+  /* Browse page stats */
+  .browse-stats {
+    @apply mb-8 text-xs;
+    color: var(--color-text-muted);
   }
 
-  .browse-card:hover {
-    border-color: var(--color-accent);
+  /* Category sections */
+  .browse-categories {
+    @apply flex flex-col;
+  }
+
+  .browse-category {
+    @apply flex flex-col;
+  }
+
+  /* Category divider */
+  .browse-category-divider {
+    @apply my-8 border-t;
+    border-color: var(--color-border);
+  }
+
+  /* Sticky category header - positioned below site header */
+  .browse-category-header {
+    @apply sticky py-3;
+    /* Site header is ~3rem tall (py-2 + content) */
+    top: 3rem;
+    z-index: 20;
+    background: var(--color-bg);
+  }
+
+  .browse-category-title {
+    @apply mb-0 font-sans text-xl font-semibold md:text-2xl;
+    color: var(--color-text);
+  }
+
+  .browse-category-title a {
+    @apply no-underline;
+    color: inherit;
+    transition: color var(--transition-fast);
+  }
+
+  .browse-category-title a:hover {
+    color: var(--color-accent);
+  }
+
+  .browse-category-header .browse-category-meta {
+    @apply mt-1 mb-0 text-xs;
+    color: var(--color-text-muted);
+  }
+
+  /* Topic sections */
+  .browse-topics {
+    @apply flex flex-col gap-4;
+    padding-left: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .browse-topics {
+      padding-left: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .browse-topics {
+      padding-left: 2rem;
+    }
+  }
+
+  .browse-topic {
+    @apply flex flex-col;
+  }
+
+  /* Sticky topic header - sticks below site header + category header */
+  .browse-topic-header {
+    @apply sticky py-2;
+    /* Site header (~3rem) + category header (~4rem) */
+    top: 7rem;
+    z-index: 10;
+    background: var(--color-bg);
+  }
+
+  .browse-topic-title {
+    @apply mb-0 font-sans text-lg font-medium;
+    color: var(--color-text);
+  }
+
+  .browse-topic-title a {
+    @apply no-underline;
+    color: inherit;
+    transition: color var(--transition-fast);
+  }
+
+  .browse-topic-title a:hover {
+    color: var(--color-accent);
+  }
+
+  .browse-topic-header .browse-topic-meta {
+    @apply mt-0.5 mb-0 text-xs;
+    color: var(--color-text-muted);
+  }
+
+  /* Article list */
+  .browse-articles {
+    @apply flex flex-col gap-2;
+    padding-left: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .browse-articles {
+      padding-left: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .browse-articles {
+      padding-left: 2rem;
+    }
+  }
+
+  .browse-article {
+    @apply block py-2 no-underline;
+  }
+
+  .browse-article:hover .browse-article-title {
+    color: var(--color-accent);
+  }
+
+  .browse-article-title {
+    @apply mb-1 font-sans text-base font-medium;
+    color: var(--color-text);
+    transition: color var(--transition-fast);
+  }
+
+  .browse-article-excerpt {
+    @apply line-clamp-2 text-base;
+    color: var(--color-text-muted);
   }
 </style>

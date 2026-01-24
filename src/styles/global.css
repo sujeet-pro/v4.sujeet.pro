@@ -120,7 +120,7 @@ h3 {
 }
 
 .heading-2 {
-  @apply font-sans font-semibold mt-14 mb-5;
+  @apply mt-14 mb-5 font-sans font-semibold;
   font-size: 26px;
   line-height: 1.35;
   letter-spacing: -0.01em;
@@ -128,7 +128,7 @@ h3 {
 }
 
 .heading-3 {
-  @apply font-sans font-medium mt-10 mb-4;
+  @apply mt-10 mb-4 font-sans font-medium;
   font-size: 20px;
   line-height: 1.4;
   color: var(--color-text);
@@ -136,8 +136,8 @@ h3 {
 
 /* Page title - h1 on index/listing pages */
 .page-title {
-  @apply mt-8 mb-2 font-sans font-semibold;
-  font-size: clamp(28px, 4vw, 36px);
+  @apply mb-2 font-sans font-semibold;
+  font-size: clamp(32px, 5vw, 42px);
   line-height: 1.2;
   letter-spacing: -0.02em;
   color: var(--color-text);
@@ -155,6 +155,12 @@ h3 {
 .section-title {
   @apply mb-4 font-mono text-xs font-normal uppercase;
   letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+}
+
+/* Section subtitle - descriptive text below section title */
+.section-subtitle {
+  @apply -mt-2 mb-4 text-sm;
   color: var(--color-text-muted);
 }
 
@@ -210,7 +216,7 @@ h3 {
 
 /* === LINKS === */
 .prose-link {
-  @apply underline underline-offset-[3px] decoration-1;
+  @apply underline decoration-1 underline-offset-[3px];
   color: var(--color-accent);
   transition: text-decoration-color 200ms ease;
 }
@@ -221,7 +227,7 @@ h3 {
 
 /* === BLOCKQUOTES === */
 .prose-blockquote {
-  @apply my-8 py-5 px-6 italic;
+  @apply my-8 px-6 py-5 italic;
   background: var(--color-blockquote-bg);
   border-left: 3px solid var(--color-blockquote-border);
   font-size: 17px;
@@ -231,7 +237,7 @@ h3 {
 
 /* === CODE === */
 .code-inline {
-  @apply font-mono rounded;
+  @apply rounded font-mono;
   font-size: 15px;
   background: var(--color-code-bg);
   color: var(--color-code-text);
@@ -239,7 +245,7 @@ h3 {
 }
 
 .code-block {
-  @apply font-mono rounded-lg overflow-x-auto my-7;
+  @apply my-7 overflow-x-auto rounded-lg font-mono;
   font-size: 14px;
   line-height: 1.7;
   background: var(--color-bg-alt);
@@ -250,7 +256,7 @@ h3 {
 
 /* === LISTS === */
 .prose-list {
-  @apply my-5 pl-5 space-y-2;
+  @apply my-5 space-y-2 pl-5;
 }
 
 .prose-list li {
@@ -289,6 +295,10 @@ h3 {
 
 .content-narrow {
   max-width: var(--space-narrow);
+}
+
+.page-content {
+  @apply pt-8 pb-12;
 }
 
 /* ==========================================================================
@@ -388,7 +398,7 @@ h3 {
 
 /* Header */
 .site-header {
-  @apply sticky top-0 z-50 py-4;
+  @apply sticky top-0 z-50 py-2;
   background: var(--color-bg);
   border-bottom: 1px solid var(--color-border);
 }
@@ -399,19 +409,19 @@ h3 {
 
 /* Nav links container - visible on sm and above, pushed to right */
 .nav-links-container {
-  @apply hidden sm:flex items-center gap-4 ml-auto;
+  @apply ml-auto hidden items-center gap-4 sm:flex;
 }
 
 /* Search icon - visible only on sm (640px-767px) */
 .nav-search-icon {
-  @apply hidden sm:flex md:hidden items-center justify-center p-2;
+  @apply hidden items-center justify-center p-2 sm:flex md:hidden;
   min-width: var(--min-touch-target);
   min-height: var(--min-touch-target);
 }
 
 /* Search input container - visible on md and above */
 .nav-search-input {
-  @apply hidden md:flex items-center;
+  @apply hidden items-center md:flex;
 }
 
 /* Search input inner container */
@@ -422,7 +432,7 @@ h3 {
 
 /* Mobile menu button - visible only below sm (default), pushed to right */
 .mobile-menu-btn {
-  @apply flex sm:hidden items-center justify-center p-2 ml-auto;
+  @apply ml-auto flex items-center justify-center p-2 sm:hidden;
   min-width: var(--min-touch-target);
   min-height: var(--min-touch-target);
 }
@@ -499,39 +509,33 @@ h3 {
   @apply flex flex-col gap-6;
 }
 
-/* Three Column Grid */
-.site-footer-columns {
-  @apply grid gap-8;
-  @apply grid-cols-1 sm:grid-cols-2 md:grid-cols-3;
+/* Categories Grid */
+.site-footer-categories {
+  @apply text-sm;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, max-content));
+  gap: 0.5rem 1.5rem;
 }
 
-.site-footer-column {
-  @apply flex flex-col gap-3;
-}
-
-.site-footer-column-title {
-  @apply text-sm font-semibold uppercase tracking-wide;
-  color: var(--color-text);
-}
-
-.site-footer-column-links {
-  @apply flex flex-col items-start gap-2 text-sm;
-}
-
-.site-footer-column-links a {
+.site-footer-categories a {
   @apply transition-colors;
   color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
-.site-footer-column-links a:hover {
+.site-footer-categories a:hover {
   color: var(--color-text);
 }
 
-/* Horizontal Bar: Resume + Social */
+/* Horizontal Bar: Resume, Drafts + Social */
 .site-footer-bar {
   @apply flex flex-col items-center justify-between gap-4 py-6 sm:flex-row;
   border-top: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
+}
+
+.site-footer-links {
+  @apply flex items-center gap-4;
 }
 
 .site-footer-social {
@@ -682,121 +686,161 @@ button {
 }
 
 /* ==========================================================================
-   CONTENT COMPONENTS
+   ARTICLE & CATEGORY CARDS
    ========================================================================== */
 
-/* Content list */
-.content-list {
+/* Article list container */
+.article-list {
   @apply flex flex-col;
 }
 
-.content-item {
+/* Article card - used in article listing pages */
+.article-card {
   @apply relative z-10 cursor-pointer py-6;
   border-bottom: 1px solid var(--color-border);
 }
 
-.content-item:last-child {
+.article-card:last-child {
   border-bottom: none;
 }
 
-.content-item-label {
+.article-card-label {
   @apply mb-1 text-sm;
   color: var(--color-text-muted);
 }
 
-.content-item-badges {
+.article-card-badges {
   @apply mb-2 flex flex-wrap items-center gap-2;
 }
 
-.content-item-title {
+.article-card-title {
   @apply mb-2 font-sans text-xl font-light md:text-2xl;
 }
 
-.content-item-title a {
+.article-card-title a {
   @apply no-underline;
   color: var(--color-text);
   transition: color var(--transition-fast);
 }
 
-.content-item-title a:hover {
+.article-card-title a:hover {
   color: var(--color-accent);
 }
 
-/* Clickable item overlay */
-.content-item-link::after {
+/* Clickable article card overlay */
+.article-card-link::after {
   content: "";
   @apply absolute top-0 left-0 h-full w-full;
 }
 
-.content-item-meta {
+.article-card-meta {
   @apply mb-2 text-sm;
   color: var(--color-text-muted);
 }
 
-.content-item-frontmatter {
+.article-card-frontmatter {
   @apply mb-4;
 }
 
-.content-item-excerpt {
+.article-card-excerpt {
   @apply line-clamp-2;
 }
 
-.content-item-tags {
+.article-card-tags {
   @apply mt-2 flex flex-wrap gap-1;
 }
 
-/* Category item - smaller card variant */
-.category-item {
-  @apply relative z-10 py-4;
-  border-bottom: 1px solid var(--color-border);
+/* Category list - full-width stacked cards */
+.category-list {
+  @apply flex flex-col;
 }
 
-.category-item:last-child {
-  border-bottom: none;
-}
-
-.category-item-title {
-  @apply mb-1 font-sans text-lg font-normal;
-}
-
-.category-item-title a {
-  @apply no-underline;
-  color: var(--color-text);
-  transition: color 150ms ease;
-}
-
-.category-item-title a:hover {
-  color: var(--color-accent);
-}
-
-.category-item-description {
-  @apply text-sm;
-  color: var(--color-text-muted);
-}
-
-.category-item-count {
-  @apply text-xs;
-  color: var(--color-text-muted);
-}
-
-/* Category card - compact grid variant for index pages */
 .category-card {
-  @apply block rounded-md border px-3 py-2.5 no-underline;
-  border-color: var(--color-border);
+  @apply block py-6 no-underline;
+  border-bottom: 1px solid var(--color-border);
   transition: border-color 150ms ease;
 }
 
-.category-card:hover {
-  border-color: var(--color-accent);
+.category-card:last-child {
+  border-bottom: none;
+}
+
+.category-card:hover .category-card-title {
+  color: var(--color-accent);
 }
 
 .category-card-title {
-  @apply font-sans text-base font-medium;
+  @apply mb-2 font-sans text-xl font-light md:text-2xl;
   color: var(--color-text);
+  transition: color var(--transition-fast);
+}
+
+.category-card-meta {
+  @apply mb-2 flex items-center gap-1.5 text-sm;
+  color: var(--color-text-muted);
+}
+
+.category-card-abbr {
+  @apply font-medium;
+}
+
+.category-card-separator {
+  color: var(--color-border);
 }
 
 .category-card-count {
-  @apply mt-0.5 text-xs;
+  /* inherits from parent */
+}
+
+.category-card-description {
+  @apply line-clamp-2;
+  color: var(--color-text-muted);
+}
+
+/* Topic list - full-width stacked cards */
+.topic-list {
+  @apply flex flex-col;
+}
+
+.topic-card {
+  @apply block py-6 no-underline;
+  border-bottom: 1px solid var(--color-border);
+  transition: border-color 150ms ease;
+}
+
+.topic-card:last-child {
+  border-bottom: none;
+}
+
+.topic-card:hover .topic-card-title {
+  color: var(--color-accent);
+}
+
+.topic-card-title {
+  @apply mb-2 font-sans text-xl font-light md:text-2xl;
+  color: var(--color-text);
+  transition: color var(--transition-fast);
+}
+
+.topic-card-meta {
+  @apply mb-2 flex items-center gap-1.5 text-sm;
+  color: var(--color-text-muted);
+}
+
+.topic-card-category {
+  @apply font-medium;
+}
+
+.topic-card-separator {
+  color: var(--color-border);
+}
+
+.topic-card-count {
+  /* inherits from parent */
+}
+
+.topic-card-description {
+  @apply line-clamp-2;
   color: var(--color-text-muted);
 }
 
@@ -805,7 +849,7 @@ button {
    ========================================================================== */
 
 .profile {
-  @apply my-16 md:my-24;
+  @apply mt-0 mb-16 md:mb-24;
 }
 
 .profile-container {
@@ -827,7 +871,10 @@ button {
 }
 
 .profile-name {
-  @apply mb-4 font-sans text-4xl leading-tight font-light tracking-tight md:text-5xl;
+  @apply mb-4 font-sans font-semibold;
+  font-size: clamp(32px, 5vw, 42px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .profile-title {
@@ -868,7 +915,9 @@ button {
   background: var(--color-bg-alt);
   color: var(--color-text-muted);
   border: 1px solid transparent;
-  transition: color 150ms ease, border-color 150ms ease;
+  transition:
+    color 150ms ease,
+    border-color 150ms ease;
   position: relative;
   z-index: 1;
 }
@@ -977,34 +1026,34 @@ button {
 
 /* Heading styles in prose */
 .prose h1 {
-  @apply font-sans font-semibold;
+  @apply mt-0 mb-2 font-sans font-semibold;
   font-size: clamp(32px, 5vw, 42px);
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
 .prose h2 {
-  @apply font-sans font-semibold mt-14 mb-5;
+  @apply mt-14 mb-5 font-sans font-semibold;
   font-size: 26px;
   line-height: 1.35;
   letter-spacing: -0.01em;
 }
 
 .prose h3 {
-  @apply font-sans font-medium mt-10 mb-4;
+  @apply mt-10 mb-4 font-sans font-medium;
   font-size: 20px;
   line-height: 1.4;
 }
 
 .prose h4 {
-  @apply font-sans font-medium mt-8 mb-3;
+  @apply mt-8 mb-3 font-sans font-medium;
   font-size: 18px;
   line-height: 1.4;
 }
 
 /* Link styles in prose */
 .prose a {
-  @apply underline underline-offset-[3px] decoration-1;
+  @apply underline decoration-1 underline-offset-[3px];
   transition: text-decoration-color 200ms ease;
 }
 
@@ -1014,7 +1063,7 @@ button {
 
 /* Blockquote styles in prose */
 .prose blockquote {
-  @apply my-8 py-5 px-6 not-italic;
+  @apply my-8 px-6 py-5 not-italic;
   background: var(--color-blockquote-bg);
   border-left-width: 3px;
   font-size: 17px;
@@ -1028,7 +1077,7 @@ button {
 
 /* Code styling in prose */
 .prose code {
-  @apply font-mono rounded;
+  @apply rounded font-mono;
   font-size: 15px;
   background: var(--color-code-bg);
   padding: 2px 6px;
@@ -1040,7 +1089,7 @@ button {
 }
 
 .prose pre {
-  @apply font-mono rounded-lg my-7;
+  @apply my-7 rounded-lg font-mono;
   font-size: 14px;
   line-height: 1.7;
   border: 1px solid var(--color-border);
@@ -1110,7 +1159,7 @@ button {
    ========================================================================== */
 
 .breadcrumb {
-  @apply flex flex-wrap items-center gap-x-2 gap-y-1 py-4 text-sm;
+  @apply mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 py-4 text-sm;
   color: var(--color-text-muted);
 }
 
@@ -1199,7 +1248,7 @@ td {
 
 /* Skip to main content link - visible on focus for keyboard navigation */
 .skip-link {
-  @apply absolute left-0 top-0 z-50;
+  @apply absolute top-0 left-0 z-50;
   @apply px-4 py-2 font-medium;
   background: var(--color-accent);
   color: white;

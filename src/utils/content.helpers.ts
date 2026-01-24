@@ -4,13 +4,7 @@
  */
 
 import { render, type CollectionEntry } from "astro:content"
-import { getTagsByRefs } from "./content-tags.utils"
-import { remarkPluginFrontmatterSchema, inResearchFrontmatterSchema, type Tag } from "./content.type"
-
-/**
- * Collection types that can be processed
- */
-type ContentCollection = "posts" | "inResearch"
+import { remarkPluginFrontmatterSchema } from "./content.types"
 
 /**
  * Parsed frontmatter result from remark plugin
@@ -19,38 +13,16 @@ export interface ParsedFrontmatter {
   title: string
   description: string
   minutesRead: string
-  publishedOn: Date
   isDraft: boolean
   pageSlug: string
 }
 
 /**
- * Parsed frontmatter for in-research content (no publishedOn)
- */
-export interface ParsedInResearchFrontmatter {
-  title: string
-  description: string
-  minutesRead: string
-  isDraft: boolean
-  pageSlug: string
-}
-
-/**
- * Rendered content with parsed frontmatter and tags
+ * Rendered content with parsed frontmatter
  */
 export interface RenderedContent {
   frontmatter: ParsedFrontmatter
   Content: Awaited<ReturnType<typeof render>>["Content"]
-  tags: Tag[]
-}
-
-/**
- * Rendered in-research content with parsed frontmatter and tags
- */
-export interface RenderedInResearchContent {
-  frontmatter: ParsedInResearchFrontmatter
-  Content: Awaited<ReturnType<typeof render>>["Content"]
-  tags: Tag[]
 }
 
 /**
@@ -70,71 +42,18 @@ export function parseFrontmatter(remarkPluginFrontmatter: unknown, itemId: strin
 }
 
 /**
- * Parse and validate frontmatter for in-research content (no publishedOn)
- *
- * @param remarkPluginFrontmatter - Raw frontmatter from remark plugin
- * @param itemId - Item ID for error messages
- * @returns Parsed and validated frontmatter
- * @throws Error if frontmatter validation fails
- */
-export function parseInResearchFrontmatter(
-  remarkPluginFrontmatter: unknown,
-  itemId: string,
-): ParsedInResearchFrontmatter {
-  return inResearchFrontmatterSchema.parse(remarkPluginFrontmatter, {
-    errorMap: (error) => ({
-      message: `Error parsing frontmatter for in-research ${itemId}: ${error.message}: ${JSON.stringify(error)}`,
-    }),
-  })
-}
-
-/**
- * Render a content item and extract frontmatter and tags
+ * Render a content item and extract frontmatter
  *
  * @param item - Collection entry to render
- * @returns Rendered content with parsed frontmatter and resolved tags
+ * @returns Rendered content with parsed frontmatter
  */
-export async function renderContentItem<T extends ContentCollection>(
-  item: CollectionEntry<T>,
+export async function renderContentItem(
+  item: CollectionEntry<"category"> | CollectionEntry<"topic"> | CollectionEntry<"article">,
 ): Promise<RenderedContent> {
   const { Content, remarkPluginFrontmatter } = await render(item)
   const frontmatter = parseFrontmatter(remarkPluginFrontmatter, item.id)
-  const tags = await getTagsByRefs(item.data.tags as string[] | undefined)
 
-  return { frontmatter, Content, tags }
-}
-
-/**
- * Render an in-research content item and extract frontmatter and tags
- *
- * @param item - Collection entry to render
- * @returns Rendered content with parsed frontmatter and resolved tags
- */
-export async function renderInResearchItem(
-  item: CollectionEntry<"inResearch">,
-): Promise<RenderedInResearchContent> {
-  const { Content, remarkPluginFrontmatter } = await render(item)
-  const frontmatter = parseInResearchFrontmatter(remarkPluginFrontmatter, item.id)
-  const tags = await getTagsByRefs(item.data.tags as string[] | undefined)
-
-  return { frontmatter, Content, tags }
-}
-
-/**
- * Sort content items by published date (newest first), then by title alphabetically
- *
- * @param items - Array of content items with publishedOn and title
- * @returns Sorted array (mutates original)
- */
-export function sortByDateDescending<T extends { publishedOn: Date; title: string }>(items: T[]): T[] {
-  return items.sort((a, b) => {
-    const dateA = a.publishedOn.getTime()
-    const dateB = b.publishedOn.getTime()
-    if (dateB !== dateA) {
-      return dateB - dateA
-    }
-    return a.title.localeCompare(b.title)
-  })
+  return { frontmatter, Content }
 }
 
 /**

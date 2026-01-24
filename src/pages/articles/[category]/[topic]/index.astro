@@ -1,0 +1,50 @@
+---
+import ArticleCard from "@/components/article-card.astro"
+import Layout from "@/layout/layout.astro"
+import { getAllTopicPaths, getTopicPage } from "@/utils/content"
+import { formatCount } from "@/utils/format.utils"
+
+export async function getStaticPaths() {
+  const paths = await getAllTopicPaths()
+  return paths.map(({ category, topic }) => ({
+    params: { category, topic },
+  }))
+}
+
+const { category: categoryId, topic: topicId } = Astro.params
+const pageData = await getTopicPage(categoryId, topicId)
+
+if (!pageData) {
+  return Astro.redirect("/404")
+}
+
+const { topic, index: topicIndex, articles } = pageData
+const { category } = topic
+const crumbs = [{ name: category.name, href: category.href }]
+const { Content } = topicIndex
+---
+
+<Layout title={topicIndex.title} description={topicIndex.description} {crumbs} pageType="default">
+  <!-- Render the topic's markdown content -->
+  <article class="prose">
+    <Content />
+  </article>
+
+  <!-- Divider and Articles Section -->
+  <hr class="my-12 border-t border-[var(--color-border)]" />
+
+  <section>
+    <h2 class="section-title">All Articles ({formatCount(articles.length, "article")})</h2>
+    {
+      articles.length > 0 ? (
+        <ul class="article-list">
+          {articles.map((article) => (
+            <ArticleCard article={article} headingLevel="h3" />
+          ))}
+        </ul>
+      ) : (
+        <p class="text-muted">No articles yet in this topic.</p>
+      )
+    }
+  </section>
+</Layout>

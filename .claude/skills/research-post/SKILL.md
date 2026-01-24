@@ -17,6 +17,7 @@ If called without arguments, ask user for topic.
 ## Purpose
 
 This skill is for **research and content aggregation**, not article writing. It:
+
 - Gathers information from multiple authoritative sources
 - Identifies key concepts and areas to cover
 - Creates a structured outline for future article writing
@@ -50,6 +51,7 @@ content/in-research/YYYY-MM-DD-[topic-slug]/
 ## Phase 1: Parse Topic
 
 Extract:
+
 - **Core topic**: Main subject to research
 - **Scope hints**: Any specific angles mentioned
 - **Target audience context**: Senior/staff engineers
@@ -101,11 +103,13 @@ Execute multiple searches to cast a wide net:
 For each promising source:
 
 ### Evaluate Quality
+
 - Is this authoritative? (official docs, recognized expert, peer-reviewed)
 - Is this current? (check dates, version numbers)
 - Is this accurate? (cross-reference claims)
 
 ### Extract Key Information
+
 - Main concepts and definitions
 - Design decisions and rationale
 - Trade-offs and alternatives
@@ -126,19 +130,23 @@ For each source, document:
 **Authority**: High | Medium | Low
 
 ### Key Points
+
 - [Point 1]
 - [Point 2]
 
 ### Relevant Quotes
+
 > "[Direct quote with context]"
 
 ### Areas Covered
+
 - [ ] Fundamentals
 - [ ] Internals
 - [ ] Trade-offs
 - [ ] Production usage
 
 ### Notes
+
 [Any caveats, disagreements with other sources, areas needing verification]
 ```
 
@@ -159,6 +167,7 @@ Group research findings into themes:
 ### Identify Gaps
 
 Note areas where:
+
 - Sources disagree
 - Information is outdated
 - More depth needed
@@ -173,46 +182,59 @@ Generate a proposed article outline:
 # [Topic]: [Compelling Subtitle]
 
 ## Abstract
+
 [2-3 sentences setting context]
 [Overview diagram description]
 
 ## TLDR
+
 ### [Theme 1]
+
 - [Key point]
 - [Key point]
 
 ### [Theme 2]
+
 - [Key point]
 
 ## Proposed Sections
 
 ### Section 1: [Fundamentals/Context]
+
 **Goal**: [What reader should understand]
 **Key sources**: [Source references]
 **Content ideas**:
+
 - [Subtopic]
 - [Subtopic]
 
 ### Section 2: [How It Works]
+
 **Goal**: [What reader should understand]
 **Key sources**: [Source references]
 **Content ideas**:
+
 - [Subtopic]
 
 ### Section 3: [Trade-offs]
+
 **Goal**: [What reader should understand]
 **Key sources**: [Source references]
 **Content ideas**:
+
 - [Comparison topic]
 
 ## Diagrams Needed
+
 - [ ] [Diagram description]
 - [ ] [Diagram description]
 
 ## Code Examples Needed
+
 - [ ] [Example description]
 
 ## Open Questions
+
 - [ ] [Question needing resolution]
 - [ ] [Area needing more research]
 ```
@@ -224,7 +246,7 @@ Generate a proposed article outline:
 ```markdown
 ---
 topic: [Topic Name]
-status: research  # research | ready-to-write
+status: research # research | ready-to-write
 researchedOn: YYYY-MM-DD
 targetCollection: posts | in-research
 estimatedArticles: 1-3
@@ -242,23 +264,29 @@ estimatedArticles: 1-3
 ## Key Findings
 
 ### [Finding 1]
+
 [Summary with inline source references]
 
 ### [Finding 2]
+
 [Summary]
 
 ## Theme Breakdown
 
 ### Fundamentals
+
 [What we found about core concepts]
 
 ### Internals
+
 [Technical details discovered]
 
 ### Trade-offs
+
 [Key trade-offs identified]
 
 ### Production Considerations
+
 [Real-world aspects]
 
 ## Research Gaps
@@ -280,24 +308,28 @@ estimatedArticles: 1-3
 ## Quality Checklist
 
 ### Research Breadth
+
 - [ ] Official documentation consulted
 - [ ] Multiple expert sources found
 - [ ] Different perspectives captured
 - [ ] Real-world examples identified
 
 ### Research Depth
+
 - [ ] Design decisions documented
 - [ ] Trade-offs identified
 - [ ] Historical context captured
 - [ ] Limitations noted
 
 ### Organization
+
 - [ ] Clear themes identified
 - [ ] Gaps explicitly noted
 - [ ] Article outline is actionable
 - [ ] Sources properly annotated
 
 ### Actionable Output
+
 - [ ] Outline is specific enough to write from
 - [ ] Key sources identified for each section
 - [ ] Diagrams and examples identified
@@ -316,10 +348,10 @@ estimatedArticles: 1-3
 
 **IMPORTANT**: Before researching, read these documents from the project root:
 
-| Document | Path (from project root) | Purpose |
-|----------|--------------------------|---------|
-| Content Guidelines | `llm_docs/content-guidelines.md` | Writing standards, quality expectations for research |
-| Project Instructions | `CLAUDE.md` | Project structure, target audience, content categories |
+| Document             | Path (from project root)         | Purpose                                                |
+| -------------------- | -------------------------------- | ------------------------------------------------------ |
+| Content Guidelines   | `llm_docs/content-guidelines.md` | Writing standards, quality expectations for research   |
+| Project Instructions | `CLAUDE.md`                      | Project structure, target audience, content categories |
 
 **Usage**: Use the Read tool with absolute paths (e.g., `/path/to/project/llm_docs/content-guidelines.md`) to read these files before starting work.
 

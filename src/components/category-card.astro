@@ -1,0 +1,23 @@
+---
+import Link from "@/components/link.astro"
+import type { CategoryRef } from "@/utils/content"
+import { formatCount } from "@/utils/format.utils"
+
+interface Props {
+  category: CategoryRef
+  topicCount: number
+  articleCount: number
+}
+
+const { category, topicCount, articleCount } = Astro.props
+---
+
+<Link href={category.href} class="category-card">
+  <h3 class="category-card-title">{category.title}</h3>
+  <p class="category-card-meta">
+    <span class="category-card-count">{formatCount(topicCount, "topic")}</span>
+    <span class="category-card-separator">·</span>
+    <span class="category-card-count">{formatCount(articleCount, "article")}</span>
+  </p>
+  {category.description && <p class="category-card-description">{category.description}</p>}
+</Link>

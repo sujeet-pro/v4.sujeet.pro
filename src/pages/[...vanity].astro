@@ -1,0 +1,41 @@
+---
+import { getVanityUrls } from "@/utils/content-vanity.utils"
+
+export async function getStaticPaths() {
+  const vanityEntries = await getVanityUrls()
+
+  return vanityEntries.map((entry) => ({
+    params: { vanity: entry.source },
+    props: {
+      source: entry.source,
+      target: entry.target,
+    },
+  }))
+}
+
+const { source, target } = Astro.props
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Redirecting to: {target}</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={target} />
+    {/* JS redirect with URL replacement for clean browser history */}
+    <script is:inline define:vars={{ target }}>
+      window.location.replace(target)
+    </script>
+    {/* Fallback for browsers with JS disabled */}
+    <noscript>
+      <meta http-equiv="refresh" content={`0;url=${target}`} />
+    </noscript>
+  </head>
+  <body>
+    <noscript>
+      <a href={target}>
+        Redirecting from <code>{source}</code> to <code>{target}</code>
+      </a>
+    </noscript>
+  </body>
+</html>

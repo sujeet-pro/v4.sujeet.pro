@@ -28,7 +28,7 @@ interface ValidationResult {
   url: string
   status: number | string
   type: "page" | "asset"
-  error?: string
+  error: string | undefined
 }
 
 class Logger {
@@ -60,7 +60,6 @@ class Logger {
     console.log(`\n\x1b[36mLogs saved to: ${this.logFile}\x1b[0m`)
   }
 }
-
 
 async function fetchWithTimeout(url: string, timeout: number): Promise<Response> {
   const controller = new AbortController()
@@ -135,6 +134,7 @@ function extractLinks(html: string, baseUrl: string): { assets: Set<string>; pag
   let match
   while ((match = hrefRegex.exec(cleanedHtml)) !== null) {
     const href = match[1]
+    if (!href) continue
 
     // Skip external, anchors, mailto, tel
     if (href.startsWith("mailto:") || href.startsWith("#") || href.startsWith("tel:")) continue
@@ -166,6 +166,7 @@ function extractLinks(html: string, baseUrl: string): { assets: Set<string>; pag
   const srcRegex = /src="([^"]+)"/g
   while ((match = srcRegex.exec(cleanedHtml)) !== null) {
     const src = match[1]
+    if (!src) continue
     if (src.startsWith("data:")) continue
     if (src.startsWith("http") && !src.startsWith(origin)) continue
 
@@ -186,6 +187,7 @@ function extractLinks(html: string, baseUrl: string): { assets: Set<string>; pag
   const urlRegex = /url\(["']?([^"')]+)["']?\)/g
   while ((match = urlRegex.exec(cleanedHtml)) !== null) {
     const url = match[1]
+    if (!url) continue
     if (url.startsWith("data:") || url.startsWith("#")) continue
 
     // Skip HTML-encoded URLs
@@ -204,11 +206,7 @@ function extractLinks(html: string, baseUrl: string): { assets: Set<string>; pag
   return { assets, pages }
 }
 
-async function processInBatches<T, R>(
-  items: T[],
-  batchSize: number,
-  processor: (item: T) => Promise<R>,
-): Promise<R[]> {
+async function processInBatches<T, R>(items: T[], batchSize: number, processor: (item: T) => Promise<R>): Promise<R[]> {
   const results: R[] = []
   for (let i = 0; i < items.length; i += batchSize) {
     const batch = items.slice(i, i + batchSize)

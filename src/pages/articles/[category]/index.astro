@@ -1,0 +1,62 @@
+---
+import ArticleCard from "@/components/article-card.astro"
+import TopicCard from "@/components/topic-card.astro"
+import Layout from "@/layout/layout.astro"
+import { getAllCategoryIds, getCategoryPage } from "@/utils/content"
+import { formatCount } from "@/utils/format.utils"
+
+export async function getStaticPaths() {
+  const categoryIds = await getAllCategoryIds()
+  return categoryIds.map((id) => ({
+    params: { category: id },
+  }))
+}
+
+const { category: categoryId } = Astro.params
+const pageData = await getCategoryPage(categoryId)
+
+if (!pageData) {
+  return Astro.redirect("/404")
+}
+
+const { category, index: categoryIndex, topics, articles } = pageData
+const crumbs = null
+const { Content } = categoryIndex
+---
+
+<Layout title={categoryIndex.title} description={categoryIndex.description} {crumbs} pageType="default">
+  <!-- Render the category's markdown content -->
+  <article class="prose mb-12">
+    <Content />
+  </article>
+
+  <!-- Topics Section -->
+  {
+    topics.length > 0 && (
+      <section class="mb-12">
+        <h2 class="section-title">Browse by Topic</h2>
+        <div class="topic-list">
+          {topics.map((topic) => (
+            <TopicCard topic={topic} category={category} articleCount={topic.articles.length} />
+          ))}
+        </div>
+      </section>
+    )
+  }
+
+  <!-- All Articles in Category -->
+  <section>
+    <h2 class="section-title">All Articles ({formatCount(articles.length, "article")})</h2>
+    {
+      articles.length > 0 ? (
+        <ul class="article-list">
+          {articles.map((article) => (
+            <ArticleCard article={article} headingLevel="h3" />
+          ))}
+        </ul>
+      ) : (
+        <p class="text-muted">No articles yet in this category.</p>
+      )
+    }
+  </section>
+</Layout>

@@ -4,45 +4,52 @@ import path from "node:path"
 import type { RemarkPlugin } from "node_modules/@astrojs/markdown-remark/dist/types"
 import getReadingTime from "reading-time"
 import type { VFile } from "vfile"
-import { getPublishedDate } from "./utils/date.utils"
-import { getSlug, getInResearchSlug } from "./utils/slug.utils"
-
-// Valid post types within the posts folder
-const POST_TYPES = ["deep-dives", "notes"] as const
+import { getSlug } from "./utils/slug.utils"
 
 /**
- * Check if file is in the in-research folder
+ * Extract category, topic, and postId from file path
+ *
+ * New structure: content/articles/<category>/<topic>/<post-slug>/README.md
+ * Old structure for README.md: content/articles/<category>/README.md or content/articles/<category>/<topic>/README.md
+ *
+ * Examples:
+ * - content/articles/programming/algo/sorting-algorithms/README.md → category: "programming", topic: "algo", postId: "sorting-algorithms"
+ * - content/articles/programming/README.md → category: "programming", topic: undefined, postId: undefined
+ * - content/articles/programming/algo/README.md → category: "programming", topic: "algo", postId: undefined
  */
-function isInResearchContent(filePath: string): boolean {
-  const inResearchDir = path.resolve("./content/in-research")
-  return filePath.startsWith(inResearchDir)
-}
-
-/**
- * Extract category from file path
- * Path structure: content/posts/<post-type>/<category>/[optional-nesting/]<date>-<slug>.md
- * Example: content/posts/notes/programming/2023-05-01-pub-sub.md → category: "programming"
- * Example: content/posts/deep-dives/system-design/cap-theorem/2024-01-01-index.md → category: "system-design"
- */
-function getCategoryFromPath(filePath: string): string | undefined {
-  const postsDir = path.resolve("./content/posts")
-  if (!filePath.startsWith(postsDir)) {
-    return undefined
+function getCategoryTopicAndPostFromPath(filePath: string): {
+  category: string | undefined
+  topic: string | undefined
+  postId: string | undefined
+} {
+  const articlesDir = path.resolve("./content/articles")
+  if (!filePath.startsWith(articlesDir)) {
+    return { category: undefined, topic: undefined, postId: undefined }
   }
 
-  const relativePath = path.relative(postsDir, filePath)
+  const relativePath = path.relative(articlesDir, filePath)
   const parts = relativePath.split(path.sep)
 
-  // parts[0] = post-type (deep-dives, notes)
-  // parts[1] = category
-  if (parts.length >= 2) {
-    const postType = parts[0]
-    if (POST_TYPES.includes(postType as (typeof POST_TYPES)[number])) {
-      return parts[1]
-    }
+  // All files should be README.md now
+  if (!filePath.endsWith("README.md")) {
+    return { category: undefined, topic: undefined, postId: undefined }
   }
 
-  return undefined
+  // parts structure: [category, README.md] or [category, topic, README.md] or [category, topic, post-slug, README.md]
+  if (parts.length === 2) {
+    // Category README.md: programming/README.md
+    return { category: parts[0], topic: undefined, postId: undefined }
+  }
+  if (parts.length === 3) {
+    // Topic README.md: programming/algo/README.md
+    return { category: parts[0], topic: parts[1], postId: undefined }
+  }
+  if (parts.length === 4) {
+    // Article README.md: programming/algo/sorting-algorithms/README.md
+    return { category: parts[0], topic: parts[1], postId: parts[2] }
+  }
+
+  return { category: undefined, topic: undefined, postId: undefined }
 }
 
 export const remarkFrontmatterPlugin: RemarkPlugin = (options: { defaultLayout: string }) => {
@@ -60,17 +67,13 @@ export const remarkFrontmatterPlugin: RemarkPlugin = (options: { defaultLayout: 
     file.data.astro.frontmatter.isDraft ??= title?.toLowerCase().trim().startsWith("draft:") ?? false
     file.data.astro.frontmatter.description ??= getDescription(tree, file)
 
-    // Handle in-research content differently (no date requirement)
-    if (isInResearchContent(file.path)) {
-      file.data.astro.frontmatter.pageSlug ??= getInResearchSlug(file.path)
-      // in-research content doesn't require publishedOn
-    } else {
-      file.data.astro.frontmatter.publishedOn ??= getPublishedDate(file.path)
-      file.data.astro.frontmatter.pageSlug ??= getSlug(file.path)
-      // Inject category from path structure (content-type/category/...)
-      // This allows the folder structure to define the category without explicit frontmatter
-      file.data.astro.frontmatter.category ??= getCategoryFromPath(file.path)
-    }
+    file.data.astro.frontmatter.pageSlug ??= getSlug(file.path)
+
+    // Inject category, topic, and postId from path structure
+    const { category, topic, postId } = getCategoryTopicAndPostFromPath(file.path)
+    file.data.astro.frontmatter.category ??= category
+    file.data.astro.frontmatter.topic ??= topic
+    file.data.astro.frontmatter.postId ??= postId
   }
 }
 
@@ -124,9 +127,7 @@ function getDescription(tree: mdast.Root, file: VFile) {
   }
 
   // Strategy 2: Find first paragraph anywhere after H1 (handles "Abstract" sections etc.)
-  const firstParaIndex = tree.children.findIndex(
-    (child, idx) => idx > h1Idx && child.type === "paragraph",
-  )
+  const firstParaIndex = tree.children.findIndex((child, idx) => idx > h1Idx && child.type === "paragraph")
   if (firstParaIndex > h1Idx) {
     const firstPara = tree.children[firstParaIndex]
     if (firstPara) {

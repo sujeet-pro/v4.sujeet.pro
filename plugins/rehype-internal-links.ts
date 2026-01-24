@@ -1,8 +1,8 @@
 import type { Root } from "hast"
-import type { Plugin } from "unified"
-import path from "node:path"
 import fs from "node:fs"
-import { getSlug, getInResearchSlug } from "./utils/slug.utils"
+import path from "node:path"
+import type { Plugin } from "unified"
+import { getSlug } from "./utils/slug.utils"
 
 /**
  * Rehype plugin that transforms markdown file path links to site URLs.
@@ -10,8 +10,8 @@ import { getSlug, getInResearchSlug } from "./utils/slug.utils"
  * Enables IDE navigation (Cmd+Click) while producing correct URLs in output.
  *
  * Example:
- *   Input:  [Link](../../deep-dives/web-fundamentals/2024-05-12-micro-frontends.md)
- *   Output: [Link](/posts/deep-dives/web-fundamentals/micro-frontends)
+ *   Input:  [Link](../../programming/algo/2024-10-20-sorting-algorithms.md)
+ *   Output: [Link](/posts/programming/algo/sorting-algorithms)
  */
 const rehypeInternalLinks: Plugin<[], Root> = () => {
   return (tree, file) => {
@@ -56,6 +56,9 @@ function transformLink(href: string, sourceFilePath: string): string | null {
   // Extract anchor if present
   const [linkPath, anchor] = href.split("#")
 
+  // linkPath should always exist after split, but guard against empty string
+  if (!linkPath) return null
+
   // Resolve relative path to absolute
   const sourceDir = path.dirname(sourceFilePath)
   const absolutePath = path.resolve(sourceDir, linkPath)
@@ -66,36 +69,18 @@ function transformLink(href: string, sourceFilePath: string): string | null {
     return null
   }
 
-  // Determine if posts or in-research
-  const postsDir = path.resolve("./content/posts")
-  const inResearchDir = path.resolve("./content/in-research")
+  // Determine if in articles directory
+  const articlesDir = path.resolve("./content/articles")
 
-  if (absolutePath.startsWith(postsDir + path.sep)) {
-    const postType = getPostType(absolutePath)
+  if (absolutePath.startsWith(articlesDir + path.sep)) {
     const slug = getSlug(absolutePath)
-    const url = `/posts/${postType}/${slug}`
-    return anchor ? `${url}#${anchor}` : url
-  }
-
-  if (absolutePath.startsWith(inResearchDir + path.sep)) {
-    const slug = getInResearchSlug(absolutePath)
-    const url = `/in-research/${slug}`
+    const url = `/articles/${slug}`
     return anchor ? `${url}#${anchor}` : url
   }
 
   // Link is to a markdown file outside content directories
   console.warn(`[rehype-internal-links] Link target not in content directories: ${absolutePath}`)
   return null
-}
-
-/**
- * Extract post type (deep-dives, notes) from file path.
- */
-function getPostType(filePath: string): string {
-  const postsDir = path.resolve("./content/posts")
-  const relativePath = path.relative(postsDir, filePath)
-  const parts = relativePath.split(path.sep)
-  return parts[0] || "notes"
 }
 
 export default rehypeInternalLinks

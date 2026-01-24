@@ -1,5 +1,5 @@
 ---
-import { SITE } from "@/constants/site"
+import { getSiteConfig } from "@/utils/site.utils"
 
 export type Props = {
   title: string
@@ -7,10 +7,12 @@ export type Props = {
   image?: string | undefined
   pageType: "default" | "article"
 }
+
+const siteConfig = await getSiteConfig()
 const defaultDescription = "Sujeet's personal website - Blog and Portfolio"
 const { description, image, pageType = "default" } = Astro.props
-const title = Astro.props.title ? `${Astro.props.title} - Sujeet Jaiswal` : "Sujeet Jaiswal"
-const canonicalURL = SITE.origin + Astro.url.pathname
+const title = Astro.props.title ? `${Astro.props.title} - ${siteConfig.name}` : siteConfig.name
+const canonicalURL = siteConfig.origin + Astro.url.pathname
 const seoPageType = pageType === "default" ? "website" : "article"
 ---
 
@@ -29,5 +31,5 @@ const seoPageType = pageType === "default" ? "website" : "article"
 {image ? <meta property="og:image" content={new URL(image, Astro.url)} /> : null}
 
 <!-- Twitter / X -->
-<meta name="twitter:site" content="@sujeetpro" />
+<meta name="twitter:site" content={siteConfig.social.twitter.handle} />
 <meta name="twitter:card" content="summary_large_image" />

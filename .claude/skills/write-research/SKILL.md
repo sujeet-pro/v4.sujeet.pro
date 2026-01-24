@@ -14,13 +14,14 @@ Converts research documents from `content/in-research/` into polished blog posts
 
 ### Arguments
 
-| Argument | Description | Example |
-|----------|-------------|---------|
-| `posttype` | Target collection | `posts`, `in-research` |
-| `category` | Category within collection | `web`, `tools`, `design-problems` |
-| `path` | Path to research folder | `content/in-research/2024-01-15-websockets/` |
+| Argument   | Description                | Example                                      |
+| ---------- | -------------------------- | -------------------------------------------- |
+| `posttype` | Target collection          | `posts`, `in-research`                       |
+| `category` | Category within collection | `web`, `tools`, `design-problems`            |
+| `path`     | Path to research folder    | `content/in-research/2024-01-15-websockets/` |
 
 If called without arguments, ask user for:
+
 1. Path to research document
 2. Target post type and category
 
@@ -71,6 +72,7 @@ Check research is ready to write:
 ### If Research is Incomplete
 
 Ask user:
+
 1. Proceed with available research?
 2. Return to `/research-post` to fill gaps?
 3. Specify which gaps to ignore?
@@ -102,15 +104,18 @@ Based on the research outline, create article plan:
    - Diagrams needed: [list]
 
 ### Code Examples
+
 - [Example 1]: [Source reference]
 
 ### Diagrams
+
 - [Diagram 1]: [Description]
 ```
 
 ### Identify Additional Research Needed
 
 If outline reveals gaps:
+
 - Do quick targeted research
 - Note in article if something is unverified
 - Flag for future update
@@ -122,11 +127,13 @@ Use the `/write-post` skill's content standards, but leverage existing research.
 ### Writing From Research
 
 #### Abstract
+
 - Use research summary as foundation
 - Refine for article context
 - Add overview diagram
 
 #### TLDR
+
 - Map research themes to TLDR subsections
 - Ensure comprehensive coverage
 - Add trade-offs identified in research
@@ -134,6 +141,7 @@ Use the `/write-post` skill's content standards, but leverage existing research.
 #### Main Content
 
 For each section:
+
 1. Review relevant research findings
 2. Pull key insights and examples
 3. Add inline citations from `_sources.md`
@@ -145,8 +153,10 @@ For each section:
 Transform source annotations into inline references:
 
 ```markdown
-// From _sources.md
+// From \_sources.md
+
 ## Node.js Event Loop Documentation
+
 **URL**: https://nodejs.org/...
 **Type**: Official Docs
 **Key Points**: Event loop has 6 phases...
@@ -164,18 +174,18 @@ The event loop processes callbacks in six distinct phases ([Node.js Event Loop D
 ````markdown
 ```typescript title="data-fetcher.ts" collapse={1-6, 14-21, 29-35}
 // Lines 1-6: Imports (collapsed)
-import { fetch } from 'node-fetch'
-import { Cache } from './cache'
-import type { FetchOptions, FetchResult } from './types'
+import { fetch } from "node-fetch"
+import { Cache } from "./cache"
+import type { FetchOptions, FetchResult } from "./types"
 
 const cache = new Cache()
-const BASE_URL = 'https://api.example.com'
+const BASE_URL = "https://api.example.com"
 
 // Lines 7-13: VISIBLE - Key fetching pattern
 export async function fetchWithCache<T>(path: string, ttl: number): Promise<T> {
   const cached = cache.get<T>(path)
   if (cached) return cached
-  const data = await fetch(`${BASE_URL}${path}`).then(r => r.json())
+  const data = await fetch(`${BASE_URL}${path}`).then((r) => r.json())
   cache.set(path, data, ttl)
   return data
 }
@@ -187,21 +197,26 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
     if (res.ok) return res
     await sleep(Math.pow(2, i) * 100)
   }
-  throw new Error('Max retries exceeded')
+  throw new Error("Max retries exceeded")
 }
 
 // Lines 22-28: VISIBLE - Key batch operation
 export async function fetchBatch<T>(paths: string[]): Promise<T[]> {
-  return Promise.all(paths.map(p => fetchWithCache<T>(p, 300)))
+  return Promise.all(paths.map((p) => fetchWithCache<T>(p, 300)))
 }
 
 // Lines 29-35: Utilities (collapsed)
-function sleep(ms: number): Promise<void> { return new Promise(r => setTimeout(r, ms)) }
-function buildUrl(path: string, params: Record<string, string>): string { /* ... */ }
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms))
+}
+function buildUrl(path: string, params: Record<string, string>): string {
+  /* ... */
+}
 ```
 ````
 
 **Collapse rules:**
+
 - Imports and setup: Always collapsed
 - **Middle sections**: Helpers between key functions collapsed
 - Only the key patterns readers need should be visible
@@ -209,6 +224,7 @@ function buildUrl(path: string, params: Record<string, string>): string { /* ...
 ## Phase 5: Quality Check
 
 ### Technical Accuracy (HIGHEST PRIORITY)
+
 - [ ] Every claim verified against research sources
 - [ ] Inline references for all significant claims
 - [ ] Code examples syntactically correct and idiomatic
@@ -219,6 +235,7 @@ function buildUrl(path: string, params: Record<string, string>): string { /* ...
 - [ ] Terminology correct and current
 
 ### Authoritative Tone
+
 - [ ] Assertive statements where evidence supports
 - [ ] No excessive hedging or unnecessary qualifiers
 - [ ] Confident presentation of verified facts
@@ -226,6 +243,7 @@ function buildUrl(path: string, params: Record<string, string>): string { /* ...
 - [ ] Reads like staff engineer explaining to peers
 
 ### Research Integration
+
 - [ ] All key findings from research represented
 - [ ] Sources properly cited with inline references
 - [ ] Gaps explicitly acknowledged if unresolved
@@ -233,6 +251,7 @@ function buildUrl(path: string, params: Record<string, string>): string { /* ...
 - [ ] Research quality validated before use
 
 ### Completeness
+
 - [ ] Abstract sets clear context (2-4 sentences)
 - [ ] Overview diagram visualizes core concept
 - [ ] TLDR is comprehensive and standalone (usable as reference)
@@ -241,6 +260,7 @@ function buildUrl(path: string, params: Record<string, string>): string { /* ...
 - [ ] Failure modes discussed where relevant
 
 ### Trade-offs (MANDATORY)
+
 - [ ] Explicit pros/cons for every approach
 - [ ] When to use AND when NOT to use
 - [ ] Real-world examples demonstrating trade-offs
@@ -248,6 +268,7 @@ function buildUrl(path: string, params: Record<string, string>): string { /* ...
 - [ ] Alternative approaches mentioned with reasoning
 
 ### Conciseness (ZERO FILLER)
+
 - [ ] No padding or filler sentences
 - [ ] No meta-commentary ("In this article...")
 - [ ] No tutorial-style hand-holding
@@ -256,12 +277,14 @@ function buildUrl(path: string, params: Record<string, string>): string { /* ...
 - [ ] Reading time < 30 minutes
 
 ### Staff/Principal Engineer Standard
+
 - [ ] Could be cited as authoritative reference
 - [ ] Handles nuance senior engineers care about
 - [ ] Addresses operational/production concerns
 - [ ] Complete enough for informed decision-making
 
 ### Formatting
+
 - [ ] No manual ToC
 - [ ] Mermaid diagrams render correctly
 - [ ] Code blocks use collapse for boilerplate
@@ -283,10 +306,19 @@ tags:
 ---
 ```
 
+### Update Configuration Files
+
+Add article to configuration files:
+
+1. **Topic meta.jsonc**: Add article slug to `content/articles/<category>/<topic>/meta.jsonc`
+2. **posts.jsonc**: Add article path to `content/posts.jsonc`
+3. **home.jsonc** (optional): Consider adding to featured articles if cornerstone piece
+
 ### Build Verification
 
 ```bash
 npm run build
+npm run validate:content  # Verify config files are correct
 npm run validate:build
 ```
 
@@ -297,7 +329,7 @@ After article is saved, update research document:
 ```yaml
 ---
 topic: [Topic]
-status: written  # Changed from research/ready-to-write
+status: written # Changed from research/ready-to-write
 researchedOn: YYYY-MM-DD
 writtenOn: YYYY-MM-DD
 articlePath: content/posts/[category]/YYYY-MM-DD-[slug]/
@@ -316,6 +348,7 @@ If research suggests multiple articles:
 ## Anti-Patterns (STRICT)
 
 ### Content Anti-Patterns
+
 - **Copy-pasting research**: Synthesize, don't copy verbatim
 - **Ignoring gaps**: Unresolved questions must be explicitly noted
 - **Missing citations**: Every significant claim needs inline reference
@@ -328,18 +361,21 @@ If research suggests multiple articles:
 - **Migration timelines/development plans**: Do NOT include phased rollout plans, week-by-week timelines, or development schedules unless explicitly requested by user
 
 ### Tone Anti-Patterns
+
 - **Excessive hedging**: "might possibly", "could perhaps"
 - **False certainty**: Speculation presented as fact
 - **Preachy**: "You should...", "You must..."
 - **Dismissive**: "Obviously...", "Simply..."
 
 ### Technical Anti-Patterns
+
 - **Incorrect code**: Syntax errors, logic bugs, deprecated APIs
 - **Unidiomatic code**: Not following language conventions
 - **Missing context**: Code without title or explanation
 - **Outdated information**: Old versions, deprecated patterns
 
 ### Process Anti-Patterns
+
 - **Skipping quality check**: Research quality doesn't guarantee article quality
 - **Blind trust**: Not verifying research claims before using
 - **Incomplete transfer**: Missing key insights from research
@@ -348,12 +384,12 @@ If research suggests multiple articles:
 
 **IMPORTANT**: Before writing, read these documents from the project root:
 
-| Document | Path (from project root) | Purpose |
-|----------|--------------------------|---------|
-| Content Guidelines | `llm_docs/content-guidelines.md` | Writing standards, conciseness rules, quality checklist |
-| Markdown Features | `llm_docs/markdown-features.md` | Expressive Code syntax, Mermaid diagrams, KaTeX |
-| Write Post Skill | `.claude/skills/write-post/SKILL.md` | Content creation workflow and standards |
-| Project Instructions | `CLAUDE.md` | Project structure, commands, styling conventions |
+| Document             | Path (from project root)             | Purpose                                                 |
+| -------------------- | ------------------------------------ | ------------------------------------------------------- |
+| Content Guidelines   | `llm_docs/content-guidelines.md`     | Writing standards, conciseness rules, quality checklist |
+| Markdown Features    | `llm_docs/markdown-features.md`      | Expressive Code syntax, Mermaid diagrams, KaTeX         |
+| Write Post Skill     | `.claude/skills/write-post/SKILL.md` | Content creation workflow and standards                 |
+| Project Instructions | `CLAUDE.md`                          | Project structure, commands, styling conventions        |
 
 **Usage**: Use the Read tool with absolute paths (e.g., `/path/to/project/llm_docs/content-guidelines.md`) to read these files before starting work.
 

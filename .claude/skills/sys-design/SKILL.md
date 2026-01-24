@@ -17,6 +17,7 @@ Creates comprehensive system design documents targeting senior/staff architects.
 These articles must serve as authoritative references for staff/principal architects. Not interview prep checklists, but deep technical explorations:
 
 ### Core Principles
+
 - **Authoritative and assertive**: Make confident statements backed by evidence. "This approach provides X" not "This might provide X"
 - **Complete technical depth**: Cover every subtlety, edge case, and failure mode that matters
 - **Explore the "why"**: Every decision must explain underlying reasoning, constraints, and assumptions
@@ -54,54 +55,85 @@ flowchart TD
 [Overview diagram showing core challenge]
 
 ## TLDR
+
 [Comprehensive summary]
 
 ## The Problem Space
+
 ### What Are We Really Solving?
+
 ### Why Is This Hard?
+
 ### Historical Context
 
 ## Requirements & Constraints
+
 ### Functional Requirements
+
 ### Non-Functional Requirements
+
 ### Explicit Non-Goals
 
 ## Back of the Envelope
+
 ### Assumptions
+
 ### Traffic Modeling
+
 ### Storage Modeling
+
 ### The Numbers That Matter
 
 ## High-Level Architecture
+
 ### Design Philosophy
+
 ### CAP Theorem Position
+
 ### System Components
 
 ## Deep Dive: Data Layer
+
 ### Data Modeling
+
 ### Database Selection
+
 ### Caching Strategy
+
 ### Data Partitioning
 
 ## Deep Dive: Application Layer
+
 ### API Design
+
 ### Service Architecture
+
 ### Core Algorithms
+
 ### Resilience Patterns
 
 ## Deep Dive: Infrastructure
+
 ### Deployment Architecture
+
 ### Scaling Strategy
+
 ### Observability
+
 ### Security
 
 ## Advanced Considerations
+
 ### Consistency Patterns
+
 ### Failure Modes
+
 ### Evolution & Migration
 
 ## Implementation Approaches
+
 ### Approach 1: Cloud-Native
+
 ### Approach 2: Custom Infrastructure
 
 ## Real-World Examples
@@ -121,14 +153,15 @@ Start by deeply understanding the problem, not jumping to solutions.
 ### What Are We Really Solving?
 
 For a URL shortener, it's not "store short URLs"—it's:
+
 - **Bijective mapping** at scale with low latency
 - **Read-heavy workload** with extreme fan-out
 - **Durability vs availability** trade-off for redirects
 
 ### Why Is This Hard?
 
-| Challenge | Why It's Non-Trivial |
-|-----------|---------------------|
+| Challenge     | Why It's Non-Trivial       |
+| ------------- | -------------------------- |
 | [Challenge 1] | [Explanation with numbers] |
 | [Challenge 2] | [Explanation with numbers] |
 
@@ -143,36 +176,37 @@ How have solutions evolved? What did we learn?
 
 Think in user stories and system behaviors:
 
-| Behavior | Description | Complexity | Notes |
-|----------|-------------|------------|-------|
+| Behavior     | Description   | Complexity              | Notes        |
+| ------------ | ------------- | ----------------------- | ------------ |
 | [Behavior 1] | [Description] | [Simple/Medium/Complex] | [Edge cases] |
 
 ### Non-Functional Requirements
 
-| Metric | Target | Rationale | Measurement Point |
-|--------|--------|-----------|-------------------|
-| Read latency (p50) | X ms | [Why] | Client-perceived |
-| Read latency (p99) | Y ms | [Why] | Client-perceived |
-| Availability | 99.9% | [Downtime: 8.76 hours/year] | |
+| Metric             | Target | Rationale                   | Measurement Point |
+| ------------------ | ------ | --------------------------- | ----------------- |
+| Read latency (p50) | X ms   | [Why]                       | Client-perceived  |
+| Read latency (p99) | Y ms   | [Why]                       | Client-perceived  |
+| Availability       | 99.9%  | [Downtime: 8.76 hours/year] |                   |
 
 ### Explicit Non-Goals
 
 **Critical**: What we're NOT building:
+
 - **[Non-goal 1]**: [Why excluding simplifies design]
 
 ## Phase 3: Back of the Envelope
 
 **This section teaches estimation thinking, not just numbers.**
 
-```markdown
+````markdown
 ## Back of the Envelope
 
 ### Assumptions
 
-| Assumption | Value | Source/Reasoning | Sensitivity |
-|------------|-------|------------------|-------------|
-| Daily Active Users | X | [Comparable] | High |
-| Read:Write ratio | N:1 | [Reasoning] | High |
+| Assumption         | Value | Source/Reasoning | Sensitivity |
+| ------------------ | ----- | ---------------- | ----------- |
+| Daily Active Users | X     | [Comparable]     | High        |
+| Read:Write ratio   | N:1   | [Reasoning]      | High        |
 
 ### Traffic Modeling
 
@@ -184,15 +218,17 @@ Writes/second   = DAU × actions_per_user / 86,400
 Peak writes/sec = [Z] × peak_ratio
                 = [P] writes/second (design target)
 ```
+````
 
 ### The Numbers That Actually Matter
 
-| Metric | Value | Why It Matters |
-|--------|-------|----------------|
-| Peak QPS | [X] | Determines compute |
-| Storage growth/day | [Y] GB | Storage strategy |
-| Working set size | [Z] GB | Caching strategy |
-```
+| Metric             | Value  | Why It Matters     |
+| ------------------ | ------ | ------------------ |
+| Peak QPS           | [X]    | Determines compute |
+| Storage growth/day | [Y] GB | Storage strategy   |
+| Working set size   | [Z] GB | Caching strategy   |
+
+````
 
 ## Phase 4: High-Level Architecture
 
@@ -214,27 +250,28 @@ Peak writes/sec = [Z] × peak_ratio
               │         ●
               │    AP Systems
               │    (Social feeds)
-```
+````
 
 **Our position**: [Explanation of where and why]
 
 ### Key Design Decisions
 
-| Decision | Options Considered | Choice | Rationale |
-|----------|-------------------|--------|-----------|
-| [Decision 1] | [A, B, C] | [Choice] | [Why] |
+| Decision     | Options Considered | Choice   | Rationale |
+| ------------ | ------------------ | -------- | --------- |
+| [Decision 1] | [A, B, C]          | [Choice] | [Why]     |
 
 ## Phase 5: Deep Dive - Data Layer
 
 ### Database Selection
 
-| Database | Strengths | Weaknesses | Best For |
-|----------|-----------|------------|----------|
-| PostgreSQL | ACID, complex queries | Horizontal scaling | Transactions |
-| DynamoDB | Managed, predictable latency | Cost at scale | Serverless |
-| Redis | Speed, data structures | Memory-bound | Caching |
+| Database   | Strengths                    | Weaknesses         | Best For     |
+| ---------- | ---------------------------- | ------------------ | ------------ |
+| PostgreSQL | ACID, complex queries        | Horizontal scaling | Transactions |
+| DynamoDB   | Managed, predictable latency | Cost at scale      | Serverless   |
+| Redis      | Speed, data structures       | Memory-bound       | Caching      |
 
 **Decision**: [Database] because:
+
 1. [Primary reason]
 2. [Secondary reason]
 
@@ -242,19 +279,19 @@ Peak writes/sec = [Z] × peak_ratio
 
 ### Caching Strategy
 
-| Pattern | Pros | Cons |
-|---------|------|------|
-| Cache-Aside | Simple, caches what's needed | Cache miss penalty |
-| Write-Through | Always consistent | Write latency increased |
-| Write-Behind | Fast writes | Data loss risk |
+| Pattern       | Pros                         | Cons                    |
+| ------------- | ---------------------------- | ----------------------- |
+| Cache-Aside   | Simple, caches what's needed | Cache miss penalty      |
+| Write-Through | Always consistent            | Write latency increased |
+| Write-Behind  | Fast writes                  | Data loss risk          |
 
 ### Data Partitioning
 
-| Strategy | Pros | Cons |
-|----------|------|------|
-| Range-Based | Range queries efficient | Hot spots |
-| Hash-Based | Even distribution | No range queries |
-| Consistent Hashing | Minimal data movement | More complex |
+| Strategy           | Pros                    | Cons             |
+| ------------------ | ----------------------- | ---------------- |
+| Range-Based        | Range queries efficient | Hot spots        |
+| Hash-Based         | Even distribution       | No range queries |
+| Consistent Hashing | Minimal data movement   | More complex     |
 
 ## Phase 6: Deep Dive - Application Layer
 
@@ -272,11 +309,13 @@ Response: 201 Created
 ### Resilience Patterns
 
 **Circuit Breaker States:**
+
 ```plain
 CLOSED (normal) → OPEN (fast fail) → HALF-OPEN (test)
 ```
 
 **Retry with Exponential Backoff:**
+
 ```plain
 Wait = base × 2^attempt × random(0.5, 1.5)
 ```
@@ -286,6 +325,7 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 ### Deployment Architecture
 
 **Single Region:**
+
 ```plain
 ┌─────────────────────────────────────────────────────────────┐
 │                         Region A                             │
@@ -298,6 +338,7 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 ### Observability
 
 **RED method for services:**
+
 - **R**ate: Requests per second
 - **E**rrors: Failed requests per second
 - **D**uration: Latency distribution
@@ -307,15 +348,16 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 ### Approach 1: Cloud-Native
 
 **When to choose:**
+
 - Team < 10 engineers
 - Time-to-market critical
 - Moderate scale (< 100K QPS)
 
-| Component | Managed Service | Trade-off |
-|-----------|-----------------|-----------|
-| Compute | ECS/EKS/Lambda | Ops simplicity vs control |
-| Database | RDS/Aurora | Cost vs operational burden |
-| Cache | ElastiCache | Same pattern |
+| Component | Managed Service | Trade-off                  |
+| --------- | --------------- | -------------------------- |
+| Compute   | ECS/EKS/Lambda  | Ops simplicity vs control  |
+| Database  | RDS/Aurora      | Cost vs operational burden |
+| Cache     | ElastiCache     | Same pattern               |
 
 **Pros:** Time to market, managed ops, built-in HA
 **Cons:** 2-5x more expensive at scale, vendor lock-in
@@ -323,30 +365,32 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 ### Approach 2: Custom Infrastructure
 
 **When to choose:**
+
 - Scale > 100K QPS
 - Cost optimization critical
 - Team has systems expertise
 
-| Component | Choice | Why |
-|-----------|--------|-----|
-| Compute | Kubernetes | Control, cost |
-| Database | PostgreSQL self-managed | Flexibility |
-| Cache | Redis Cluster | Performance tuning |
+| Component | Choice                  | Why                |
+| --------- | ----------------------- | ------------------ |
+| Compute   | Kubernetes              | Control, cost      |
+| Database  | PostgreSQL self-managed | Flexibility        |
+| Cache     | Redis Cluster           | Performance tuning |
 
 **Pros:** 50-80% cheaper at scale, full control
 **Cons:** Months vs weeks, significant ops investment
 
 ## Phase 9: What Would Change at Different Scales
 
-| Metric | Startup (1K) | Growth (100K) | Scale (10M) |
-|--------|-------------|---------------|-------------|
-| Architecture | Monolith | Monolith + cache | Services + sharding |
-| Database | Single PostgreSQL | + replicas | Sharded |
-| Team size | 2-5 | 10-20 | 50-100 |
+| Metric       | Startup (1K)      | Growth (100K)    | Scale (10M)         |
+| ------------ | ----------------- | ---------------- | ------------------- |
+| Architecture | Monolith          | Monolith + cache | Services + sharding |
+| Database     | Single PostgreSQL | + replicas       | Sharded             |
+| Team size    | 2-5               | 10-20            | 50-100              |
 
 ## Quality Checks
 
 ### Technical Accuracy (HIGHEST PRIORITY)
+
 - [ ] All numbers realistic and sourced with references
 - [ ] Calculations correct and show work
 - [ ] Latency/throughput claims backed by evidence
@@ -356,6 +400,7 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - [ ] No speculation presented as fact
 
 ### Authoritative Tone
+
 - [ ] Assertive statements where evidence supports
 - [ ] No excessive hedging ("might possibly", "could perhaps")
 - [ ] Confident presentation of verified facts
@@ -363,6 +408,7 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - [ ] Reads like staff architect explaining to peers
 
 ### Completeness
+
 - [ ] Every design decision has explicit reasoning
 - [ ] All significant trade-offs documented
 - [ ] Edge cases and failure modes addressed
@@ -372,6 +418,7 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - [ ] Cost implications noted where relevant
 
 ### Trade-offs (MANDATORY FOR EVERY DECISION)
+
 - [ ] Pros/cons for every technology choice
 - [ ] Pros/cons for every architectural pattern
 - [ ] When to use AND when NOT to use each approach
@@ -380,6 +427,7 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - [ ] Alternative approaches mentioned with reasoning
 
 ### Conciseness (ZERO FILLER)
+
 - [ ] No padding or filler sentences
 - [ ] No meta-commentary ("In this article...")
 - [ ] No obvious statements ("Reliability is important")
@@ -388,6 +436,7 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - [ ] Reading time reasonable for depth
 
 ### Staff/Principal Engineer Standard
+
 - [ ] Could be cited in design review discussions
 - [ ] Handles nuance senior architects care about
 - [ ] Addresses real production concerns
@@ -395,6 +444,7 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - [ ] No oversimplification of complex trade-offs
 
 ### Formatting
+
 - [ ] No manual ToC
 - [ ] Mermaid diagrams render correctly
 - [ ] ASCII diagrams use `plain` code blocks
@@ -403,6 +453,7 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - [ ] References section complete with authoritative sources
 
 ### Tags
+
 - [ ] All tags valid (exist in `content/tags.jsonc`)
 - [ ] Includes `system-design` and `architecture` tags
 - [ ] Domain-specific tags added (caching, scalability, etc.)
@@ -413,6 +464,7 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 ## Anti-Patterns to Avoid (STRICT)
 
 ### Content Anti-Patterns
+
 - **Interview checklist style**: Listing components without explaining why
 - **Silver bullet thinking**: "Always use X", "This is the best approach"
 - **Missing trade-offs**: Any decision without explicit pros/cons
@@ -426,6 +478,7 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - **Migration timelines/development plans**: Do NOT include phased rollout plans, week-by-week timelines, or development schedules unless explicitly requested by user
 
 ### Technical Anti-Patterns
+
 - **Technology name-dropping**: Mentioning technologies without explaining why
 - **Ignoring operational concerns**: No monitoring, debugging, or alerting
 - **Missing failure modes**: Not discussing what happens when things break
@@ -435,6 +488,7 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - **Incomplete comparisons**: Comparing only favorable attributes
 
 ### Tone Anti-Patterns
+
 - **Excessive hedging**: "might possibly", "could perhaps"
 - **False certainty**: Speculation presented as established fact
 - **Preachy**: "You should always...", "Never do..."
@@ -442,6 +496,7 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 - **Vendor bias**: Promoting one cloud provider without fair comparison
 
 ### Structure Anti-Patterns
+
 - **Manual ToC**: Auto-generated by framework
 - **Missing diagrams**: No visual representation of architecture
 - **Wall of text**: No tables, diagrams, or code breaking up prose
@@ -456,7 +511,21 @@ Wait = base × 2^attempt × random(0.5, 1.5)
 
 ## Save Document
 
-Location: `content/posts/design-problems/YYYY-MM-DD-[slug]/index.md`
+Location: `content/articles/sys-design/design-problems/[slug]/README.md`
+
+### Update Configuration Files
+
+Add document to configuration files:
+
+1. **Topic meta.jsonc**: Add article slug to `content/articles/sys-design/design-problems/meta.jsonc`
+2. **posts.jsonc**: Add article path (e.g., `sys-design/design-problems/[slug]`) to `content/posts.jsonc`
+3. **home.jsonc** (optional): Consider adding to featured articles if cornerstone piece
+
+### Verify Configuration
+
+```bash
+npm run validate:content  # Ensure config files are correct
+```
 
 ```yaml
 ---
@@ -478,12 +547,14 @@ Choose a title that captures the system and core challenge:
 4. **Length**: Under 70 characters for SEO, but prioritize clarity
 
 **Good titles:**
+
 - "URL Shortener: Designing for Billions of Redirects"
 - "Rate Limiter Design: Distributed Algorithms and Trade-offs"
 - "Message Queue Architecture: Durability vs Throughput"
 - "Notification System: Real-time Delivery at Scale"
 
 **Bad titles:**
+
 - "How to Design a URL Shortener" (tutorial-style)
 - "Complete System Design Guide" (too vague)
 - "Building Scalable Systems" (not specific to a system)
@@ -499,12 +570,14 @@ Choose a folder slug that identifies the system:
 4. **Lowercase**: Use hyphens, no special characters
 
 **Good slugs:**
+
 - `2024-03-15-url-shortener`
 - `2024-03-15-rate-limiter`
 - `2024-03-15-notification-system`
 - `2024-03-15-distributed-cache`
 
 **Bad slugs:**
+
 - `2024-03-15-system-design` (too generic)
 - `2024-03-15-designing-a-highly-scalable-url-shortening-service` (too long)
 - `2024-03-15-design` (meaningless)
@@ -535,12 +608,14 @@ When referencing other posts, use relative paths to `.md` files. This enables ID
 ```
 
 **Examples:**
+
 ```markdown
 [Caching Strategies](../../system-design-fundamentals/2024-12-06-caching.md)
 [URL Shortener Design](../2024-03-15-url-shortener.md)
 ```
 
 **Key rules:**
+
 - Use relative paths from current file to target `.md` file
 - Include the full filename with date prefix
 - The rehype plugin transforms these to `/posts/<type>/<category>/<slug>` URLs
@@ -550,11 +625,11 @@ When referencing other posts, use relative paths to `.md` files. This enables ID
 
 **IMPORTANT**: Before writing, read these documents from the project root:
 
-| Document | Path (from project root) | Purpose |
-|----------|--------------------------|---------|
-| Content Guidelines | `llm_docs/content-guidelines.md` | Writing standards, conciseness rules, quality checklist |
-| Markdown Features | `llm_docs/markdown-features.md` | Expressive Code syntax, Mermaid diagrams, KaTeX |
-| Project Instructions | `CLAUDE.md` | Project structure, commands, styling conventions |
+| Document             | Path (from project root)         | Purpose                                                 |
+| -------------------- | -------------------------------- | ------------------------------------------------------- |
+| Content Guidelines   | `llm_docs/content-guidelines.md` | Writing standards, conciseness rules, quality checklist |
+| Markdown Features    | `llm_docs/markdown-features.md`  | Expressive Code syntax, Mermaid diagrams, KaTeX         |
+| Project Instructions | `CLAUDE.md`                      | Project structure, commands, styling conventions        |
 
 **Usage**: Use the Read tool with absolute paths (e.g., `/path/to/project/llm_docs/content-guidelines.md`) to read these files before starting work.
 

@@ -138,7 +138,7 @@ function extractLinks(html: string): { assets: string[]; pages: string[] } {
   let match
   while ((match = hrefRegex.exec(htmlWithoutCode)) !== null) {
     const href = match[1]
-    if (shouldSkip(href)) continue
+    if (!href || shouldSkip(href)) continue
     if (href.match(/\.(css|woff2?|png|jpg|jpeg|gif|svg|ico|webp|json|xml|xsl|js|mjs)$/i)) {
       assets.push(href)
     } else if (href.startsWith("/")) {
@@ -150,7 +150,7 @@ function extractLinks(html: string): { assets: string[]; pages: string[] } {
   const srcRegex = /src="([^"]+)"/g
   while ((match = srcRegex.exec(htmlWithoutCode)) !== null) {
     const src = match[1]
-    if (shouldSkip(src)) continue
+    if (!src || shouldSkip(src)) continue
     assets.push(src)
   }
 
@@ -158,14 +158,14 @@ function extractLinks(html: string): { assets: string[]; pages: string[] } {
   const urlRegex = /url\(["']?([^"')]+)["']?\)/g
   while ((match = urlRegex.exec(htmlWithoutCode)) !== null) {
     const url = match[1]
-    if (shouldSkip(url)) continue
+    if (!url || shouldSkip(url)) continue
     assets.push(url)
   }
 
   return { assets: [...new Set(assets)], pages: [...new Set(pages)] }
 }
 
-function validateFile(filePath: string, allFiles: Set<string>, logger: Logger): ValidationResult {
+function validateFile(filePath: string, allFiles: Set<string>, _logger: Logger): ValidationResult {
   const relativePath = path.relative(DIST_DIR, filePath)
   const errors: string[] = []
   const warnings: string[] = []
