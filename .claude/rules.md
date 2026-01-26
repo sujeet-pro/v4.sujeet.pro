@@ -2,9 +2,9 @@
 
 ## Project Context
 
-Astro-based technical blog for experienced software professionals (senior/staff/principal engineers). All content is highly technical and structured for cohesive reading.
+Astro-based technical blog for experienced software professionals (senior/staff/principal engineers). Content is highly technical and structured for cohesive reading.
 
-**Documentation**: Reference guides are in the `llm_docs/` directory at the project root.
+**Documentation**: Canonical guidance lives in `llm_docs/guidelines-content/` and `llm_docs/guidelines-code/`.
 
 ## Project Structure
 
@@ -15,23 +15,26 @@ Astro-based technical blog for experienced software professionals (senior/staff/
 | `src/`     | Source code (components, pages, styles, utils) |
 | `content/` | Content collections (NOT `src/content/`)       |
 
-**Key content files** (all at project root `content/` folder):
+**Key content paths**:
 
-- `content/posts/` - Blog post markdown files
-- `content/in-research/` - Research material
-- `content/tags.jsonc` - Tag definitions (NOT `src/content/tags.json`)
-- `content/categories.jsonc` - Category definitions
-- `content/postTypes.jsonc` - Post type definitions
+- `content/articles/` - Category/Topic/Article hierarchy
+- `content/ordering.jsonc` - Global ordering config
+- `content/home.jsonc` - Homepage config
+- `content/site.jsonc` - Site metadata
+- `content/vanity.jsonc` - Redirects
 
 **IMPORTANT**: Before executing any skill, read the relevant documentation files using absolute paths from the project root:
 
-| Document           | Path (from project root)         | Description                                       |
-| ------------------ | -------------------------------- | ------------------------------------------------- |
-| Content Structure  | `llm_docs/content.md`            | Content categories, schemas, frontmatter          |
-| Content Guidelines | `llm_docs/content-guidelines.md` | Writing standards, conciseness, quality checklist |
-| Markdown Features  | `llm_docs/markdown-features.md`  | Expressive Code, Mermaid, KaTeX syntax            |
-| Code Standards     | `llm_docs/code-standards.md`     | TypeScript, CSS, accessibility requirements       |
-| Commands           | `llm_docs/commands.md`           | Build commands and workflow                       |
+| Document                 | Path (from project root)                                    | Description                             |
+| ------------------------ | ----------------------------------------------------------- | --------------------------------------- |
+| Content Structure        | `llm_docs/guidelines-content/content-structure.md`          | Content hierarchy and metadata pipeline |
+| Content Guidelines       | `llm_docs/guidelines-content/content-guidelines.md`         | Writing and review rules                |
+| Research & Fact-Checking | `llm_docs/guidelines-content/research-and-fact-checking.md` | Source quality and verification         |
+| Markdown Features        | `llm_docs/guidelines-content/markdown-features.md`          | Expressive Code, Mermaid, KaTeX         |
+| Persona                  | `llm_docs/guidelines-content/persona.md`                    | Voice and audience                      |
+| Coding Standards         | `llm_docs/guidelines-code/coding-standards.md`              | TypeScript/CSS/accessibility            |
+| Skills Registry          | `llm_docs/skills/README.md`                                 | Agent-agnostic skills                   |
+| Agent Rules              | `llm_docs/agents/claude.md`                                 | Claude-specific mapping                 |
 
 **Note**: These paths are relative to the project root, NOT relative to the `.claude/` directory.
 
@@ -39,69 +42,66 @@ Astro-based technical blog for experienced software professionals (senior/staff/
 
 ### Content Skills
 
-| Skill             | Trigger                                    | Description                                   |
-| ----------------- | ------------------------------------------ | --------------------------------------------- |
-| `/write-post`     | `/write-post <topic>`                      | Write new blog post with deep research        |
-| `/review-posts`   | `/review-posts <path/topic>`               | Review and improve existing post              |
-| `/sys-design`     | `/sys-design <topic>`                      | Write system design solution document         |
-| `/research-post`  | `/research-post <topic>`                   | Generate research material for future article |
-| `/write-research` | `/write-research <type> <category> <path>` | Convert research into blog post               |
-| `/review-all`     | `/review-all`                              | Review all posts one by one                   |
+| Skill             | Trigger                           | Description                                |
+| ----------------- | --------------------------------- | ------------------------------------------ |
+| `/write-article`  | `/write-article <topic>`          | Write new article with deep research       |
+| `/update-article` | `/update-article <path> <prompt>` | Update existing article with deep research |
 
-### Code Skills
+## When to Use Coding Guidelines
 
-| Skill             | Trigger           | Description                              |
-| ----------------- | ----------------- | ---------------------------------------- |
-| `/review-code`    | `/review-code`    | Review entire codebase against standards |
-| `/review-changes` | `/review-changes` | Review uncommitted changes only          |
+If the user prompt is about **changing site functionality** (code changes in `src/`, `plugins/`, `scripts/`, etc.), read and follow:
+
+- `llm_docs/guidelines-code/coding-standards.md`
+
+Content skills (`/write-article`, `/update-article`) only require `llm_docs/guidelines-content/*`.
 
 ## Critical Rules
 
 ### Content Creation
 
-- **Audience**: Senior/staff/principal engineers only
-- **Conciseness**: No padding, no filler, no tutorial-style hand-holding
-- **Every paragraph earns its place** - if removing doesn't reduce understanding, remove it
-- **Reading time**: Target < 30 minutes, max 60 minutes
-- **Title**: Extracted from H1 heading (don't add to frontmatter)
-- **Description**: Paragraphs between H1 and "Table of Contents"
-- **Publish date**: From filename `YYYY-MM-DD-slug.md`
+- **Audience**: Senior/staff/principal engineers and stakeholders
+- **Conciseness**: No padding, no filler
+- **Title**: Extracted from H1 heading (no frontmatter title)
+- **Description**: Text between H1 and first H2
+- **Drafts**: H1 starts with `Draft:`
 - **No manual ToC**: Auto-generated
+- **Specs first**: Always cite specs and include short spec quotes
 
 ### Code Blocks
 
-**ALWAYS collapse boilerplate:**
+**ALWAYS collapse boilerplate and irrelevant lines:**
 
 ````markdown
-```ts title="example.ts" collapse={1-3}
+```ts title="example.ts" collapse={1-3, 10-12}
 import { a } from "a"
 import { b } from "b"
 import { c } from "c"
 
 // Visible main code
-function main() {
+export function main() {
   return "hello"
 }
+
+// Collapsed helpers
+function helper() {}
 ```
 ````
 
 - Use `title="filename.ts"` for file context
-- Highlight key lines with `{2-4}`
-- Collapse imports, setup, helpers unless directly relevant
+- Highlight key lines with `{2-4}` when helpful
+- Collapse imports, setup, helpers, and mid-function noise
 
 ### TypeScript
 
 - **Strictest mode** - No implicit any, strict null checks
 - Use `import type` for type-only imports
-- All code must be properly typed
 - Use path aliases: `@/*`, `@constants/*`
 
 ### CSS
 
-- **Minimalistic** - Prefer Tailwind utilities
-- Semantic class names for 3+ utilities
-- CSS variables for theming
-- Use dark mode variants (`dark:`)
+- Use semantic class names in markup
+- Implement with Tailwind `@apply` in CSS
+- Use CSS variables for theming
 
 ### Accessibility
 
@@ -110,36 +110,22 @@ function main() {
 - ARIA labels where needed
 - Keyboard navigable
 
-## Content Collections
+## Content Collections (Current)
 
-| Collection  | Path                   | Required Fields |
-| ----------- | ---------------------- | --------------- |
-| posts       | `content/posts/`       | tags            |
-| in-research | `content/in-research/` | topic, status   |
+| Collection | Path                                                      | Notes            |
+| ---------- | --------------------------------------------------------- | ---------------- |
+| category   | `content/articles/<category>/README.md`                   | H1 + description |
+| topic      | `content/articles/<category>/<topic>/README.md`           | H1 + description |
+| article    | `content/articles/<category>/<topic>/<article>/README.md` | Full article     |
 
-**Content metadata files** (all JSONC format with comments):
-
-- Tags: `content/tags.jsonc`
-- Categories: `content/categories.jsonc`
-- Post Types: `content/postTypes.jsonc`
+No frontmatter is required in these files.
 
 ## Quick Reference
 
-### File Naming
+### File Structure
 
 ```
-YYYY-MM-DD-slug-name.md
-2024-03-15-react-hooks.md
-```
-
-### Frontmatter Template
-
-```yaml
----
-lastReviewedOn: 2024-01-15
-tags:
-  - tag-id
----
+content/articles/<category>/<topic>/<article>/README.md
 ```
 
 ### Mermaid Diagram

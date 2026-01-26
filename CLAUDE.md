@@ -14,36 +14,23 @@ Use these commands for common tasks:
 
 ### Content Skills
 
-| Command                                    | Description                                   |
-| ------------------------------------------ | --------------------------------------------- |
-| `/write-post <topic>`                      | Write new blog post with deep research        |
-| `/review-posts <path/topic>`               | Review and improve existing article           |
-| `/sys-design <topic>`                      | Write system design solution document         |
-| `/research-post <topic>`                   | Generate research material for future article |
-| `/write-research <type> <category> <path>` | Convert research into blog post               |
-| `/review-all`                              | Review all articles one by one                |
-| `/validate-content`                        | Validate content structure and config files   |
-
-### Code Skills
-
-| Command           | Description                              |
-| ----------------- | ---------------------------------------- |
-| `/review-code`    | Review entire codebase against standards |
-| `/review-changes` | Review uncommitted changes only          |
+| Command                           | Description                                |
+| --------------------------------- | ------------------------------------------ |
+| `/write-article <topic>`          | Write new article with deep research       |
+| `/update-article <path> <prompt>` | Update existing article with deep research |
 
 ### Skill Details
 
-See `.claude/skills/` for detailed skill documentation:
+See `.claude/skills/`, `.codex/skills/`, and `llm_docs/skills/` for detailed documentation:
 
-- `write-post/SKILL.md` - Deep research, mermaid diagrams, inline references
-- `review-posts/SKILL.md` - Fact-checking, structure review, quality assessment
-- `sys-design/SKILL.md` - Two approaches (cloud-native vs custom), trade-offs
-- `research-post/SKILL.md` - Content aggregation, source annotation
-- `write-research/SKILL.md` - Convert research to polished articles
-- `review-code/SKILL.md` - TypeScript, CSS, accessibility standards
-- `review-changes/SKILL.md` - Scoped review of git changes
-- `review-all/SKILL.md` - Batch content review
-- `validate-content/SKILL.md` - H1 headings, posts.jsonc, meta.jsonc, home.jsonc validation
+- `write-article/SKILL.md` - Claude wrapper for `llm_docs/skills/write-article.md`
+- `update-article/SKILL.md` - Claude wrapper for `llm_docs/skills/update-article.md`
+- Codex wrappers live in `.codex/skills/` with the same skill names
+
+### Guidelines
+
+- Content work: `llm_docs/guidelines-content/`
+- Code changes: `llm_docs/guidelines-code/` (only when changing site functionality)
 
 ## Tech Stack
 
@@ -85,16 +72,22 @@ These tools don't have dedicated llms.txt files yet. Use their standard document
 ```
 src/
 ├── content.config.ts    # Content collections configuration
-├── content/             # Markdown content (writing, deep-dives, work, uses)
 ├── pages/               # Astro pages and routes
 ├── layout/              # Layout components
 ├── components/          # Reusable UI components
 ├── styles/              # Global CSS (Tailwind)
 └── utils/               # Utility functions
 
+content/
+├── articles/            # Category/Topic/Article hierarchy
+├── ordering.jsonc       # Global ordering config
+├── home.jsonc           # Homepage config
+├── site.jsonc           # Site metadata
+└── vanity.jsonc         # Redirects
+
 scripts/
 ├── validation/          # Build validation scripts
-└── setup.ts             # Project setup script
+└── copy-katex-assets.ts # Copy KaTeX assets into public
 
 public/                  # Static assets (fonts, favicons)
 ```
@@ -119,7 +112,7 @@ npm run preview      # Preview built site locally
 
 # Validation
 npm run validate:build    # Validate built HTML files
-npm run validate:content  # Validate content structure and config files
+npm run validate:content  # Validate content structure, links, and config files
 npm run validate:local    # Validate local dev server (localhost:4321)
 npm run validate:prod     # Validate production site (sujeet.pro)
 
@@ -227,14 +220,15 @@ Optional:
 
 ## Common Tasks
 
-### Adding a New Blog Post
+### Adding a New Article
 
-Use `/write-post <topic>` or manually:
+Use `/write-article <topic>` or manually:
 
-1. Create file: `content/articles/[category]/[topic]/YYYY-MM-DD-slug.md`
-2. Add frontmatter (`lastReviewedOn`, `tags`)
-3. Title from H1, description from paragraphs before ToC
-4. Build and validate: `npm run build && npm run validate:build`
+1. Create folder: `content/articles/<category>/<topic>/<article>/README.md`
+2. Add H1 title and description paragraph(s) (no frontmatter required)
+3. Add overview diagram, TLDR, main sections, conclusion, references
+4. Update `content/ordering.jsonc`
+5. Build and validate: `npm run build && npm run validate:build`
 
 ### Updating Dependencies
 

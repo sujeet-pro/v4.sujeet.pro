@@ -24,7 +24,13 @@ const crumbs = [{ name: category.name, href: category.href }]
 const { Content } = topicIndex
 ---
 
-<Layout title={topicIndex.title} description={topicIndex.description} {crumbs} pageType="default">
+<Layout
+  title={topicIndex.title}
+  description={topicIndex.description}
+  {crumbs}
+  pageType="default"
+  noIndex={topicIndex.isDraft}
+>
   <!-- Render the topic's markdown content -->
   <article class="prose">
     <Content />

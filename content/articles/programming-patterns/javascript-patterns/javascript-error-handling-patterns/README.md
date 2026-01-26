@@ -308,8 +308,6 @@ const result = parseNumber("10")
 
 The popularity of the Result pattern is evidenced by the existence of several other high-quality libraries:
 
-- [oxide.ts](https://github.com/andogq/oxide): A lightweight, zero-dependency library that provides `Result` and `Option` types directly inspired by their counterparts in the Rust programming language.
-
 - [ts-results](https://github.com/vultix/ts-results): Another popular and simple library providing `Ok` and `Err` types. It focuses on being a minimal, unopinionated, and type-safe implementation of the pattern.
 
 The existence of this diverse ecosystem demonstrates a clear demand among expert developers for more explicit and robust error-handling tools than what the base language currently provides.
@@ -555,7 +553,6 @@ As we look toward the future, the convergence of functional programming principl
 - [neverthrow](https://github.com/supermacro/neverthrow) - Type-safe Result and Option types for TypeScript
 - [eslint-plugin-neverthrow](https://github.com/mdbetancourt/eslint-plugin-neverthrow) - ESLint plugin enforcing Result consumption
 - [fp-ts](https://gcanti.github.io/fp-ts/) - Typed functional programming library for TypeScript
-- [oxide.ts](https://github.com/andogq/oxide) - Rust-inspired Result and Option types for TypeScript
 - [ts-results](https://github.com/vultix/ts-results) - Minimal Result type implementation for TypeScript
 - [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/) - Scott Wlaschin's functional error handling patterns
 - [Error Handling in Go](https://go.dev/blog/error-handling-and-go) - Go's explicit error handling philosophy

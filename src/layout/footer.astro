@@ -1,6 +1,7 @@
 ---
 import { getAllCategories } from "@/utils/content"
 import { getCopyright, getFooterLinks, getSocialLinks } from "@/utils/site.utils"
+import { getVanityUrlMap } from "@/utils/content-vanity.utils"
 import Link from "@/components/link.astro"
 
 // Get all categories
@@ -10,6 +11,7 @@ const categories = await getAllCategories()
 const footerLinks = await getFooterLinks()
 const social = await getSocialLinks()
 const copyright = await getCopyright()
+const vanity = await getVanityUrlMap()
 
 // Calculate copyright year display
 const currentYear = new Date().getFullYear()
@@ -33,11 +35,15 @@ const yearDisplay = copyright.startYear === currentYear ? `${currentYear}` : `${
     <div class="site-footer-bar">
       <div class="site-footer-links">
         {
-          footerLinks.map((link) => (
-            <Link href={link.path} class="nav-link">
-              {link.label}
-            </Link>
-          ))
+          footerLinks.map((link) => {
+            const vanityKey = link.path.replace(/^\/|\/$/g, "")
+            const isVanity = vanity.has(vanityKey)
+            return (
+              <Link href={link.path} class="nav-link" isVanity={isVanity}>
+                {link.label}
+              </Link>
+            )
+          })
         }
       </div>
       <div class="site-footer-social">

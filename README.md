@@ -6,6 +6,9 @@ Technical blog for experienced software professionals. Built with Astro, deploye
 
 - [Project Implementation](./docs/project-implementation.md) - Architecture, content collections, search, and deployment
 - [Markdown Features](./docs/markdown-features.md) - Complete markdown reference including code blocks, math, and diagrams
+- LLM Guidelines:
+  - `llm_docs/guidelines-content/` (content writing, research, markdown, persona)
+  - `llm_docs/guidelines-code/` (codebase changes)
 
 ## Quick Start
 
@@ -16,58 +19,71 @@ npm run build        # Production build
 npm run preview      # Preview production build locally
 ```
 
-## Content Structure
+## Content Structure (Current)
 
 ```
 content/
-├── writing/         # Main technical articles
-├── deep-dives/      # Educational content (with category/subcategory)
-├── work/            # Design docs, architecture, case studies
-├── uses/            # Tools, setup, productivity
-├── drafts/          # Draft workflow for article generation
-├── tags.jsonc       # Tag definitions
-├── categories.jsonc # Deep-dive categories
-└── series.jsonc     # Content series
+├── articles/
+│   ├── <category>/
+│   │   ├── README.md
+│   │   └── <topic>/
+│   │       ├── README.md
+│   │       └── <article>/
+│   │           └── README.md
+├── ordering.jsonc   # Global ordering config
+├── home.jsonc       # Homepage config
+├── site.jsonc       # Site metadata
+└── vanity.jsonc     # Redirects
 ```
 
 ## Writing Content
 
-### File Naming
+### Article Location
 
 ```
-YYYY-MM-DD-slug-name.md
-2024-03-15-event-loop.md
+content/articles/<category>/<topic>/<article>/README.md
 ```
 
 ### Document Structure
 
-```markdown
----
-lastReviewedOn: 2024-01-15
-tags:
-  - js
-  - design-patterns
----
-
+````markdown
 # Article Title
 
 Description paragraph(s) - becomes meta description.
 
-## Table of Contents
+<figure>
+
+```mermaid
+flowchart LR
+    A[Start] --> B[End]
+```
+````
+
+<figcaption>Short caption</figcaption>
+</figure>
+
+## TLDR
 
 ## Section One
 
-...
-```
+## Conclusion
+
+## References
+
+````
 
 ### Auto-Extracted Fields
 
-| Field         | Source                                        |
-| ------------- | --------------------------------------------- |
-| `title`       | First H1 heading                              |
-| `description` | Paragraphs between H1 and "Table of Contents" |
-| `publishedOn` | Filename date (YYYY-MM-DD)                    |
-| `minutesRead` | Calculated from content                       |
+| Field         | Source                             |
+| ------------- | ---------------------------------- |
+| `title`       | First H1 heading                   |
+| `description` | Paragraphs between H1 and first H2 |
+| `minutesRead` | Calculated from content            |
+| `isDraft`     | H1 starts with `Draft:`            |
+| `pageSlug`    | Derived from file path             |
+| `category`    | Derived from folder path           |
+| `topic`       | Derived from folder path           |
+| `postId`      | Article folder name                |
 
 ### Draft Posts
 
@@ -75,34 +91,22 @@ Prefix title with "Draft:" to mark as draft:
 
 ```markdown
 # Draft: Work in Progress
-```
+````
 
-### Featured Posts
+### Ordering (Required)
 
-Add `featuredRank` to frontmatter (lower = higher priority):
+Add new categories, topics, and articles to `content/ordering.jsonc`:
 
-```yaml
----
-featuredRank: 1
----
-```
+- `categoryOrder`, `topicsOrder`, `articlesOrder`
+- `categoryVsTopics`, `topicVsArticlesOrder`
 
 ## Content Collections
 
-| Collection | Path                  | Special Fields                                          |
-| ---------- | --------------------- | ------------------------------------------------------- |
-| writing    | `content/writing/`    | `featuredRank` (optional)                               |
-| deep-dives | `content/deep-dives/` | `subcategory` (required)                                |
-| work       | `content/work/`       | `type` (optional: design-doc, architecture, case-study) |
-| uses       | `content/uses/`       | -                                                       |
-
-### Deep Dives Subcategories
-
-```yaml
-subcategory: system-design/foundations
-subcategory: leadership/team-building
-subcategory: dsa/algorithms
-```
+| Collection | Path                                                      | Notes            |
+| ---------- | --------------------------------------------------------- | ---------------- |
+| category   | `content/articles/<category>/README.md`                   | H1 + description |
+| topic      | `content/articles/<category>/<topic>/README.md`           | H1 + description |
+| article    | `content/articles/<category>/<topic>/<article>/README.md` | Full article     |
 
 ## Markdown Features
 
@@ -124,7 +128,7 @@ function main() {
 **Key features:**
 
 - `title="filename"` - Add file context
-- `collapse={1-5}` - Collapse boilerplate lines
+- `collapse={1-5}` - Collapse boilerplate lines (show only key lines)
 - `{2-4}` - Highlight lines
 - `+` / `-` - Diff syntax
 - Line numbers shown by default (except bash/txt)
@@ -155,36 +159,25 @@ Block: $$\int_0^1 x^2 dx$$
 
 ---
 
-## Using Claude Code
+## Using Claude Code and Codex
 
-This repo is configured for Claude Code with specialized skills for content creation and code review.
+This repo is configured for Claude and Codex with specialized skills for content creation.
 
-### Claude Skills
+### Skills
 
-#### Content Skills
+#### Content Skills (Shared)
 
-| Command                                    | Description                                   |
-| ------------------------------------------ | --------------------------------------------- |
-| `/write-post <topic>`                      | Write new blog post with deep research        |
-| `/review-posts <path/topic>`               | Review and improve existing post              |
-| `/sys-design <topic>`                      | Write system design solution document         |
-| `/research-post <topic>`                   | Generate research material for future article |
-| `/write-research <type> <category> <path>` | Convert research into blog post               |
-| `/review-all`                              | Review all posts one by one                   |
-
-#### Code Skills
-
-| Command           | Description                              |
-| ----------------- | ---------------------------------------- |
-| `/review-code`    | Review entire codebase against standards |
-| `/review-changes` | Review uncommitted changes only          |
+| Command                           | Description                                |
+| --------------------------------- | ------------------------------------------ |
+| `/write-article <topic>`          | Write new article with deep research       |
+| `/update-article <path> <prompt>` | Update existing article with deep research |
 
 ### Example Workflows
 
-#### Write a New Post
+#### Write a New Article
 
 ```
-/write-post Node.js event loop internals - covering phases and common pitfalls
+/write-article Node.js event loop internals - covering phases and common pitfalls
 ```
 
 Claude will:
@@ -194,36 +187,17 @@ Claude will:
 3. Write content with mermaid diagrams and inline references
 4. Apply quality checks and save to production location
 
-#### Review an Existing Post
+#### Update an Existing Article
 
 ```
-/review-posts content/posts/web/2024-01-15-caching.md
-```
-
-Claude will:
-
-1. Analyze structure and content
-2. Fact-check claims via web research
-3. Check code blocks for collapse usage
-4. Generate detailed report with recommendations
-
-#### Research Before Writing
-
-```
-/research-post WebSocket scaling patterns
-```
-
-Creates research material in `content/in-research/`. Later convert to article:
-
-```
-/write-research posts web content/in-research/2024-01-20-websockets/
+/update-article content/articles/web-foundations/networking-protocols/http1-1-to-http2-evolution/README.md add a section on HTTP/3 0-RTT risk trade-offs
 ```
 
 ### Key Guidelines
 
-1. **Code blocks**: Always collapse imports/boilerplate with `collapse={lines}`
-2. **TypeScript**: Strictest mode, use `import type` for types
-3. **CSS**: Minimalistic - prefer Tailwind utilities
+1. **Content**: Use `llm_docs/guidelines-content/` for all article work
+2. **Code**: Use `llm_docs/guidelines-code/` only when changing site functionality
+3. **Code blocks**: Collapse non-essential lines with `collapse={...}`
 4. **Audience**: Senior/staff/principal engineers
 5. **Conciseness**: No padding, no filler, every paragraph earns its place
 
@@ -231,8 +205,11 @@ Creates research material in `content/in-research/`. Later convert to article:
 
 - `.claude/rules.md` - Project rules and skill reference
 - `.claude/settings.local.json` - Permissions
-- `.claude/skills/` - Detailed skill documentation
-- `llm_docs/` - Content guidelines, code standards, markdown features
+- `.claude/skills/` - Claude skill wrappers
+- `.codex/skills/` - Codex skill wrappers
+- `llm_docs/guidelines-content/` - Content guidelines
+- `llm_docs/guidelines-code/` - Coding guidelines
+- `llm_docs/skills/` - Agent-agnostic skills
 
 ---
 

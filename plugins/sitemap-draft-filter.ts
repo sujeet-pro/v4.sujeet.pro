@@ -10,7 +10,7 @@
  *
  * ## Excluded Pages
  * - All pages with H1 starting with "Draft:"
- * - Static paths like /drafts, /posts/drafts
+ * - Static paths like /articles/drafts, /drafts, /posts/drafts
  * - All /in-research/* pages (work in progress content)
  * - All vanity URLs (redirect pages that should not be indexed)
  */
@@ -19,15 +19,19 @@ import { glob } from "glob"
 import { parse as parseJsonc } from "jsonc-parser"
 import fs from "node:fs"
 import path from "node:path"
+import { getSlug } from "./utils/slug.utils"
 
-/** Content types to scan */
-const CONTENT_TYPES = ["writing", "deep-dives", "work", "uses"] as const
+/** Articles content directory */
+const ARTICLES_DIR = path.resolve("./content/articles")
+
+/** Glob for README.md files (category, topic, and article pages) */
+const ARTICLE_GLOB = path.join(ARTICLES_DIR, "**/README.md")
 
 /** Path to vanity URLs file */
 const VANITY_FILE_PATH = "./content/vanity.jsonc"
 
 /** Static pages to always exclude from sitemap */
-const EXCLUDED_PATHS = ["/drafts", "/posts/drafts"]
+const EXCLUDED_PATHS = ["/articles/drafts", "/drafts", "/posts/drafts"]
 
 /** Path prefixes to exclude (all pages under these paths) */
 const EXCLUDED_PREFIXES = ["/in-research"]
@@ -61,88 +65,75 @@ function isDraftFile(filePath: string): boolean {
   return h1Match[1].trim().toLowerCase().startsWith("draft:")
 }
 
-/**
- * Extract slug from file path.
- * Converts: content/writing/javascript/2023-05-01-pub-sub.md
- * To: javascript/pub-sub
- */
-function getSlugFromPath(filePath: string): string {
-  const contentDir = path.resolve("./content")
-  const relativePath = path.relative(contentDir, filePath)
-  const parts = relativePath.split(path.sep)
+function normalizePath(value: string): string {
+  if (!value) return "/"
+  const trimmed = value.trim().replace(/\/$/, "")
+  if (!trimmed) return "/"
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`
+}
 
-  // Remove content type (first part) and get remaining path
-  parts.shift() // Remove content type (writing, deep-dives, etc.)
+function normalizePagePath(page: string, siteUrl: string): string {
+  if (page.startsWith(siteUrl)) {
+    const pathPart = page.slice(siteUrl.length)
+    return normalizePath(pathPart || "/")
+  }
 
-  // Process the path parts
-  const slugParts: string[] = []
-  for (const part of parts) {
-    // Remove file extension
-    const cleanPart = part.replace(/\.md$/, "")
-
-    // Skip 'index' filenames
-    if (cleanPart.toLowerCase() === "index") continue
-
-    // Extract slug from date-prefixed filename (e.g., 2023-05-01-pub-sub -> pub-sub)
-    const dateSlugMatch = cleanPart.match(/^\d{4}-\d{2}-\d{2}-(.+)$/)
-    if (dateSlugMatch && dateSlugMatch[1]) {
-      slugParts.push(dateSlugMatch[1])
-    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(cleanPart)) {
-      // Not a date-only part
-      slugParts.push(cleanPart)
+  if (page.startsWith("http://") || page.startsWith("https://")) {
+    try {
+      return normalizePath(new URL(page).pathname)
+    } catch {
+      return normalizePath(page)
     }
   }
 
-  return slugParts.join("/")
+  return normalizePath(page)
 }
 
-/**
- * Get content type from file path.
- */
-function getContentType(filePath: string): string | undefined {
-  const contentDir = path.resolve("./content")
-  const relativePath = path.relative(contentDir, filePath)
-  const parts = relativePath.split(path.sep)
-  const contentType = parts[0]
-  if (CONTENT_TYPES.includes(contentType as (typeof CONTENT_TYPES)[number])) {
-    return contentType
-  }
-  return undefined
+interface SitemapExclusions {
+  excludedUrls: Set<string>
+  excludedPaths: Set<string>
+}
+
+function addExcludedPath(exclusions: SitemapExclusions, siteUrl: string, value: string): void {
+  const normalizedPath = normalizePath(value)
+  exclusions.excludedPaths.add(normalizedPath)
+  exclusions.excludedUrls.add(`${siteUrl}${normalizedPath}`)
 }
 
 /**
  * Get all URLs that should be excluded from sitemap.
  */
-export async function getExcludedUrls(siteUrl: string): Promise<Set<string>> {
-  const excludedUrls = new Set<string>()
+async function getSitemapExclusions(siteUrl: string): Promise<SitemapExclusions> {
+  const exclusions: SitemapExclusions = {
+    excludedUrls: new Set<string>(),
+    excludedPaths: new Set<string>(),
+  }
 
   // Add static exclusions
   for (const excludedPath of EXCLUDED_PATHS) {
-    excludedUrls.add(`${siteUrl}${excludedPath}`)
+    addExcludedPath(exclusions, siteUrl, excludedPath)
   }
 
   // Add vanity URL exclusions (redirect pages should not be in sitemap)
   for (const vanityPath of getVanityPaths()) {
-    excludedUrls.add(`${siteUrl}${vanityPath}`)
+    addExcludedPath(exclusions, siteUrl, vanityPath)
   }
 
   // Scan content files for drafts
-  const contentDir = path.resolve("./content")
-  for (const contentType of CONTENT_TYPES) {
-    const pattern = path.join(contentDir, contentType, "**/*.md")
-    const files = await glob(pattern)
+  const files = await glob(ARTICLE_GLOB)
+  for (const file of files) {
+    if (!isDraftFile(file)) continue
 
-    for (const file of files) {
-      if (isDraftFile(file)) {
-        const slug = getSlugFromPath(file)
-        const type = getContentType(file)
-        if (type && slug) {
-          excludedUrls.add(`${siteUrl}/${type}/${slug}`)
-        }
-      }
-    }
+    const slug = getSlug(file)
+    const urlPath = slug ? `/articles/${slug}` : "/articles"
+    addExcludedPath(exclusions, siteUrl, urlPath)
   }
 
+  return exclusions
+}
+
+export async function getExcludedUrls(siteUrl: string): Promise<Set<string>> {
+  const { excludedUrls } = await getSitemapExclusions(siteUrl)
   return excludedUrls
 }
 
@@ -150,18 +141,19 @@ export async function getExcludedUrls(siteUrl: string): Promise<Set<string>> {
  * Create a sitemap filter function that excludes draft URLs and excluded prefixes.
  */
 export async function createSitemapFilter(siteUrl: string): Promise<(page: string) => boolean> {
-  const excludedUrls = await getExcludedUrls(siteUrl)
+  const { excludedUrls, excludedPaths } = await getSitemapExclusions(siteUrl)
 
   return (page: string) => {
     const normalizedPage = page.replace(/\/$/, "")
+    const pagePath = normalizePagePath(normalizedPage, siteUrl)
 
     // Check exact URL matches
-    if (excludedUrls.has(normalizedPage)) return false
+    if (excludedUrls.has(normalizedPage) || excludedPaths.has(pagePath)) return false
 
     // Check prefix matches (e.g., /in-research/*)
-    const pagePath = normalizedPage.replace(siteUrl, "")
     for (const prefix of EXCLUDED_PREFIXES) {
-      if (pagePath === prefix || pagePath.startsWith(`${prefix}/`)) {
+      const normalizedPrefix = normalizePath(prefix)
+      if (pagePath === normalizedPrefix || pagePath.startsWith(`${normalizedPrefix}/`)) {
         return false
       }
     }

@@ -24,7 +24,13 @@ const crumbs = null
 const { Content } = categoryIndex
 ---
 
-<Layout title={categoryIndex.title} description={categoryIndex.description} {crumbs} pageType="default">
+<Layout
+  title={categoryIndex.title}
+  description={categoryIndex.description}
+  {crumbs}
+  pageType="default"
+  noIndex={categoryIndex.isDraft}
+>
   <!-- Render the category's markdown content -->
   <article class="prose mb-12">
     <Content />

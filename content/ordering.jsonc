@@ -62,6 +62,8 @@
     "crp-rasterization",
     "crp-compositing",
     "js-event-loop",
+    "browser-event-loop",
+    "nodejs-event-loop",
     "nodejs-runtime-architecture",
     "libuv-event-loop-internals",
     "v8-engine-architecture",

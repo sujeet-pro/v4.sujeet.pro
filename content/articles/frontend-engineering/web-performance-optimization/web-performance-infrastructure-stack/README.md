@@ -51,7 +51,7 @@ flowchart TB
 
 ### Compression
 
-- **Static Content**: Brotli level 11 pre-compression ([14-17% smaller](https://www.akamai.com/blog/performance/understanding-brotlis-potential) than Gzip for JS/CSS)
+- **Static Content**: Brotli level 11 pre-compression (14-17% smaller than Gzip for JS/CSS)
 - **Dynamic Content**: Brotli level 4-5 or Zstandard for speed/ratio balance
 - **Edge Compression**: Offload compression to CDN to free origin CPU
 

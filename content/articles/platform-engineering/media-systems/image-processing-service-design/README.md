@@ -2691,7 +2691,6 @@ This architecture provides a production-ready foundation for building a Cloudina
 - [AWS S3 SDK v3](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/) - AWS SDK for JavaScript
 - [Google Cloud Storage Node.js](https://cloud.google.com/nodejs/docs/reference/storage/latest) - GCS client library
 - [Azure Blob Storage SDK](https://learn.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-nodejs) - Azure Storage client
-- [MinIO JavaScript Client](https://min.io/docs/minio/linux/developers/javascript/minio-javascript.html) - S3-compatible storage
 
 ### Caching & Performance
 

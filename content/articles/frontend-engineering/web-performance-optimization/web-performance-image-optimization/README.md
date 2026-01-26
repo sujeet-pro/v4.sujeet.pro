@@ -777,7 +777,7 @@ class SmartImageOptimizer {
 
 - [Responsive Images - MDN](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) - Comprehensive guide to srcset and sizes
 - [Image Optimization - web.dev](https://web.dev/articles/fast#optimize_your_images) - Google's image optimization guidance
-- [AVIF Format](https://web.dev/articles/avif) - AVIF format benefits and implementation
+- [AVIF Format](https://web.dev/learn/images/avif) - AVIF format benefits and implementation
 - [WebP Format](https://developers.google.com/speed/webp) - WebP compression and features
 - [AVIF Specification](https://aomediacodec.github.io/av1-avif/) - Alliance for Open Media
 - [JPEG XL Reference (libjxl)](https://github.com/libjxl/libjxl) - Official codec with benchmarks

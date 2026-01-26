@@ -896,7 +896,7 @@ V8 is more than just a JavaScript engine; it is a living embodiment of decades o
 
 - [Understanding V8's Bytecode](https://medium.com/dailyjs/understanding-v8s-bytecode-317d46c94775)
 - [V8 Behind the Scenes](https://benediktmeurer.de/2017/03/01/v8-behind-the-scenes-february-edition/)
-- [An introduction to speculative optimization in V8](https://v8.dev/blog/speculative-optimization)
+- [An Introduction to Speculative Optimization in V8](https://benediktmeurer.de/2017/12/13/an-introduction-to-speculative-optimization-in-v8/)
 - [The Sea of Nodes](https://darksi.de/d.sea-of-nodes/)
 - [Hidden Classes](https://v8.dev/docs/hidden-classes)
 - [TurboFan](https://v8.dev/docs/turbofan)

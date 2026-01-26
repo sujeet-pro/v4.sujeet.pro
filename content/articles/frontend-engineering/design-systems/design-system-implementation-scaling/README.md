@@ -1100,12 +1100,11 @@ The journey from business case to enterprise-wide adoption is challenging, but w
 
 ### Microfrontend & Architecture Patterns
 
-- [Micro-Frontends Architecture](../frontend-architecture-patterns/micro-frontends-architecture/README.md) - Comprehensive guide to microfrontend composition strategies, Module Federation, and cross-cutting concerns
+- [Micro-Frontends Architecture](../../frontend-architecture-patterns/micro-frontends-architecture/README.md) - Comprehensive guide to microfrontend composition strategies, Module Federation, and cross-cutting concerns
 
 ### Technical Enablement & Codemods
 
 - [jscodeshift](https://github.com/facebook/jscodeshift) - Facebook's toolkit for running codemods over JavaScript/TypeScript codebases
-- [Writing Codemods](https://codemod.com/blog/writing-codemods) - Practical guide to authoring codemod transforms
 - [AST Explorer](https://astexplorer.net/) - Interactive tool for exploring JavaScript ASTs, invaluable for codemod development
 
 ### Industry Trends

@@ -11,6 +11,10 @@
   { "id": "medium", "target": "https://medium.com/sujeet-pro" },
   { "id": "stackoverflow", "target": "https://stackoverflow.com/users/5570700/sujeet-jaiswal" },
   {
+    "id": "cv",
+    "target": "https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing",
+  },
+  {
     "id": "cv-doc",
     "target": "https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing",
   },
