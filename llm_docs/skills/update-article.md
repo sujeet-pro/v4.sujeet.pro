@@ -30,33 +30,40 @@ Update an **existing** article based on a prompt. This skill is agent-agnostic a
    - Focus only on the requested area.
    - Do not expand into unrelated topics.
 
-3. **Breadth research (topic survey)**
-   - Identify canonical sections, edge cases, and expected coverage.
-   - Compare with the current outline to find missing or outdated areas.
+3. **Rigorous Research & Fact-Checking**
+   - **Hierarchy of Sources (Strict Priority):**
+     1. **Specifications:** (e.g., HTML/ECMAScript specs, RFCs). *Primary source of truth.*
+     2. **Official Documentation & Engineering Blogs:** (e.g., v8.dev, libuv docs, React docs, tool-specific docs).
+     3. **Authoritative Industry Sources:** (e.g., web.dev, MDN).
+     4. **Prominent Domain Experts:** (e.g., recognized engineering leaders' blogs).
+   - **Verification:** Fact-check all technical details, version specifics, and edge cases against Priority 1 & 2 sources.
 
-4. **Section-level deep research**
-   - For each affected section, gather primary sources and spec clauses.
-   - Verify limits, defaults, version-specific behaviors, and edge cases.
+4. **Target Audience Alignment (Senior/Staff/Principal)**
+   - **Assume Expertise:** The reader is highly technical. Skip beginner explanations.
+   - **No Fluff:** Eliminate filler words ("basically", "simply", "in order to"). Be direct and dense.
+   - **Handling Basics:** If a basic concept *must* be defined, move it to the **Appendix** (under "Terminology" or "Prerequisites"). Keep the main body focused on advanced internals, patterns, and system design.
 
 5. **Plan the edits**
-   - Decide what to add, remove, or restructure to fit the required article layout.
-   - Ensure Appendix requirements are met (Prerequisites, Summary, References).
+   - Decide what to add, remove, or restructure.
+   - Ensure the narrative flows logically for an advanced reader.
 
 6. **Apply updates**
-   - Correct inaccuracies and drift.
-   - Add or refine examples and edge cases.
-   - Insert spec quotes where they clarify nuance.
-   - Keep code blocks collapsed and minimal.
-   - Expand abbreviations on first use (excluding headings).
+   - Correct inaccuracies and drift using the research hierarchy.
+   - Add/refine examples, specifically highlighting edge cases and limitations.
+   - Insert spec quotes where they add necessary precision.
+   - **Code Blocks:** Keep them collapsed (`collapse={...}`) and minimal. Focus on the *diff* or the *critical logic*.
 
 7. **Quality review**
-   - Re-check all non-negotiable rules.
-   - Ensure citations and references are complete and specs-first.
-   - Confirm the Appendix is the final H2 section.
+   - **Conciseness Check:** Can this be said with fewer words?
+   - **Depth Check:** Is this providing insight or just restating docs?
+   - **Ref Check:** Are specs cited first?
+   - Confirm Appendix structure (Prerequisites, Summary, References, Terminology).
 
 ## Output Checklist
 
 - Update is confined to the requested scope
+- Content is concise, dense, and fluff-free (Senior+ audience)
+- Basic concepts moved to Appendix
 - Article structure meets current guidelines
 - Appendix includes Prerequisites, Summary, and References (Terminology when needed)
 - References updated (specs first)
