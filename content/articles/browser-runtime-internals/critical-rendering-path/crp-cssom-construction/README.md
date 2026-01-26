@@ -13,13 +13,15 @@ The **CSS Object Model (CSSOM)** is the engine's internal representation of all 
 ## TLDR
 
 ### Core Mechanics
-*   **Render-Blocking**: Browsers halt the rendering pipeline until the CSSOM is fully constructed for all non-async stylesheets.
-*   **JS-Blocking**: Synchronous JavaScript (JS) execution is delayed if there is a pending stylesheet, as the engine cannot guarantee correct `getComputedStyle()` results.
-*   **Cascade Resolution**: The CSSOM must be complete before style recalculation because later rules can override earlier ones via the cascade and specificity.
+
+- **Render-Blocking**: Browsers halt the rendering pipeline until the CSSOM is fully constructed for all non-async stylesheets.
+- **JS-Blocking**: Synchronous JavaScript (JS) execution is delayed if there is a pending stylesheet, as the engine cannot guarantee correct `getComputedStyle()` results.
+- **Cascade Resolution**: The CSSOM must be complete before style recalculation because later rules can override earlier ones via the cascade and specificity.
 
 ### Key Constraints
-*   **Not Incremental**: While the DOM can be rendered partially, the CSSOM cannot be safely applied until the "End of Stylesheet" is reached.
-*   **Tree Structure**: It represents the hierarchy of rules (selectors + declarations), which is distinct from the DOM tree.
+
+- **Not Incremental**: While the DOM can be rendered partially, the CSSOM cannot be safely applied until the "End of Stylesheet" is reached.
+- **Tree Structure**: It represents the hierarchy of rules (selectors + declarations), which is distinct from the DOM tree.
 
 ---
 
@@ -71,7 +73,7 @@ If the browser applied styles incrementally, the user would see a paragraph flas
 
 ### Why Complete CSSOM is Required
 
-1.  **The Cascade**: CSS stands for *Cascading* Style Sheets. The final value of a property depends on all rules that apply to an element.
+1.  **The Cascade**: CSS stands for _Cascading_ Style Sheets. The final value of a property depends on all rules that apply to an element.
 2.  **Specificity Resolution**: A more specific selector later in the file (or in a later file) can override a more general one.
 3.  **Layout Stability**: Many CSS properties (like `display`, `float`, or `position`) fundamentally change the geometry of the page. Rendering with partial CSS would cause massive, jarring layout shifts.
 
@@ -97,8 +99,12 @@ To bypass the render-blocking nature of external stylesheets for the initial vie
 <head>
   <style>
     /* Critical CSS for above-the-fold content */
-    .header { height: 60px; }
-    .hero { background: #f4f4f4; }
+    .header {
+      height: 60px;
+    }
+    .hero {
+      background: #f4f4f4;
+    }
   </style>
   <!-- Load the rest of the CSS non-blockingly -->
   <link rel="stylesheet" href="full.css" media="print" onload="this.media='all'" />
@@ -131,25 +137,29 @@ The CSSOM construction is a mandatory gate in the Critical Rendering Path. While
 ## Appendix
 
 ### Prerequisites
-*   Understanding of the **Critical Rendering Path (CRP)**.
-*   Familiarity with the **DOM (Document Object Model)** construction.
-*   Basic knowledge of **CSS Specificity and the Cascade**.
+
+- Understanding of the **Critical Rendering Path (CRP)**.
+- Familiarity with the **DOM (Document Object Model)** construction.
+- Basic knowledge of **CSS Specificity and the Cascade**.
 
 ### Terminology
-*   **CSSOM**: CSS Object Model, the tree of rules and styles.
-*   **DOM**: Document Object Model, the tree representation of the HTML structure.
-*   **FOUC**: Flash of Unstyled Content, a visual glitch where content appears without styles.
-*   **Render-Blocking**: A resource that prevents the browser from painting pixels to the screen.
-*   **Cascade**: The algorithm that determines which CSS rules apply when multiple rules match an element.
+
+- **CSSOM**: CSS Object Model, the tree of rules and styles.
+- **DOM**: Document Object Model, the tree representation of the HTML structure.
+- **FOUC**: Flash of Unstyled Content, a visual glitch where content appears without styles.
+- **Render-Blocking**: A resource that prevents the browser from painting pixels to the screen.
+- **Cascade**: The algorithm that determines which CSS rules apply when multiple rules match an element.
 
 ### Summary
-*   CSS is **render-blocking** by design to ensure visual consistency and avoid FOUC.
-*   CSSOM construction must be **complete** before the browser can proceed to style calculation and layout.
-*   The browser **blocks JS execution** if there are pending stylesheets to ensure `getComputedStyle()` returns correct values.
-*   Optimization techniques like **Critical CSS** and **Media Queries** can reduce the time spent in the CSSOM construction phase.
+
+- CSS is **render-blocking** by design to ensure visual consistency and avoid FOUC.
+- CSSOM construction must be **complete** before the browser can proceed to style calculation and layout.
+- The browser **blocks JS execution** if there are pending stylesheets to ensure `getComputedStyle()` returns correct values.
+- Optimization techniques like **Critical CSS** and **Media Queries** can reduce the time spent in the CSSOM construction phase.
 
 ### References
-*   [W3C: CSS Object Model (CSSOM) Specification](https://www.w3.org/TR/cssom-1/)
-*   [W3C: CSS Cascading and Inheritance Level 4](https://www.w3.org/TR/css-cascade-4/)
-*   [web.dev: Constructing the Object Model](https://web.dev/articles/critical-rendering-path/constructing-the-object-model)
-*   [MDN: Critical Rendering Path](https://developer.mozilla.org/en-US/docs/Web/Performance/Critical_rendering_path)
+
+- [W3C: CSS Object Model (CSSOM) Specification](https://www.w3.org/TR/cssom-1/)
+- [W3C: CSS Cascading and Inheritance Level 4](https://www.w3.org/TR/css-cascade-4/)
+- [web.dev: Constructing the Object Model](https://web.dev/articles/critical-rendering-path/constructing-the-object-model)
+- [MDN: Critical Rendering Path](https://developer.mozilla.org/en-US/docs/Web/Performance/Critical_rendering_path)
