@@ -1,24 +1,58 @@
 # Critical Rendering Path: Compositing
 
-How the compositor thread assembles rasterized layers and the GPU displays the final pixels on screen.
+How the compositor thread assembles rasterized layers and the GPU (Graphics Processing Unit) displays the final pixels on screen.
+
+<figure>
+
+```mermaid
+sequenceDiagram
+    participant MT as Main Thread
+    participant CT as Compositor Thread
+    participant GPU as GPU (Graphics Processing Unit)
+
+    Note over MT: JavaScript / Style / Layout / Paint
+    MT->>CT: Commit (Layer Tree + Property Trees)
+    Note over CT: Tiling / Rasterization
+    CT->>GPU: Draw Quad (Compositor Frame)
+    Note over GPU: Final Display
+```
+
+<figcaption>The compositing pipeline: the main thread commits work to the compositor thread, which then coordinates with the GPU to produce the final frame.</figcaption>
+</figure>
+
+## TLDR
+
+### The Pivot
+
+Compositing is the final stage of the rendering pipeline where the browser combines independent layers of the page to create the final image. This process is handled by a dedicated thread, decoupling visual updates from the main thread's JavaScript execution.
+
+### The Problem
+
+If the browser tried to render everything on a single thread, heavy JavaScript tasks or complex layouts would block all visual updates, including scrolling and animations. This leads to "jank" and a non-responsive user experience.
+
+### The Solution
+
+By splitting the page into layers and using a multi-threaded architecture (Main Thread vs. Compositor Thread), the browser can maintain smooth 60fps or 120fps interactions even when the main thread is fully saturated.
+
+---
 
 ## What is Compositing?
 
 The compositor thread assembles all [rasterized](../crp-rasterization/README.md) tiles and layers into the final image:
 
-- **Compositor frame**: Describes where each tile should appear, with transforms and effects applied
-- **No main thread needed**: This runs on the compositor thread, independent of JavaScript
-- **Visual effects**: Applies `transform`, `opacity`, filters at this stage (very cheap!)
+- **Compositor frame**: Describes where each tile should appear, with transforms and effects applied.
+- **No main thread needed**: This runs on the compositor thread, independent of JavaScript.
+- **Visual effects**: Applies `transform`, `opacity`, and filters at this stage (computationally efficient).
 
 ---
 
 ## What is Draw?
 
-The **Viz process** (in Chromium) executes the compositor frame on the GPU:
+The **Viz (Visuals) service** in Chromium executes the compositor frame on the GPU:
 
-- **Aggregate**: Combines compositor frames from all render processes (tabs, iframes)
-- **Draw**: GPU sends the final image to the display buffer
-- **Screen update**: Monitor displays the pixels
+- **Aggregate**: Combines compositor frames from all render processes (browser UI, tabs, iframes).
+- **Draw**: The GPU sends the final image to the display buffer.
+- **Screen update**: The monitor displays the pixels at its native refresh rate.
 
 ---
 
@@ -28,34 +62,34 @@ The compositor thread exists to solve a fundamental problem: **the main thread c
 
 When JavaScript runs a long task, the main thread can't:
 
-- Respond to scroll events
-- Update animations
-- Process user input
+- Respond to scroll events.
+- Update animations.
+- Process user input.
 
 ### Two-Tree Architecture
 
-Chromium maintains two layer trees:
+Chromium maintains two layer trees to ensure responsiveness:
 
-- **Main Thread Tree**: Authoritative source, updated by JavaScript and style changes
-- **Compositor Thread Tree**: Copy used for rendering, updated asynchronously
+- **Main Thread Tree**: The authoritative source, updated by JavaScript, style changes, and layout.
+- **Compositor Thread Tree**: A copy used for rendering, updated asynchronously during the [Commit](../crp-commit-stage/README.md) stage.
 
-**The Critical Rule**: The main thread can make blocking calls to the compositor thread, but the compositor thread **never** makes blocking calls to the main thread. This prevents deadlocks and ensures the compositor always remains responsive.
+**The Critical Rule**: The main thread can make blocking calls to the compositor thread, but the compositor thread **never** makes blocking calls to the main thread. This prevents deadlocks and ensures the compositor always remains responsive to user input like scrolling.
 
 ### What This Enables
 
-- Smooth scrolling during JavaScript execution
-- 60fps `transform`/`opacity` animations during heavy computation
-- Input responsiveness even with main thread work
+- **Smooth scrolling**: Even during heavy JavaScript execution.
+- **Off-main-thread animations**: 60fps `transform` and `opacity` animations.
+- **Low-latency input**: Quick response to touch or wheel events.
 
 ---
 
 ## Compositor Thread Responsibilities
 
-- **Input routing**: Handle scroll and touch events
-- **Layer compositing**: Assemble graphics layers into final frame
-- **Animations**: Update `transform`/`opacity` without main thread
-- **Scrolling**: Smooth scroll with checkerboard prevention
-- **Tile management**: Prioritize visible tiles for rasterization
+- **Input routing**: Handles scroll and touch events before they reach the main thread.
+- **Layer compositing**: Assembles graphics layers into a final frame.
+- **Animations**: Updates `transform` and `opacity` properties without main thread involvement.
+- **Scrolling**: Implements smooth scrolling with checkerboard prevention.
+- **Tile management**: Prioritizes visible tiles for rasterization based on viewport proximity.
 
 ---
 
@@ -194,23 +228,21 @@ The event loop processes work from three distinct queues, each with different sc
 
 **1. Task Queue (Macrotasks)**
 
-- Contains: `setTimeout`, `setInterval`, DOM events, `fetch` callbacks, `postMessage`
-- Processing: **One task per loop iteration**
-- After each task, the loop checks for microtasks and potentially renders
+- Contains: `setTimeout`, `setInterval`, DOM events, `fetch` callbacks, `postMessage`.
+- Processing: **One task per loop iteration**.
+- After each task, the loop checks for microtasks and potentially renders.
 
 **2. Microtask Queue**
 
-- Contains: Promise `.then()/.catch()/.finally()`, `queueMicrotask()`, `MutationObserver`
-- Processing: **ALL microtasks until queue is empty**
-- Runs after each task, before rendering
-- New microtasks added during processing run in the same cycle
+- Contains: Promise `.then()/.catch()/.finally()`, `queueMicrotask()`, `MutationObserver`.
+- Processing: **ALL microtasks until queue is empty**.
+- Runs after each task, before rendering.
 
 **3. Animation Frame Queue**
 
-- Contains: `requestAnimationFrame` callbacks
-- Processing: **All callbacks queued before this frame** (new ones wait for next frame)
-- Runs only when browser decides to render (~60fps / every ~16ms)
-- Executes just before Style/Layout/Paint
+- Contains: `requestAnimationFrame` (rAF) callbacks.
+- Processing: **All callbacks queued before this frame** (new ones wait for next frame).
+- Runs only when browser decides to render (~60fps / every ~16ms).
 
 ---
 
@@ -218,7 +250,7 @@ The event loop processes work from three distinct queues, each with different sc
 
 ### Yielding to the Render Pipeline
 
-To keep rendering smooth, break long tasks into smaller chunks:
+To keep rendering smooth, break long tasks into smaller chunks using `setTimeout(fn, 0)` or `scheduler.yield()`.
 
 ```javascript
 // ✅ GOOD: Yield to browser between chunks
@@ -235,43 +267,6 @@ async function processLargeArray(items) {
 }
 ```
 
-Using `setTimeout(fn, 0)` schedules a new task, allowing the event loop to:
-
-1. Finish current task
-2. Process any microtasks
-3. Potentially render a frame
-4. Then process the next chunk
-
-### scheduler.yield() (Modern API)
-
-The `scheduler.yield()` API provides a cleaner way to yield:
-
-```javascript
-// ✅ BEST: Modern yielding (where supported)
-async function processLargeArray(items) {
-  for (const item of items) {
-    processItem(item)
-
-    if (needsToYield()) {
-      await scheduler.yield() // Yields but stays high priority
-    }
-  }
-}
-```
-
-Unlike `setTimeout`, `scheduler.yield()` keeps your continuation at the front of the task queue, preventing other lower-priority work from jumping ahead.
-
-**Browser Support**: Chromium 129+, Firefox 142+. Not supported in Safari—use a fallback for cross-browser compatibility:
-
-```javascript
-async function yieldToMain() {
-  if ("scheduler" in globalThis && "yield" in scheduler) {
-    return scheduler.yield()
-  }
-  return new Promise((resolve) => setTimeout(resolve, 0))
-}
-```
-
 ### Use requestAnimationFrame for Visual Updates
 
 ```javascript
@@ -284,17 +279,45 @@ function animate() {
 requestAnimationFrame(animate)
 ```
 
-`requestAnimationFrame` is ideal for animations because:
-
-- Callbacks run right before the browser renders
-- Automatically synced to display refresh rate (~60fps)
-- Pauses when tab is in background (saves battery/CPU)
-- Multiple calls in same frame are batched
+`requestAnimationFrame` is ideal because it automatically syncs with the display refresh rate and pauses when the tab is in the background.
 
 ---
 
-## References
+## Conclusion
 
-- [Chromium: Compositor Thread Architecture](https://www.chromium.org/developers/design-documents/compositor-thread-architecture/)
-- [Chrome Developers: RenderingNG Architecture](https://developer.chrome.com/docs/chromium/renderingng-architecture)
-- [Chromium: How cc Works](https://chromium.googlesource.com/chromium/src/+/master/docs/how_cc_works.md)
+Compositing is the browser's primary defense against main-thread congestion. By delegating visual assembly to a dedicated compositor thread and leveraging GPU acceleration, modern browsers can maintain smooth user experiences even under heavy computational load. Understanding the boundaries between main-thread and compositor-thread work is essential for building high-performance web applications.
+
+---
+
+## Appendix
+
+### Prerequisites
+
+- **Critical Rendering Path Overview**: Understanding the journey from HTML to pixels.
+- **Rasterization**: Knowledge of how layers are turned into bitmap tiles.
+- **Browser Threading**: Basic understanding of the multi-process/multi-thread architecture.
+
+### Terminology
+
+| Term                               | Definition                                                                          |
+| :--------------------------------- | :---------------------------------------------------------------------------------- |
+| **Compositor Thread**              | A background thread responsible for combining rasterized layers into a final image. |
+| **Main Thread**                    | The primary thread where JavaScript, DOM, Style, and Layout are processed.          |
+| **GPU (Graphics Processing Unit)** | Specialized hardware for efficient image processing and display.                    |
+| **Viz (Visuals)**                  | The service in Chromium responsible for display and compositing.                    |
+| **Jank**                           | Visual stuttering caused by frame drops during rendering.                           |
+
+### Summary
+
+- Compositing assembles independent layers into a final frame on a dedicated thread.
+- This architecture enables smooth scrolling and animations even when JavaScript blocks the main thread.
+- Only certain properties (`transform`, `opacity`) can be animated entirely on the compositor thread.
+- Efficient scheduling via `requestAnimationFrame` and task yielding is key to maintaining 60fps.
+
+### References
+
+- **HTML Specification: Event Loops**: [WHATWG](https://html.spec.whatwg.org/multipage/webappapis.html#event-loop)
+  > "To coordinate events, user interaction, scripts, rendering, networking, and so forth, user agents must use event loops..."
+- **CSS Animations Level 1**: [W3C Specification](https://www.w3.org/TR/css-animations-1/)
+- **Chromium: Compositor Thread Architecture**: [Design Document](https://www.chromium.org/developers/design-documents/compositor-thread-architecture/)
+- **Chrome Developers: RenderingNG**: [Architecture Overview](https://developer.chrome.com/docs/chromium/renderingng-architecture)

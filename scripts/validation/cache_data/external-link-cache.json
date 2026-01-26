@@ -211,6 +211,36 @@
       "lastChecked": "2026-01-26T13:35:29.052Z",
       "hint": "fetch-node"
     },
+    "https://chromium.googlesource.com/chromium/src/+/7bcf3f2c321d87d60c2e3e89e9f7b3c8fafe3e1b/third_party/blink/renderer/platform/scheduler/main_thread/main_thread_task_queue.cc": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-01-26T19:22:33.599Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://chromium.googlesource.com/chromium/src/+/HEAD/third_party/blink/renderer/platform/scheduler/common/TaskTypes.md": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-01-26T19:22:33.456Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://chromium.googlesource.com/chromium/src/+/HEAD/third_party/blink/renderer/platform/scheduler/common/task_scheduling_in_blink.md": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-01-26T19:22:33.435Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://chromium.googlesource.com/chromium/src/+/main/components/viz/README.md": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-01-26T19:22:31.596Z",
+      "hint": "fetch-node"
+    },
     "https://chromium.googlesource.com/chromium/src/+/master/docs/how_cc_works.md": {
       "status": 200,
       "ok": true,
@@ -571,6 +601,12 @@
       "lastChecked": "2026-01-26T13:35:59.034Z",
       "hint": "fetch-node"
     },
+    "https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-01-26T17:06:08.509Z",
+      "hint": "fetch-node"
+    },
     "https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame": {
       "status": 200,
       "ok": true,
@@ -742,7 +778,7 @@
     "https://dl.acm.org/doi/10.1145/511399.511340": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-01-26T14:36:12.152Z",
+      "lastChecked": "2026-01-26T19:22:33.918Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -1314,7 +1350,7 @@
     "https://hashnode.com/@sujeetpro": {
       "status": 429,
       "ok": true,
-      "lastChecked": "2026-01-26T14:36:12.246Z",
+      "lastChecked": "2026-01-26T19:22:33.846Z",
       "error": "HTTP 429",
       "hint": "manual",
       "manual": "auto"
@@ -1329,6 +1365,24 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:06.287Z",
+      "hint": "fetch-node"
+    },
+    "https://html.spec.whatwg.org/multipage/imagebitmap-and-animations.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-01-26T17:06:09.549Z",
+      "hint": "fetch-node"
+    },
+    "https://html.spec.whatwg.org/multipage/parsing.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-01-26T19:22:32.526Z",
+      "hint": "fetch-node"
+    },
+    "https://html.spec.whatwg.org/multipage/rendering.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-01-26T16:34:14.043Z",
       "hint": "fetch-node"
     },
     "https://html.spec.whatwg.org/multipage/scripting.html": {
@@ -1496,7 +1550,7 @@
     "https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-01-26T14:36:12.041Z",
+      "lastChecked": "2026-01-26T19:22:33.647Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -1975,6 +2029,14 @@
       "lastChecked": "2026-01-26T13:37:34.214Z",
       "hint": "fetch-node"
     },
+    "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-commit-stage.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-01-26T19:22:32.823Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-compositing.html": {
       "status": 200,
       "ok": true,
@@ -1993,6 +2055,14 @@
       "lastChecked": "2026-01-26T13:37:34.241Z",
       "hint": "fetch-node"
     },
+    "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-draw-stage.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-01-26T19:22:32.822Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-layout-stage.html": {
       "status": 200,
       "ok": true,
@@ -2004,6 +2074,14 @@
       "ok": true,
       "lastChecked": "2026-01-26T13:37:34.269Z",
       "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-prepaint.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-01-26T19:22:33.195Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-rasterization.html": {
       "status": 200,
@@ -2022,6 +2100,14 @@
       "ok": true,
       "lastChecked": "2026-01-26T13:37:34.305Z",
       "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-style-recalculation.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-01-26T19:22:33.195Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/js-runtime-internals.html": {
       "status": 200,
@@ -2671,6 +2757,12 @@
       "lastChecked": "2026-01-26T13:37:40.942Z",
       "hint": "fetch-node"
     },
+    "https://w3c.github.io/frame-timing/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-01-26T19:22:31.684Z",
+      "hint": "fetch-node"
+    },
     "https://w3c.github.io/longtasks/": {
       "status": 200,
       "ok": true,
@@ -2741,6 +2833,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:58.073Z",
+      "hint": "fetch-node"
+    },
+    "https://web.dev/articles/reduce-the-scope-and-complexity-of-style-calculations": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-01-26T17:06:10.113Z",
       "hint": "fetch-node"
     },
     "https://web.dev/articles/rendering-performance": {
@@ -2832,6 +2930,14 @@
       "ok": true,
       "lastChecked": "2026-01-26T13:37:55.276Z",
       "hint": "fetch-node"
+    },
+    "https://www.chromium.org/developers/design-documents/viz/": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-01-26T19:22:31.705Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
     },
     "https://www.confluent.io/blog/how-choose-number-topics-partitions-kafka-cluster/": {
       "status": 200,
@@ -3125,6 +3231,36 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:38:03.943Z",
+      "hint": "fetch-node"
+    },
+    "https://www.w3.org/TR/css-animations-1/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-01-26T19:22:32.100Z",
+      "hint": "fetch-node"
+    },
+    "https://www.w3.org/TR/css-cascade/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-01-26T16:34:13.268Z",
+      "hint": "fetch-node"
+    },
+    "https://www.w3.org/TR/css-overflow-3/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-01-26T17:51:21.150Z",
+      "hint": "fetch-node"
+    },
+    "https://www.w3.org/TR/css-transforms-1/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-01-26T17:51:20.834Z",
+      "hint": "fetch-node"
+    },
+    "https://www.w3.org/TR/requestidlecallback/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-01-26T16:34:14.039Z",
       "hint": "fetch-node"
     },
     "https://www.w3.org/TR/webauthn-2/": {

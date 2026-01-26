@@ -1,237 +1,263 @@
-# Browser Event Loop: Rendering, Tasks, and Microtasks
+# Browser Event Loop: Tasks, Microtasks, Rendering, and Idle Time
 
-A focused guide to the HTML Standard event loop processing model, moving from a minimal mental model to the full spec flow.
-
-## Progressive Model (from simple to spec-accurate)
-
-<figure>
-
-```mermaid
-flowchart LR
-  TQ[Task queue] --> T[Run task]
-  T --> MQ[Microtask queue - drain]
-  MQ --> RQ[Rendering queue if scheduled]
-  RQ --> TQ
-```
-
-<figcaption>Minimal mental model: task queue, microtask queue, rendering queue</figcaption>
-
-</figure>
-
-This is a simplified mental model. In the spec, rendering work is queued as tasks from the rendering task source and can interleave with other task sources.
-
-<figure>
-
-```mermaid
-flowchart TD
-  A([Iteration start]) --> B{Runnable task?}
-  B -- Yes --> C[Choose task queue - implementation-defined]
-  C --> D[Run task to completion]
-  D --> E[Microtask checkpoint]
-  E --> F[Report long task timing]
-  F --> G{Window loop and no runnable tasks?}
-  G -- Yes --> H[Start idle period - requestIdleCallback]
-  G -- No --> A
-  H --> A
-
-  subgraph Parallel
-    P1[Rendering-opportunity watcher] --> P2[Queue update-rendering task]
-  end
-  P2 -.-> B
-```
-
-<figcaption>Simplified window event loop iteration plus the parallel rendering-opportunity watcher</figcaption>
-
-</figure>
-
-<figure>
-
-```mermaid
-flowchart TD
-  %% =========================================
-  %% Event loop processing model (main loop)
-  %% =========================================
-  subgraph EL["Event loop processing model (runs continually)"]
-    EL0([Iteration start]) --> EL1["1. oldestTask = null<br/>1. taskStartTime = null"]
-
-    EL1 --> EL2{"2. Any task queue has<br/>a runnable task?"}
-
-    EL2 -- "Yes" --> EL3["2.1 Choose taskQueue<br/>(implementation-defined)"]
-    EL3 --> EL4["2.2 taskStartTime = unsafe shared current time"]
-    EL4 --> EL5["2.3 oldestTask = first runnable task in taskQueue<br/>    remove it from taskQueue"]
-    EL5 --> EL6{"2.4 oldestTask.document != null?"}
-
-    EL6 -- "Yes" --> EL7["2.4 Record task start time"]
-    EL6 -- "No" --> EL8["(skip)"]
-    EL7 --> EL9["2.5 Set currentlyRunningTask = oldestTask"]
-    EL8 --> EL9
-
-    EL9 --> EL10["2.6 Perform oldestTask.steps"]
-    EL10 --> EL11["2.7 Set currentlyRunningTask = null"]
-    EL11 --> MC0
-
-    MC13 --> EL12["3. taskEndTime = unsafe shared current time"]
-    EL2 -- "No" --> EL12
-
-    EL12 --> EL13{"4. oldestTask != null?"}
-    EL13 -- "Yes" --> EL14["4.1 Collect top-level browsing contexts<br/>    from oldestTask's script-eval settings set"]
-    EL14 --> EL15["4.3 Report long tasks<br/>(taskStartTime, taskEndTime, contexts, oldestTask)"]
-    EL15 --> EL16{"4.4 oldestTask.document != null?"}
-    EL16 -- "Yes" --> EL17["4.4 Record task end time"]
-    EL16 -- "No" --> EL18["(skip)"]
-    EL17 --> EL19
-    EL18 --> EL19
-    EL13 -- "No" --> EL19
-
-    EL19 --> EL20{"5. Window event loop AND<br/>no runnable tasks?"}
-    EL20 -- "Yes" --> ID0["5.1 lastIdlePeriodStartTime = unsafe shared current time"]
-    ID0 --> ID1["5.2 computeDeadline(): min(<br/>    lastIdle+50ms,<br/>    next timer deadline,<br/>    next render deadline if pending renders)"]
-    ID1 --> ID2["5.3 For each same-loop window:<br/>    start an idle period algorithm<br/>(requestIdleCallback)"]
-    ID2 --> WK0
-    EL20 -- "No" --> WK0
-
-    WK0{"6. Worker event loop?"}
-    WK0 -- "Yes" --> WK1{"6.1 Supported DedicatedWorkerGlobalScope<br/>AND UA wants rendering update now?"}
-    WK1 -- "Yes" --> WK2["6.1 now = current high resolution time"]
-    WK2 --> WK3["6.1 Run animation frame callbacks(now)"]
-    WK3 --> WK4["6.1 Update dedicated worker rendering"]
-    WK4 --> WK5{"6.2 No tasks AND closing flag true?"}
-    WK1 -- "No" --> WK5
-
-    WK5 -- "Yes" --> WK6([Destroy event loop])
-    WK5 -- "No" --> EL0
-
-    WK0 -- "No" --> EL0
-  end
-
-  %% =========================================
-  %% Microtask checkpoint (invoked after a task)
-  %% =========================================
-  subgraph MCK["Perform a microtask checkpoint"]
-    MC0[[2.8 Perform microtask checkpoint]] --> MC1{"Already performing<br/>a microtask checkpoint?"}
-    MC1 -- "Yes" --> MC13[[Return]]
-    MC1 -- "No" --> MC2["Set performingMicrotaskCheckpoint = true"]
-
-    MC2 --> MC3{"Microtask queue empty?"}
-    MC3 -- "No" --> MC4["Dequeue oldestMicrotask"]
-    MC4 --> MC5["Set currentlyRunningTask = oldestMicrotask"]
-    MC5 --> MC6["Run oldestMicrotask"]
-    MC6 --> MC7["Set currentlyRunningTask = null"]
-    MC7 --> MC3
-
-    MC3 -- "Yes" --> MC8["Notify about rejected promises<br/>(settings objects whose responsible loop is this loop)"]
-    MC8 --> MC9["Cleanup IndexedDB transactions"]
-    MC9 --> MC10["ClearKeptObjects()"]
-    MC10 --> MC11["Set performingMicrotaskCheckpoint = false"]
-    MC11 --> MC12["Record timing info for microtask checkpoint"]
-    MC12 --> MC13[[Return]]
-  end
-
-  %% =========================================
-  %% Window rendering opportunity watcher (parallel)
-  %% =========================================
-  subgraph PAR["Window event loop: rendering-opportunity watcher (in parallel)"]
-    P0([Loop]) --> P1["Wait until at least one navigable<br/>might have a rendering opportunity"]
-    P1 --> P2["lastRenderOpportunityTime = unsafe shared current time"]
-    P2 --> P3["For each navigable with a rendering opportunity:<br/>queue a global task (rendering task source)<br/>to update the rendering"]
-    P3 --> P0
-  end
-
-  %% Show that queued rendering tasks become runnable tasks for the event loop
-  P3 -.-> EL2
-
-  %% =========================================
-  %% Rendering task body (queued task)
-  %% =========================================
-  subgraph RT["Rendering task: update the rendering"]
-    R0([Run rendering task]) --> R1["frameTimestamp = lastRenderOpportunityTime"]
-    R1 --> R2["docs = fully active Documents in this event loop<br/>(ordered by container/shadow-including tree rules)"]
-    R2 --> R3["Filter non-renderable docs<br/>(render-blocked, hidden, suppressed, no opportunity)"]
-    R3 --> R4["Unnecessary rendering: remove docs where<br/>rendering would have no visible effect AND no rAF callbacks"]
-    R4 --> R5["Optionally remove docs UA prefers to skip"]
-    R5 --> R6["Reveal docs"]
-    R6 --> R7["Flush autofocus candidates (top-level traversable)"]
-    R7 --> R8["Run resize steps"]
-    R8 --> R9["Run scroll steps"]
-    R9 --> R10["Evaluate media queries & report changes"]
-    R10 --> R11["Update animations & send events (timestamp)"]
-    R11 --> R12["Run fullscreen steps"]
-    R12 --> R13["Handle canvas context lost/restored"]
-    R13 --> R14["Run animation frame callbacks (rAF)"]
-    R14 --> R15["Recalculate style & layout;<br/>process ResizeObserver loop"]
-    R15 --> R16["Focus fixup if focused area not focusable"]
-    R16 --> R17["Perform pending transition operations"]
-    R17 --> R18["Update IntersectionObserver observations (timestamp)"]
-    R18 --> R19["Record rendering time; mark paint timing"]
-    R19 --> R20["Update rendering / UI for docs & navigables"]
-    R20 --> R21["Process top layer removals"]
-  end
-
-  %% Indicate the parallel watcher queues this task
-  P3 -.-> R0
-```
-
-<figcaption>Full HTML Standard processing model (window and worker event loops)</figcaption>
-
-</figure>
+Spec-accurate map of the HTML Standard event loop in window and worker contexts, centered on task selection, microtask checkpoints, rendering opportunities, and idle scheduling.
+Focus is on latency and frame-budget trade-offs rather than beginner JavaScript async basics.
 
 ## TLDR
 
-**Browser event loop** coordinates JavaScript execution, microtasks, and rendering updates over the lifetime of a page or worker.
+### Scheduling invariants
 
-- **Pick a runnable task** from task queues (selection is implementation-defined)
-- **Run the task to completion**, then **perform a microtask checkpoint**
-- **Rendering updates** are queued as tasks from the rendering task source and only run when selected
-- **Idle periods** start when a window loop has no runnable tasks; **workers can shut down** when closing and idle
+- Task queues are sets; the event loop selects a runnable task from a chosen queue using implementation-defined policy.
+- Each loop iteration runs a single runnable task to completion, then a microtask checkpoint drains the microtask queue.
+- A task is runnable only when its document is fully active (or null for non-window loops).
 
-## Event Loop Processing Model (HTML Standard)
+### Rendering integration
 
-The HTML Standard defines a continual loop that:
+- Rendering opportunities are User Agent (UA) defined and can align with display refresh.
+- Update-the-rendering work is queued as a task; requestAnimationFrame (rAF) callbacks run inside that task.
 
-1. Chooses a task queue that has a runnable task (if any)
-2. Removes the first runnable task from that queue and runs it to completion
-3. Performs a microtask checkpoint
-4. Records timing information and reports long tasks
-5. Starts idle periods when a window event loop has no runnable tasks
-6. For workers, optionally updates worker rendering and destroys the loop when closing and idle
-7. Separately, in parallel, watches for rendering opportunities and queues update-rendering tasks
+### Operational pitfalls
 
-## Task Queues, Task Sources, and Microtasks
+- Long tasks or microtask loops delay rendering and input; the 60Hz budget is about 16.7ms.
+- requestIdleCallback (rIC) is best-effort and time-capped; callbacks posted during an idle period run in the next one, so use timeouts for must-run work.
+- Worker event loops can terminate once closing and idle; schedule cleanup before calling close().
 
-- **Task queues are sets**, not strict FIFO queues; the model removes the first runnable task from the chosen queue
-- **Task sources** group related work (e.g., user interaction, networking, timers) and map to task queues
-- **Runnable tasks** are those whose associated document is fully active (or null for non-window loops)
-- **Microtasks** live in a separate microtask queue and are drained during the microtask checkpoint
+### Example snapshot
 
-## Rendering Opportunities and Update Rendering
+- A scroll-driven input stream can keep input tasks selected while a timer callback waits, preserving responsiveness but delaying timers.
 
-- A window event loop runs a **parallel rendering-opportunity watcher** that queues update-rendering tasks on the rendering task source
-- **Update rendering** runs as a normal task when selected by the event loop
-- The update-rendering task includes **rAF callbacks**, animation updates, style and layout, and other rendering-related steps
-- **Rendering opportunities are implementation-defined** (e.g., 60Hz or throttled for background tabs)
+## Processing model at a glance
 
-## Idle Periods and requestIdleCallback
+<figure>
 
-When a window event loop has no runnable tasks, it starts an **idle period** and computes a deadline that considers:
+```mermaid
+flowchart TD
+  subgraph EL["Event loop iteration"]
+    Q[Pick runnable task] --> T[Run task to completion]
+    T --> M[Microtask checkpoint]
+    M --> Q
+  end
+  subgraph RW["Rendering opportunity watcher (parallel)"]
+    W[Detect rendering opportunity] --> U[Queue update rendering task]
+  end
+  U -.-> Q
+```
 
-- a 50ms cap for responsiveness
-- upcoming timer deadlines
-- the next render deadline when rendering is pending
+<figcaption>Event loop iteration with a parallel rendering-opportunity watcher that queues rendering tasks.</figcaption>
+</figure>
 
-This is the basis for `requestIdleCallback` scheduling.
+The processing model selects a task queue with a runnable task, executes that task to completion, and then performs a microtask checkpoint. Rendering opportunities are detected in parallel and enqueue update-rendering tasks that later compete with other tasks for selection.
 
-## Why the Browser Event Loop Doesn't Quit
+> "Set oldestTask to the first runnable task in taskQueue, and remove it from taskQueue."
 
-- **Window event loops** persist for the lifetime of the browsing context, not just while queues are non-empty
-- **Worker event loops** can be destroyed when the worker is closing and there are no queued tasks
+That single-task removal is the macro-task boundary: one task per iteration, then the microtask checkpoint.
 
-## Did you know?
+> "A task is runnable if its document is either null or fully active."
 
-- **The microtask queue is not a task queue**
-- **Task selection is implementation-defined** across task queues, but ordering within a task source is preserved
-- **Rendering updates are tasks**, queued via the rendering task source
+**Example:** During a scroll, user-interaction tasks can be selected repeatedly while timer callbacks wait, keeping the UI responsive but delaying timers.
 
-## Key References
+**Trade-offs:** Implementation-defined selection gives the UA room to prioritize input and responsiveness, but it reduces cross-queue fairness and predictability.
+
+**Edge cases:** Tasks tied to non-fully-active documents remain non-runnable and can sit in queues until the document becomes fully active again.
+
+## Task queues and task sources: ordering and prioritization
+
+Task queues are attached to an event loop; task sources map related work (input, timers, networking) onto those queues. Ordering is preserved within each task source, but selection across queues is intentionally flexible.
+
+> "Task queues are sets, not queues."
+
+> "Task queues are used to coalesce task sources."
+
+> "the processing model still enforces that the user agent would never process events from any one task source out of order."
+
+**Example:** Pointer and keyboard events keep their relative order, but a network response task can be interleaved between them if the UA selects the networking queue.
+
+**Trade-offs:** Preserving order within a source maintains causal consistency, while set-based queues let the UA favor latency-critical sources. The cost is that low-priority sources can starve.
+
+**Edge cases:** Do not assume timers fire at their nominal deadlines; a busy interaction source can push them back significantly.
+
+## Chromium (Blink) main-thread queues and priorities
+
+Blink’s main-thread scheduler defines a fixed set of queue types (`MainThreadTaskQueue::QueueType`) grouped into queue classes (loading, timer, compositor, none). Frame-associated work is posted using a `TaskType`, and `FrameScheduler::GetTaskRunner()` selects a task runner based on that type; the TaskTypes.md matrix records the throttling/deferral/pausing traits for each frame task type.
+
+Priorities are computed dynamically: tasks at the same priority run in order, input is highest, compositor is boosted during gestures, and the default is normal. There is no single static total order across queue types.
+
+### Queue inventory (MainThreadTaskQueue::QueueType)
+
+Mapping below is derived from the TaskTypes.md trait matrix and queue-class names; treat it as a policy-level view rather than a strict guarantee for all Chromium branches.
+Serial numbers follow the enum order, not a fixed priority ranking.
+
+| # / Queue type          | TaskType groupings (derived)                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1. kControl             | Thread-global control queue (internal; TaskTypes.md does not enumerate)                                                                                                                                                                                                                                                                                                                                                                                                  |
+| 2. kDefault             | Thread-global default queue (internal; TaskTypes.md does not enumerate)                                                                                                                                                                                                                                                                                                                                                                                                  |
+| 3. kUnthrottled         | Timer-class queue for unthrottled work (policy-driven)                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| 4. kFrameLoading        | `kNetworking`, `kNetworkingWithURLLoaderAnnotation`, `kInternalLoading`, `kInternalContinueScriptLoading`                                                                                                                                                                                                                                                                                                                                                                |
+| 5. kFrameLoadingControl | `kNetworkingControl`                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| 6. kFrameThrottleable   | `kJavascriptTimerDelayedLowNesting`, `kJavascriptTimerDelayedHighNesting`, `kWebSchedulingPostedTask` (delay > 0), `kInternalTranslation`, `kInternalContentCapture`                                                                                                                                                                                                                                                                                                     |
+| 7. kFrameDeferrable     | `kDOMManipulation`, `kLowPriorityScriptExecution`, `kHistoryTraversal`, `kEmbed`, `kCanvasBlobSerialization`, `kMicrotask`, `kJavascriptTimerImmediate`, `kRemoteEvent`, `kWebSocket`, `kUnshippedPortMessage`, `kFileReading`, `kPresentation`, `kSensor`, `kPerformanceTimeline`, `kWebGL`, `kWebGPU`, `kMiscPlatformAPI`, `kFontLoading`, `kApplicationLifeCycle`, `kBackgroundFetch`, `kPermission`, `kWakeLock`, `kStorage`, `kMachineLearning`, `kInternalDefault` |
+| 8. kFramePausable       | `kMediaElementEvent`, `kPostedMessage`, `kBackForwardCachePostedMessage`, `kDatabaseAccess`, `kWorkerAnimation`, `kServiceWorkerClientMessage`, `kInternalWebCrypto`, `kInternalMedia`, `kInternalMediaRealTime`, `kInternalIntersectionObserver`, `kInternalPostMessageForwarding`                                                                                                                                                                                      |
+| 9. kFrameUnpausable     | `kWebLocks`, `kInternalIPC`, `kInternalInspector`, `kInternalNavigationAssociated`, `kInternalFreezableIPC`                                                                                                                                                                                                                                                                                                                                                              |
+| 10. kCompositor         | Thread-global compositor queue (internal; TaskTypes.md does not enumerate)                                                                                                                                                                                                                                                                                                                                                                                               |
+| 11. kIdle               | `kIdleTask`                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| 12. kTest               | `kInternalTest`                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| 13. kV8                 | Main-thread V8 queue (internal; TaskTypes.md does not enumerate)                                                                                                                                                                                                                                                                                                                                                                                                         |
+| 14. kIPC                | Main-thread IPC queue (internal; TaskTypes.md does not enumerate)                                                                                                                                                                                                                                                                                                                                                                                                        |
+| 15. kInput              | `kUserInteraction`, `kInternalUserInteraction`                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| 16. kDetached           | Detached-frame queues (internal)                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| 17. kOther              | Metrics grouping (internal)                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+
+### Common event map (practical view)
+
+| Common event                      | TaskType(s) and queue class                                                                                                        |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| XHR/fetch responses               | `kNetworking`, `kNetworkingWithURLLoaderAnnotation` → loading class (kFrameLoading)                                                |
+| Timers (setTimeout/setInterval)   | `kJavascriptTimerImmediate` and delayed timers (`kJavascriptTimerDelayed*`) → timer class; delayed timers are throttleable         |
+| Input (keyboard, pointer, scroll) | `kUserInteraction`, `kInternalUserInteraction` → input priority (kInput)                                                           |
+| DOM/observer callbacks            | MutationObserver → microtask checkpoint (not a `TaskType`); `kInternalIntersectionObserver`; DOM task sources → `kDOMManipulation` |
+| requestIdleCallback               | `kIdleTask` → idle queue class                                                                                                     |
+
+**Example:** During a scroll plus a burst of timers, input tasks run first, compositor work is boosted, and timer callbacks slip, trading timer accuracy for responsiveness.
+
+**Trade-offs:** Policy-driven routing and dynamic priorities improve interactivity, but reduce cross-queue predictability.
+
+**Edge cases:** Throttlable timers can be delayed when pages are not visible; task types marked deferrable/pausable/freezable can be delayed or paused when lifecycle policy applies.
+
+## Microtasks and microtask checkpoints
+
+Microtasks are drained at each microtask checkpoint after a task completes. Any microtasks enqueued during the checkpoint are also processed before the event loop returns to task selection.
+
+> "The microtask queue is not a task queue."
+
+> "While the event loop's microtask queue is not empty:"
+
+This is the drain semantics: the checkpoint keeps running until the queue is empty, so microtasks queued by a microtask are executed in the same checkpoint.
+
+**Example:** A click handler that chains Promises can block rendering until the chain ends; each Promise enqueues more microtasks and the checkpoint drains them before any new task is selected. Insert a task boundary (setTimeout or MessageChannel) to yield.
+
+**Trade-offs:** Microtasks provide deterministic ordering for promise reactions and DOM mutation delivery, but they can starve tasks and rendering if used as an unbounded loop.
+
+**Edge cases:** Microtask checkpoints also handle rejected promise notifications and IndexedDB transaction cleanup; long microtask runs delay these and any subsequent rendering.
+
+## Rendering opportunities and update the rendering task
+
+Rendering opportunities are UA-defined; when one occurs, the UA queues an update-rendering task on the rendering task source. That task runs rAF callbacks, style and layout, observer notifications, and painting work as part of a single rendering update.
+
+> "queue a global task on the rendering task source to update the rendering"
+
+> "Rendering opportunities occur at a maximum of every 60th of a second (about 16.7ms)."
+
+> "Let callbackHandles be the result of getting the keys of callbacks."
+
+**Inference:** Because the algorithm snapshots callback handles and removes each callback before invoking it, callbacks added during a rAF callback are deferred to the next rendering update.
+
+**Example:** If a rAF callback calls `requestAnimationFrame()` again, the new callback runs on the next frame, not in the current batch; at 60Hz a 25ms task drops a frame and delays the next rAF run.
+
+**Trade-offs:** Treating rendering as a task keeps the model uniform and allows input tasks to preempt rendering, but it also means rendering is not guaranteed every loop iteration.
+
+**Edge cases:** For non-visible documents, the UA may reduce rendering opportunities dramatically (the spec notes as low as 4 per second), so rAF-driven work effectively pauses or throttles.
+
+## Idle periods and requestIdleCallback
+
+When a window event loop has no runnable tasks, the HTML Standard computes an idle deadline using three bounds: a 50ms cap from the last idle period start time, the nearest timer deadline, and (when renders are pending) the next render deadline.
+
+> "Let deadline be this event loop's last idle period start time plus 50."
+
+> "If nextRenderDeadline is less than deadline, then return nextRenderDeadline."
+
+requestIdleCallback (rIC) queues work onto the idle-task task source and runs idle callbacks in first-in, first-out (FIFO) order until the idle period ends or the runnable list is empty. Only callbacks posted before the idle period begins are eligible; callbacks posted during a callback wait for the next idle period.
+
+> "Queue a task on the queue associated with the idle-task task source."
+
+> "run idle callbacks in FIFO order"
+
+> "Only idle tasks which posted before the start of the current idle period are eligible"
+
+Idle periods are UA-defined and singular per window; the UA may end them early, and heavy load can mean no idle periods at all.
+
+> "There can only be one idle period active at a given time"
+
+> "The user agent is free to end an idle period early"
+
+> "there is no guarantee that a user agent will have any idle CPU time available"
+
+IdleDeadline exposes timeRemaining() and didTimeout. timeRemaining() is clamped to zero, and didTimeout is true when the callback runs via the timeout path rather than inside an idle period.
+
+> "If timeRemaining is negative, set it to 0."
+
+> "The didTimeout getter MUST return timeout."
+
+> "if the specified timeout is reached before the callback is executed within an idle period, a task is queued to execute it."
+
+Each requestIdleCallback schedules a single callback; to keep running work, re-post at the end of the callback.
+
+> "requestIdleCallback() only schedules a single callback."
+
+**Example:** Break a 50ms analytics batch into 2–5ms chunks. If timeRemaining() drops below 2ms, reschedule with rIC; add a 2000ms timeout to guarantee completion.
+
+**Trade-offs:** Idle scheduling maximizes responsiveness and power efficiency, but the deadline is a hint and can end early or never arrive under load.
+
+**Edge cases:** Callbacks posted during an idle callback run in the next idle period; a timeout callback can fire outside idle time with didTimeout=true and timeRemaining()=0.
+
+## Worker event loops and shutdown
+
+Worker event loops follow the same task and microtask mechanics, but they can be destroyed when closing and idle. Dedicated workers may also run rendering updates when the UA supports it.
+
+**Example:** A DedicatedWorker should post any final results before calling close(); once the closing flag is set and queues drain, the loop can terminate.
+
+**Trade-offs:** Automatic teardown frees resources quickly, but it can surprise code that assumes the loop will stay alive until explicit termination is observed.
+
+**Edge cases:** Tasks queued after close() or during shutdown may never run.
+
+## Conclusion
+
+The browser event loop is a policy-driven scheduler: tasks are selected from sets of queues, microtasks are drained deterministically after each task, and rendering is just another task that competes for time. The practical outcomes are input-first scheduling, microtask starvation risks, and rendering timing that is intentionally UA-defined.
+
+## Appendix
+
+### Prerequisites
+
+- JavaScript run-to-completion semantics and the call stack model.
+- High-level understanding of the rendering pipeline (style, layout, paint).
+
+### Terminology
+
+- **Task**: A unit of work queued on a task queue for an event loop.
+- **Task queue**: A set of tasks associated with a specific event loop.
+- **Task source**: A category of tasks with ordering guarantees mapped to task queues.
+- **Runnable task**: A task whose associated document is fully active, or whose document is null.
+- **Microtask**: High-priority work run during a microtask checkpoint.
+- **Microtask checkpoint**: The step that drains the microtask queue after each task.
+- **Idle period**: A UA-defined idle window with a deadline for running idle callbacks.
+- **Idle callback**: A `requestIdleCallback` handler invoked during an idle period.
+- **IdleDeadline**: Object passed to idle callbacks; exposes `timeRemaining()` and `didTimeout`.
+- **Rendering opportunity**: A UA-defined point when rendering can be updated.
+- **Update the rendering task**: The rendering task that runs rAF callbacks, style/layout, and paint-related work.
+- **requestAnimationFrame (rAF)**: API to schedule a callback for the next rendering update.
+- **requestIdleCallback (rIC)**: API to schedule best-effort work during idle periods.
+- **User Agent (UA)**: The browser engine implementing the event loop.
+
+### Summary
+
+- Task selection is implementation-defined across task queues, but ordering within a task source is preserved.
+- Each task runs to completion and is followed by a microtask checkpoint that drains the microtask queue.
+- Rendering updates are queued as tasks and are gated by UA-defined rendering opportunities.
+- Idle callbacks run FIFO during UA-defined idle periods; callbacks posted during a period run in the next, and timeouts can force execution outside idle time.
+- Worker event loops can terminate automatically when closing and idle.
+
+### References
 
 - [HTML Standard - Event loop processing model](https://html.spec.whatwg.org/multipage/webappapis.html#event-loop-processing-model)
-- [HTML Standard - Event loops](https://html.spec.whatwg.org/multipage/webappapis.html#event-loops)
+- [HTML Standard - Task queues](https://html.spec.whatwg.org/multipage/webappapis.html#task-queues)
+- [HTML Standard - Task sources](https://html.spec.whatwg.org/multipage/webappapis.html#task-sources)
+- [HTML Standard - Microtask queue](https://html.spec.whatwg.org/multipage/webappapis.html#microtask-queue)
+- [HTML Standard - Perform a microtask checkpoint](https://html.spec.whatwg.org/multipage/webappapis.html#perform-a-microtask-checkpoint)
+- [HTML Standard - Rendering opportunities](https://html.spec.whatwg.org/multipage/webappapis.html#rendering-opportunities)
+- [HTML Standard - Update the rendering](https://html.spec.whatwg.org/multipage/webappapis.html#update-the-rendering)
+- [HTML Standard - Animation frames](https://html.spec.whatwg.org/multipage/imagebitmap-and-animations.html#animation-frames)
+- [DOM Standard - MutationObserver](https://dom.spec.whatwg.org/#mutationobserver)
+- [W3C - requestIdleCallback](https://www.w3.org/TR/requestidlecallback/)
+- [Chromium Docs - Document Index](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/README.md#document-index)
+- [Chromium Docs - Threading and Tasks in Chrome](https://chromium.googlesource.com/chromium/src/+/main/docs/threading_and_tasks.md)
+- [Chromium Docs - Threading and Tasks in Chrome - FAQ](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/threading_and_tasks_faq.md)
+- [Chromium Docs - Chromium Design Docs](https://chromium.googlesource.com/chromium/src/+/main/docs/design/README.md)

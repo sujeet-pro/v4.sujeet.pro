@@ -1,12 +1,35 @@
 # Critical Rendering Path: CSSOM Construction
 
-How browsers parse CSS into the CSS Object Model, and why it must be complete before rendering can begin.
+The **CSS Object Model (CSSOM)** is the engine's internal representation of all CSS rules and their relationships. Unlike the Document Object Model (DOM), which can be processed incrementally, the CSSOM requires a complete parse of all render-blocking stylesheets to resolve the cascade and avoid visual artifacts like Flash of Unstyled Content (FOUC).
+
+<figure>
+
+![CSSOM Construction](./cssom-construction.inline.svg)
+
+<figcaption>CSSOM tree: stylesheets and rules; computed styles are derived by applying it to the DOM</figcaption>
+
+</figure>
+
+## TLDR
+
+### Core Mechanics
+*   **Render-Blocking**: Browsers halt the rendering pipeline until the CSSOM is fully constructed for all non-async stylesheets.
+*   **JS-Blocking**: Synchronous JavaScript (JS) execution is delayed if there is a pending stylesheet, as the engine cannot guarantee correct `getComputedStyle()` results.
+*   **Cascade Resolution**: The CSSOM must be complete before style recalculation because later rules can override earlier ones via the cascade and specificity.
+
+### Key Constraints
+*   **Not Incremental**: While the DOM can be rendered partially, the CSSOM cannot be safely applied until the "End of Stylesheet" is reached.
+*   **Tree Structure**: It represents the hierarchy of rules (selectors + declarations), which is distinct from the DOM tree.
+
+---
 
 ## The Parsing Process
 
-As the browser encounters `<link rel="stylesheet">` or `<style>` tags, it fetches and parses CSS into the CSS Object Model (CSSOM).
+As the browser encounters `<link rel="stylesheet">` or `<style>` tags, it fetches and parses CSS into the CSS Object Model. This process involves tokenizing the CSS bytes into characters, then into tokens (nodes), and finally into the tree structure.
 
-```css
+> "The CSS Object Model is a set of APIs allowing the manipulation of CSS from JavaScript." — [W3C CSSOM Spec](https://www.w3.org/TR/cssom-1/#introduction)
+
+```css collapse={7-15}
 body {
   font-size: 16px;
 }
@@ -24,87 +47,43 @@ img {
 }
 ```
 
-<figure>
-
-![CSSOM Construction](./cssom-construction.inline.svg)
-
-<figcaption>CSSOM tree: stylesheets and rules; computed styles are derived by applying it to the DOM</figcaption>
-
-</figure>
-
-## CSSOM Characteristics
-
-- **Tree structure**: CSSOM is a tree of stylesheets and rules (selectors + declarations), not a 1:1 mirror of the DOM
-- **Computed styles**: Produced during style calculation by combining DOM + CSSOM; they are not stored inside the CSSOM tree
-- **Cascade resolution**: Later rules override earlier ones; specificity determines winners
-- **NOT parser-blocking**: HTML parser continues while CSS loads
-- **Render-blocking**: Browser won't paint until CSSOM is complete for render-blocking stylesheets
-- **JS-blocking**: Scripts using `getComputedStyle()` must wait for CSSOM
+The resulting CSSOM tree allows the browser to perform efficient lookups during the [Style Recalculation](../crp-style-recalculation/README.md) phase, where it maps these rules to the DOM nodes.
 
 ---
 
 ## Browser Design: Why CSSOM Can’t Be Used Incrementally
 
-Unlike [DOM construction](../crp-dom-construction/README.md), **the browser avoids using a partial CSSOM for rendering**. The CSSOM can be constructed as CSS is parsed, but it isn’t safe to apply until the full stylesheet is known. Consider this CSS:
+The design choice to make CSS render-blocking is a trade-off favoring visual stability over initial latency. Unlike [DOM construction](../crp-dom-construction/README.md), **the browser avoids using a partial CSSOM for rendering**.
+
+Consider the following scenario:
 
 ```css
 p {
   background: red;
 }
-/* ... hundreds of lines later ... */
+/* ... hundreds of lines of other styles ... */
 p {
   background: blue;
 }
 ```
 
-If the browser rendered with a partial CSSOM after parsing the first rule, paragraphs would flash red before turning blue. The cascade—CSS's fundamental feature—requires knowing _all_ rules before determining final computed styles.
-
-### What Would Happen with Partial CSSOM
-
-```css
-/* styles.css - loaded in chunks */
-
-/* Chunk 1 arrives first */
-h1 {
-  color: red;
-  font-size: 48px;
-}
-.hero {
-  background: blue;
-}
-
-/* User sees: red headings, blue hero */
-
-/* Chunk 2 arrives */
-h1 {
-  color: green;
-} /* Override! */
-.hero {
-  background: white;
-} /* Override! */
-
-/* User sees: jarring flash as colors change */
-```
-
-This "Flash of Unstyled Content" (FOUC) or "Flash of Wrong Styles" creates a poor user experience.
+If the browser applied styles incrementally, the user would see a paragraph flash red before turning blue as the second rule arrives. This Flash of Unstyled Content (or "Flash of Wrong Styles") is avoided by the browser's requirement for a "complete" CSSOM before the first paint.
 
 ### Why Complete CSSOM is Required
 
-Browsers wait for complete CSSOM to ensure:
-
-1. **Correct final styles**: All cascade rules resolved
-2. **No layout shifts**: Elements positioned correctly from first paint
-3. **Visual stability**: Users see intended design immediately
-
-**The Trade-off**: Waiting for CSS delays First Contentful Paint, but prevents jarring visual changes.
+1.  **The Cascade**: CSS stands for *Cascading* Style Sheets. The final value of a property depends on all rules that apply to an element.
+2.  **Specificity Resolution**: A more specific selector later in the file (or in a later file) can override a more general one.
+3.  **Layout Stability**: Many CSS properties (like `display`, `float`, or `position`) fundamentally change the geometry of the page. Rendering with partial CSS would cause massive, jarring layout shifts.
 
 ---
 
-## What Changes CSSOM (and What Doesn’t)
+## Interaction with JavaScript
 
-- **DOM node changes**: Adding/removing elements changes which nodes get styles, but it does **not** change the CSSOM itself.
-- **Stylesheet changes**: Adding/removing `<style>` or `<link rel="stylesheet">`, or editing a stylesheet, **rebuilds or updates the CSSOM**.
-- **Inline style changes**: Updating an element’s `style` attribute affects its computed styles, but does **not** change the CSSOM tree of rules.
+The CSSOM has a profound impact on JavaScript execution. Because scripts can query the CSSOM (e.g., via `window.getComputedStyle(el)`), the browser enforces a strict synchronization rule:
+
+**The browser blocks execution of any synchronous script while there is a stylesheet being downloaded or parsed.**
+
+This ensures that any style information the script requests is accurate and up-to-date. This is why placing a large external CSS file before a script in the `<head>` can significantly delay the script's execution.
 
 ---
 
@@ -112,58 +91,65 @@ Browsers wait for complete CSSOM to ensure:
 
 ### Critical CSS Inlining
 
-Inline styles needed for above-the-fold content to eliminate render-blocking request:
+To bypass the render-blocking nature of external stylesheets for the initial view, "Critical CSS" is inlined directly into the HTML:
 
-```html
+```html collapse={1,9}
 <head>
   <style>
     /* Critical CSS for above-the-fold content */
-    .header {
-      /* ... */
-    }
-    .hero {
-      /* ... */
-    }
+    .header { height: 60px; }
+    .hero { background: #f4f4f4; }
   </style>
+  <!-- Load the rest of the CSS non-blockingly -->
   <link rel="stylesheet" href="full.css" media="print" onload="this.media='all'" />
 </head>
 ```
 
-The inline `<style>` block is parsed immediately (no network request), allowing faster first paint. The external stylesheet loads asynchronously and applies after download.
+### Media Queries for Deferral
 
-### Non-Blocking CSS with Media Queries
+Not all CSS is required for the initial render. By using media queries, you can inform the browser that certain stylesheets should not block rendering:
 
 ```html
 <!-- Render-blocking: needed for initial render -->
-<link rel="stylesheet" href="critical.css" />
+<link rel="stylesheet" href="main.css" />
 
-<!-- Non-render-blocking: only for print -->
+<!-- Non-render-blocking on screen: only for print -->
 <link rel="stylesheet" href="print.css" media="print" />
 
-<!-- Non-render-blocking: only for large screens -->
+<!-- Non-render-blocking on mobile: only for large screens -->
 <link rel="stylesheet" href="desktop.css" media="(min-width: 1024px)" />
 ```
 
-CSS with non-matching media queries still downloads but doesn't block rendering. This allows you to defer non-critical styles while still preloading them.
+---
 
-### Split CSS by Route/Component
+## Conclusion
 
-Instead of one large stylesheet, consider:
-
-```html
-<!-- Core styles for all pages -->
-<link rel="stylesheet" href="core.css" />
-
-<!-- Route-specific styles -->
-<link rel="stylesheet" href="home.css" />
-```
-
-This reduces the amount of CSS that must be parsed before first render.
+The CSSOM construction is a mandatory gate in the Critical Rendering Path. While it introduces a blocking point, it guarantees that the first frame the user sees is visually consistent and respects the rules of the CSS cascade. Optimizing the CSSOM involves minimizing the volume of render-blocking CSS and using modern loading patterns to defer non-essential styles.
 
 ---
 
-## References
+## Appendix
 
-- [web.dev: Render-Blocking CSS](https://web.dev/articles/critical-rendering-path/render-blocking-css)
-- [MDN: Critical Rendering Path](https://developer.mozilla.org/en-US/docs/Web/Performance/Critical_rendering_path)
-- [web.dev: Constructing the Object Model](https://web.dev/articles/critical-rendering-path/constructing-the-object-model)
+### Prerequisites
+*   Understanding of the **Critical Rendering Path (CRP)**.
+*   Familiarity with the **DOM (Document Object Model)** construction.
+*   Basic knowledge of **CSS Specificity and the Cascade**.
+
+### Terminology
+*   **CSSOM**: CSS Object Model, the tree of rules and styles.
+*   **DOM**: Document Object Model, the tree representation of the HTML structure.
+*   **FOUC**: Flash of Unstyled Content, a visual glitch where content appears without styles.
+*   **Render-Blocking**: A resource that prevents the browser from painting pixels to the screen.
+*   **Cascade**: The algorithm that determines which CSS rules apply when multiple rules match an element.
+
+### Summary
+*   CSS is **render-blocking** by design to ensure visual consistency and avoid FOUC.
+*   CSSOM construction must be **complete** before the browser can proceed to style calculation and layout.
+*   The browser **blocks JS execution** if there are pending stylesheets to ensure `getComputedStyle()` returns correct values.
+*   Optimization techniques like **Critical CSS** and **Media Queries** can reduce the time spent in the CSSOM construction phase.
+
+### References
+*   [W3C: CSS Object Model (CSSOM) Specification](https://www.w3.org/TR/cssom-1/)
+*   [W3C: CSS Cascading and Inheritance Level 4](https://www.w3.org/TR/css-cascade-4/)
+*   [web.dev: Constructing the Object Model](https://web.dev/articles/critical-rendering-path/constructing-the-object-model)
+*   [MDN: Critical Rendering Path](https://developer.mozilla.org/en-US/docs/Web/Performance/Critical_rendering_path)

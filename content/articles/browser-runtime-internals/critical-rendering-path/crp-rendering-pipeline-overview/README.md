@@ -1,186 +1,201 @@
 # Critical Rendering Path: Rendering Pipeline Overview
 
-Learn how browsers convert HTML, CSS, and JavaScript into pixels—understanding not just what happens at each stage, but why browsers were designed this way.
+The browser's rendering pipeline transforms HTML, CSS, and JavaScript into visual pixels through a series of discrete, highly optimized stages. Modern browser engines like Chromium now employ the **RenderingNG** (Rendering Next Generation) architecture, which decouples the main thread from the compositor and GPU processes to ensure 60fps+ performance and minimize interaction latency.
 
 <figure>
 
 ```mermaid
 flowchart TB
-    subgraph Network["Network"]
+    subgraph Network["Network & Parser"]
         direction LR
         HTML[HTML Bytes]
         CSS[CSS Bytes]
         JS[JS Bytes]
     end
 
-    subgraph MainThread["Main Thread"]
+    subgraph MainThread["Main Thread (Renderer Process)"]
         direction LR
         DOM[DOM Tree]
         CSSOM[CSSOM Tree]
-        RT[Render Tree]
+        Style[Style Recalc]
         Layout[Layout]
+        Prepaint[Prepaint<br/>Property Trees]
         Paint[Paint<br/>Display Lists]
     end
 
     subgraph CompositorThread["Compositor Thread"]
         direction LR
-        Raster[Rasterize<br/>GPU Textures]
+        Commit[Commit]
+        Tiling[Tiling]
+        Raster[Rasterize]
         Composite[Composite]
     end
 
-    subgraph GPU["GPU / Viz"]
+    subgraph GPU["GPU / Viz Process"]
         Draw[Draw to Screen]
     end
 
     HTML --> DOM
     CSS --> CSSOM
-    JS -.->|Can Block| DOM
-    DOM --> RT
-    CSSOM --> RT
-    RT --> Layout
-    Layout --> Paint
-    Paint --> Raster
+    JS -.->|Blocks| DOM
+    DOM --> Style
+    CSSOM --> Style
+    Style --> Layout
+    Layout --> Prepaint
+    Prepaint --> Paint
+    Paint --> Commit
+    Commit --> Tiling
+    Tiling --> Raster
     Raster --> Composite
     Composite --> Draw
 
     style DOM fill:#e1f5fe
     style CSSOM fill:#fff3e0
-    style RT fill:#f3e5f5
+    style Style fill:#f3e5f5
     style Layout fill:#ffebee
+    style Prepaint fill:#fff9c4
     style Paint fill:#e8f5e9
-    style Raster fill:#fff9c4
-    style Composite fill:#fce4ec
-    style Draw fill:#c8e6c9
+    style Commit fill:#fce4ec
+    style Raster fill:#eeeeee
+    style Composite fill:#c8e6c9
 ```
 
-<figcaption>The Critical Rendering Path: HTML and CSS are parsed into trees, combined into a render tree, laid out, painted (recorded as display lists), rasterized into GPU textures, composited, and drawn to screen</figcaption>
+<figcaption>The RenderingNG pipeline: Decoupling the main thread from the compositor and GPU processes via property trees and display lists.</figcaption>
 
 </figure>
 
-## What is the Critical Rendering Path?
+## The Critical Rendering Path (CRP)
 
-**Critical Rendering Path (CRP)** is the browser's process of converting HTML, CSS, and JavaScript into visual pixels. Understanding _why_ each stage exists and _why_ certain resources block rendering is essential for building fast web experiences.
+The **Critical Rendering Path (CRP)** is the sequence of steps the browser undergoes to convert code into a visual frame. While traditionally viewed as a linear flow (DOM → CSSOM → Render Tree → Layout → Paint), modern engines utilize a more granular multi-threaded architecture to handle complex responsive designs and animations.
 
-## The Pipeline Stages
+## The RenderingNG Pipeline Stages
 
-Each stage of the rendering pipeline has a specific purpose:
+Modern browser engines break the rendering process into granular stages to maximize parallelization and minimize main-thread contention.
 
-| Stage                                                     | Purpose                                               | Thread         | Blocking Behavior                 |
-| --------------------------------------------------------- | ----------------------------------------------------- | -------------- | --------------------------------- |
-| [DOM Construction](../crp-dom-construction/README.md)     | Parse HTML into tree structure for resource discovery | Main           | Incremental, can be blocked by JS |
-| [CSSOM Construction](../crp-cssom-construction/README.md) | Parse CSS with full cascade resolution                | Main           | Must be complete before rendering |
-| [Render Tree](../crp-render-tree/README.md)               | Combine DOM and CSSOM for visible elements only       | Main           | Requires complete CSSOM           |
-| [Layout (Reflow)](../crp-layout-stage/README.md)          | Calculate exact size and position of every element    | Main           | Most expensive stage              |
-| [Paint](../crp-paint-stage/README.md)                     | Record drawing commands into display lists            | Main           | Creates display lists, not pixels |
-| [Rasterize](../crp-rasterization/README.md)               | Execute display lists to produce GPU texture tiles    | Compositor/GPU | Actual pixels created here        |
-| [Composite & Draw](../crp-compositing/README.md)          | Assemble rasterized layers and send to screen         | Compositor/GPU | Final assembly and display        |
+### [DOM Construction](../crp-dom-construction/README.md)
 
-## What Blocks What
+The browser parses HTML bytes into the Document Object Model (DOM) tree. This process is incremental, meaning the browser can start building the tree before the entire document has been downloaded.
 
-Understanding blocking behavior is crucial for optimization:
+- **JS is Parser Blocking**: Synchronous `<script>` tags block the HTML parser unless `defer` or `async` is used.
+- **JS is Non-Render Blocking**: JavaScript itself doesn't block the actual rendering process, but it blocks the parser that generates the DOM required for rendering.
+- **Preload Scanner**: A secondary parser that scans the HTML for external resources (JS, CSS, fonts) to start downloads early.
 
-- **CSS blocks Rendering**: Prevents Flash of Unstyled Content (FOUC); partial CSSOM cannot be used because later CSS rules override earlier ones
-- **JS blocks HTML Parsing**: Scripts can inject HTML via `document.write()`, so parser must wait for script execution
-- **CSS blocks JS Execution**: Scripts using `getComputedStyle()` need complete CSSOM for accurate values
+### [CSSOM Construction](../crp-cssom-construction/README.md)
 
-## Browser Design Philosophy
+The browser parses CSS into the CSS Object Model (CSSOM) tree. Unlike DOM construction, CSSOM must be built in its entirety before any rendering can occur.
 
-Browsers face a fundamental tension: users want to see content immediately, but rendering requires complete information about styles and layout. The rendering pipeline represents decades of optimization around this tension:
+- **CSS is Render Blocking**: The browser will not render any content until the CSSOM is complete to avoid a Flash of Unstyled Content (FOUC).
+- **CSS is JS Execution Blocking**: Since scripts can query styles (e.g., `getComputedStyle()`), the browser blocks JS execution until the CSSOM is ready.
 
-1. **Incremental where possible**: DOM parsing happens progressively so resources can be discovered early
-2. **Complete where necessary**: CSSOM must be complete because CSS cascade rules mean later declarations override earlier ones
-3. **Parallelized where safe**: The compositor thread handles scrolling and animations independently from main thread work
-4. **Layered for performance**: Elements that animate frequently get their own GPU-backed layers
+### [Style Recalculation (Render Tree)](../crp-style-recalculation/README.md)
 
-## The Complete Pixel Pipeline
+The engine combines the DOM and CSSOM to determine the final computed styles for every element. Traditionally known as building the **Render Tree**, modern engines now treat this as a discrete phase that produces a "Computed Style" map for each node.
 
-```mermaid
-flowchart TB
-    subgraph MainThread["Main Thread"]
-        direction LR
-        Style[Style]
-        Layout[Layout]
-        Paint[Paint<br/>Record Display List]
-        Commit[Commit]
-        Style --> Layout --> Paint --> Commit
-    end
+- **Render Tree Legacy**: In older models, the Render Tree was a specific tree structure containing only visible elements. In modern engines, style calculation is decoupled from the tree structure used for layout.
 
-    subgraph CompositorThread["Compositor Thread"]
-        direction LR
-        Layerize[Layerize]
-        Rasterize[Rasterize]
-        Composite[Composite<br/>Create Frame]
-        Layerize --> Rasterize --> Composite
-    end
+### [Layout (Reflow)](../crp-layout-stage/README.md)
 
-    subgraph GPUViz["GPU / Viz Process"]
-        direction LR
-        Textures[(GPU Textures)]
-        Draw[Draw to Screen]
-        Textures --> Draw
-    end
+The browser calculates the geometry (width, height, x, y) of every visible element. This stage is responsible for the "Fragment Tree."
 
-    Commit --> Layerize
-    Rasterize --> Textures
+- **Dirty Bit System**: Layout is expensive, so the engine marks nodes as "dirty" and only recalculates the affected subtrees.
+- **Forced Synchronous Layout**: Reading geometric properties (like `offsetWidth`) in JS while the layout is dirty forces the browser to perform layout immediately, leading to "layout thrashing."
 
-    style Style fill:#e3f2fd
-    style Layout fill:#ffebee
-    style Paint fill:#e8f5e9
-    style Commit fill:#f3e5f5
-    style Layerize fill:#fff3e0
-    style Rasterize fill:#fff9c4
-    style Composite fill:#fce4ec
-    style Draw fill:#c8e6c9
-    style Textures fill:#eeeeee
-```
+### [Prepaint](../crp-prepaint/README.md)
 
-## Why This Architecture Matters
+Introduced in RenderingNG, Prepaint walks the fragment tree to build **Property Trees** (transform, clip, effect, scroll).
 
-| Stage     | Thread         | Can Skip?                 | Cost     |
-| --------- | -------------- | ------------------------- | -------- |
-| Style     | Main           | No                        | Medium   |
-| Layout    | Main           | If only transform/opacity | High     |
-| Paint     | Main           | If only transform/opacity | Medium   |
-| Rasterize | Compositor/GPU | If tiles cached           | Medium   |
-| Composite | Compositor     | No                        | Low      |
-| Draw      | GPU            | No                        | Very Low |
+- **Decoupling**: It separates geometry and visual effects from the Paint stage.
+- **Optimization**: By pre-calculating these trees, the browser can efficiently handle transforms and clips during compositing.
 
-**Why Graphics Layers Enable 60fps**: When you animate `transform` or `opacity`, the compositor thread can update the layer's position/transparency without involving the main thread. No style recalculation, no layout, no paint, no re-rasterization—just recompositing existing GPU textures with new transforms.
+### [Paint](../crp-paint-stage/README.md)
 
-## Key Optimization Principles
+The browser records drawing commands (e.g., "draw rectangle at 0,0", "fill with blue") into **Display Lists**.
 
-- **Declare resources in HTML** so the preload scanner can find them
-- **Use defer/async** appropriately based on script dependencies
-- **Inline critical CSS** for above-the-fold content
-- **Avoid layout thrashing** by batching DOM reads and writes
-- **Animate transform/opacity** for compositor-only 60fps animations
-- **Use content-visibility** to skip rendering off-screen content
-- **Apply CSS containment** to isolate expensive subtrees
+- **Not Pixels**: This stage does not produce pixels; it only records the intent to draw.
+- **Layerization**: Based on certain CSS properties (like `will-change: transform`), the engine decides which elements should be promoted to their own graphics layers.
+
+### [Commit](../crp-commit-stage/README.md)
+
+The main thread "commits" the updated property trees and display lists to the Compositor thread.
+
+- **Synchronization**: This is a blocking operation where the main thread waits for the compositor to acknowledge the new state.
+- **Frame Boundaries**: A commit marks the point where the main thread's work for a specific frame is "done."
+
+### [Rasterization](../crp-rasterization/README.md)
+
+The Compositor thread takes the display lists and converts them into bitmapped textures (pixels).
+
+- **Tiling**: The viewport is divided into tiles. Only visible or near-visible tiles are rasterized.
+- **GPU Acceleration**: Most modern browsers use the GPU (via Skia or similar libraries) to perform rasterization rapidly.
+
+### [Compositing](../crp-compositing/README.md)
+
+The Compositor thread assembles the rasterized tiles into a single frame based on the Property Trees.
+
+- **Off-Main-Thread**: Scrolling and certain animations (transform, opacity) happen here without involving the Main Thread.
+- **Efficiency**: It only re-assembles existing textures rather than re-calculating styles or layout.
+
+### [Draw](../crp-draw-stage/README.md)
+
+The final step where the GPU "draws" the composited frame to the screen.
+
+- **Viz Process**: In Chromium, the Viz process receives the compositor frame and issues the final GL/Vulkan/Metal commands to the OS.
+- **VSync**: Drawing is synchronized with the display's refresh rate (e.g., 60Hz or 120Hz).
+
+## RenderingNG: Property Trees vs. Layer Trees
+
+In legacy architectures, browsers relied heavily on a **Layer Tree**. If an element moved or changed opacity, the browser often had to rebuild the entire layer tree or walk it recursively during every frame, which was O(N) where N is the number of layers.
+
+**RenderingNG** introduced **Property Trees** (Transform, Clip, Effect, and Scroll trees).
+
+1.  **Decoupling**: Instead of baking transforms into the layer hierarchy, the browser stores them in separate trees.
+2.  **Efficiency**: The compositor can update an element's position by simply applying a different matrix from the Transform Tree without re-walking the entire layout or style tree.
+3.  **Compositor-Only Animations**: Animations affecting `transform` or `opacity` bypass the Main Thread entirely because the Compositor has all the information needed in its property trees to update the frame.
+
+## Performance Impact: Interaction to Next Paint (INP)
+
+**Interaction to Next Paint (INP)** measures how quickly the browser can present the next frame after a user interaction. The rendering pipeline architecture directly dictates INP:
+
+- **Input Delay**: Occurs if the Main Thread is busy with long-running JS, Layout, or Style tasks.
+- **Processing Time**: Time taken by Event Listeners.
+- **Presentation Delay**: The time required to run the pipeline (Commit → Raster → Draw).
+
+By offloading animations and scrolling to the Compositor thread, browsers ensure that high-frequency visual updates do not block the Main Thread, preserving its availability for processing user inputs.
+
+## Architecture & Scalability
+
+- **Process Isolation**: The **Renderer Process** (where the Main Thread lives) is sandboxed. The **Viz Process** (GPU) is a separate process responsible for final drawing, ensuring that a GPU driver crash doesn't take down the entire browser.
+- **Tiling**: To manage GPU memory, the Compositor breaks the viewport into tiles (typically 256x256 or 512x512). Only visible or "near-visible" tiles are rasterized.
+- **Main Thread Scheduling**: Modern engines use priority-based scheduling to ensure that input handling and rendering updates take precedence over background tasks.
 
 ---
 
-## References
+## Appendix
 
-### Core Documentation
+### Prerequisites
 
+- Familiarity with the **Single-Threaded Model** of JavaScript.
+- Understanding of **GPU vs. CPU** execution models.
+- Basic knowledge of **CSS Cascade and Inheritance**.
+
+### Summary
+
+The Critical Rendering Path has evolved from a simple linear parser into a complex, multi-threaded pipeline known as RenderingNG. By utilizing Property Trees and off-main-thread compositing, browsers isolate expensive operations (Layout/Style) from high-frequency updates (Scroll/Transform), directly improving Core Web Vitals like INP.
+
+### References
+
+- [W3C: HTML Specification - Rendering](https://html.spec.whatwg.org/multipage/rendering.html)
+- [W3C: CSS Cascading and Inheritance](https://www.w3.org/TR/css-cascade/)
+- [Chromium: RenderingNG Architecture](https://developer.chrome.com/docs/chromium/renderingng-architecture)
+- [Chromium: How cc Works (The Compositor)](https://chromium.googlesource.com/chromium/src/+/master/docs/how_cc_works.md)
+- [web.dev: Interaction to Next Paint (INP)](https://web.dev/articles/inp)
 - [MDN: Critical Rendering Path](https://developer.mozilla.org/en-US/docs/Web/Performance/Critical_rendering_path)
-- [web.dev: Understanding the Critical Path](https://web.dev/learn/performance/understanding-the-critical-path)
 
-### Browser Architecture
+### Terminology
 
-- [Chromium: Compositor Thread Architecture](https://www.chromium.org/developers/design-documents/compositor-thread-architecture/)
-- [Chrome Developers: RenderingNG Architecture](https://developer.chrome.com/docs/chromium/renderingng-architecture)
-- [Chromium: GPU Accelerated Compositing](https://www.chromium.org/developers/design-documents/gpu-accelerated-compositing-in-chrome/)
-- [Chromium: How cc Works](https://chromium.googlesource.com/chromium/src/+/master/docs/how_cc_works.md)
-
-#### From ByteByteGo
-
-- Downloaded from [Alex Xu](https://twitter.com/alexxubyte/status/1534201523713867777) Twitter post.
-
-<figure>
-
-![CRP from Bytebytego](./crp-bytebytego.jpeg)
-
-<figcaption>Comprehensive critical rendering path diagram from ByteByteGo showing the complete browser rendering pipeline</figcaption>
-
-</figure>
+- **DOM (Document Object Model)**: A tree representation of the HTML structure.
+- **CSSOM (CSS Object Model)**: A tree representation of the styles associated with the DOM.
+- **Reflow**: The process of recalculating the positions and sizes of all elements (Layout).
+- **Repaint**: The process of re-recording drawing commands when visual styles (colors, shadows) change without affecting geometry.
+- **Viz (Visuals)**: Chromium's service that coordinates the display of pixels from multiple processes.
+- **FOUC (Flash of Unstyled Content)**: An artifact where the browser displays content before CSS is fully loaded/parsed.

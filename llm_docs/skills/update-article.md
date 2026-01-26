@@ -32,7 +32,7 @@ Update an **existing** article based on a prompt. This skill is agent-agnostic a
 
 3. **Rigorous Research & Fact-Checking**
    - **Hierarchy of Sources (Strict Priority):**
-     1. **Specifications:** (e.g., HTML/ECMAScript specs, RFCs). *Primary source of truth.*
+     1. **Specifications:** (e.g., HTML/ECMAScript specs, RFCs). _Primary source of truth._
      2. **Official Documentation & Engineering Blogs:** (e.g., v8.dev, libuv docs, React docs, tool-specific docs).
      3. **Authoritative Industry Sources:** (e.g., web.dev, MDN).
      4. **Prominent Domain Experts:** (e.g., recognized engineering leaders' blogs).
@@ -41,7 +41,7 @@ Update an **existing** article based on a prompt. This skill is agent-agnostic a
 4. **Target Audience Alignment (Senior/Staff/Principal)**
    - **Assume Expertise:** The reader is highly technical. Skip beginner explanations.
    - **No Fluff:** Eliminate filler words ("basically", "simply", "in order to"). Be direct and dense.
-   - **Handling Basics:** If a basic concept *must* be defined, move it to the **Appendix** (under "Terminology" or "Prerequisites"). Keep the main body focused on advanced internals, patterns, and system design.
+   - **Handling Basics:** If a basic concept _must_ be defined, move it to the **Appendix** (under "Terminology" or "Prerequisites"). Keep the main body focused on advanced internals, patterns, and system design.
 
 5. **Plan the edits**
    - Decide what to add, remove, or restructure.
@@ -51,7 +51,7 @@ Update an **existing** article based on a prompt. This skill is agent-agnostic a
    - Correct inaccuracies and drift using the research hierarchy.
    - Add/refine examples, specifically highlighting edge cases and limitations.
    - Insert spec quotes where they add necessary precision.
-   - **Code Blocks:** Keep them collapsed (`collapse={...}`) and minimal. Focus on the *diff* or the *critical logic*.
+   - **Code Blocks:** Keep them collapsed (`collapse={...}`) and minimal. Focus on the _diff_ or the _critical logic_.
 
 7. **Quality review**
    - **Conciseness Check:** Can this be said with fewer words?

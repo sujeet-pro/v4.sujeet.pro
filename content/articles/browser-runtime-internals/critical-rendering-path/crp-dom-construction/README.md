@@ -1,17 +1,40 @@
 # Critical Rendering Path: DOM Construction
 
-How browsers parse HTML bytes into a Document Object Model tree, and why JavaScript loading strategies matter for performance.
+How browsers parse HTML bytes into a Document Object Model (DOM) tree, why JavaScript loading strategies dictate performance, and how the preload scanner mitigates the cost of parser-blocking resources.
+
+## TLDR
+
+### Incremental Parsing
+
+- DOM construction is incremental; the browser can build the tree and discover resources while HTML is still streaming.
+- This enables progressive rendering and early resource discovery via the preload scanner.
+
+### Blocking Mechanics
+
+- Scripts block HTML parsing by default to prevent race conditions (e.g., `document.write()` or querying styles before CSSOM is ready).
+- CSS is render-blocking but becomes parser-blocking if followed by a script that requires the CSS Object Model (CSSOM).
+
+### Resource Discovery
+
+- The preload scanner runs a secondary, lightweight parse to find and fetch external resources (`<script>`, `<link>`, `<img>`) while the main parser is blocked.
+- JavaScript-injected resources and CSS-defined assets (like `background-image`) are invisible to the preload scanner.
+
+### Loading Strategies
+
+- `async`: Parallel download, executes immediately (order not guaranteed).
+- `defer`: Parallel download, executes after DOM is parsed but before `DOMContentLoaded` (order guaranteed).
+- `module`: Deferred by default, supports ESM features.
 
 ## The Parsing Process
 
-The browser parses HTML bytes into a Document Object Model (DOM) tree through four steps:
+The browser parses HTML bytes into a DOM tree through four stages:
 
-1. **Conversion**: Translate bytes into characters using specified encoding (UTF-8)
-2. **Tokenizing**: Break character stream into tokens (`<html>`, `<body>`, text nodes) per HTML5 spec
-3. **Lexing**: Convert tokens into nodes with properties and rules
-4. **Tree Construction**: Link nodes into parent-child tree structure
+1. **Conversion**: Translate bytes into characters using specified encoding (usually UTF-8).
+2. **Tokenization**: Break the character stream into tokens (`<html>`, `<body>`, text nodes) per the HTML spec.
+3. **Lexing**: Convert tokens into node objects with specific properties and rules.
+4. **Tree Construction**: Link nodes into a parent-child structure representing the Document Object Model.
 
-```html
+```html collapse={1-10,13-16}
 <!doctype html>
 <html>
   <head>
@@ -30,7 +53,7 @@ The browser parses HTML bytes into a Document Object Model (DOM) tree through fo
 
 ![DOM Construction Example](./dom-construction-example.invert.png)
 
-<figcaption>DOM tree construction from HTML parsing: each element becomes a node with parent-child relationships preserved</figcaption>
+<figcaption>DOM tree construction from HTML parsing: each element becomes a node with parent-child relationships preserved.</figcaption>
 
 </figure>
 
@@ -38,9 +61,9 @@ The browser parses HTML bytes into a Document Object Model (DOM) tree through fo
 
 Unlike [CSSOM construction](../crp-cssom-construction/README.md), DOM construction doesn't require the complete document. The browser parses and builds incrementally, enabling:
 
-- Early resource discovery (the preload scanner can find `<link>` and `<script>` tags)
-- Progressive rendering of content above the fold
-- Faster Time to First Byte → First Contentful Paint pipeline
+- **Early resource discovery**: The preload scanner can find `<link>` and `<script>` tags before they are reached by the main parser.
+- **Progressive rendering**: Content above the fold can be displayed as soon as it's parsed and styled.
+- **Faster TFB → FCP pipeline**: Reducing the time from Time to First Byte (TTFB) to First Contentful Paint (FCP).
 
 ---
 
@@ -48,11 +71,11 @@ Unlike [CSSOM construction](../crp-cssom-construction/README.md), DOM constructi
 
 By default, `<script>` tags block HTML parsing because scripts might:
 
-1. **Modify the DOM being parsed**: `document.write()` can inject HTML
-2. **Query DOM state**: Script may expect certain elements to exist
-3. **Access computed styles**: May need CSSOM for `getComputedStyle()`
+1. **Modify the DOM**: `document.write()` can inject HTML directly into the parsing stream.
+2. **Query DOM state**: Scripts often expect certain elements to exist in the DOM.
+3. **Access computed styles**: Scripts may need CSSOM for `getComputedStyle()`, creating a dependency on CSS.
 
-```html
+```html collapse={1-3,8-11}
 <head>
   <link rel="stylesheet" href="styles.css" />
   <script>
@@ -64,60 +87,27 @@ By default, `<script>` tags block HTML parsing because scripts might:
 
 ### The Blocking Chain
 
-1. HTML parser encounters `<script>`
-2. Download script (if external)—this happens in parallel with CSS loading
-3. Wait for CSSOM to complete (if CSS is still loading)—scripts might access computed styles
-4. Execute script
-5. Resume HTML parsing
+1. HTML parser encounters a `<script>`.
+2. The browser downloads the script (if external) in parallel with CSS.
+3. Execution waits for CSSOM completion if CSS is still loading (to prevent style race conditions).
+4. Script executes.
+5. HTML parsing resumes.
 
-**Important**: CSS blocks JavaScript **execution**, not **download**. The browser downloads scripts in parallel with CSS, but won't execute them until CSSOM is ready. This prevents race conditions where scripts might read incorrect or incomplete style information.
+**Note**: CSS blocks JavaScript **execution**, not **download**. The browser fetches scripts in parallel but won't run them until styles are resolved.
 
 ---
 
 ## Browser Design: Why CSS is Render-Blocking
 
-CSS blocks rendering—not parsing—for a fundamental reason: **the cascade cannot be resolved incrementally**.
+CSS blocks rendering—not parsing—because the cascade cannot be resolved incrementally.
 
-Consider what would happen if browsers rendered with partial CSSOM:
-
-```css
-/* styles.css - loaded in chunks */
-
-/* Chunk 1 arrives first */
-h1 {
-  color: red;
-  font-size: 48px;
-}
-.hero {
-  background: blue;
-}
-
-/* User sees: red headings, blue hero */
-
-/* Chunk 2 arrives */
-h1 {
-  color: green;
-} /* Override! */
-.hero {
-  background: white;
-} /* Override! */
-
-/* User sees: jarring flash as colors change */
-```
-
-This "Flash of Unstyled Content" (FOUC) or "Flash of Wrong Styles" creates a poor user experience. Browsers wait for complete CSSOM to ensure:
-
-1. **Correct final styles**: All cascade rules resolved
-2. **No layout shifts**: Elements positioned correctly from first paint
-3. **Visual stability**: Users see intended design immediately
-
-**The Trade-off**: Waiting for CSS delays First Contentful Paint, but prevents jarring visual changes.
+If browsers rendered with a partial CSSOM, users would experience a **Flash of Unstyled Content (FOUC)** or "Flash of Wrong Styles" as later rules override earlier ones. Browsers wait for a complete CSSOM to ensure visual stability and prevent layout shifts.
 
 ### When CSS Becomes Parser-Blocking
 
-CSS is normally only render-blocking, not parser-blocking. However, CSS **becomes parser-blocking** when JavaScript follows it:
+CSS becomes parser-blocking when a `<script>` follows it in the document:
 
-```html
+```html collapse={1}
 <head>
   <link rel="stylesheet" href="styles.css" />
   <!-- CSS is downloading... -->
@@ -127,14 +117,7 @@ CSS is normally only render-blocking, not parser-blocking. However, CSS **become
 </head>
 ```
 
-Here's why:
-
-1. The parser encounters the `<script>` tag
-2. The script might call `getComputedStyle()` or access CSSOM
-3. Browser must wait for CSS to finish before executing JS
-4. Since JS blocks parsing, CSS now **indirectly** blocks parsing
-
-**Solution**: Use `defer` or `async` to prevent this blocking chain.
+The browser must wait for CSS to finish to build the CSSOM, so it can safely execute the script, which in turn blocks the parser. This indirect blocking is a common performance bottleneck.
 
 ---
 
@@ -144,7 +127,7 @@ Here's why:
 
 ![Async, Defer, Module Diagram](./asyncdefer.inline.svg)
 
-<figcaption>Timeline comparison: default scripts block parsing; async/defer enable parallel download</figcaption>
+<figcaption>Timeline comparison: default scripts block parsing; async/defer enable parallel download.</figcaption>
 
 </figure>
 
@@ -154,62 +137,9 @@ Here's why:
 <script src="app.js"></script>
 ```
 
-- Blocks HTML parsing until download and execution complete
-- Order preserved for multiple scripts
-- Blocks on CSS if script accesses computed styles
-- **Use for**: Legacy scripts that use `document.write()` (avoid if possible)
-
-> **Parser-Blocking vs Render-Blocking**: Default scripts block _parsing_, not _rendering_. This distinction matters: parser-blocking prevents the browser from building more of the DOM, while render-blocking prevents painting to the screen.
-
-**Example: Parser-Blocking Without Render-Blocking**
-
-```html
-<!doctype html>
-<html>
-  <head>
-    <style>
-      .hero {
-        background: blue;
-        height: 100vh;
-      }
-      .hero:hover {
-        background: red;
-      }
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.5;
-        }
-      }
-      .animated {
-        animation: pulse 1s infinite;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="hero animated">Hover me! Animation runs!</div>
-
-    <!-- Parser blocks here waiting for slow-script.js -->
-    <script src="slow-script.js"></script>
-
-    <div class="footer">This won't appear until script executes</div>
-  </body>
-</html>
-```
-
-While `slow-script.js` downloads (parser blocked), the browser **continues rendering**:
-
-- The CSS animation keeps running smoothly
-- Hovering the hero changes its background to red
-- Scrolling works, text can be selected
-- The compositor thread handles these updates independently
-
-If the script were **render-blocking** (like CSS in `<head>`), none of this would happen—the screen would stay blank until the resource loaded.
-
-**When scripts ARE render-blocking**: A script in `<head>` before any `<body>` content effectively blocks rendering because there's no DOM to render yet. Scripts added dynamically don't block rendering unless you set `blocking="render"`.
+- Blocks HTML parsing until download and execution complete.
+- Preserves document order.
+- **Use for**: Legacy scripts that require `document.write()`.
 
 ### Async
 
@@ -217,11 +147,10 @@ If the script were **render-blocking** (like CSS in `<head>`), none of this woul
 <script src="analytics.js" async></script>
 ```
 
-- Downloads in parallel with HTML parsing
-- Executes immediately when download completes
-- **Order NOT preserved**—executes in download-completion order
-- Still blocks on CSS if accessing computed styles
-- **Use for**: Independent scripts (analytics, ads, social widgets)
+- Downloads in parallel with parsing.
+- Executes immediately upon download (interrupts parser).
+- **Order NOT preserved**.
+- **Use for**: Independent third-party scripts (analytics, ads).
 
 ### Defer
 
@@ -229,10 +158,10 @@ If the script were **render-blocking** (like CSS in `<head>`), none of this woul
 <script src="app.js" defer></script>
 ```
 
-- Downloads in parallel with HTML parsing
-- Executes after DOM is fully parsed, before `DOMContentLoaded`
-- **Order preserved**—executes in document order
-- **Use for**: Application scripts that need the DOM
+- Downloads in parallel with parsing.
+- Executes after the DOM is fully parsed but before `DOMContentLoaded`.
+- **Order preserved**.
+- **Use for**: Primary application scripts.
 
 ### Module
 
@@ -240,13 +169,9 @@ If the script were **render-blocking** (like CSS in `<head>`), none of this woul
 <script type="module" src="app.js"></script>
 ```
 
-- **Deferred by default**—no need to add `defer` attribute
-- **Order preserved**—executes in document order (same as `defer`)
-- Supports `import`/`export` syntax
-- Supports top-level `await`
-- Each module executes once (cached)
-- Adding `async` makes it execute immediately when downloaded (losing order guarantees)
-- **Use for**: Modern applications with ES modules
+- **Deferred by default**.
+- Supports `import`/`export` and top-level `await`.
+- Executes once (singleton behavior).
 
 ### Summary Table
 
@@ -257,102 +182,58 @@ If the script were **render-blocking** (like CSS in `<head>`), none of this woul
 | `defer`  | No              | Yes             | After DOM parsed | App scripts    |
 | `module` | No              | Yes             | After DOM parsed | Modern apps    |
 
-> **Note**: Module scripts are deferred by default and preserve document order like `defer`. Adding `async` to a module makes it execute as soon as downloaded, losing order guarantees.
-
-### Priority Hints
-
-```html
-<script src="critical.js" fetchpriority="high"></script>
-<script src="analytics.js" fetchpriority="low" async></script>
-```
-
-- `fetchpriority="high"`: Increase priority for critical scripts
-- `fetchpriority="low"`: Decrease priority for non-essential scripts
-- Works with `async` and `defer`
-
 ---
 
 ## The Preload Scanner
 
-The **preload scanner** is a secondary, lightweight HTML parser that runs ahead of the main parser to discover resources:
+The **preload scanner** is a secondary parser that runs ahead of the main parser to discover and fetch external resources. This mitigates the impact of parser-blocking scripts.
 
-```html
-<!doctype html>
-<html>
-  <head>
-    <link rel="stylesheet" href="styles.css" />
-    <!-- Preload scanner finds this -->
-    <script src="blocking.js"></script>
-    <!-- Main parser blocks here -->
-    <link rel="stylesheet" href="more.css" />
-    <!-- Preload scanner already found this! -->
-    <script src="another.js"></script>
-    <!-- And this! -->
-  </head>
-</html>
-```
+### What it can find
 
-While the main parser is blocked waiting for `blocking.js`, the preload scanner has already discovered and started fetching `more.css` and `another.js`.
+- `<link rel="stylesheet">`
+- `<script src="...">`
+- `<img>` and `<link rel="preload">`
 
-### What Preload Scanner Can Find
+### What it misses
 
-- `<link rel="stylesheet">` href
-- `<script>` src
-- `<img>` src and srcset
-- `<link rel="preload">` href
-- `<link rel="modulepreload">` href
-
-### What Defeats the Preload Scanner
-
-- Resources loaded via JavaScript (`document.createElement('script')`)
-- CSS `background-image` URLs
-- JavaScript-injected `<img>` tags
-- Fully client-side rendered content (SPA without SSR)
-- Lazy-loaded above-the-fold images
-
-**Best Practice**: Declare critical resources in HTML markup so the preload scanner can discover them. Use SSR/SSG for critical content paths.
+- JavaScript-injected resources (e.g., `document.createElement('script')`).
+- CSS `background-image` or `@import`.
+- Client-side rendered content in Single Page Applications (SPAs) without Server-Side Rendering (SSR) or Static Site Generation (SSG).
 
 ---
 
-## Developer Optimizations
+## Conclusion
 
-### Resource Loading Hints
+DOM construction is a highly optimized but sensitive process. While the browser's incremental parsing and preload scanner attempt to maximize throughput, parser-blocking scripts and their indirect dependency on CSSOM remain the primary bottlenecks in the Critical Rendering Path. Modern loading strategies like `defer` and `type="module"` should be the default choice to decouple resource execution from the document parsing lifecycle.
 
-#### Preload Critical Resources
+## Appendix
 
-```html
-<!-- Preload critical CSS -->
-<link rel="preload" href="critical.css" as="style" />
+### Prerequisites
 
-<!-- Preload critical font -->
-<link rel="preload" href="font.woff2" as="font" type="font/woff2" crossorigin />
+- Basic understanding of HTML, CSS, and JavaScript.
+- Familiarity with the request-response cycle (HTTP).
 
-<!-- Preload critical image -->
-<link rel="preload" href="hero.webp" as="image" />
-```
+### Terminology
 
-#### Prefetch Future Resources
+- **DOM**: Document Object Model, the tree representation of HTML.
+- **CSSOM**: CSS Object Model, the tree representation of styles.
+- **Critical Rendering Path (CRP)**: The sequence of steps the browser takes to convert HTML, CSS, and JS into pixels on the screen.
+- **FOUC**: Flash of Unstyled Content, a visual glitch where unstyled content is shown before CSS is applied.
+- **Preload Scanner**: A browser optimization that fetches resources in parallel with the main parser.
+- **SSR/SSG**: Server-Side Rendering or Static Site Generation, techniques to provide pre-rendered HTML to the browser.
+- **SPA**: Single Page Application, a web app that loads a single HTML page and updates content dynamically via JavaScript.
 
-```html
-<!-- Prefetch resources for likely next navigation -->
-<link rel="prefetch" href="/next-page.html" />
-<link rel="prefetch" href="/next-page-styles.css" />
-```
+### Summary
 
-#### Preconnect to Origins
+- HTML is parsed into DOM nodes via conversion, tokenization, lexing, and tree construction.
+- Scripts are parser-blocking by default; they can modify the DOM or wait for CSSOM.
+- CSS is render-blocking but can indirectly block the parser if followed by a script.
+- The preload scanner discovers external resources early to mitigate blocking.
+- Use `defer` or `module` for application logic to keep the parser unblocked.
 
-```html
-<!-- Establish early connection to critical third-party origin -->
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://cdn.example.com" crossorigin />
-```
+### References
 
----
-
-## References
-
+- [HTML Spec: Parsing HTML documents](https://html.spec.whatwg.org/multipage/parsing.html#parsing)
+- [HTML Spec: Scripting and Blocking](https://html.spec.whatwg.org/multipage/scripting.html)
 - [MDN: Critical Rendering Path](https://developer.mozilla.org/en-US/docs/Web/Performance/Critical_rendering_path)
 - [web.dev: Constructing the Object Model](https://web.dev/articles/critical-rendering-path/constructing-the-object-model)
-- [HTML Spec: Blocking Attributes](https://html.spec.whatwg.org/multipage/urls-and-fetching.html#blocking-attributes)
-- [HTML Living Standard: Scripting](https://html.spec.whatwg.org/multipage/scripting.html)
-- [You Don't Need the DOM Ready Event](https://thanpol.as/javascript/you-dont-need-dom-ready)
