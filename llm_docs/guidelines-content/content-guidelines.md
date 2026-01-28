@@ -12,14 +12,14 @@ These guidelines define how to write and review articles for this repo. They are
 ## Non-Negotiable Rules (All MUST)
 
 1. **Principal engineer voice**: Peer-to-peer for senior engineers and technical leadership.
-2. **Concise yet deep**: Every paragraph adds new information or analysis; remove filler.
-3. **Edge cases included**: Cover limits, failure modes, and surprising behaviors.
-4. **Technical accuracy first**: Every technical claim must be verified; references required.
-5. **Specs first**: Always include specification links; quote short spec lines (<= 25 words) for nuance.
-6. **Coherent flow**: Each section builds on the previous; transitions make the progression explicit.
-7. **Examples everywhere**: Every section includes a real-world example with concrete constraints.
-8. **Design choices explained**: For each decision, explain trade-offs and when it does or does not make sense.
-9. **Historical evolution**: Include where it clarifies why the design exists.
+2. **Concise yet exhaustive**: Every paragraph adds new technical insight; remove filler and unnecessary explanations. But cover ALL edge cases, failure modes, and implementation nuances.
+3. **Why and how, not just what**: Focus on reasoning behind design choices, not just listing features. Every "what" must have a "why".
+4. **Technical accuracy first**: Every technical claim must be verified against specs, official docs, or core maintainer sources; references required.
+5. **Specs and official sources first**: Always cite specifications (RFCs, WHATWG, ECMA, etc.) and official documentation. Quote short spec lines (<= 25 words) for nuance.
+6. **Version-aware content**: State the current version explicitly. When behavior has changed, note the previous implementation so readers understand the evolution.
+7. **Design reasoning explicit**: For each design choice (by the tool/service/standard), explain the constraints, trade-offs, and reasoning behind it.
+8. **Examples with real constraints**: Every section includes a production-relevant example with concrete numbers and operational implications.
+9. **Coherent flow**: Each section builds on the previous; transitions make the progression explicit.
 10. **Single-topic focus**: Split broad topics into a series.
 
 ## Required Article Structure
@@ -27,8 +27,8 @@ These guidelines define how to write and review articles for this repo. They are
 1. **H1 Title**
 2. **Description paragraph(s)** directly after H1 (used for metadata)
 3. **Overview diagram** (mermaid or image) with `<figure>` and `<figcaption>`
-4. **TLDR** section with themed subsections and bullet points
-5. **Main sections** (H2/H3) with a clear progression
+4. **Abstract** section (mental model for the entire article—see below)
+5. **Main sections** (H2/H3) with in-depth technical analysis
 6. **Conclusion** (concise synthesis)
 7. **Appendix** (final H2) containing:
    - **Prerequisites** (H3, required) - list assumed knowledge or state "None"
@@ -37,6 +37,26 @@ These guidelines define how to write and review articles for this repo. They are
    - **References** (H3, required) - specs first
 
 No manual Table of Contents. The Appendix must be the final H2 section.
+
+### Abstract (Replaces TLDR)
+
+The Abstract is a **mental model** of the article, not a summary of each section. It should:
+
+- **Be revision-friendly**: A senior engineer should be able to read just the Abstract and recall the key concepts.
+- **Use any effective format**: Prose, bullet points, a diagram, or a combination—whatever communicates the core mental model best.
+- **Not mirror headings**: Do NOT create a bullet point for each section heading. Instead, distill the conceptual essence.
+- **Be concise but complete**: Capture the "gist" that would let someone reconstruct the main ideas.
+
+**Good Abstract patterns:**
+- A single diagram showing the relationship between concepts
+- 3-5 bullets capturing the core mental model (not section summaries)
+- A short paragraph explaining the key insight followed by a diagram
+- A table showing key trade-offs or comparisons
+
+**Bad Abstract patterns:**
+- "In this article we cover X, Y, Z" (meta-description)
+- One bullet per heading (section-by-section summary)
+- Long prose that repeats what's in the article
 
 ### Description Paragraphs (Meta Description)
 
@@ -69,23 +89,45 @@ The description is extracted from the text between the H1 and the first H2. Keep
 
 ### Design Decisions and Trade-Offs
 
-For each major design choice, cover:
+For each major design choice made by the tool, service, or standard, cover:
 
-- **Why it exists** (constraints and assumptions)
+- **Why it exists** (what problem or constraint drove the design)
 - **What it optimizes** (latency, cost, operability, consistency, etc.)
 - **What it sacrifices** (complexity, memory, portability, etc.)
-- **When it makes sense**
-- **When it does not**
+- **When it makes sense** (concrete use cases)
+- **When it does not** (antipatterns, misuse scenarios)
 
-### Historical Context
+The goal is to explain the **reasoning**, not just list features. A senior engineer should understand why the designers made these choices.
 
-When applicable, explain:
+### Version Evolution (Required for Changing Topics)
 
-- What problem the prior approach had
-- What changed in the new version
-- How the new design addresses prior pain
+For topics where behavior has changed in recent versions:
 
-Example: HTTP/1.0 -> HTTP/1.1 -> HTTP/2 -> HTTP/3.
+1. **State the current version explicitly** (e.g., "As of Node.js 20.x..." or "React 18+")
+2. **Note previous behavior** when it differs materially from current
+3. **Explain why it changed** (the problem with the old approach)
+
+**Format example:**
+
+```markdown
+As of React 18, concurrent rendering is the default. Renders can be interrupted and resumed.
+
+> **Prior to React 18:** Rendering was synchronous and blocking. Once started, a render had to complete before the browser could respond to input. This caused jank on complex updates.
+```
+
+This helps readers who encounter older code or documentation understand that behavior has evolved.
+
+### In-Depth Technical Analysis
+
+Main sections should dive deep into implementation details:
+
+- **Internal mechanics**: How does it actually work under the hood?
+- **Edge cases and limits**: Boundary conditions, maximum values, undefined behaviors
+- **Failure modes**: What breaks, when, and how to detect/recover
+- **Performance characteristics**: Time/space complexity, real-world benchmarks where relevant
+- **Gotchas**: Counterintuitive behaviors, common mistakes, version-specific traps
+
+The depth should match what a principal engineer would want when debugging a production issue or making an architectural decision.
 
 ### Optional Engagement Hooks
 
@@ -127,25 +169,29 @@ If the key insight is a single line inside a function, show only that line and c
 - H1 present and specific
 - Description paragraph immediately after H1
 - Overview diagram with figcaption
-- TLDR with subsections
+- Abstract section with mental model (not section-by-section summary)
 - Conclusion present
 - Appendix is last H2 and includes Prerequisites, Summary, and References
 - Terminology included when needed
 
 ### Accuracy and Evidence
 
-- All technical claims verified
+- All technical claims verified against specs, official docs, or core maintainer sources
 - Specs cited (highest priority)
 - Short spec quotes included for key nuances
-- References list complete and relevant
+- Current version stated explicitly where relevant
+- Previous behavior noted when it has changed
+- References list complete and prioritized (specs first)
 
 ### Content Quality
 
 - Single-topic focus (or overview with linked supporting articles)
-- Every section includes a real-world example
-- Edge cases and failure modes covered
-- Design decisions explained with trade-offs
-- Historical evolution covered where relevant
+- Why and how explained, not just what
+- Design reasoning explicit for each major choice
+- Every section includes a production-relevant example
+- Edge cases, failure modes, and limits exhaustively covered
+- In-depth technical analysis of internal mechanics
+- Version evolution documented where applicable
 - Section flow is coherent and explicit
 
 ### Code Blocks
@@ -158,5 +204,6 @@ If the key insight is a single line inside a function, show only that line and c
 
 - Principal engineer voice
 - Friendly but professional
-- Concise, no filler
+- Concise but exhaustive—no filler, all edge cases covered
+- No unnecessary explanations for senior engineers
 - Abbreviations expanded on first use
