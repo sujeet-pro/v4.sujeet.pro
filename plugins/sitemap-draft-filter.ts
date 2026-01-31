@@ -16,7 +16,7 @@
  */
 
 import { glob } from "glob"
-import { parse as parseJsonc } from "jsonc-parser"
+import JSON5 from "json5"
 import fs from "node:fs"
 import path from "node:path"
 import { getSlug } from "./utils/slug.utils"
@@ -28,7 +28,7 @@ const ARTICLES_DIR = path.resolve("./content/articles")
 const ARTICLE_GLOB = path.join(ARTICLES_DIR, "**/README.md")
 
 /** Path to vanity URLs file */
-const VANITY_FILE_PATH = "./content/vanity.jsonc"
+const VANITY_FILE_PATH = "./content/vanity.json5"
 
 /** Static pages to always exclude from sitemap */
 const EXCLUDED_PATHS = ["/articles/drafts", "/drafts", "/posts/drafts"]
@@ -42,12 +42,12 @@ interface VanityEntry {
 }
 
 /**
- * Get all vanity URL paths from the vanity.jsonc file.
+ * Get all vanity URL paths from the vanity.json5 file.
  */
 function getVanityPaths(): string[] {
   try {
     const content = fs.readFileSync(VANITY_FILE_PATH, "utf-8")
-    const entries = parseJsonc(content) as VanityEntry[]
+    const entries = JSON5.parse(content) as VanityEntry[]
     return entries.map((entry) => `/${entry.id}`)
   } catch {
     // File doesn't exist or parse error, return empty array

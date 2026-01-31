@@ -1,313 +1,233 @@
 # HTTP/1.1 to HTTP/2: Bottlenecks and Multiplexing
 
-An in-depth look at how HTTP/1.1's request/response model and head-of-line blocking led to HTTP/2's multiplexing, header compression, and stream prioritization. This article focuses on architectural bottlenecks, connection behavior, and performance implications across HTTP/1.1 and HTTP/2.
+How HTTP/1.1's request-response model and application-layer head-of-line (HOL) blocking led to HTTP/2's binary framing, HPACK header compression, and stream multiplexing. This article covers the architectural constraints, design trade-offs, and remaining TCP-layer limitations that motivated HTTP/3.
 
 <figure>
 
 ```mermaid
 flowchart LR
-    H1["HTTP/1.1<br/>TCP + TLS 1.2<br/>3 RTT"] --> H2["HTTP/2<br/>TCP + TLS 1.3<br/>2 RTT"]
-    HOL["HOL Blocking"] --> MUX["Multiplexing"]
+    subgraph HTTP1["HTTP/1.1"]
+        H1C["6 TCP Connections"]
+        H1HOL["App-Layer HOL"]
+        H1H["Text Headers"]
+    end
+
+    subgraph HTTP2["HTTP/2"]
+        H2C["1 TCP Connection"]
+        H2MUX["Multiplexed Streams"]
+        H2H["HPACK Compression"]
+    end
+
+    HTTP1 -->|"RFC 9113 (2022)"| HTTP2
+    H1HOL -.->|"Solved"| H2MUX
+    H1H -.->|"Compressed"| H2H
+    H2C -.->|"TCP HOL Remains"| H3["HTTP/3 (QUIC)"]
 ```
 
-<figcaption>Evolution from HTTP/1.1 to HTTP/2 highlighting latency reduction and multiplexing</figcaption>
+<figcaption>HTTP/1.1's workarounds (multiple connections, text headers) replaced by HTTP/2's single-connection multiplexing, with TCP HOL blocking as the remaining constraint addressed by HTTP/3</figcaption>
 
 </figure>
 
-## TLDR
+## Abstract
 
-**HTTP/1.1 to HTTP/2** addresses application-layer head-of-line blocking, header overhead, and connection limits by introducing multiplexing and binary framing over a single TCP connection.
+**Mental model**: HTTP/1.1 treats a TCP connection as a single-lane road where one slow response blocks everything behind it. HTTP/2 turns that road into multiple independent lanes (streams) over the same TCP connection, but the underlying TCP still delivers packets in order—so a single lost packet stalls all lanes until retransmission completes.
 
-### Key Differences
+### Core Trade-offs
 
-- **HTTP/1.1**: multiple parallel TCP connections, sequential responses, application-layer HOL blocking
-- **HTTP/2**: multiplexed streams, HPACK header compression, stream prioritization, but TCP HOL remains
-- **TLS + ALPN**: negotiate HTTP/2 during handshake without extra RTT; browsers require TLS for HTTP/2
+| Aspect | HTTP/1.1 Approach | HTTP/2 Solution | Remaining Constraint |
+|--------|-------------------|-----------------|---------------------|
+| **HOL blocking** | Open 6 connections per domain | Multiplex streams on 1 connection | TCP delivers in-order; packet loss stalls all streams |
+| **Header overhead** | Repeat verbose headers every request | HPACK compression (static + dynamic tables) | Dynamic table state must be synchronized |
+| **Resource prioritization** | None (implicit by request order) | Stream prioritization (deprecated in RFC 9113) | Inconsistent implementation led to deprecation |
+| **Proactive delivery** | None | Server push (removed from browsers in 2022-2024) | Wasted bandwidth; replaced by 103 Early Hints |
 
-### Practical Takeaways
+### Practical Implications
 
-- **Fewer connections**: consolidate domains to maximize multiplexing benefits
-- **Smaller critical payloads**: TCP HOL still hurts on loss; optimize bundles and critical paths
-- **Server support**: enable `h2` + TLS 1.3 + ALPN and verify browser negotiation
+- **Consolidate origins**: HTTP/2's multiplexing works best with fewer domains; domain sharding is now an anti-pattern
+- **TCP loss still hurts**: On lossy networks (mobile, high-latency), HTTP/2 can underperform HTTP/1.1's multiple connections
+- **Priority signals ignored**: Most servers and CDNs don't implement RFC 9218 priority; optimize critical resource order server-side
 
-## Terminology
+## HTTP/1.1 Architectural Limitations
 
-### HTTP & Web Protocols
+HTTP/1.1 (standardized in RFC 2068, revised in RFC 9112) introduced persistent connections and pipelining, but fundamental design constraints remained.
 
-- **HTTP** — _HyperText Transfer Protocol_
-  Application-layer protocol for transferring web resources.
+### Application-Layer Head-of-Line Blocking
 
-- **HTTP/1.0** — _HyperText Transfer Protocol Version 1.0_
-  Early HTTP version with non-persistent connections by default.
-
-- **HTTP/1.1** — _HyperText Transfer Protocol Version 1.1_
-  Introduced persistent connections, chunked transfer encoding, and pipelining (with HOL issues).
-
-- **HTTP/2 (h2)** — _HyperText Transfer Protocol Version 2_
-  Binary protocol with multiplexing, header compression (HPACK), and stream prioritization over TCP.
-
-- **HTTP/3 (h3)** — _HyperText Transfer Protocol Version 3_
-  Runs over QUIC (UDP-based), eliminating transport-layer head-of-line blocking.
-
-- **h2c** — _HTTP/2 Cleartext_
-  HTTP/2 over plaintext TCP using the HTTP Upgrade mechanism (not used by browsers).
-
-### Transport & Networking
-
-- **TCP** — _Transmission Control Protocol_
-  Reliable, ordered, congestion-controlled transport protocol.
-
-- **UDP** — _User Datagram Protocol_
-  Connectionless transport protocol used as the foundation for QUIC.
-
-- **QUIC** — _Quick UDP Internet Connections_
-  UDP-based transport with built-in TLS 1.3, stream multiplexing, and connection migration.
-
-- **RTT** — _Round-Trip Time_
-  Time for a packet to travel from client to server and back.
-
-- **0-RTT** — _Zero Round-Trip Time_
-  Allows sending application data immediately during session resumption (with replay risks).
-
-- **1-RTT** — _One Round-Trip Time_
-  Single round-trip handshake used by TLS 1.3 and QUIC for new connections.
-
-- **HOL (HoL)** — _Head-of-Line Blocking_
-  A condition where one blocked request delays others.
-
-### Security & Cryptography
-
-- **TLS** — _Transport Layer Security_
-  Cryptographic protocol providing confidentiality, integrity, and authentication.
-
-- **TLS 1.0 / 1.1 / 1.2 / 1.3** — _Transport Layer Security Versions_
-  Successive TLS versions; TLS 1.3 significantly reduces handshake latency and enforces forward secrecy.
-
-- **PSK** — _Pre-Shared Key_
-  Used for TLS/QUIC session resumption and 0-RTT data.
-
-- **AEAD** — _Authenticated Encryption with Associated Data_
-  Encryption scheme providing confidentiality and integrity (mandatory in TLS 1.3).
-
-- **RSA** — _Rivest–Shamir–Adleman_
-  Asymmetric cryptographic algorithm (removed from TLS 1.3 key exchange).
-
-- **DHE / ECDHE** — _Diffie–Hellman / Elliptic Curve Diffie–Hellman Ephemeral_
-  Key exchange mechanisms providing forward secrecy.
-
-- **MAC** — _Message Authentication Code_
-  Ensures data integrity and authenticity.
-
-### Protocol Negotiation & Discovery
-
-- **ALPN** — _Application-Layer Protocol Negotiation_
-  TLS extension allowing client and server to agree on HTTP/1.1 vs HTTP/2 during handshake.
-
-- **Alt-Svc** — _Alternative Services_
-  HTTP header indicating alternative protocols/endpoints (e.g., HTTP/3 over QUIC).
-
-- **ALTSVC** — _HTTP/2 Alternative Service Frame_
-  HTTP/2 framing equivalent of the Alt-Svc header.
-
-- **DNS** — _Domain Name System_
-  Resolves domain names to IP addresses and advertises protocol capabilities.
-
-- **SVCB** — _Service Binding DNS Record_
-  DNS record for advertising service endpoints and protocol support.
-
-- **HTTPS (DNS record type)** — _HTTPS Service Binding Record_
-  Alias of SVCB optimized for HTTPS services.
-
-- **ECH** — _Encrypted Client Hello_
-  TLS feature to encrypt the ClientHello and hide metadata (e.g., SNI).
-
-### HTTP/2 & HTTP/3 Internals
-
-- **HPACK** — _Header Compression for HTTP/2_
-  Compresses HTTP headers to reduce overhead.
-
-- **QPACK** — _QUIC Header Compression_
-  Header compression mechanism for HTTP/3 designed to avoid HOL blocking.
-
-- **CID** — _Connection ID_
-  QUIC identifier allowing connection migration across IP/port changes.
-
-### Congestion Control
-
-- **CUBIC** — _CUBIC Congestion Control Algorithm_
-  Loss-based TCP/QUIC congestion control optimized for high-bandwidth networks.
-
-- **BBR** — _Bottleneck Bandwidth and Round-trip propagation time_
-  Model-based congestion control focusing on throughput and latency.
-
-- **NewReno** — _TCP NewReno_
-  Improved loss recovery algorithm over classic TCP Reno.
-
-- **cwnd** — _Congestion Window_
-  Limits the amount of in-flight data a sender can transmit.
-
-- **ssthresh** — _Slow Start Threshold_
-  Boundary between slow start and congestion avoidance.
-
-### Browser & Infrastructure Concepts
-
-- **CDN** — _Content Delivery Network_
-  Distributed servers delivering content closer to users.
-
-- **IP** — _Internet Protocol_
-  Network-layer protocol for addressing and routing packets.
-
-- **IPv4 / IPv6** — _Internet Protocol Version 4 / 6_
-  Addressing standards for identifying devices on networks.
-
-- **SNI** — _Server Name Indication_
-  TLS extension indicating the target hostname (partially protected by ECH).
-
-### General Web Terms
-
-- **JS** — _JavaScript_
-  Client-side scripting language for web applications.
-
-- **CSS** — _Cascading Style Sheets_
-  Stylesheet language for describing document presentation.
-
-- **API** — _Application Programming Interface_
-  Interface enabling software components to communicate.
-
-## Protocol Evolution and Architectural Foundations
-
-The evolution of HTTP from version 1.1 to 3 represents a systematic approach to solving performance bottlenecks at successive layers of the network stack. Each iteration addresses specific limitations while introducing new architectural paradigms that fundamentally change how browsers and servers communicate.
-
-### 3.1 The Bottleneck Shifting Principle
-
-A fundamental principle in protocol design is that solving a performance issue at one layer often reveals a new constraint at a lower layer. This is precisely what happened in the HTTP evolution:
-
-1. **HTTP/1.1**: Application-layer Head-of-Line (HOL) blocking
-2. **HTTP/2**: Transport-layer HOL blocking (TCP-level)
-3. **HTTP/3**: Eliminates transport-layer blocking entirely
-
-### 3.2 HTTP Protocol Versions Overview
-
-| Version | Transport | Framing | Multiplexing     | Header Codec | Key Features                                                            |
-| ------- | --------- | ------- | ---------------- | ------------ | ----------------------------------------------------------------------- |
-| 0.9     | TCP       | Plain   | No               | N/A          | GET only; single resource per connection.                               |
-| 1.0     | TCP       | Text    | No               | No           | Methods (GET,POST,HEAD); conditional keep-alive.                        |
-| 1.1     | TCP       | Text    | Pipelining (HOL) | No           | Default persistent; chunked encoding.                                   |
-| 2       | TCP       | Binary  | Yes (streams)    | HPACK        | Multiplexing; server push; header compression.                          |
-| 3       | QUIC/UDP  | Binary  | Yes (streams)    | QPACK        | Zero HOL at transport; 0-RTT; connection migration; TLS 1.3 integrated. |
-
-### 3.3 TLS Protocol Versions Overview
-
-| Version | Handshake RTTs    | Key Exchange     | Ciphers & MAC        | Forward Secrecy | Notes                                                   |
-| ------- | ----------------- | ---------------- | -------------------- | --------------- | ------------------------------------------------------- |
-| TLS 1.0 | 2                 | RSA/DHE optional | CBC+HMAC-SHA1        | Optional        | Vulnerable to BEAST                                     |
-| TLS 1.1 | 2                 | RSA/DHE          | CBC with explicit IV | Optional        | BEAST mitigations                                       |
-| TLS 1.2 | 2                 | RSA/DHE/ECDHE    | AEAD (AES-GCM)       | Optional        | Widely supported; more cipher suite complexity          |
-| TLS 1.3 | 1 (0-RTT resumes) | (EC)DHE only     | AEAD only            | Mandatory       | Reduced latency; PSK resumption; no insecure primitives |
-
-**TLS 1.2 vs TLS 1.3**:
-
-- **Handshake Cost**: 2 RTTs vs 1 RTT.
-- **Security**: TLS 1.3 enforces forward secrecy and drops legacy weak ciphers.
-- **Trade-off**: TLS 1.3 adoption requires updates; session resumption 0-RTT introduces replay risks.
-
-## HTTP/1.1: The Foundation and Its Inherent Bottlenecks
-
-Standardized in 1997, HTTP/1.1 has been the workhorse of the web for decades. Its core mechanism is a text-based, sequential request-response protocol over TCP.
-
-### 4.1 Architectural Limitations
-
-**Head-of-Line Blocking at Application Layer**: The most significant architectural flaw is that a single TCP connection acts as a single-lane road. If a large resource (e.g., a 5MB image) is being transmitted, all subsequent requests for smaller resources (CSS, JS, small images) are blocked until the large transfer completes.
-
-**Connection Overhead**: To circumvent HOL blocking, browsers open multiple parallel TCP connections (typically 6 per hostname). Each connection incurs:
-
-- TCP 3-way handshake overhead
-- TLS handshake overhead (for HTTPS)
-- Slow-start algorithm penalties
-- Memory and CPU overhead on both client and server
-
-**Inefficient Resource Utilization**: Multiple connections often close before reaching maximum throughput, leaving substantial bandwidth unused.
-
-### 4.2 Browser Workarounds
-
-```javascript collapse={1-11}
-// HTTP/1.1 era optimizations that browsers and developers used:
-// 1. Domain sharding
-const domains = ["cdn1.example.com", "cdn2.example.com", "cdn3.example.com"]
-
-// 2. File concatenation
-const megaBundle = css1 + css2 + css3 + js1 + js2 + js3
-
-// 3. Image spriting
-const spriteSheet = combineImages([icon1, icon2, icon3, icon4])
-
-// 4. Connection pooling implementation
-class HTTP11ConnectionPool {
-  constructor(maxConnections = 6) {
-    this.connections = new Map()
-    this.maxConnections = maxConnections
-  }
-
-  async getConnection(hostname) {
-    if (this.connections.has(hostname)) {
-      const conn = this.connections.get(hostname)
-      if (conn.isAvailable()) return conn
-    }
-
-    if (this.connections.size < this.maxConnections) {
-      const conn = await this.createConnection(hostname)
-      this.connections.set(hostname, conn)
-      return conn
-    }
-
-    // Wait for available connection
-    return this.waitForAvailableConnection()
-  }
-}
-```
-
-### 4.3 Protocol Negotiation in HTTP/1.1
-
-HTTP/1.1 uses a simple, text-based negotiation mechanism:
+HTTP/1.1 processes requests sequentially on a connection. If a large resource (5 MB image) is in transit, subsequent requests for critical resources (CSS, JS) wait regardless of their importance.
 
 ```http
-GET /index.html HTTP/1.1
-Host: example.com
-Connection: keep-alive
+# Connection 1: Blocked waiting for large response
+GET /hero-image.jpg HTTP/1.1   # 5 MB transfer
+GET /critical.css HTTP/1.1      # Queued behind image
+GET /app.js HTTP/1.1            # Queued behind CSS
 ```
 
-The server responds with its supported version and features:
+**Pipelining** (sending multiple requests without waiting for responses) was specified but never adopted:
+- Servers must return responses in request order—a slow first response blocks faster subsequent ones
+- Intermediaries (proxies, CDNs) often don't support pipelining correctly
+- Retry semantics are ambiguous: if the connection closes mid-pipeline, clients can't determine which requests succeeded
+
+### Connection Proliferation
+
+Browsers work around HOL blocking by opening multiple TCP connections (typically 6 per hostname). Each connection incurs:
+
+| Overhead | Cost |
+|----------|------|
+| TCP handshake | 1 RTT (SYN → SYN-ACK → ACK) |
+| TLS handshake | 1-2 RTT (1 with TLS 1.3, 2 with TLS 1.2) |
+| Slow start | Exponential ramp-up from initial cwnd (~10 segments on modern stacks) |
+| Memory | Kernel buffers, socket state per connection |
+| Server resources | Per-connection thread/event handling overhead |
+
+**Domain sharding**—distributing resources across `cdn1.`, `cdn2.`, `cdn3.`—exploited the per-hostname limit but multiplied TLS negotiation costs and defeated HTTP/2 consolidation benefits.
+
+### Header Redundancy
+
+HTTP/1.1 headers are uncompressed text repeated on every request:
 
 ```http
-HTTP/1.1 200 OK
-Connection: keep-alive
-Content-Type: text/html
+GET /api/users HTTP/1.1
+Host: api.example.com
+Cookie: session=abc123; tracking=xyz789; preferences=dark-mode
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36...
+Accept: application/json
+Accept-Language: en-US,en;q=0.9
+Accept-Encoding: gzip, deflate, br
+Cache-Control: no-cache
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-**Key Points**:
+Typical header size: 500–2000 bytes per request. For a page making 100 API calls with similar headers, that's 50–200 KB of redundant metadata—often exceeding the initial TCP congestion window (10 × 1460 = 14.6 KB), forcing multiple RTTs before data transfer begins.
 
-- Both HTTP/1.1 and HTTP/1.0 use compatible request formats
-- The server's response indicates the version it supports
-- Headers like "Connection: keep-alive" indicate available features
-- No complex negotiation - the server simply responds with its capabilities
+## HTTP/2 Design Decisions
 
-## HTTP/2: Multiplexing and Its Transport-Layer Limitations
+HTTP/2 (RFC 7540, superseded by RFC 9113 in 2022) addressed HTTP/1.1's limitations through binary framing and stream multiplexing.
 
-Finalized in 2015, HTTP/2 introduced a binary framing layer that fundamentally changed data exchange patterns.
+### Why Binary Framing
 
-### 5.1 Core Innovations
+HTTP/2 replaced text parsing with a fixed 9-octet frame header:
 
-**Binary Framing Layer**: Replaces text-based messages with binary-encoded frames, enabling:
+```
++-----------------------------------------------+
+|                 Length (24 bits)              |
++---------------+---------------+---------------+
+|   Type (8)    |   Flags (8)   |
++---------------+---------------+---------------+
+|R|            Stream Identifier (31 bits)      |
++-----------------------------------------------+
+|                Frame Payload (0-16,777,215)   |
++-----------------------------------------------+
+```
 
-- **True Multiplexing**: Multiple request-response pairs can be interleaved over a single TCP connection
-- **Header Compression (HPACK)**: Reduces protocol overhead through static and dynamic tables
-- **Stream Prioritization**: Allows clients to signal relative importance of resources
+**Design rationale** (RFC 9113):
+- Eliminates text parsing ambiguity (no whitespace handling, line folding edge cases)
+- Fixed-size header enables constant-time frame boundary detection
+- Type field allows protocol extensibility without version negotiation
+- Stream identifier enables per-stream processing
 
-**Server Push**: Enables proactive resource delivery, though implementation maturity has been inconsistent.
+**Trade-off**: Not human-readable; requires tooling like `nghttp2` or Wireshark's HTTP/2 dissector for debugging.
 
-### 5.2 The TCP Bottleneck Emerges
+### Stream Multiplexing
 
-While HTTP/2 solved application-layer HOL blocking, it exposed a more fundamental issue: **TCP-level Head-of-Line Blocking**.
+Streams are independent, bidirectional sequences of frames sharing a single TCP connection:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+
+    Note over Client,Server: Single TCP connection with multiple streams
+
+    Client->>Server: HEADERS Stream 1 GET /critical.css
+    Client->>Server: HEADERS Stream 3 GET /app.js
+    Client->>Server: HEADERS Stream 5 GET /image.jpg
+
+    Server->>Client: HEADERS Stream 1 200 OK
+    Server->>Client: DATA Stream 1 CSS content
+    Server->>Client: HEADERS Stream 3 200 OK
+    Server->>Client: DATA Stream 5 image chunk 1
+    Server->>Client: DATA Stream 3 JS content
+    Server->>Client: DATA Stream 5 image chunk 2
+
+    Note over Client,Server: Responses interleaved without app-layer HOL
+```
+
+**Stream identifier rules** (RFC 9113 Section 5.1.1):
+- Client-initiated: odd numbers (1, 3, 5, ...)
+- Server-initiated (push): even numbers (2, 4, 6, ...)
+- Stream 0: reserved for connection-level frames (SETTINGS, PING, GOAWAY)
+- Maximum: 2³¹ - 1 streams per connection lifetime
+
+### HPACK Header Compression
+
+HPACK (RFC 7541) was designed specifically to avoid vulnerabilities in DEFLATE-based compression.
+
+**Why not DEFLATE?** SPDY initially used DEFLATE, which enabled the CRIME attack: attackers could inject data and observe compressed size changes to guess header values character-by-character. HPACK forces guesses to match entire header values, making brute-force impractical for high-entropy secrets.
+
+**Compression mechanism**:
+
+| Component | Size | Purpose |
+|-----------|------|---------|
+| Static table | 61 entries | Predefined common headers (`:method: GET`, `:status: 200`, etc.) |
+| Dynamic table | 4,096 bytes default | Connection-specific header cache (FIFO eviction) |
+| Huffman encoding | Variable (5-30 bits/char) | Static code table for string compression |
+
+**Entry size calculation** (RFC 7541 Section 4.1): `name_length + value_length + 32 octets`
+
+The 32-octet overhead accounts for implementation costs (pointers, reference counts). A dynamic table limited to 4,096 bytes typically holds 50-100 entries.
+
+**Compression efficiency**: Typical HTTP/1.1 headers (2-3 KB) compress to 100-300 bytes. Subsequent requests with identical headers compress to ~10 bytes (index references only).
+
+**Security: never-indexed literals** (RFC 7541 Section 6.2.3): Sensitive headers (`Authorization`, `Cookie`, `Set-Cookie`) should use never-indexed representation, preventing intermediaries from caching them in dynamic tables.
+
+### Flow Control
+
+HTTP/2 implements per-stream and per-connection flow control via credit-based windows:
+
+| Setting | Default | Range |
+|---------|---------|-------|
+| Initial stream window | 65,535 bytes (2¹⁶ - 1) | 0 to 2³¹ - 1 |
+| Initial connection window | 65,535 bytes | 0 to 2³¹ - 1 |
+| Max frame size | 16,384 bytes (2¹⁴) | 2¹⁴ to 2²⁴ - 1 |
+
+**Design rationale**: Prevents fast senders from overwhelming slow receivers. Unlike TCP's implicit flow control, HTTP/2's explicit windows operate between application endpoints, not transport endpoints—enabling fine-grained backpressure per stream.
+
+**WINDOW_UPDATE frames** grant additional credit. Setting window to 2³¹ - 1 and continuously replenishing effectively disables flow control (useful for high-throughput streaming).
+
+### Priority System (Deprecated)
+
+RFC 7540 specified a complex dependency tree where streams could depend on others with weighted priorities (1-256).
+
+**Why it failed** (RFC 9113 Section 5.3):
+- Clients expressed priorities inconsistently
+- Many server implementations ignored priority signals entirely
+- CDNs and proxies often didn't propagate priority information
+- Complexity didn't yield measurable performance gains
+
+**Current status**: RFC 9113 deprecates the priority tree but maintains backward compatibility. RFC 9218 defines a simpler `Priority` header with urgency (0-7, default 3) and incremental flags, but browser support is HTTP/3 only.
+
+### Server Push (Removed from Browsers)
+
+Server push allowed servers to send responses proactively via PUSH_PROMISE frames.
+
+**Design intent**: Server anticipates client needs (e.g., push CSS when HTML is requested) to eliminate a round trip.
+
+**Why it failed**:
+- Servers rarely know what clients have cached, causing wasted bandwidth
+- Pushed resources compete for bandwidth with explicitly requested resources
+- Push races with client requests, creating complexity
+- Implementation overhead didn't justify marginal latency gains
+
+**Browser removal timeline**:
+- Chrome 106 (September 2022): Disabled server push by default
+- Firefox 132 (October 2024): Removed server push support entirely
+- HTTP/3: Never implemented push in browsers
+
+**Alternative**: 103 Early Hints status code allows servers to send `Link` headers with preload hints before the full response, achieving similar latency reduction without push complexity.
+
+## TCP Head-of-Line Blocking
+
+HTTP/2 solved application-layer HOL blocking but exposed a transport-layer constraint: TCP's in-order delivery guarantee.
 
 ```mermaid
 sequenceDiagram
@@ -315,104 +235,140 @@ sequenceDiagram
     participant Network
     participant Server
 
-    Client->>Server: Stream 1: GET /critical.css
-    Client->>Server: Stream 2: GET /main.js
-    Client->>Server: Stream 3: GET /large-image.jpg
+    Server->>Network: Packet 1 (Stream 1: CSS)
+    Server->>Network: Packet 2 (Stream 3: JS)
+    Server->>Network: Packet 3 (Stream 5: Image)
 
-    Note over Network: Packet containing Stream 1 data is lost
+    Note over Network: Packet 1 lost
 
-    Server->>Client: Stream 2: main.js content
-    Server->>Client: Stream 3: large-image.jpg content
+    Network->>Client: Packet 2 arrives (buffered)
+    Network->>Client: Packet 3 arrives (buffered)
 
-    Note over Client: TCP holds all data until Stream 1 is retransmitted
-    Note over Client: Browser cannot process Stream 2 & 3 despite having the data
+    Note over Client: TCP holds Packets 2,3 until Packet 1 retransmission
+
+    Server->>Network: Packet 1 (retransmit)
+    Network->>Client: Packet 1 arrives
+
+    Note over Client: Now delivers Packets 1,2,3 to application
 ```
 
-**Technical Analysis of TCP HOL Blocking**
+**Impact**: A single lost packet stalls all HTTP/2 streams, even those with complete data in the receive buffer. On networks with 1-2% packet loss, HTTP/2's single connection can underperform HTTP/1.1's multiple connections (which experience independent loss).
 
-```javascript
-// HTTP/2 frame structure showing the problem
-const http2Frame = {
-  length: 16384, // 16KB frame
-  type: 0x0, // DATA frame
-  flags: 0x1, // END_STREAM
-  streamId: 1, // Stream identifier
-  payload: "...", // Actual data
-}
+**RFC 9113 Section 9** explicitly acknowledges: "TCP head-of-line blocking is not addressed by this protocol."
 
-// When a packet is lost, TCP retransmission affects all streams
-class TCPRetransmission {
-  handlePacketLoss(lostPacket) {
-    // TCP must retransmit before delivering subsequent packets
-    // This blocks ALL HTTP/2 streams, not just the affected one
-    this.retransmit(lostPacket)
-    this.blockDeliveryUntilRetransmit()
-  }
-}
+This limitation directly motivated HTTP/3's use of QUIC, which provides independent stream delivery over UDP.
 
-// HTTP/2 stream prioritization can't overcome TCP HOL
-const streamPriorities = {
-  critical: { weight: 256, dependency: 0 }, // CSS, JS
-  important: { weight: 128, dependency: 0 }, // Images
-  normal: { weight: 64, dependency: 0 }, // Analytics
-}
+## Protocol Negotiation
+
+### ALPN (Application-Layer Protocol Negotiation)
+
+Browsers require TLS for HTTP/2, using the ALPN extension (RFC 7301) during the TLS handshake:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+
+    Client->>Server: ClientHello + ALPN extension<br/>protocols: ["h2", "http/1.1"]
+    Server->>Client: ServerHello + ALPN extension<br/>selected: "h2"
+
+    Note over Client,Server: Continue TLS handshake with HTTP/2 selected
 ```
 
-**The Problem**: TCP guarantees in-order delivery. If a single packet is lost, all subsequent packets (even those containing data for different HTTP/2 streams) are held back until the lost packet is retransmitted and received.
+**Protocol identifiers**:
+- `h2`: HTTP/2 over TLS
+- `http/1.1`: HTTP/1.1
+- `h2c`: HTTP/2 over cleartext (not supported by browsers)
 
-### 5.3 HTTP/2 Upgrade Mechanism
+**Key design point**: ALPN negotiation happens during TLS handshake, avoiding an extra RTT for protocol upgrade.
 
-Browsers have standardized on using HTTP/2 exclusively over TLS connections, leveraging the **ALPN (Application-Layer Protocol Negotiation)** extension.
+### HTTP/2 Connection Preface
 
-#### TLS ALPN Negotiation Process
+After TLS establishes the connection, both endpoints send a connection preface:
 
-```javascript
-// Browser initiates TLS connection with ALPN extension
-const tlsConnection = {
-  clientHello: {
-    supportedProtocols: ["h2", "http/1.1"],
-    alpnExtension: true,
-  },
-}
-
-// Server responds with its preferred protocol
-const serverResponse = {
-  serverHello: {
-    selectedProtocol: "h2", // Server chooses HTTP/2
-    alpnExtension: true,
-  },
-}
+**Client preface** (24 octets + SETTINGS frame):
+```
+PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n
 ```
 
-#### HTTP Upgrade Mechanism (Theoretical)
+This string was chosen specifically because it cannot be interpreted as a valid HTTP/1.1 request, preventing protocol confusion when connecting to HTTP/1.1-only servers.
 
-While browsers don't use it, HTTP/2 does support plaintext connections via the HTTP Upgrade mechanism:
+**Server preface**: SETTINGS frame (must be first frame sent)
+
+**Purpose**: Confirms both endpoints understand HTTP/2 before exchanging application frames.
+
+### Cleartext HTTP/2 (h2c)
+
+RFC 9113 defines HTTP/2 over plaintext via HTTP Upgrade:
 
 ```http
-GET /index.html HTTP/1.1
+GET / HTTP/1.1
 Host: example.com
 Connection: Upgrade, HTTP2-Settings
 Upgrade: h2c
-HTTP2-Settings: <base64url encoding of HTTP/2 SETTINGS payload>
+HTTP2-Settings: <base64url-encoded SETTINGS frame>
 ```
 
-**Server Response Options**:
+**Browser reality**: No browser supports h2c. HTTP/2 requires TLS in practice, ensuring encryption and simplifying deployment (no mixed HTTP/1.1 and HTTP/2 on port 80).
 
-```http
-# Accepts upgrade
-HTTP/1.1 101 Switching Protocols
-Connection: Upgrade
-Upgrade: h2c
+## Conclusion
 
-# Rejects upgrade
-HTTP/1.1 200 OK
-Content-Type: text/html
-# ... normal HTTP/1.1 response
-```
+HTTP/2 systematically addressed HTTP/1.1's architectural bottlenecks:
+- **Binary framing** eliminated text parsing ambiguity and enabled efficient multiplexing
+- **Stream independence** solved application-layer HOL blocking
+- **HPACK compression** reduced header overhead by 85-95% while avoiding CRIME-style attacks
+- **Single connection** eliminated connection proliferation overhead
 
-**Key Points**:
+The remaining TCP HOL blocking constraint—where a single lost packet stalls all streams—motivated HTTP/3's move to QUIC. Features that seemed promising (server push, complex priority trees) were deprecated after real-world deployment revealed implementation inconsistencies and marginal gains.
 
-- Browsers require TLS for HTTP/2 (no plaintext support)
-- ALPN provides seamless protocol negotiation during TLS handshake
-- HTTP Upgrade mechanism exists but is unused by browsers
-- Server must support ALPN extension for HTTP/2 to work
+For deployments: enable HTTP/2 with TLS 1.3, consolidate domains to maximize multiplexing, and monitor TCP retransmission rates on high-loss networks where HTTP/1.1's multiple connections may still outperform.
+
+## Appendix
+
+### Prerequisites
+
+- TCP connection establishment (3-way handshake, congestion control basics)
+- TLS handshake fundamentals (ClientHello, ServerHello, ALPN)
+- HTTP request-response model
+
+### Terminology
+
+| Abbreviation | Full Form | Definition |
+|--------------|-----------|------------|
+| HOL | Head-of-Line | Blocking condition where one stalled item prevents subsequent items from progressing |
+| HPACK | HTTP/2 Header Compression | Header compression algorithm using static/dynamic tables and Huffman encoding |
+| ALPN | Application-Layer Protocol Negotiation | TLS extension for agreeing on application protocol during handshake |
+| RTT | Round-Trip Time | Time for a packet to travel from sender to receiver and back |
+| cwnd | Congestion Window | TCP's limit on unacknowledged in-flight data |
+| h2 | HTTP/2 over TLS | Protocol identifier for encrypted HTTP/2 |
+| h2c | HTTP/2 Cleartext | Protocol identifier for unencrypted HTTP/2 (not used by browsers) |
+
+### Summary
+
+- HTTP/1.1's sequential request processing and per-hostname connection limits forced domain sharding and resource concatenation workarounds
+- HTTP/2's binary framing enables stream multiplexing over a single TCP connection, eliminating application-layer HOL blocking
+- HPACK header compression reduces header overhead from kilobytes to hundreds of bytes, specifically designed to prevent CRIME-style attacks
+- TCP's in-order delivery creates transport-layer HOL blocking that HTTP/2 cannot solve—motivating HTTP/3/QUIC
+- Server push and complex priorities were deprecated due to implementation inconsistency and marginal real-world benefit
+- ALPN negotiation during TLS handshake enables HTTP/2 without extra round trips
+
+### References
+
+**Specifications (Primary Sources)**
+
+- [RFC 9113: HTTP/2](https://www.rfc-editor.org/rfc/rfc9113) — Current HTTP/2 specification (supersedes RFC 7540)
+- [RFC 9112: HTTP/1.1](https://www.rfc-editor.org/rfc/rfc9112) — HTTP/1.1 message syntax and routing
+- [RFC 9110: HTTP Semantics](https://www.rfc-editor.org/rfc/rfc9110) — Version-independent HTTP semantics
+- [RFC 7541: HPACK](https://www.rfc-editor.org/rfc/rfc7541) — Header compression for HTTP/2
+- [RFC 9218: Extensible Prioritization Scheme for HTTP](https://www.rfc-editor.org/rfc/rfc9218) — Replacement for deprecated RFC 7540 priorities
+- [RFC 7301: TLS ALPN](https://www.rfc-editor.org/rfc/rfc7301) — Application-Layer Protocol Negotiation Extension
+
+**Browser Implementation**
+
+- [Chrome: Removing HTTP/2 Server Push](https://developer.chrome.com/blog/removing-push) — Rationale for push removal
+- [MDN: Priority header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Priority) — RFC 9218 browser support status
+
+**Historical Context**
+
+- [HTTP/2 Server Push is Dead](https://evertpot.com/http-2-push-is-dead/) — Analysis of push deprecation
+- [RFC 7540: HTTP/2](https://www.rfc-editor.org/rfc/rfc7540) — Original HTTP/2 specification (obsoleted by RFC 9113)

@@ -1,7 +1,7 @@
 /**
  * Site Configuration Utilities
  *
- * Provides functions to access the site configuration from site.jsonc.
+ * Provides functions to access the site configuration from site.json5.
  */
 
 import { getEntry } from "astro:content"
@@ -47,13 +47,13 @@ export interface SiteConfig {
 let cachedSiteConfig: SiteConfig | null = null
 
 /**
- * Get the full site configuration from site.jsonc
+ * Get the full site configuration from site.json5
  */
 export async function getSiteConfig(): Promise<SiteConfig> {
   if (!cachedSiteConfig) {
     const siteEntry = await getEntry("site", "site")
     if (!siteEntry) {
-      throw new Error("site.jsonc not found or empty")
+      throw new Error("site.json5 not found or empty")
     }
     cachedSiteConfig = {
       origin: siteEntry.data.origin,

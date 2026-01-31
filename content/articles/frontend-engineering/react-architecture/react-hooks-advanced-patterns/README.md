@@ -1,1090 +1,668 @@
-# React Hooks Advanced Patterns and Modern APIs
+# React Hooks Advanced Patterns: Specialized Hooks and Composition
 
-Advanced composition techniques, performance patterns, and modern hook APIs for large-scale React applications.
+Advanced hook APIs, performance patterns, and composition techniques for concurrent React applications. Covers `useId`, `use`, `useLayoutEffect`, `useSyncExternalStore`, `useInsertionEffect`, `useDeferredValue`, and `useTransition`—hooks that solve specific problems the core hooks cannot.
 
-## TLDR
+<figure>
 
-- **Composition unlocks scale**: combine small hooks into domain-specific abstractions.
-- **Performance patterns** like virtualization and throttling keep UIs responsive.
-- **Modern hooks** (e.g., `useId`) solve SSR, accessibility, and concurrency edge cases.
+```mermaid
+flowchart TB
+    subgraph "Specialized Hooks by Problem Domain"
+        direction TB
+        subgraph "Concurrent Rendering"
+            useTransition["useTransition<br/>Non-blocking state updates"]
+            useDeferredValue["useDeferredValue<br/>Defer non-critical values"]
+        end
 
-## Advanced Patterns and Compositions
+        subgraph "Effect Timing"
+            useLayoutEffect["useLayoutEffect<br/>Before paint (DOM measurement)"]
+            useInsertionEffect["useInsertionEffect<br/>Before layout (CSS injection)"]
+        end
 
-### Hook Composition: Building Complex Abstractions
+        subgraph "External Integration"
+            useSyncExternalStore["useSyncExternalStore<br/>External store subscription"]
+            use["use<br/>Promise/Context consumption"]
+        end
 
-The true power of custom hooks lies in their ability to compose into more complex abstractions.
+        subgraph "SSR & Accessibility"
+            useId["useId<br/>Stable unique IDs"]
+        end
+    end
 
-```tsx title="hook-composition-example.tsx"
-// Example: Composed data fetching with caching and real-time updates
-function useUserProfile(userId: string) {
-  const {
-    data: user,
-    error,
-    isLoading,
-    refetch,
-  } = useFetch(`/api/users/${userId}`, {
-    cacheTime: 5 * 60 * 1000,
-  })
-
-  const [isOnline, setIsOnline] = useLocalStorage(`user-${userId}-online`, false)
-
-  const [ref, isVisible] = useIntersectionObserver({
-    threshold: 0.1,
-    freezeOnceVisible: true,
-  })
-
-  // Only fetch when visible
-  useEffect(() => {
-    if (isVisible && !user) {
-      refetch()
-    }
-  }, [isVisible, user, refetch])
-
-  return { user, error, isLoading, isOnline, isVisible, ref, refetch }
-}
+    useTransition --> useDeferredValue
+    useLayoutEffect --> useInsertionEffect
+    use --> useSyncExternalStore
 ```
 
-### Performance Optimization Patterns
+<figcaption>Specialized hooks grouped by the problem domain they address. Concurrent hooks optimize UI responsiveness; effect timing hooks control when code runs relative to browser paint; external integration hooks connect React to non-React state.</figcaption>
+</figure>
 
-```tsx title="virtualized-list-hook.tsx"
-// Example: Optimized list rendering with virtualization
-function useVirtualizedList<T>(items: T[], itemHeight: number, containerHeight: number) {
-  const [scrollTop, setScrollTop] = useState(0)
-  const throttledSetScrollTop = useThrottle(setScrollTop, 16) // 60fps
+## Abstract
 
-  const visibleRange = useMemo(() => {
-    const start = Math.floor(scrollTop / itemHeight)
-    const end = Math.min(start + Math.ceil(containerHeight / itemHeight) + 1, items.length)
-    return { start, end }
-  }, [scrollTop, itemHeight, containerHeight, items.length])
+These hooks exist because the core hooks (`useState`, `useEffect`, `useRef`) can't solve every problem. Each addresses a specific gap:
 
-  const visibleItems = useMemo(() => items.slice(visibleRange.start, visibleRange.end), [items, visibleRange])
+- **Concurrent rendering** (`useTransition`, `useDeferredValue`): React 18's concurrent features need APIs to mark updates as interruptible. Without them, expensive renders block user input.
+- **Effect timing** (`useLayoutEffect`, `useInsertionEffect`): `useEffect` runs *after* paint. Some code—DOM measurements, style injection—must run *before* paint to avoid visual flicker.
+- **External state** (`useSyncExternalStore`): Subscribing to external stores with `useEffect`/`useState` causes "tearing" in concurrent mode—different components see different store versions.
+- **Async data** (`use`): React 19's `use` hook reads promises during render, integrating with Suspense without custom wrapper components.
+- **Stable IDs** (`useId`): Server and client can generate IDs independently, causing hydration mismatches. `useId` uses component tree position to guarantee consistency.
 
-  return { visibleItems, visibleRange, totalHeight: items.length * itemHeight, onScroll: throttledSetScrollTop }
-}
-```
+The mental model: **core hooks are general-purpose; specialized hooks solve specific problems that arise from React's architecture (concurrent rendering, SSR, browser paint timing).**
 
-## Conclusion: Mastering the Hooks Paradigm
+## Concurrent Rendering Hooks
 
-React Hooks represent a fundamental shift in how we think about component architecture. By understanding the underlying principles—state management, synchronization, composition, and performance optimization—we can build robust, maintainable applications that scale with our needs.
+React 18 introduced concurrent rendering, where renders can be interrupted and resumed. Two hooks let you leverage this: `useTransition` marks state updates as non-blocking; `useDeferredValue` defers a value so expensive renders don't block urgent updates.
 
-The key to mastering hooks is not memorizing specific implementations, but understanding how the fundamental primitives compose to solve complex problems. Each hook we've explored demonstrates this principle: simple building blocks that, when combined thoughtfully, create powerful abstractions.
+### useTransition: Non-Blocking State Updates
 
-**Key Takeaways**:
+**Problem it solves**: Expensive state updates (tab switches, large list filtering) block user input. The UI becomes unresponsive while React renders.
 
-1. **Think in Terms of Composition**: Build small, focused hooks that can be combined into larger abstractions
-2. **Handle Edge Cases**: Always consider error states, cleanup, and browser compatibility
-3. **Optimize Strategically**: Use memoization to break render cascades, not just optimize individual calculations
-4. **Document Thoroughly**: Clear APIs and comprehensive documentation make hooks more valuable
-5. **Test Edge Cases**: Ensure your hooks work correctly in all scenarios, including error conditions
+**Design rationale**: Mark updates as "transitions"—low-priority work that can be interrupted if higher-priority updates (like typing) arrive. React keeps showing the old UI until the new one is ready.
 
-The patterns and implementations presented here provide a foundation for building production-ready custom hooks. As you continue to work with React, remember that the best hooks are those that solve real problems while remaining simple and composable.
+```tsx title="useTransition-basic.tsx" collapse={1-3, 15-25}
+import { useState, useTransition } from "react"
 
-## Modern React Hooks: Advanced Patterns and Use Cases
+function TabContainer() {
+  const [tab, setTab] = useState("about")
+  const [isPending, startTransition] = useTransition()
 
-React has introduced several new hooks that address specific use cases and enable more advanced patterns. Understanding these hooks is crucial for building modern, performant applications.
-
-### useId: Stable Unique Identifiers
-
-**Problem Statement**: In server-rendered applications, generating unique IDs can cause hydration mismatches between server and client. We need stable, unique identifiers that work consistently across renders and environments ([useId Reference](https://react.dev/reference/react/useId)).
-
-**Key Questions to Consider**:
-
-- How do we ensure IDs are unique across multiple component instances?
-- What happens during server-side rendering vs client-side hydration?
-- How do we handle multiple IDs in the same component?
-- Should we support custom prefixes or suffixes?
-
-**Use Cases**:
-
-- **Accessibility**: Connecting labels to form inputs
-- **ARIA Attributes**: Generating unique IDs for aria-describedby, aria-labelledby
-- **Testing**: Creating stable test IDs
-- **Third-party Libraries**: Providing unique identifiers for external components
-
-**Production Implementation**:
-
-````tsx
-import { useId } from "react"
-
-/**
- * Generates stable, unique IDs for accessibility and testing.
- *
- * @param prefix - Optional prefix for the generated ID
- * @returns A unique ID string
- *
- * @example
- * ```tsx
- * function FormField({ label, error }) {
- *   const id = useId();
- *   const errorId = useId();
- *
- *   return (
- *     <div>
- *       <label htmlFor={id}>{label}</label>
- *       <input
- *         id={id}
- *         aria-describedby={error ? errorId : undefined}
- *         aria-invalid={!!error}
- *       />
- *       {error && <div id={errorId} role="alert">{error}</div>}
- *     </div>
- *   );
- * }
- * ```
- */
-function useStableId(prefix?: string): string {
-  const id = useId()
-  return prefix ? `${prefix}-${id}` : id
-}
-
-// Advanced usage with multiple IDs
-function ComplexForm() {
-  const baseId = useId()
-  const emailId = `${baseId}-email`
-  const passwordId = `${baseId}-password`
-  const confirmId = `${baseId}-confirm`
+  function selectTab(nextTab: string) {
+    startTransition(() => {
+      setTab(nextTab) // Low-priority update
+    })
+  }
 
   return (
-    <form>
-      <label htmlFor={emailId}>Email</label>
-      <input id={emailId} type="email" />
-
-      <label htmlFor={passwordId}>Password</label>
-      <input id={passwordId} type="password" />
-
-      <label htmlFor={confirmId}>Confirm Password</label>
-      <input id={confirmId} type="password" />
-    </form>
-  )
-}
-````
-
-**Food for Thought**:
-
-- **Hydration Safety**: How does useId prevent hydration mismatches?
-- **Performance**: Is there any performance cost to generating IDs?
-- **Testing**: How can we make IDs predictable in test environments?
-- **Accessibility**: What are the best practices for using IDs with screen readers?
-
-### use: Consuming Promises and Context
-
-**Problem Statement**: React needs a way to consume promises and context values in a way that integrates with Suspense and concurrent features. The `use` hook provides a unified API for consuming both promises and context ([use Reference](https://react.dev/reference/react/use)).
-
-**Key Questions to Consider**:
-
-- How does `use` integrate with React's Suspense boundary?
-- What happens when a promise rejects?
-- How do we handle multiple promises in the same component?
-- Should we support promise cancellation?
-
-**Use Cases**:
-
-- **Data Fetching**: Consuming promises from data fetching libraries
-- **Context Consumption**: Accessing context values in a Suspense-compatible way
-- **Async Components**: Building components that can await promises
-- **Resource Loading**: Managing loading states for external resources
-
-**Production Implementation**:
-
-```tsx
-import { use, Suspense } from "react"
-
-// Example: Data fetching with use
-function UserProfile({ userId }: { userId: string }) {
-  // use() will suspend if the promise is not resolved
-  const user = use(fetchUser(userId))
-
-  return (
-    <div>
-      <h1>{user.name}</h1>
-      <p>{user.email}</p>
+    <div style={{ opacity: isPending ? 0.7 : 1 }}>
+      <button onClick={() => selectTab("posts")}>Posts</button>
+      <button onClick={() => selectTab("contact")}>Contact</button>
+      {tab === "posts" && <SlowPostsTab />}
+      {tab === "contact" && <ContactTab />}
     </div>
   )
 }
+```
 
-// Wrapper component with Suspense boundary
-function UserProfileWrapper({ userId }: { userId: string }) {
+**How it works**:
+
+1. `startTransition(() => setState(...))` marks the update as non-blocking
+2. React starts rendering with the new state in the background
+3. If the user clicks elsewhere, React abandons the old render and starts fresh
+4. `isPending` is `true` until all transition work completes
+
+**React 19 async support**: Transitions can contain `await`:
+
+```tsx title="useTransition-async.tsx" collapse={1-2}
+// React 19+: async transitions
+function SubmitButton({ onSubmit }: { onSubmit: () => Promise<void> }) {
+  const [isPending, startTransition] = useTransition()
+
   return (
-    <Suspense fallback={<div>Loading user...</div>}>
-      <UserProfile userId={userId} />
+    <button
+      disabled={isPending}
+      onClick={() => {
+        startTransition(async () => {
+          await onSubmit()
+          // State updates after await need another startTransition (current limitation)
+        })
+      }}
+    >
+      {isPending ? "Submitting..." : "Submit"}
+    </button>
+  )
+}
+```
+
+**Edge cases and caveats**:
+
+| Scenario | Behavior |
+|----------|----------|
+| Multiple rapid transitions | Batched together (may change in future React versions) |
+| Text input in transition | ❌ Breaks responsiveness—input value should update synchronously |
+| `setTimeout` inside `startTransition` | ❌ Doesn't work—the `setState` inside timeout isn't marked as transition |
+| Error in transition | Triggers nearest Error Boundary |
+| `startTransition` identity | Stable—safe to omit from `useEffect` dependencies |
+
+**When to use vs. not use**:
+
+| Use For | Don't Use For |
+|---------|---------------|
+| Tab switches, route navigation | Controlled text inputs |
+| Large list filtering | Updates that must be immediate |
+| Form submission with async | When you need exact timing control |
+| Any update where stale UI is acceptable | Outside React components (use standalone `startTransition`) |
+
+### useDeferredValue: Defer Non-Critical Values
+
+**Problem it solves**: A value changes rapidly (typing), but rendering with the new value is expensive (filtering thousands of items). You want the input to stay responsive while the expensive render happens in the background.
+
+**Design rationale**: "Lag" behind the actual value. React first renders with the old deferred value (fast), then re-renders in the background with the new value (can be interrupted).
+
+```tsx title="useDeferredValue-search.tsx" collapse={1-4, 16-25}
+import { useState, useDeferredValue, useMemo } from "react"
+
+function SearchPage({ items }: { items: Item[] }) {
+  const [query, setQuery] = useState("")
+  const deferredQuery = useDeferredValue(query)
+  const isStale = query !== deferredQuery
+
+  const filteredItems = useMemo(
+    () => items.filter((item) => item.name.includes(deferredQuery)),
+    [items, deferredQuery]
+  )
+
+  return (
+    <>
+      <input value={query} onChange={(e) => setQuery(e.target.value)} />
+      <div style={{ opacity: isStale ? 0.5 : 1 }}>
+        <ItemList items={filteredItems} />
+      </div>
+    </>
+  )
+}
+```
+
+**How the two-phase render works**:
+
+1. User types "ab" (query = "ab", but deferredQuery = "a" from before)
+2. React renders with deferredQuery = "a" (fast, uses cached filter result)
+3. React starts background render with deferredQuery = "ab"
+4. If user types "abc" before background completes, React abandons that render and starts fresh
+5. When background render commits, both values match—`isStale` becomes `false`
+
+**React 19 `initialValue` parameter**:
+
+```tsx title="useDeferredValue-initial.tsx"
+// React 19: provide initial value for first render
+const deferredQuery = useDeferredValue(query, "") // "" on initial render
+```
+
+Without `initialValue`, the first render uses the actual value (no deferral possible—there's no "previous" value).
+
+**Comparison with debouncing/throttling**:
+
+| Aspect | useDeferredValue | Debouncing |
+|--------|------------------|------------|
+| Fixed delay | No—adapts to device speed | Yes |
+| Interruptible | Yes—abandons stale renders | No |
+| Integration with React | Deep (concurrent features) | Manual |
+| Use case | Rendering bottlenecks | Network requests |
+
+**Edge cases and caveats**:
+
+- **Pass primitives or memoized objects**: `useDeferredValue({ x: 1 })` creates a new object each render, causing unnecessary background work
+- **Inside `startTransition`**: Deferred value always equals actual value (update is already deferred)
+- **No network request prevention**: Still fetches on every change—combine with caching/debouncing for network calls
+- **Effects deferred**: `useEffect` in background render only runs after commit
+
+**When to use vs. useTransition**:
+
+| useDeferredValue | useTransition |
+|------------------|---------------|
+| Value comes from props (no access to setter) | You control the state update |
+| Automatic deferral | Explicit `startTransition` call |
+| No `isPending` (compute from value comparison) | Provides `isPending` flag |
+| Defers a value | Defers a state update |
+
+## Effect Timing Hooks
+
+The three effect hooks run at different times relative to browser paint:
+
+```
+Component renders → DOM updated → useInsertionEffect → useLayoutEffect → Browser paints → useEffect
+```
+
+### useLayoutEffect: Synchronous DOM Measurement
+
+**Problem it solves**: You need to measure a DOM element (its position, size) and use that measurement to position something else. With `useEffect`, the element renders in the wrong position first, then jumps—visual flicker.
+
+**Design rationale**: Run *after* DOM updates but *before* browser paint. Measure and re-render; the user only sees the final result.
+
+```tsx title="useLayoutEffect-tooltip.tsx" collapse={1-3, 20-30}
+import { useLayoutEffect, useRef, useState } from "react"
+
+function Tooltip({ children, targetRect }: { children: React.ReactNode; targetRect: DOMRect }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+
+  useLayoutEffect(() => {
+    const tooltip = ref.current
+    if (!tooltip) return
+
+    const { width, height } = tooltip.getBoundingClientRect()
+    // Position above target, centered
+    setPosition({
+      x: targetRect.left + targetRect.width / 2 - width / 2,
+      y: targetRect.top - height - 8,
+    })
+  }, [targetRect])
+
+  return (
+    <div ref={ref} style={{ position: "fixed", left: position.x, top: position.y }}>
+      {children}
+    </div>
+  )
+}
+```
+
+**Flow for tooltip positioning**:
+
+1. Initial render: tooltip at (0, 0)
+2. DOM updated (tooltip element exists but wrong position)
+3. `useLayoutEffect` runs: measures tooltip dimensions, calls `setPosition`
+4. Re-render with correct position
+5. Browser paints—user sees tooltip in correct position (no flicker)
+
+**Edge cases and caveats**:
+
+| Scenario | Impact |
+|----------|--------|
+| Expensive calculation in `useLayoutEffect` | Blocks paint—causes jank |
+| SSR | Does nothing on server; logs warning in development |
+| Strict Mode | Runs setup+cleanup twice (like all effects) |
+
+**SSR workarounds**:
+
+```tsx title="useLayoutEffect-ssr.tsx" collapse={1-3}
+// Option 1: Client-only rendering with Suspense
+<Suspense fallback={<Spinner />}>
+  <TooltipComponent /> {/* Only renders on client */}
+</Suspense>
+
+// Option 2: Check for browser environment
+const [mounted, setMounted] = useState(false)
+useEffect(() => setMounted(true), [])
+if (!mounted) return <Fallback />
+```
+
+**When to use vs. useEffect**:
+
+| useLayoutEffect | useEffect |
+|-----------------|-----------|
+| DOM measurements before paint | Data fetching, subscriptions |
+| Synchronous repositioning | Non-visual side effects |
+| Avoiding visual flicker | Everything else |
+
+### useInsertionEffect: CSS-in-JS Style Injection
+
+**Problem it solves**: CSS-in-JS libraries need to inject `<style>` tags before `useLayoutEffect` runs, so layout measurements read the correct styles.
+
+**Design rationale**: Run before *all* other effects—even `useLayoutEffect`. This is the earliest point to inject styles.
+
+```tsx title="useInsertionEffect-css.tsx" collapse={1-2}
+import { useInsertionEffect } from "react"
+
+function useCSS(rule: string) {
+  useInsertionEffect(() => {
+    const style = document.createElement("style")
+    style.textContent = rule
+    document.head.appendChild(style)
+    return () => style.remove()
+  }, [rule])
+}
+```
+
+**Critical limitations** (unlike other effects):
+
+| Limitation | Reason |
+|------------|--------|
+| Cannot update state | Would cause render during render |
+| Refs not attached yet | DOM elements not connected to refs |
+| DOM may not be updated | Timing is uncertain—only styles are safe |
+| Client-only | No-op on server |
+
+**This hook is for library authors only**. Application code should never use `useInsertionEffect` directly—use a CSS-in-JS library that handles this internally.
+
+## External State Integration
+
+### useSyncExternalStore: Subscribe to External Stores
+
+**Problem it solves**: Subscribing to external stores (Redux, Zustand, browser APIs) with `useEffect` + `useState` causes "tearing" in concurrent mode—different parts of the UI render with different store versions.
+
+**Design rationale**: Provide React with a `subscribe` function and a `getSnapshot` function. React guarantees all components see the same snapshot within a single render.
+
+```tsx title="useSyncExternalStore-online.tsx" collapse={1-2}
+import { useSyncExternalStore } from "react"
+
+function useOnlineStatus() {
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+}
+
+function subscribe(callback: () => void) {
+  window.addEventListener("online", callback)
+  window.addEventListener("offline", callback)
+  return () => {
+    window.removeEventListener("online", callback)
+    window.removeEventListener("offline", callback)
+  }
+}
+
+function getSnapshot() {
+  return navigator.onLine
+}
+
+function getServerSnapshot() {
+  return true // Assume online during SSR
+}
+```
+
+**The tearing problem**: In concurrent mode, a render can pause. If an external store changes while paused, some components see the old value, others see the new value. `useSyncExternalStore` detects this and forces a synchronous re-render.
+
+**API contract**:
+
+| Function | Requirement |
+|----------|-------------|
+| `subscribe(callback)` | Must return unsubscribe function; call callback when store changes |
+| `getSnapshot()` | Must return **immutable** data; same reference if unchanged |
+| `getServerSnapshot()` | Optional; provides initial value for SSR/hydration |
+
+**Common mistake—mutable snapshots**:
+
+```tsx title="useSyncExternalStore-mutable.tsx"
+// ❌ Creates new object each call → infinite re-renders
+function getSnapshot() {
+  return { count: store.count } // New object every time
+}
+
+// ✅ Return the same reference if data unchanged
+function getSnapshot() {
+  return store.state // Immutable; same reference when unchanged
+}
+```
+
+**Memoization requirements**:
+
+```tsx title="useSyncExternalStore-memo.tsx" collapse={1-3}
+// ❌ subscribe recreated each render → resubscribes constantly
+function Component({ userId }) {
+  const data = useSyncExternalStore(
+    (callback) => store.subscribe(userId, callback), // New function each render!
+    () => store.get(userId)
+  )
+}
+
+// ✅ Memoize or move outside component
+const subscribe = (callback) => store.subscribe(callback)
+function Component() {
+  const data = useSyncExternalStore(subscribe, getSnapshot)
+}
+
+// ✅ Or use useCallback for dynamic subscriptions
+function Component({ userId }) {
+  const subscribe = useCallback(
+    (callback) => store.subscribe(userId, callback),
+    [userId]
+  )
+  const data = useSyncExternalStore(subscribe, () => store.get(userId))
+}
+```
+
+**Edge cases and caveats**:
+
+| Scenario | Behavior |
+|----------|----------|
+| Store changes during transition | React may restart render as blocking to prevent tearing |
+| Missing `getServerSnapshot` | SSR throws; use `Suspense` boundary to defer to client |
+| Suspending on store values | ❌ Discouraged—external mutations can't be marked as non-blocking |
+
+**When to use**: State management libraries (Redux, Zustand), browser APIs (`localStorage`, `navigator.onLine`), any external data source.
+
+**When not to use**: React-managed state. Prefer `useState`/`useReducer` when possible.
+
+### use: Read Promises and Context
+
+**Problem it solves**: Consuming promises required custom hooks or libraries that integrate with Suspense. Reading context conditionally was impossible with `useContext`.
+
+**Design rationale (React 19)**: A single API that reads resources during render. Unlike other hooks, `use` can be called conditionally—it doesn't follow the "top-level only" rule.
+
+```tsx title="use-promise.tsx" collapse={1-3, 14-22}
+import { use, Suspense } from "react"
+
+function UserProfile({ userPromise }: { userPromise: Promise<User> }) {
+  const user = use(userPromise) // Suspends if promise pending
+
+  return <h1>{user.name}</h1>
+}
+
+function App() {
+  const userPromise = fetchUser(123) // Create promise once
+
+  return (
+    <Suspense fallback={<Loading />}>
+      <UserProfile userPromise={userPromise} />
     </Suspense>
   )
 }
+```
 
-// Custom hook for data fetching with use
-function useAsyncData<T>(promise: Promise<T>): T {
-  return use(promise)
+**Promise consumption flow**:
+
+1. Component calls `use(promise)`
+2. If promise pending: component suspends, Suspense fallback shows
+3. If promise resolved: returns resolved value
+4. If promise rejected: throws to nearest Error Boundary
+
+**Context consumption** (alternative to `useContext`):
+
+```tsx title="use-context.tsx" collapse={1-2}
+// use() can be called conditionally—useContext cannot
+function HorizontalRule({ show }: { show: boolean }) {
+  if (show) {
+    const theme = use(ThemeContext) // Conditional read is allowed
+    return <hr className={theme} />
+  }
+  return null
+}
+```
+
+**Critical caveat—promise recreation**:
+
+```tsx title="use-promise-recreation.tsx"
+// ❌ Client Component: promise recreated every render → infinite suspense
+function BadComponent({ userId }) {
+  const user = use(fetchUser(userId)) // New promise each render!
 }
 
-// Example with error boundaries
-function UserProfileWithErrorBoundary({ userId }: { userId: string }) {
+// ✅ Pass promise from Server Component (stable across renders)
+// Server Component
+export default function Page({ userId }) {
+  const userPromise = fetchUser(userId) // Created once
+  return <UserProfile userPromise={userPromise} />
+}
+```
+
+**Error handling**:
+
+```tsx title="use-error-handling.tsx" collapse={1-3}
+// Option 1: Error Boundary
+<ErrorBoundary fallback={<Error />}>
+  <Suspense fallback={<Loading />}>
+    <UserProfile userPromise={userPromise} />
+  </Suspense>
+</ErrorBoundary>
+
+// Option 2: Handle before passing to use()
+const safePromise = fetchUser(userId).catch(() => ({ name: "Unknown" }))
+const user = use(safePromise) // Never rejects
+```
+
+**Constraints**:
+
+| Constraint | Workaround |
+|------------|------------|
+| Can't use in try-catch | Use Error Boundary or `.catch()` |
+| Resolved value must be serializable (Server → Client) | Only pass JSON-compatible data |
+| Promise in Client Component recreates on render | Pass from Server Component or use caching library |
+
+## SSR and Accessibility
+
+### useId: Stable Unique IDs Across Server and Client
+
+**Problem it solves**: Generating IDs with `Math.random()` or incrementing counters produces different values on server vs. client, causing hydration mismatches.
+
+**Design rationale**: Generate IDs from the component's position in the tree ("parent path"). Same tree position = same ID, regardless of whether it's server or client.
+
+```tsx title="useId-accessibility.tsx" collapse={1-2}
+import { useId } from "react"
+
+function PasswordField() {
+  const hintId = useId()
+
   return (
-    <ErrorBoundary fallback={<div>Error loading user</div>}>
-      <Suspense fallback={<div>Loading...</div>}>
-        <UserProfile userId={userId} />
-      </Suspense>
-    </ErrorBoundary>
+    <>
+      <input type="password" aria-describedby={hintId} />
+      <p id={hintId}>Password must be 12+ characters</p>
+    </>
   )
 }
 ```
 
-**Important Caveat**: Prefer creating promises in Server Components and passing them to Client Components. Promises created in Client Components are recreated on every render. For Client Components, use a Suspense-compatible library or framework that supports caching for promises.
+**Multiple related IDs** (single `useId` call):
 
-**Advanced Patterns with use**:
-
-```tsx title="use-hook-patterns.tsx"
-// Multiple promises in the same component
-function UserDashboard({ userId }: { userId: string }) {
-  const user = use(fetchUser(userId))
-  const posts = use(fetchUserPosts(userId))
-  const followers = use(fetchUserFollowers(userId))
+```tsx title="useId-multiple.tsx" collapse={1-2}
+function Form() {
+  const id = useId()
 
   return (
-    <div>
-      <h1>{user.name}</h1>
-      <div>Posts: {posts.length}</div>
-      <div>Followers: {followers.length}</div>
-    </div>
+    <form>
+      <label htmlFor={`${id}-email`}>Email</label>
+      <input id={`${id}-email`} type="email" />
+
+      <label htmlFor={`${id}-password`}>Password</label>
+      <input id={`${id}-password`} type="password" />
+    </form>
   )
 }
+```
 
-// Custom hook for managing multiple async resources
-function useMultipleAsyncData<T extends Record<string, Promise<any>>>(promises: T): { [K in keyof T]: Awaited<T[K]> } {
-  const result = {} as { [K in keyof T]: Awaited<T[K]> }
+**Multiple React roots** (microfrontends):
 
-  for (const [key, promise] of Object.entries(promises)) {
-    result[key as keyof T] = use(promise)
+```tsx title="useId-prefix.tsx"
+// Prevent ID collisions between apps
+const root1 = createRoot(container1, { identifierPrefix: "app1-" })
+const root2 = createRoot(container2, { identifierPrefix: "app2-" })
+```
+
+**Critical constraints**:
+
+| Constraint | Reason |
+|------------|--------|
+| Don't use for list keys | Keys should derive from data, not component position |
+| Don't use for `use()` cache keys | ID may change during render; use data-derived keys |
+| Top-level only | Like all hooks (except `use`) |
+| No async Server Components | Can't use in `async function ServerComponent()` |
+
+## Advanced Composition Patterns
+
+### Combining Deferred Value with Transition
+
+When both the input and the derived computation are expensive:
+
+```tsx title="combined-deferred-transition.tsx" collapse={1-5, 25-35}
+import { useState, useDeferredValue, useTransition, useMemo } from "react"
+
+function DataExplorer({ largeDataset }: { largeDataset: Item[] }) {
+  const [filter, setFilter] = useState("")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
+  const [isPending, startTransition] = useTransition()
+
+  // Defer filter so typing stays responsive
+  const deferredFilter = useDeferredValue(filter)
+
+  // Expensive computation uses deferred value
+  const processedData = useMemo(() => {
+    const filtered = largeDataset.filter((item) => item.name.includes(deferredFilter))
+    return filtered.sort((a, b) => (sortOrder === "asc" ? a.value - b.value : b.value - a.value))
+  }, [largeDataset, deferredFilter, sortOrder])
+
+  // Sort change is a transition (can show stale sorted data briefly)
+  const handleSortChange = (order: "asc" | "desc") => {
+    startTransition(() => {
+      setSortOrder(order)
+    })
   }
 
-  return result
-}
-
-// Usage
-function UserProfileAdvanced({ userId }: { userId: string }) {
-  const { user, posts, followers } = useMultipleAsyncData({
-    user: fetchUser(userId),
-    posts: fetchUserPosts(userId),
-    followers: fetchUserFollowers(userId),
-  })
-
   return (
-    <div>
-      <h1>{user.name}</h1>
-      <div>Posts: {posts.length}</div>
-      <div>Followers: {followers.length}</div>
+    <div style={{ opacity: isPending || filter !== deferredFilter ? 0.7 : 1 }}>
+      <input value={filter} onChange={(e) => setFilter(e.target.value)} />
+      <button onClick={() => handleSortChange("asc")}>Sort Asc</button>
+      <button onClick={() => handleSortChange("desc")}>Sort Desc</button>
+      <DataTable data={processedData} />
     </div>
   )
 }
 ```
 
-**Food for Thought**:
+### External Store with Selector (Avoiding Unnecessary Renders)
 
-- **Suspense Integration**: How does `use` work with React's Suspense mechanism?
-- **Error Handling**: What's the best way to handle promise rejections?
-- **Performance**: How does `use` affect component rendering and re-rendering?
-- **Caching**: Should we implement caching for promises consumed with `use`?
-
-### useLayoutEffect: Synchronous DOM Measurements
-
-**Problem Statement**: Sometimes we need to perform DOM measurements and updates synchronously before the browser paints. `useLayoutEffect` runs synchronously after all DOM mutations but before the browser repaints ([useLayoutEffect Reference](https://react.dev/reference/react/useLayoutEffect)).
-
-**Key Questions to Consider**:
-
-- When should we use `useLayoutEffect` vs `useEffect`?
-- How does `useLayoutEffect` affect performance?
-- What happens if we perform expensive operations in `useLayoutEffect`?
-- How do we handle cases where DOM measurements are not available?
-
-**Use Cases**:
-
-- **DOM Measurements**: Getting element dimensions, positions, or scroll positions
-- **Synchronous Updates**: Making DOM changes that must happen before paint
-- **Third-party Library Integration**: Working with libraries that need synchronous DOM access
-- **Animation Coordination**: Ensuring animations start from the correct position
-
-**Production Implementation**:
-
-````tsx
-import { useLayoutEffect, useRef, useState } from "react"
-
-/**
- * Measures and tracks element dimensions with synchronous updates.
- *
- * @returns [ref, dimensions]
- *
- * @example
- * ```tsx
- * function ResponsiveComponent() {
- *   const [ref, dimensions] = useElementSize();
- *
- *   return (
- *     <div ref={ref}>
- *       Width: {dimensions.width}, Height: {dimensions.height}
- *     </div>
- *   );
- * }
- * ```
- */
-function useElementSize() {
-  const ref = useRef<HTMLElement>(null)
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
-
-  useLayoutEffect(() => {
-    const element = ref.current
-    if (!element) return
-
-    const updateDimensions = () => {
-      const rect = element.getBoundingClientRect()
-      setDimensions({
-        width: rect.width,
-        height: rect.height,
-      })
-    }
-
-    // Initial measurement
-    updateDimensions()
-
-    // Set up resize observer for continuous updates
-    const resizeObserver = new ResizeObserver(updateDimensions)
-    resizeObserver.observe(element)
-
-    return () => {
-      resizeObserver.disconnect()
-    }
-  }, [])
-
-  return [ref, dimensions] as const
-}
-
-// Example: Tooltip positioning
-function useTooltipPosition(tooltipRef: React.RefObject<HTMLElement>) {
-  useLayoutEffect(() => {
-    const tooltip = tooltipRef.current
-    if (!tooltip) return
-
-    // Get tooltip dimensions
-    const tooltipRect = tooltip.getBoundingClientRect()
-    const viewportWidth = window.innerWidth
-    const viewportHeight = window.innerHeight
-
-    // Calculate optimal position
-    let left = tooltipRect.left
-    let top = tooltipRect.top
-
-    // Adjust if tooltip would overflow viewport
-    if (left + tooltipRect.width > viewportWidth) {
-      left = viewportWidth - tooltipRect.width - 10
-    }
-
-    if (top + tooltipRect.height > viewportHeight) {
-      top = viewportHeight - tooltipRect.height - 10
-    }
-
-    // Apply position synchronously
-    tooltip.style.left = `${left}px`
-    tooltip.style.top = `${top}px`
-  })
-}
-
-// Example: Synchronous scroll restoration
-function useScrollRestoration(key: string) {
-  useLayoutEffect(() => {
-    const savedPosition = sessionStorage.getItem(`scroll-${key}`)
-    if (savedPosition) {
-      window.scrollTo(0, parseInt(savedPosition, 10))
-    }
-
-    return () => {
-      sessionStorage.setItem(`scroll-${key}`, window.scrollY.toString())
-    }
-  }, [key])
-}
-````
-
-**Food for Thought**:
-
-- **Performance Impact**: How does `useLayoutEffect` affect rendering performance?
-- **Browser Painting**: What's the difference between layout and paint phases?
-- **Alternative Approaches**: When might `useEffect` with `requestAnimationFrame` be better?
-- **Debugging**: How can we debug issues with `useLayoutEffect`?
-
-### useSyncExternalStore: External State Synchronization
-
-**Problem Statement**: React components need to subscribe to external state stores (like Redux, Zustand, or browser APIs) and re-render when that state changes. `useSyncExternalStore` provides a way to safely subscribe to external data sources in a way that's compatible with concurrent rendering ([useSyncExternalStore Reference](https://react.dev/reference/react/useSyncExternalStore)).
-
-**Key Questions to Consider**:
-
-- How do we handle server-side rendering with external stores?
-- What happens when the external store changes during render?
-- How do we implement proper cleanup for subscriptions?
-- Should we support selective subscriptions to parts of the store?
-
-**Use Cases**:
-
-- **State Management Libraries**: Integrating with Redux, Zustand, or other state managers
-- **Browser APIs**: Subscribing to localStorage, sessionStorage, or other browser state
-- **Third-party Services**: Connecting to external APIs or services
-- **Real-time Data**: Subscribing to WebSocket connections or server-sent events
-
-**Production Implementation**:
-
-```tsx title="sync-external-store.tsx" collapse={1-2, 5-32}
+```tsx title="store-selector.tsx" collapse={1-5, 20-30}
 import { useSyncExternalStore, useCallback } from "react"
 
-// Example: Custom store implementation
-class CounterStore {
-  private listeners: Set<() => void> = new Set()
-  private state = { count: 0 }
+// Only re-render when selected slice changes
+function useStoreSelector<T, S>(store: Store<T>, selector: (state: T) => S): S {
+  const subscribe = useCallback((callback: () => void) => store.subscribe(callback), [store])
 
-  subscribe(listener: () => void) {
-    this.listeners.add(listener)
-    return () => {
-      this.listeners.delete(listener)
-    }
-  }
-
-  getSnapshot() {
-    return this.state
-  }
-
-  increment() {
-    this.state.count += 1
-    this.notify()
-  }
-
-  decrement() {
-    this.state.count -= 1
-    this.notify()
-  }
-
-  private notify() {
-    this.listeners.forEach((listener) => listener())
-  }
-}
-
-// Global store instance
-const counterStore = new CounterStore()
-
-// Hook to use the store
-function useCounterStore() {
-  const state = useSyncExternalStore(
-    counterStore.subscribe.bind(counterStore),
-    counterStore.getSnapshot.bind(counterStore),
-  )
-
-  return {
-    count: state.count,
-    increment: counterStore.increment.bind(counterStore),
-    decrement: counterStore.decrement.bind(counterStore),
-  }
-}
-
-// Example: Browser API integration
-function useLocalStorageSync<T>(key: string, defaultValue: T) {
-  const subscribe = useCallback(
-    (callback: () => void) => {
-      const handleStorageChange = (e: StorageEvent) => {
-        if (e.key === key) {
-          callback()
-        }
-      }
-
-      window.addEventListener("storage", handleStorageChange)
-      return () => {
-        window.removeEventListener("storage", handleStorageChange)
-      }
-    },
-    [key],
-  )
-
-  const getSnapshot = useCallback(() => {
-    try {
-      const item = localStorage.getItem(key)
-      return item ? JSON.parse(item) : defaultValue
-    } catch {
-      return defaultValue
-    }
-  }, [key, defaultValue])
+  const getSnapshot = useCallback(() => selector(store.getState()), [store, selector])
 
   return useSyncExternalStore(subscribe, getSnapshot)
 }
 
-// Example: Redux-like store with selectors
-class ReduxLikeStore<T> {
-  private listeners: Set<() => void> = new Set()
-  private state: T
-
-  constructor(initialState: T) {
-    this.state = initialState
-  }
-
-  subscribe(listener: () => void) {
-    this.listeners.add(listener)
-    return () => {
-      this.listeners.delete(listener)
-    }
-  }
-
-  getSnapshot() {
-    return this.state
-  }
-
-  dispatch(action: (state: T) => T) {
-    this.state = action(this.state)
-    this.notify()
-  }
-
-  private notify() {
-    this.listeners.forEach((listener) => listener())
-  }
-}
-
-// Hook with selector support
-function useStoreSelector<T, R>(store: ReduxLikeStore<T>, selector: (state: T) => R): R {
-  const subscribe = useCallback(
-    (callback: () => void) => {
-      return store.subscribe(callback)
-    },
-    [store],
-  )
-
-  const getSnapshot = useCallback(() => {
-    return selector(store.getSnapshot())
-  }, [store, selector])
-
-  return useSyncExternalStore(subscribe, getSnapshot)
-}
-
-// Usage example
-const userStore = new ReduxLikeStore({
-  user: null,
-  isAuthenticated: false,
-  preferences: {},
-})
-
-function UserProfile() {
-  const user = useStoreSelector(userStore, (state) => state.user)
-  const isAuthenticated = useStoreSelector(userStore, (state) => state.isAuthenticated)
-
-  if (!isAuthenticated) {
-    return <div>Please log in</div>
-  }
-
-  return <div>Welcome, {user?.name}!</div>
+// Usage: component only re-renders when `user.name` changes
+function UserName() {
+  const name = useStoreSelector(userStore, (state) => state.user.name)
+  return <span>{name}</span>
 }
 ```
 
-**Important Considerations**:
-
-- **Tearing Prevention**: While `useEffect` and `useState` can subscribe to external stores, this pattern is prone to tearing in concurrent rendering. `useSyncExternalStore` guarantees consistent snapshots across render passes.
-- **SSR Support**: Pass a `getServerSnapshot` function as the third argument to provide initial values during server-side rendering.
-- **Suspense Caveat**: Avoid suspending based on store values—mutations to external stores cannot be marked as non-blocking transitions.
-
-**Food for Thought**:
-
-- **Server-Side Rendering**: How does `useSyncExternalStore` handle SSR?
-- **Performance**: What's the performance impact of subscribing to external stores?
-- **Memory Leaks**: How do we prevent memory leaks with external subscriptions?
-- **Selective Updates**: When should we use selectors vs subscribing to the entire store?
-
-### useInsertionEffect: CSS-in-JS and Style Injection
-
-**Problem Statement**: CSS-in-JS libraries need to inject styles into the DOM before other effects run. `useInsertionEffect` runs synchronously before all other effects, making it perfect for style injection ([useInsertionEffect Reference](https://react.dev/reference/react/useInsertionEffect)).
-
-**Key Questions to Consider**:
-
-- When should we use `useInsertionEffect` vs `useLayoutEffect`?
-- How do we handle style conflicts and specificity?
-- What happens if styles are injected multiple times?
-- How do we clean up injected styles?
-
-**Use Cases**:
-
-- **CSS-in-JS Libraries**: Injecting dynamic styles
-- **Theme Systems**: Applying theme styles before render
-- **Dynamic Styling**: Injecting styles based on props or state
-- **Third-party Style Integration**: Working with external style systems
-
-**Production Implementation**:
-
-````tsx
-import { useInsertionEffect, useRef } from "react"
-
-/**
- * Injects CSS styles into the document head.
- *
- * @param styles - CSS string to inject
- * @param id - Unique identifier for the style tag
- *
- * @example
- * ```tsx
- * function ThemedComponent({ theme }) {
- *   useStyleInjection(`
- *     .themed-component {
- *       background-color: ${theme.backgroundColor};
- *       color: ${theme.textColor};
- *     }
- *   `, 'themed-component-styles');
- *
- *   return <div className="themed-component">Content</div>;
- * }
- * ```
- */
-function useStyleInjection(styles: string, id: string) {
-  useInsertionEffect(() => {
-    // Check if styles already exist
-    if (document.getElementById(id)) {
-      return
-    }
-
-    const styleElement = document.createElement("style")
-    styleElement.id = id
-    styleElement.textContent = styles
-    document.head.appendChild(styleElement)
-
-    return () => {
-      const existingStyle = document.getElementById(id)
-      if (existingStyle) {
-        existingStyle.remove()
-      }
-    }
-  }, [styles, id])
-}
-
-// Example: Dynamic theme injection
-function useThemeStyles(theme: Theme) {
-  const themeId = `theme-${theme.name}`
-
-  useInsertionEffect(() => {
-    const css = `
-      :root {
-        --primary-color: ${theme.colors.primary};
-        --secondary-color: ${theme.colors.secondary};
-        --text-color: ${theme.colors.text};
-        --background-color: ${theme.colors.background};
-      }
-    `
-
-    let styleElement = document.getElementById(themeId)
-    if (!styleElement) {
-      styleElement = document.createElement("style")
-      styleElement.id = themeId
-      document.head.appendChild(styleElement)
-    }
-
-    styleElement.textContent = css
-  }, [theme, themeId])
-}
-
-// Example: CSS-in-JS library integration
-class StyleManager {
-  private styles = new Map<string, string>()
-  private styleElement: HTMLStyleElement | null = null
-
-  injectStyles(id: string, css: string) {
-    this.styles.set(id, css)
-    this.updateStyles()
-  }
-
-  removeStyles(id: string) {
-    this.styles.delete(id)
-    this.updateStyles()
-  }
-
-  private updateStyles() {
-    if (!this.styleElement) {
-      this.styleElement = document.createElement("style")
-      this.styleElement.setAttribute("data-styled-components", "")
-      document.head.appendChild(this.styleElement)
-    }
-
-    this.styleElement.textContent = Array.from(this.styles.values()).join("\n")
-  }
-}
-
-const styleManager = new StyleManager()
-
-function useStyledComponent(componentId: string, css: string) {
-  useInsertionEffect(() => {
-    styleManager.injectStyles(componentId, css)
-
-    return () => {
-      styleManager.removeStyles(componentId)
-    }
-  }, [componentId, css])
-}
-````
-
-**Food for Thought**:
-
-- **Style Specificity**: How do we handle CSS specificity conflicts?
-- **Performance**: What's the performance impact of injecting styles?
-- **Cleanup**: How do we ensure styles are properly cleaned up?
-- **Server-Side Rendering**: How does `useInsertionEffect` work with SSR?
-
-### useDeferredValue: Deferring Expensive Updates
-
-**Problem Statement**: Sometimes we need to defer expensive updates to prevent blocking the UI. `useDeferredValue` allows us to defer updates to non-critical values while keeping the UI responsive ([useDeferredValue Reference](https://react.dev/reference/react/useDeferredValue)).
-
-**Key Questions to Consider**:
-
-- When should we use `useDeferredValue` vs `useTransition`?
-- How do we handle the relationship between deferred and current values?
-- What's the performance impact of deferring updates?
-- How do we ensure the deferred value eventually catches up?
-
-**Use Cases**:
-
-- **Search Results**: Deferring expensive search result updates
-- **Large Lists**: Deferring updates to large data sets
-- **Complex Calculations**: Deferring expensive computations
-- **Real-time Updates**: Managing high-frequency updates without blocking UI
-
-**Production Implementation**:
-
-````tsx
-import { useDeferredValue, useState, useMemo } from "react"
-
-/**
- * Hook for managing deferred search results with loading states.
- *
- * @param searchTerm - The current search term
- * @param searchFunction - Function to perform the search
- * @returns [deferredResults, isPending]
- *
- * @example
- * ```tsx
- * function SearchComponent() {
- *   const [searchTerm, setSearchTerm] = useState('');
- *   const [results, isPending] = useDeferredSearch(
- *     searchTerm,
- *     performExpensiveSearch
- *   );
- *
- *   return (
- *     <div>
- *       <input
- *         value={searchTerm}
- *         onChange={(e) => setSearchTerm(e.target.value)}
- *         placeholder="Search..."
- *       />
- *       {isPending && <div>Searching...</div>}
- *       <SearchResults results={results} />
- *     </div>
- *   );
- * }
- * ```
- */
-function useDeferredSearch<T>(searchTerm: string, searchFunction: (term: string) => T[]): [T[], boolean] {
-  const deferredSearchTerm = useDeferredValue(searchTerm)
-  const isPending = searchTerm !== deferredSearchTerm
-
-  const results = useMemo(() => {
-    return searchFunction(deferredSearchTerm)
-  }, [deferredSearchTerm, searchFunction])
-
-  return [results, isPending]
-}
-
-// Example: Large list with deferred updates
-function useDeferredList<T>(items: T[], filterFunction: (item: T) => boolean): [T[], boolean] {
-  const deferredItems = useDeferredValue(items)
-  const isPending = items !== deferredItems
-
-  const filteredItems = useMemo(() => {
-    return deferredItems.filter(filterFunction)
-  }, [deferredItems, filterFunction])
-
-  return [filteredItems, isPending]
-}
-
-// Example: Complex data processing
-function useDeferredCalculation<T, R>(data: T, calculationFunction: (data: T) => R): [R, boolean] {
-  const deferredData = useDeferredValue(data)
-  const isPending = data !== deferredData
-
-  const result = useMemo(() => {
-    return calculationFunction(deferredData)
-  }, [deferredData, calculationFunction])
-
-  return [result, isPending]
-}
-
-// Example: Real-time data with deferred updates
-function useDeferredRealTimeData<T>(dataStream: T[], processFunction: (data: T[]) => T[]): [T[], boolean] {
-  const deferredDataStream = useDeferredValue(dataStream)
-  const isPending = dataStream !== deferredDataStream
-
-  const processedData = useMemo(() => {
-    return processFunction(deferredDataStream)
-  }, [deferredDataStream, processFunction])
-
-  return [processedData, isPending]
-}
-
-// Usage example
-function DataVisualization({ data }: { data: number[] }) {
-  const [processedData, isPending] = useDeferredCalculation(data, (numbers) => {
-    // Expensive calculation
-    return numbers.map((n) => Math.pow(n, 2)).filter((n) => n > 100)
-  })
-
-  return (
-    <div>
-      {isPending && <div>Processing data...</div>}
-      <Chart data={processedData} />
-    </div>
-  )
-}
-````
-
-**Food for Thought**:
-
-- **Update Frequency**: How often should deferred values be updated?
-- **Memory Usage**: What's the memory impact of keeping both current and deferred values?
-- **User Experience**: How do we communicate pending states to users?
-- **Performance Trade-offs**: When is the performance cost worth the UI responsiveness?
-
-### useTransition: Managing Loading States
-
-**Problem Statement**: We need to manage loading states for non-urgent updates without blocking the UI. `useTransition` allows us to mark updates as non-urgent and track their loading state ([useTransition Reference](https://react.dev/reference/react/useTransition)).
-
-**Key Questions to Consider**:
-
-- When should we use `useTransition` vs `useDeferredValue`?
-- How do we handle multiple concurrent transitions?
-- What happens if a transition is interrupted?
-- How do we communicate transition states to users?
-
-**Use Cases**:
-
-- **Navigation**: Managing route transitions
-- **Data Fetching**: Handling non-critical data updates
-- **Form Submissions**: Managing form submission states
-- **Bulk Operations**: Handling large batch operations
-
-**Production Implementation**:
-
-````tsx
-import { useTransition, useState } from "react"
-
-/**
- * Hook for managing form submission with transition states.
- *
- * @param submitFunction - Function to handle form submission
- * @returns [submit, isPending, error]
- *
- * @example
- * ```tsx
- * function ContactForm() {
- *   const [submit, isPending, error] = useFormSubmission(handleSubmit);
- *
- *   const handleFormSubmit = async (formData) => {
- *     await submit(formData);
- *   };
- *
- *   return (
- *     <form onSubmit={handleFormSubmit}>
- *       {isPending && <div>Submitting...</div>}
- *       {error && <div>Error: {error.message}</div>}
- *       <button type="submit" disabled={isPending}>
- *         {isPending ? 'Submitting...' : 'Submit'}
- *       </button>
- *     </form>
- *   );
- * }
- * ```
- */
-function useFormSubmission<T>(
-  submitFunction: (data: T) => Promise<void>,
-): [(data: T) => Promise<void>, boolean, Error | null] {
-  const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState<Error | null>(null)
-
-  const submit = async (data: T) => {
-    setError(null)
-
-    startTransition(async () => {
-      try {
-        await submitFunction(data)
-      } catch (err) {
-        setError(err as Error)
-      }
-    })
-  }
-
-  return [submit, isPending, error]
-}
-
-// Example: Navigation with transitions
-function useNavigationTransition() {
-  const [isPending, startTransition] = useTransition()
-  const [currentRoute, setCurrentRoute] = useState("/")
-
-  const navigate = (route: string) => {
-    startTransition(() => {
-      setCurrentRoute(route)
-    })
-  }
-
-  return { navigate, currentRoute, isPending }
-}
-
-// Example: Bulk operations
-function useBulkOperation<T>(
-  operationFunction: (items: T[]) => Promise<void>,
-): [(items: T[]) => Promise<void>, boolean] {
-  const [isPending, startTransition] = useTransition()
-
-  const performOperation = async (items: T[]) => {
-    startTransition(async () => {
-      await operationFunction(items)
-    })
-  }
-
-  return [performOperation, isPending]
-}
-
-// Example: Data synchronization
-function useDataSync<T>(syncFunction: (data: T) => Promise<void>): [(data: T) => Promise<void>, boolean, string] {
-  const [isPending, startTransition] = useTransition()
-  const [status, setStatus] = useState("idle")
-
-  const sync = async (data: T) => {
-    setStatus("syncing")
-
-    startTransition(async () => {
-      try {
-        await syncFunction(data)
-        setStatus("synced")
-      } catch (error) {
-        setStatus("error")
-      }
-    })
-  }
-
-  return [sync, isPending, status]
-}
-
-// Usage example
-function UserManagement() {
-  const [users, setUsers] = useState<User[]>([])
-  const [performBulkDelete, isDeleting] = useBulkOperation(async (userIds: string[]) => {
-    await Promise.all(userIds.map((id) => deleteUser(id)))
-    setUsers((prev) => prev.filter((user) => !userIds.includes(user.id)))
-  })
-
-  const handleBulkDelete = async (selectedUsers: User[]) => {
-    await performBulkDelete(selectedUsers.map((user) => user.id))
-  }
-
-  return (
-    <div>
-      {isDeleting && <div>Deleting users...</div>}
-      <UserList users={users} onBulkDelete={handleBulkDelete} />
-    </div>
-  )
-}
-````
-
-**Food for Thought**:
-
-- **Concurrent Transitions**: How do we handle multiple transitions happening simultaneously?
-- **Interruption Handling**: What happens when a transition is interrupted by a more urgent update?
-- **Error Boundaries**: How do transitions interact with React's error boundary system?
-- **Performance Monitoring**: How can we measure the performance impact of transitions?
-
-## Advanced Hook Composition Patterns
-
-### Combining Modern Hooks for Complex Use Cases
-
-The true power of modern React hooks lies in their ability to compose into sophisticated patterns that solve complex real-world problems.
-
-```tsx
-// Example: Advanced data fetching with modern hooks
-function useAdvancedDataFetching<T>(
-  url: string,
-  options: {
-    enabled?: boolean
-    cacheTime?: number
-    retryCount?: number
-    retryDelay?: number
-  } = {},
-) {
-  const { enabled = true, cacheTime = 5 * 60 * 1000, retryCount = 3, retryDelay = 1000 } = options
-
-  // Use useId for stable cache keys
-  const cacheKey = useId()
-
-  // Use useSyncExternalStore for cache management
-  const cache = useSyncExternalStore(cacheStore.subscribe, cacheStore.getSnapshot)
-
-  // Use use for promise consumption
-  const data = use(fetchWithRetry(url, retryCount, retryDelay))
-
-  // Use useLayoutEffect for cache updates
-  useLayoutEffect(() => {
-    if (data) {
-      cacheStore.set(cacheKey, data, cacheTime)
-    }
-  }, [data, cacheKey, cacheTime])
-
-  return data
-}
-
-// Example: Real-time component with modern hooks
-function useRealTimeComponent<T>(dataSource: () => Promise<T>, updateInterval: number) {
-  const [data, setData] = useState<T | null>(null)
-  const [isPending, startTransition] = useTransition()
-  const deferredData = useDeferredValue(data)
-
-  // Use useInsertionEffect for real-time styles
-  useInsertionEffect(() => {
-    const style = document.createElement("style")
-    style.textContent = `
-      .real-time-component {
-        transition: opacity 0.2s ease-in-out;
-      }
-      .real-time-component.updating {
-        opacity: 0.7;
-      }
-    `
-    document.head.appendChild(style)
-
-    return () => style.remove()
-  }, [])
-
-  // Use useLayoutEffect for immediate updates
-  useLayoutEffect(() => {
-    const interval = setInterval(() => {
-      startTransition(async () => {
-        const newData = await dataSource()
-        setData(newData)
-      })
-    }, updateInterval)
-
-    return () => clearInterval(interval)
-  }, [dataSource, updateInterval, startTransition])
-
-  return { data: deferredData, isPending }
-}
-```
-
-**Food for Thought**:
-
-- **Hook Order**: How do we ensure hooks are called in the correct order when composing multiple hooks?
-- **Performance**: What's the performance impact of complex hook compositions?
-- **Testing**: How do we test components that use multiple modern hooks?
-- **Debugging**: What tools and techniques help debug complex hook interactions?
-
-## References
-
-- [React Hooks Documentation](https://react.dev/reference/react/hooks) - Official React documentation for all hooks
-- [Rules of Hooks](https://react.dev/reference/rules/rules-of-hooks) - Official rules and constraints for using hooks
-- [Built-in React Hooks](https://react.dev/reference/react/hooks) - Complete reference for useState, useEffect, useContext, etc.
-- [Custom Hooks](https://react.dev/learn/reusing-logic-with-custom-hooks) - Guide to building custom hooks
-- [useSyncExternalStore](https://react.dev/reference/react/useSyncExternalStore) - Subscribing to external stores
-- [useTransition](https://react.dev/reference/react/useTransition) - Managing transitions and loading states
-- [useDeferredValue](https://react.dev/reference/react/useDeferredValue) - Deferring non-critical updates
-- [React 19 use Hook](https://react.dev/reference/react/use) - Consuming promises and context with use
+**Caution**: The selector must be stable (memoized or defined outside component). A new selector each render defeats the optimization.
+
+## Conclusion
+
+Specialized hooks solve problems that core hooks cannot address due to React's architecture:
+
+- **Concurrent features** require marking updates as interruptible (`useTransition`) or deferring values (`useDeferredValue`)
+- **Browser paint timing** requires effects that run before paint (`useLayoutEffect`) or before layout effects (`useInsertionEffect`)
+- **External state** requires tearing prevention (`useSyncExternalStore`)
+- **Async data** requires Suspense integration (`use`)
+- **SSR** requires deterministic ID generation (`useId`)
+
+The decision tree: use core hooks by default. Reach for specialized hooks when you encounter their specific problem—concurrent rendering blocking input, visual flicker from late measurements, hydration mismatches, or external store inconsistencies.
+
+## Appendix
+
+### Prerequisites
+
+- [React Hooks Fundamentals](/articles/frontend-engineering/react-architecture/react-hooks-fundamentals) - Core hooks and rules
+- Understanding of React's render cycle
+- Familiarity with SSR (Server-Side Rendering) concepts
+
+### Terminology
+
+| Term | Definition |
+|------|------------|
+| **Concurrent rendering** | React 18+ feature where renders can be interrupted and resumed |
+| **Transition** | A non-blocking state update that can be abandoned if higher-priority work arrives |
+| **Tearing** | Visual inconsistency where different components show different versions of the same data |
+| **Hydration** | Attaching event handlers to server-rendered HTML on the client |
+| **Suspense** | React feature that shows fallback UI while async content loads |
+
+### Summary
+
+- `useTransition` marks state updates as non-blocking; use for expensive renders that shouldn't block input
+- `useDeferredValue` lags behind a value; use when you don't control the state update
+- `useLayoutEffect` runs before paint; use for DOM measurements to avoid flicker
+- `useInsertionEffect` runs before all effects; use only in CSS-in-JS libraries
+- `useSyncExternalStore` subscribes to external stores safely; prevents tearing in concurrent mode
+- `use` reads promises/context during render; can be called conditionally (React 19)
+- `useId` generates stable IDs from tree position; prevents SSR hydration mismatches
+
+### References
+
+- [React Documentation: useTransition](https://react.dev/reference/react/useTransition) - Official API reference and examples
+- [React Documentation: useDeferredValue](https://react.dev/reference/react/useDeferredValue) - Deferred value patterns
+- [React Documentation: useLayoutEffect](https://react.dev/reference/react/useLayoutEffect) - Effect timing and SSR caveats
+- [React Documentation: useInsertionEffect](https://react.dev/reference/react/useInsertionEffect) - CSS-in-JS use case
+- [React Documentation: useSyncExternalStore](https://react.dev/reference/react/useSyncExternalStore) - External store subscription
+- [React Documentation: use](https://react.dev/reference/react/use) - Promise and context consumption (React 19)
+- [React Documentation: useId](https://react.dev/reference/react/useId) - Stable ID generation
+- [React 18 Release: Concurrent Features](https://react.dev/blog/2022/03/29/react-v18) - Concurrent rendering introduction
+- [React 19 Release](https://react.dev/blog/2024/04/25/react-19) - New hooks and async transitions

@@ -1,0 +1,25 @@
+{
+  // =============================================================================
+  // HOME PAGE CONFIGURATION
+  // =============================================================================
+  // This file controls all content displayed on the home page.
+  // Featured content (articles, categories, topics) is managed in ordering.json5
+
+  // Page SEO
+  pageTitle: "Sujeet Jaiswal - Principal Software Engineer",
+  pageDescription: "Personal blog and portfolio of Sujeet Jaiswal, a Principal Software Engineer crafting exceptional user experiences through innovative frontend architecture and scalable design systems.",
+
+  // Profile Section
+  profile: {
+    name: "Sujeet Jaiswal",
+    title: "Principal Software Engineer",
+    bio: "Principal Software Engineer focused on frontend architecture, design systems, and end-to-end system design, with a strong emphasis on infra and architecture for scale, reliability, and performance.",
+    imageAlt: "Sujeet Jaiswal - Principal Software Engineer",
+  },
+
+  // Profile Action Buttons
+  profileActions: {
+    viewCv: "View CV",
+    allArticles: "All Articles",
+  },
+}

@@ -38,67 +38,39 @@ mindmap
 
 </figure>
 
-## TLDR
+## Abstract
 
-**A design system program** spans the entire lifecycle from building the business case through implementation, adoption, and long-term evolution. Success requires balancing technical excellence with cultural change, strategic vision with tactical execution, and centralized control with distributed autonomy.
+Design system success is fundamentally a governance problem, not a technical one. The technical implementation—tokens, components, tooling—is well understood. The challenge is organizational: securing sustained investment, choosing governance that scales with your organization's culture, and creating adoption incentives that outweigh migration friction.
 
-### Foundation & Business Case
+<figure>
 
-- **Start with pain points**: Audit UI inconsistencies, component duplication, and development velocity before proposing solutions
-- **Calculate ROI systematically**: Use the formula `ROI = (Time Savings + Quality Value - Maintenance Cost) / Maintenance Cost × 100`
-- **Expect negative first-year ROI**: Initial investment is front-loaded; benefits compound over 2-3 years
-- **Secure executive sponsorship early**: Budget allocation and policy support require leadership engagement before technical work begins
+```mermaid
+flowchart LR
+    subgraph Foundation["Foundation (Months 1-3)"]
+        A[Pain Point Audit] --> B[ROI Model]
+        B --> C[Executive Sponsor]
+    end
 
-### Team Structure & Governance
+    subgraph Structure["Structure (Months 2-4)"]
+        C --> D{Org Size?}
+        D -->|< 50 eng| E[Centralized]
+        D -->|50-200 eng| F[Hybrid]
+        D -->|> 200 eng| G[Federated]
+    end
 
-- **Three governance models exist**: Centralized (dedicated team owns everything), Federated (representatives from product teams), and Hybrid (core team + product contributions)
-- **Centralized pitfall**: Can become a bottleneck or "dictatorship" where control is quickly lost
-- **Federated prerequisite**: Requires strong governance processes and dedicated staff; not suitable for small teams
-- **Start minimal**: Begin with 1 designer + 1 developer; expand based on adoption success
+    subgraph Scaling["Scaling (Ongoing)"]
+        E & F & G --> H[Champion Network]
+        H --> I[Adoption Metrics]
+        I --> J[Governance Adjustment]
+        J --> H
+    end
+```
 
-### Technical Architecture
+<figcaption>The governance model must match organizational scale—start centralized, evolve toward federated as adoption grows</figcaption>
 
-- **Adopt DTCG token standard**: The W3C Design Tokens Community Group specification (v2025.10) is now the industry standard for interoperability
-- **Use three-tier token architecture**: Primitives (raw values) → Semantics (intent-based) → Components (element-specific)
-- **Choose framework strategy deliberately**: Framework-specific offers better DX; framework-agnostic (Web Components) offers future-proofing; hybrid is often optimal
-- **Validate with pilots**: Prototype approaches with 2-3 pilot projects before committing
+</figure>
 
-### Component Library Implementation
-
-- **React with TypeScript**: The dominant choice for design systems in 2025-2026; export props interfaces for consuming teams to extend
-- **Accessibility as architecture**: Build on headless libraries (Radix UI, React Aria) rather than implementing a11y from scratch
-- **RSC compatibility**: Consider server/client boundaries; RSC-compatible systems can reduce bundle size 40-60%
-- **Storybook for development**: Configure to mirror production build; use autodocs, visual regression testing (Chromatic/Percy)
-- **Vite + Rollup bundling**: Vite for development, Rollup (via library mode) for production; publish ESM and CJS formats
-- **Changesets for versioning**: Document changes at PR time, batch releases, generate changelogs automatically
-
-### Migration & Adoption
-
-- **Strangler Fig pattern**: Build new features with design system while incrementally migrating legacy—reduces risk but requires running two systems
-- **Champion program**: Identify advocates in each team, provide training and early access, empower them to help their teams
-- **Measure adoption weekly**: Track component coverage, team adoption rate, usage frequency, and detachment rate
-- **Documentation before release**: Launch documentation portal and support channels before any team adoption
-
-### Practical Challenges
-
-- **Shared asset hosting**: Centralize fonts, icons, and base CSS on a common CDN path; enables cross-application browser caching
-- **Version mismatch**: Establish compatibility windows (e.g., within 3 minor versions); maintain visual regression baselines per version
-- **Microfrontend integration**: Shared dependencies create upgrade coupling; use SDK abstraction and provider-based injection for isolation
-- **Checkout/webview complexity**: Native app release cycles lag web; consider parallel deployment paths or version negotiation
-
-### Technical Enablement for Adoption
-
-- **Codemods for automated migration**: Write jscodeshift transforms to automate API changes; distribute alongside major version releases
-- **Repository scanning**: Scripts that traverse company repos checking `package.json` for design system usage; tracks adoption across the organization
-- **Usage analytics pipeline**: Scrape production code to identify which components are used, which props are popular, which see overrides
-- **Data-driven prioritization**: Use analytics to identify candidates for refactoring, deprecation, or codemod investment
-- **Branch configuration**: Default to `main` branch scanning with per-repo overrides for teams using `master` or feature branches
-
-### Continuous Improvement
-
-- **Four metric categories**: Adoption (coverage, teams), Efficiency (velocity, bugs), Quality (accessibility, consistency), Business (ROI validation)
-- **Feedback loops**: Collect continuously, review weekly, implement high-impact changes within 2 weeks
-- **Plan for scaling**: Establish federated governance, regional champions, and clear contribution guidelines before capacity limits
+**The mental model**: A design system is a product serving internal customers. Like any product, it requires a business case, a team, a roadmap, and continuous feedback. The difference: your customers are colleagues who can bypass your product if it creates more friction than it removes. Success means making the design system the path of least resistance for building UI.
 
 ## Phase 1: Foundation and Strategic Alignment
 
@@ -144,14 +116,17 @@ $$
 - **QV**: Value of improved quality, reduced bugs, and better user experience
 - **MC**: Ongoing costs to maintain and evolve the design system
 
-**Industry Benchmarks:**
+**Industry Benchmarks (2024-2025 Data):**
 
-Research indicates typical efficiency gains from design system adoption:
+Research from the Knapsack ROI Report (2025) and Zeroheight Design Systems Report indicates typical efficiency gains:
 
-| Team Type         | Efficiency Gain Range | Average |
-| ----------------- | --------------------- | ------- |
-| Design Teams      | 31-50%                | ~38%    |
-| Development Teams | 20-47%                | ~31%    |
+| Team Type         | Efficiency Gain Range | Average | Source                  |
+| ----------------- | --------------------- | ------- | ----------------------- |
+| Design Teams      | 31-50%                | ~38%    | Knapsack ROI Report     |
+| Development Teams | 20-47%                | ~31%    | Knapsack ROI Report     |
+| Combined (Mature) | 50-75%                | ~60%    | Zeroheight 2025 Survey  |
+
+Notable case studies: Salesforce Lightning achieved 60% productivity increase with 70% CSS reduction; IBM Carbon reported 75% design cost reduction and 66% development cost reduction. These represent mature systems with 3+ years of investment.
 
 **ROI Timeline Expectations:**
 
@@ -299,6 +274,85 @@ Track **Decision Velocity** as the time from request to decision; slow governanc
 
 Establish the governance framework before component development begins—retrofitting governance onto an existing system creates friction. Review and adjust governance every quarter based on friction points and team feedback. Escalate governance conflicts within 48 hours; unresolved conflicts breed resentment and encourage teams to bypass the system entirely.
 
+**Governance Failure Modes**
+
+| Failure Mode                   | Symptoms                                                          | Recovery                                                      |
+| ------------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Bottleneck governance**      | Decision queue grows; teams build workarounds; adoption stalls    | Delegate categories; add async approval paths; SLA guarantees |
+| **Absent governance**          | Component drift; inconsistent patterns; "design system" in name   | Introduce lightweight review; define canonical patterns       |
+| **Hostile governance**         | Teams perceive system as obstacle; detachment rate climbs         | Survey friction points; simplify contribution; quick wins     |
+| **Scope creep**                | System tries to solve every problem; quality degrades             | Define explicit boundaries; say no to edge cases              |
+| **Zombie governance**          | Documented processes exist but aren't followed; reviews are       | Enforce or remove; dead rules erode trust                     |
+
+The most common failure is bottleneck governance—centralized teams that can't keep pace with demand. The solution isn't removing governance but creating tiered approval: trivial changes self-serve, significant changes need review, breaking changes need RFC. Brad Frost describes this as treating the design system as a product with different support tiers.
+
 ## Conclusion
 
-Foundations and governance set the pace for design system success. Align on goals, sponsorship, and operating model early so implementation can scale without friction.
+Design system adoption succeeds or fails at the organizational layer, not the technical one. The patterns here—pain-point-driven business cases, governance models matched to organizational scale, and feedback loops that drive continuous improvement—apply regardless of whether you're using React, Vue, or Web Components.
+
+**Key decisions that compound**: The governance model you choose in month two constrains how you can scale in year three. Starting centralized with a small team is almost always correct—it establishes quality standards and builds trust. The transition to federated contribution is the hard part: it requires explicit contribution guidelines, quality gates, and a champion network before product teams will invest in contributing.
+
+**The ROI trap**: First-year ROI is typically negative or marginal. Executive sponsors who expect quick wins will lose patience. Frame the investment honestly: Year 1 builds infrastructure, Year 2 sees adoption compound, Year 3+ delivers the efficiency gains. Organizations that abandon design systems mid-journey have sunk costs with no returns—commitment through the J-curve is essential.
+
+**What distinguishes successful programs**: They treat the design system as a product with customers, not a technical artifact to be maintained. They measure adoption and act on the data. They create contribution paths that reduce friction rather than adding process. And they evolve governance as the organization grows, resisting both the bottleneck of over-centralization and the fragmentation of ungoverned federation.
+
+## Appendix
+
+### Prerequisites
+
+- Familiarity with component-based UI frameworks (React, Vue, or similar)
+- Understanding of semantic versioning and package management
+- Experience with cross-functional collaboration (design and engineering)
+- Basic knowledge of accessibility standards (WCAG 2.1+)
+
+### Terminology
+
+| Term                              | Definition                                                                                                                             |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Design Token**                  | A named value representing a design decision (color, spacing, typography) in a platform-agnostic format                                |
+| **DTCG**                          | Design Tokens Community Group—W3C community group defining the interoperable token specification                                       |
+| **Federated Governance**          | A model where design system decisions are distributed across product teams with coordination from a small core team                    |
+| **Strangler Fig Pattern**         | A migration strategy where new functionality is built with the new system while legacy is incrementally replaced                       |
+| **Champion Program**              | A network of advocates embedded in product teams who drive adoption and provide feedback                                               |
+| **Headless Component Library**    | UI components providing behavior and accessibility without styling, allowing consuming teams to apply their own visual design          |
+| **RSC (React Server Components)** | A React architecture where components can render on the server, reducing client bundle size                                            |
+| **Changesets**                    | A versioning tool for monorepos that tracks changes at PR time and automates version bumps and changelog generation                    |
+| **Codemod**                       | An automated code transformation script (typically using jscodeshift) that migrates code between API versions                          |
+| **Detachment Rate**               | The percentage of component instances where teams have overridden or disconnected from the design system version                       |
+| **ROI (Return on Investment)**    | The ratio of net benefits (time savings + quality improvements - maintenance costs) to maintenance costs, expressed as a percentage    |
+
+### Summary
+
+- **Governance model selection**: Match to organizational scale—centralized for <50 engineers, hybrid for 50-200, federated for 200+. All models require evolution as adoption grows.
+- **Business case essentials**: Audit pain points before proposing solutions; calculate ROI using Time Savings + Quality Value - Maintenance Cost; expect Year 1 to be investment-heavy with compounding returns in Years 2-3.
+- **Executive sponsorship**: Secure before technical work; maintain through monthly updates; measure via budget allocation, policy support, and leadership participation.
+- **Team scaling**: Start with 1 designer + 1 developer; expand based on adoption demand rather than anticipated need; reassess structure every 6 months.
+- **Governance health metrics**: Decision velocity, contribution rate, quality compliance, and breaking change frequency reveal whether governance enables or blocks adoption.
+- **Adoption success factors**: Champion programs, documentation before release, weekly adoption measurement, and feedback loops that implement high-impact changes within 2 weeks.
+
+### References
+
+**Specifications and Standards**
+
+- [W3C Design Tokens Community Group Specification](https://www.designtokens.org/) - DTCG stable version 2025.10, the industry standard for token interoperability
+- [DTCG First Stable Version Announcement](https://www.w3.org/community/design-tokens/2025/10/28/design-tokens-specification-reaches-first-stable-version/) - October 2025 release notes and tool support
+
+**Core Maintainer and Industry Expert Content**
+
+- [Nathan Curtis - Team Models for Scaling a Design System](https://medium.com/eightshapes-llc/team-models-for-scaling-a-design-system-2cf9d03be6a0) - EightShapes; defines Solitary, Centralized, and Federated models
+- [Nathan Curtis - Designing a Systems Team](https://medium.com/eightshapes-llc/designing-a-systems-team-d22f27a2d81d) - Team composition patterns and lessons learned
+- [Brad Frost - A Design System Governance Process](https://bradfrost.com/blog/post/a-design-system-governance-process/) - Governance framework for design systems as products
+- [Brad Frost - Maintaining Design Systems (Atomic Design)](https://atomicdesign.bradfrost.com/chapter-5/) - Long-term maintenance best practices
+- [Martin Fowler - Strangler Fig Application](https://martinfowler.com/bliki/StranglerFigApplication.html) - Original pattern description (2004, updated)
+
+**ROI Research and Industry Reports**
+
+- [Knapsack Design Systems ROI Report 2025](https://www.knapsack.cloud/reports/roi-report) - ROI calculation methodology and benchmarks
+- [Zeroheight Design Systems Report 2025](https://zeroheight.com/blog/design-systems-report-2025-an-overview/) - Industry adoption trends
+
+**Tools and Libraries**
+
+- [Radix Primitives](https://www.radix-ui.com/) - Headless component library with 32+ primitives
+- [React Aria Components](https://react-aria-components.adobe.com/) - Adobe's accessible React hooks library (40+ components)
+- [Changesets Documentation](https://github.com/changesets/changesets) - Monorepo versioning and changelog automation
+- [Vista SWAN Design System](https://vista.design/swan/) - Enterprise design system case study referenced in governance models

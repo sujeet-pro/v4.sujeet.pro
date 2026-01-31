@@ -80,10 +80,10 @@ src/
 
 content/
 ├── articles/            # Category/Topic/Article hierarchy
-├── ordering.jsonc       # Global ordering config
-├── home.jsonc           # Homepage config
-├── site.jsonc           # Site metadata
-└── vanity.jsonc         # Redirects
+├── ordering.json5       # Global ordering config
+├── home.json5           # Homepage config
+├── site.json5           # Site metadata
+└── vanity.json5         # Redirects
 
 scripts/
 ├── validation/          # Build validation scripts
@@ -227,7 +227,7 @@ Use `/write-article <topic>` or manually:
 1. Create folder: `content/articles/<category>/<topic>/<article>/README.md`
 2. Add H1 title and description paragraph(s) (no frontmatter required)
 3. Add overview diagram, TLDR, main sections, conclusion, references
-4. Update `content/ordering.jsonc`
+4. Update `content/ordering.json5`
 5. Build and validate: `npm run build && npm run validate:build`
 
 ### Updating Dependencies

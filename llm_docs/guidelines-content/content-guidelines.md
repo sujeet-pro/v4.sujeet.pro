@@ -48,12 +48,14 @@ The Abstract is a **mental model** of the article, not a summary of each section
 - **Be concise but complete**: Capture the "gist" that would let someone reconstruct the main ideas.
 
 **Good Abstract patterns:**
+
 - A single diagram showing the relationship between concepts
 - 3-5 bullets capturing the core mental model (not section summaries)
 - A short paragraph explaining the key insight followed by a diagram
 - A table showing key trade-offs or comparisons
 
 **Bad Abstract patterns:**
+
 - "In this article we cover X, Y, Z" (meta-description)
 - One bullet per heading (section-by-section summary)
 - Long prose that repeats what's in the article

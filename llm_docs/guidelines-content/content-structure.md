@@ -50,7 +50,7 @@ Metadata is derived by the remark frontmatter plugin and validated in code:
 
 ## Ordering (Required for Navigation)
 
-Ordering is centralized in `content/ordering.jsonc`.
+Ordering is centralized in `content/ordering.json5`.
 
 Update these fields when adding or renaming content:
 
@@ -97,11 +97,11 @@ This repo derives metadata from the markdown structure. Follow the article layou
 - The Appendix is the final H2 and must include Prerequisites, Summary, and References. Add Terminology when needed.
 - Do not insert other H2 sections after the Appendix.
 
-## Related JSONC Config
+## Related JSON5 Config
 
 These files are part of the content system:
 
-- `content/home.jsonc` (homepage config)
-- `content/site.jsonc` (site metadata)
-- `content/vanity.jsonc` (redirects)
-- `content/ordering.jsonc` (ordering and featured content)
+- `content/home.json5` (homepage config)
+- `content/site.json5` (site metadata)
+- `content/vanity.json5` (redirects)
+- `content/ordering.json5` (ordering and featured content)

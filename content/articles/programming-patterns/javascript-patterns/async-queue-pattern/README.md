@@ -1,19 +1,11 @@
 # Async Queue Pattern in JavaScript
 
----
-
-image: ./async-task-queue.svg
-imageCredit: Async Task Queue and Executors
-
----
-
-Build resilient, scalable asynchronous task processing systems from basic in-memory queues to advanced distributed patterns using Node.js.
+Build resilient, scalable asynchronous task processing systems—from basic in-memory queues to advanced distributed patterns—using Node.js. This article covers the design reasoning behind queue architectures, concurrency control mechanisms, and resilience patterns for production systems.
 
 <figure>
 
 ```mermaid
 graph LR
-    %% Task Queue
     subgraph "Task Queue"
         T1[Task 1]
         T2[Task 2]
@@ -22,89 +14,60 @@ graph LR
         T5[Task 5]
     end
 
-    %% Executors
-    E1[Executor 1]
-    E2[Executor 2]
-    E3[Executor 3]
+    subgraph "Executors"
+        E1[Executor 1]
+        E2[Executor 2]
+        E3[Executor 3]
+    end
 
-    %% Connections
     T1 --> E1
     T2 --> E2
     T3 --> E3
     T4 --> E1
     T5 --> E2
 
-    %% Styling
     classDef taskClass fill:#ffcc00,stroke:#000,stroke-width:2px
     classDef executorClass fill:#00ccff,stroke:#000,stroke-width:2px
-    classDef queueClass fill:#e0e0e0,stroke:#000,stroke-width:2px
 
     class T1,T2,T3,T4,T5 taskClass
     class E1,E2,E3 executorClass
 ```
 
-<figcaption>Asynchronous task queue architecture showing task distribution across multiple executors</figcaption>
+<figcaption>Asynchronous task queue distributing work across multiple executors with bounded concurrency</figcaption>
 
 </figure>
 
-## TLDR
+## Abstract
 
-**Asynchronous task queues** provide controlled concurrency and reliable task processing in Node.js, from simple in-memory queues for local parallelism to distributed systems with Redis-backed durability and multi-worker scaling.
+Async queues solve a fundamental tension: how to maximize throughput while respecting resource constraints. The core mental model:
 
-### In-Memory Task Queues
+```
+Producer → Queue (buffer) → Consumer(s)
+           ↑                    ↓
+     Backpressure ←──── Concurrency Control
+```
 
-- **p-queue**: Promise-based with concurrency control, priority support, timeout handling—recommended for most local use cases ([npm](https://www.npmjs.com/package/p-queue))
-- **fastq**: Fastest in-memory queue, minimal footprint, good for high-volume processing ([GitHub](https://github.com/mcollina/fastq))
-- **Event loop aware**: Queues yield to event loop between tasks; avoid sync-heavy processors that block
+**Key design decisions:**
 
-### Distributed Task Queues
+| Decision | In-Memory Queue | Distributed Queue |
+| -------- | --------------- | ----------------- |
+| **Persistence** | None—process crash loses all jobs | Redis/DB-backed—survives restarts |
+| **Scalability** | Single process only | Competing consumers across nodes |
+| **Failure handling** | Caller's responsibility | Built-in retries, DLQ, stalled detection |
+| **When to use** | Local concurrency control, rate limiting | Cross-process coordination, durability required |
 
-- **BullMQ**: Production-grade Redis-backed queue with retries, priorities, rate limiting, delayed jobs, and flow support ([docs](https://docs.bullmq.io/))
-- **Agenda**: MongoDB-backed scheduler for job scheduling and recurring tasks ([GitHub](https://github.com/agenda/agenda))
-- **Temporal**: Workflow orchestration for complex multi-step processes with state persistence ([temporal.io](https://temporal.io/))
+**Resilience fundamentals:**
 
-### Architecture Components
-
-- **Producer**: Enqueues tasks with payload and metadata (priority, delay, retry config)
-- **Broker**: Persistent message store (Redis for BullMQ, Kafka for event streaming)
-- **Worker**: Dequeues and processes tasks with concurrency control and error handling
-- **Dead Letter Queue**: Captures tasks that exceed retry attempts for manual inspection
-
-### Resilience Patterns
-
-- **Exponential backoff**: `delay = min(cap, base × 2^attempt)` with jitter to prevent thundering herd
-- **Idempotent consumers**: Use unique job IDs with deduplication to handle at-least-once delivery safely
-- **Transactional outbox**: Write events to outbox table in same transaction as business data; relay process publishes ([microservices.io](https://microservices.io/patterns/data/transactional-outbox.html))
-- **Circuit breaker**: Pause queue processing when downstream failure rate exceeds threshold
-
-### Saga Pattern for Distributed Transactions
-
-- **Choreography**: Services react to events autonomously; decoupled but harder to trace ([microservices.io](https://microservices.io/patterns/data/saga.html))
-- **Orchestration**: Central coordinator directs saga steps; explicit flow but single point of coordination
-- **Compensating actions**: Each step has corresponding rollback action for failure recovery
-
-### Library Comparison
-
-| Library  | Backing Store              | Use Case                       |
-| -------- | -------------------------- | ------------------------------ |
-| p-queue  | In-memory                  | Local concurrency control      |
-| BullMQ   | Redis                      | Production distributed queue   |
-| Agenda   | MongoDB                    | Scheduled/recurring jobs       |
-| Temporal | PostgreSQL/MySQL/Cassandra | Complex workflow orchestration |
-| Kafka    | Kafka                      | Event streaming, CQRS          |
-
-### Performance Considerations
-
-- **Concurrency tuning**: Set based on downstream capacity and resource constraints
-- **Batch processing**: Group related tasks for reduced overhead
-- **Stalled job detection**: BullMQ's lock-based mechanism detects worker crashes
-- **Metrics**: Track queue depth, processing latency, retry rate, DLQ size
+- **Idempotency**: Design consumers to handle duplicate delivery safely
+- **Backpressure**: Bound queue size to prevent memory exhaustion
+- **Exponential backoff + jitter**: `delay = min(cap, base × 2^attempt) + random()` prevents thundering herd
+- **Dead Letter Queue (DLQ)**: Isolate poison messages that exceed retry attempts
 
 ## Part 1: The Foundation of Asynchronous Execution
 
 ### 1.1 The Event Loop and In-Process Concurrency
 
-At the core of Node.js is a single-threaded, event-driven architecture. This model is highly efficient for I/O-bound operations but presents a challenge for long-running or CPU-intensive tasks, which can block the main thread and render an application unresponsive.
+Node.js uses a single-threaded, event-driven architecture. This model excels at I/O-bound operations but blocks the main thread during CPU-intensive work. Understanding the event loop phases is essential for designing queue processors that remain responsive.
 
 <figure>
 
@@ -119,56 +82,87 @@ graph TD
         CL[6. Close Callbacks]
     end
 
-    subgraph "Queues"
-        MQ[Microtask Queue]
+    subgraph "Microtask Queues"
+        NT[nextTick Queue]
+        MQ[Promise Microtasks]
     end
 
     T --> PC --> IP --> P --> C --> CL --> T
-    MQ -.->|After each phase| T
-    MQ -.->|After each phase| PC
-    MQ -.->|After each phase| P
-    MQ -.->|After each phase| C
-    MQ -.->|After each phase| CL
+
+    NT -.->|After each phase| T
+    MQ -.->|After nextTick drains| T
 
     classDef phaseClass fill:#99ccff,stroke:#000,stroke-width:2px
     classDef microClass fill:#ffcc99,stroke:#000,stroke-width:2px
 
     class T,PC,IP,P,C,CL phaseClass
-    class MQ microClass
+    class NT,MQ microClass
 ```
 
-<figcaption>Node.js event loop phases execute sequentially, with microtasks processed between each phase</figcaption>
+<figcaption>Node.js event loop phases with microtask queues processed between each phase</figcaption>
 
 </figure>
 
-The Event Loop orchestrates execution between the Call Stack, where synchronous code runs, and various queues that hold callbacks for asynchronous operations. When an async operation completes, its callback is placed in a queue. The Event Loop monitors the Call Stack and processes tasks from these queues when it becomes empty.
+**Event Loop Phases** (as of Node.js 20+):
 
-**Event Loop Phases** ([Node.js Docs](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/)):
+The event loop executes in six phases: timers → pending callbacks → idle/prepare → poll → check → close callbacks. Each phase has a FIFO queue of callbacks.
 
-The event loop executes in six phases: timers → pending callbacks → idle/prepare → poll → check → close callbacks. Each phase has a FIFO queue of callbacks to execute.
+- **Microtask processing**: After each phase completes, Node.js drains the `nextTick` queue first, then the Promise microtask queue. Both complete before the next phase begins.
+- **Priority order**: `process.nextTick()` > Promise microtasks > macrotasks (setTimeout, setImmediate)
 
-- **Microtask Queue**: Holds Promise callbacks (`.then()`, `.catch()`). The `process.nextTick()` queue processes after the current operation completes, regardless of current phase. Both run before the event loop continues—higher priority than macrotasks.
-- **Macrotask Queues**: Phase-specific queues hold callbacks from timers, I/O operations, `setImmediate()`, and close events.
+> **Node.js 20 change (libuv 1.45.0)**: Timers now run only _after_ the poll phase, not before and after as in earlier versions. This affects callback ordering for code that depends on precise timer/I/O interleaving.
+
+**Why this matters for queues**: A queue processor that performs synchronous CPU work starves the event loop, preventing lock renewals (in distributed queues) and incoming I/O from being handled. Design processors to yield control regularly via `await` or `setImmediate()`.
 
 ### 1.2 In-Memory Task Queues: Controlling Local Concurrency
 
-For many applications, the first step beyond simple callbacks is an in-memory task queue. The goal is to manage and throttle the execution of asynchronous tasks within a single process, such as controlling concurrent requests to a third-party API to avoid rate limiting.
+In-memory queues throttle async operations within a single process—useful for rate limiting API calls or controlling database connection usage.
+
+**Library comparison (as of January 2025):**
+
+| Library | Weekly Downloads | Design Focus | Concurrency Control |
+| ------- | --------------- | ------------ | ------------------- |
+| **fastq** v1.20 | 60M+ | Raw performance, minimal overhead | Simple concurrency count |
+| **p-queue** v9.1 | 10M+ | Feature-rich, priority support | Fixed/sliding window rate limiting |
+
+**p-queue** provides priority scheduling, per-operation timeouts, and sliding-window rate limiting. **fastq** uses object pooling via `reusify` for reduced GC pressure—6x higher adoption for performance-critical scenarios.
+
+**Naive implementation** (for understanding the pattern):
 
 ```ts file=./2025-01-24-code-sample.ts collapse={1-1, 45-95, 97-114}
 
 ```
 
-> **Note**: This implementation uses [`Promise.withResolvers()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/withResolvers) (Baseline 2024) to cleanly separate promise creation from resolution.
+> **Note**: This uses [`Promise.withResolvers()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/withResolvers) (Baseline 2024).
 
-This implementation provides basic control over local asynchronous operations. However, it has critical limitations for production systems:
+**Critical limitations of in-memory queues:**
 
-- **No Persistence**: Jobs are lost if the process crashes
-- **No Distribution**: Cannot be shared across multiple processes or servers
-- **Limited Features**: Lacks advanced features like retries, prioritization, or detailed monitoring
+| Limitation | Impact | Mitigation |
+| ---------- | ------ | ---------- |
+| **No persistence** | Process crash loses all queued jobs | Use distributed queue for durability |
+| **Single process** | Cannot scale horizontally | Distributed queue with competing consumers |
+| **No backpressure by default** | Unbounded memory growth under load | Monitor queue size, reject new tasks when saturated |
+| **Caller handles errors** | Silent failures if not awaited | Always handle returned promises |
 
-## Part 2: The Ideology of Distributed Async Task Queues
+**Backpressure pattern with p-queue:**
 
-To build scalable and reliable Node.js applications, especially in a microservices architecture, tasks must be offloaded from the main application thread and managed by a system that is both persistent and distributed.
+```typescript title="backpressure.ts" collapse={1-2}
+import PQueue from "p-queue"
+
+const queue = new PQueue({ concurrency: 10 })
+
+async function addWithBackpressure<T>(task: () => Promise<T>): Promise<T> {
+  // Block producer when queue exceeds threshold
+  if (queue.size > 100) {
+    await queue.onSizeLessThan(50) // Wait until queue drains
+  }
+  return queue.add(task)
+}
+```
+
+## Part 2: Distributed Async Task Queues
+
+For persistence, horizontal scaling, and cross-process coordination, tasks must be managed by a distributed queue system.
 
 ### 2.1 Distributed Architecture Components
 
@@ -176,20 +170,24 @@ To build scalable and reliable Node.js applications, especially in a microservic
 
 ```mermaid
 graph LR
-    subgraph "Producer"
+    subgraph "Producers"
         P1[API Server]
-        P2[Background Job]
+        P2[Cron Job]
         P3[Event Handler]
     end
 
     subgraph "Message Broker"
-        MB[(Redis/Database)]
+        MB[(Redis)]
     end
 
-    subgraph "Consumers"
+    subgraph "Workers"
         W1[Worker 1]
         W2[Worker 2]
         W3[Worker 3]
+    end
+
+    subgraph "Failure Handling"
+        DLQ[(Dead Letter Queue)]
     end
 
     P1 --> MB
@@ -198,59 +196,69 @@ graph LR
     MB --> W1
     MB --> W2
     MB --> W3
+    W1 -->|Max retries exceeded| DLQ
+    W2 -->|Max retries exceeded| DLQ
+    W3 -->|Max retries exceeded| DLQ
 
     classDef producerClass fill:#ffcc99,stroke:#000,stroke-width:2px
     classDef brokerClass fill:#cc99ff,stroke:#000,stroke-width:2px
     classDef workerClass fill:#99ffcc,stroke:#000,stroke-width:2px
+    classDef dlqClass fill:#ff9999,stroke:#000,stroke-width:2px
 
     class P1,P2,P3 producerClass
     class MB brokerClass
     class W1,W2,W3 workerClass
+    class DLQ dlqClass
 ```
 
-<figcaption>Distributed architecture components showing the relationship between producers, message broker, and consumers</figcaption>
+<figcaption>Distributed queue with producers, Redis broker, competing consumers, and DLQ for failed jobs</figcaption>
 
 </figure>
 
-A distributed task queue system consists of three main components:
+**Component responsibilities:**
 
-1. **Producers**: Application components that create jobs and add them to a queue
-2. **Message Broker**: A central, persistent data store (like Redis or a database) that holds the queue of jobs
-3. **Consumers (Workers)**: Separate processes that pull jobs from the queue and execute them
+- **Producers**: Enqueue jobs with payload, priority, delay, and retry configuration
+- **Message Broker**: Persistent store (Redis for BullMQ) providing at-least-once delivery
+- **Workers (Competing Consumers)**: Dequeue and process jobs; multiple workers increase throughput
+- **Dead Letter Queue**: Captures jobs exceeding retry attempts for manual inspection
 
-**Key Benefits:**
+**Why Redis for BullMQ?** Redis provides atomic operations (MULTI/EXEC), sorted sets for delayed jobs, and pub/sub for worker coordination—all with sub-millisecond latency.
 
-- **Decoupling**: Producers and consumers operate independently
-- **Reliability**: Jobs are persisted in the message broker
-- **Scalability**: Multiple worker processes can handle increased load (Competing Consumers pattern)
+### 2.2 Node.js Distributed Queue Libraries
 
-### 2.2 Node.js Task Queue Libraries Comparison
+| Library | Backend | Design Philosophy | Best For |
+| ------- | ------- | ----------------- | -------- |
+| **BullMQ** v5.x | Redis | Modern, feature-rich, production-grade | Most distributed queue needs |
+| **Agenda** | MongoDB | Cron-style scheduling | Recurring jobs with complex schedules |
+| **Temporal** | PostgreSQL/MySQL | Workflow orchestration with state machines | Long-running, multi-step workflows |
 
-| Library       | Backend | Core Philosophy & Strengths                               | Key Features                                                                                    |
-| ------------- | ------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| **BullMQ**    | Redis   | Modern, robust, high-performance queue system             | Job dependencies (flows), rate limiting, repeatable jobs, priority queues, sandboxed processors |
-| **Bee-Queue** | Redis   | Simple, fast, lightweight for real-time, short-lived jobs | Atomic operations, job timeouts, configurable retries, event-driven processing                  |
-| **Agenda**    | MongoDB | Flexible job scheduling with cron-based intervals         | Cron scheduling, concurrency control per job, job priorities, web UI (Agendash)                 |
+### 2.3 BullMQ Deep Dive
 
-### 2.3 Implementing with BullMQ
+BullMQ (v5.67+) is the production standard for Node.js distributed queues. Key design decisions:
 
-**Producer: Adding a Job to the Queue**
+**Stalled job detection**: Workers acquire a lock when processing a job. If the lock expires (default: 30s) without renewal, BullMQ marks the job as stalled and either requeues it or moves it to failed. This handles worker crashes but also triggers if CPU-bound work starves the event loop.
 
 ```typescript title="producer.ts" collapse={1-5}
 import { Queue } from "bullmq"
 
-// Connect to a local Redis instance
-const emailQueue = new Queue("email-processing")
+const connection = { host: "localhost", port: 6379 }
+const emailQueue = new Queue("email-processing", { connection })
 
 async function queueEmailJob(userId: number, template: string) {
-  await emailQueue.add("send-email", { userId, template })
-  console.log(`Job queued for user ${userId}`)
+  await emailQueue.add(
+    "send-email",
+    { userId, template },
+    {
+      attempts: 5,
+      backoff: { type: "exponential", delay: 1000 },
+      removeOnComplete: { count: 1000 }, // Keep last 1000 completed jobs
+      removeOnFail: { age: 7 * 24 * 3600 }, // Keep failed jobs for 7 days
+    },
+  )
 }
-
-queueEmailJob(123, "welcome-email")
 ```
 
-**Worker: Processing the Job**
+**Worker with concurrency tuning**:
 
 ```typescript title="worker.ts" collapse={1-2}
 import { Worker } from "bullmq"
@@ -259,101 +267,127 @@ const emailWorker = new Worker(
   "email-processing",
   async (job) => {
     const { userId, template } = job.data
-    console.log(`Processing email for user ${userId} with template ${template}`)
-
-    // Simulate sending an email
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    console.log(`Email sent to user ${userId}`)
+    // I/O-bound: email API call
+    await sendEmail(userId, template)
   },
   {
-    // Concurrency defines how many jobs this worker can process in parallel
-    concurrency: 5,
+    connection: { host: "localhost", port: 6379 },
+    concurrency: 100, // High concurrency for I/O-bound work
+    lockDuration: 30000, // 30s lock, must complete or renew
   },
 )
-
-console.log("Email worker started...")
 ```
 
-## Part 3: Engineering for Failure: Adding Resilience
+**Concurrency tuning guidance:**
 
-In any distributed system, failures are not an exception but an expected part of operations. A resilient system must anticipate and gracefully handle these failures.
+- **I/O-bound jobs** (API calls, DB queries): concurrency 100–300
+- **CPU-bound jobs**: Use sandboxed processors (separate process) with low concurrency
+- **Mixed**: Start low, measure, increase—monitor for stalled jobs
+
+**Sandboxed processors** for CPU-intensive work:
+
+```typescript title="sandboxed-worker.ts"
+// Main process
+const worker = new Worker("cpu-intensive", "./processor.js", {
+  connection,
+  useWorkerThreads: true, // Node.js Worker Threads (BullMQ 3.13+)
+})
+
+// processor.js (separate file)
+export default async function (job) {
+  // CPU work here doesn't block main process
+  return heavyComputation(job.data)
+}
+```
+
+**Job flows** for dependencies (parent waits for all children):
+
+```typescript title="flow.ts" collapse={1-2}
+import { FlowProducer } from "bullmq"
+
+const flowProducer = new FlowProducer({ connection })
+
+await flowProducer.add({
+  name: "process-order",
+  queueName: "orders",
+  data: { orderId: "123" },
+  children: [
+    { name: "validate", queueName: "validation", data: { orderId: "123" } },
+    { name: "reserve", queueName: "inventory", data: { orderId: "123" } },
+    { name: "charge", queueName: "payments", data: { orderId: "123" } },
+  ],
+})
+// Parent job waits in 'waiting-children' state until all children complete
+```
+
+**Rate limiting** (global across all workers):
+
+```typescript title="rate-limited-worker.ts"
+const worker = new Worker("api-calls", processor, {
+  connection,
+  limiter: {
+    max: 10, // 10 jobs
+    duration: 1000, // per second
+  },
+})
+```
+
+## Part 3: Engineering for Failure
 
 ### 3.1 Retries with Exponential Backoff and Jitter
 
-When a task fails due to a transient issue, the simplest solution is to retry it. However, naive immediate retries can create a "thundering herd" problem that worsens the situation.
+Naive immediate retries cause thundering herd—all failed jobs retry simultaneously, overwhelming the recovering service.
 
 <figure>
 
 ```mermaid
 graph LR
-    subgraph "Exponential Backoff with Jitter"
-        T1[1s + random]
-        T2[2s + random]
-        T3[4s + random]
-        T4[8s + random]
+    subgraph "Exponential Backoff + Jitter"
+        T1["1s ± random(0.5s)"]
+        T2["2s ± random(1s)"]
+        T3["4s ± random(2s)"]
+        T4["8s (cap) ± random(4s)"]
     end
 
-    T1 --> T2
-    T2 --> T3
-    T3 --> T4
+    T1 --> T2 --> T3 --> T4
 
     classDef timeClass fill:#ffcc00,stroke:#000,stroke-width:2px
     class T1,T2,T3,T4 timeClass
 ```
 
-<figcaption>Exponential backoff with jitter showing progressive delay increases with randomization to prevent thundering herd</figcaption>
+<figcaption>Exponential backoff with jitter desynchronizes retries, preventing load spikes</figcaption>
 
 </figure>
 
-**Exponential Backoff Strategy:**
+**Formula**: `delay = min(cap, base × 2^attempt) + random(0, delay × jitterFactor)`
 
-- Delay increases exponentially: 1s, 2s, 4s, 8s
-- Retries quickly for brief disruptions
-- Gives overwhelmed systems meaningful recovery periods
+**BullMQ implementation**:
 
-**Jitter Implementation:**
-
-- Adds random time to backoff delay
-- Desynchronizes retry attempts from different clients
-- Smooths load on downstream services
-
-```typescript title="producer.ts"
-await apiCallQueue.add(
-  "call-flaky-api",
-  { some: "data" },
-  {
-    attempts: 5, // Retry up to 4 times (5 attempts total)
-    backoff: {
-      type: "exponential",
-      delay: 1000, // 1000ms, 2000ms, 4000ms, 8000ms
-    },
+```typescript title="retry-config.ts"
+await queue.add("api-call", payload, {
+  attempts: 5,
+  backoff: {
+    type: "exponential",
+    delay: 1000, // Base: 1s, 2s, 4s, 8s, 16s
   },
-)
+})
 ```
+
+**Why jitter?** Without jitter, jobs that failed at the same time retry at the same time. Jitter spreads retries uniformly, smoothing load on downstream services.
 
 ### 3.2 Dead Letter Queue Pattern
 
-Some messages are inherently unprocessable due to malformed data or persistent bugs in consumer logic. These "poison messages" can get stuck in infinite retry loops.
+Some jobs are inherently unprocessable: malformed payloads, missing dependencies, or bugs in consumer logic. These "poison messages" must be isolated.
 
 <figure>
 
 ```mermaid
 graph LR
-    subgraph "Main Queue"
-        MQ[(Main Queue)]
-    end
-
-    subgraph "Processing"
-        W[Worker]
-    end
-
-    subgraph "Dead Letter Queue"
-        DLQ[(DLQ)]
-    end
-
-    MQ --> W
-    W -->|Success| MQ
-    W -->|Failed > Max Attempts| DLQ
+    MQ[(Main Queue)] --> W[Worker]
+    W -->|Success| Done[✓]
+    W -->|Retry| MQ
+    W -->|Max attempts exceeded| DLQ[(DLQ)]
+    DLQ -->|Manual review| Fix[Fix & Replay]
 
     classDef queueClass fill:#e0e0e0,stroke:#000,stroke-width:2px
     classDef workerClass fill:#00ccff,stroke:#000,stroke-width:2px
@@ -364,43 +398,52 @@ graph LR
     class DLQ dlqClass
 ```
 
-<figcaption>Dead letter queue pattern showing how failed messages are moved to a separate queue after maximum retry attempts</figcaption>
+<figcaption>DLQ isolates poison messages, allowing main queue processing to continue</figcaption>
 
 </figure>
 
-The Dead Letter Queue (DLQ) pattern moves messages to a separate queue after a configured number of processing attempts have failed. This isolates problematic messages, allowing the main queue to continue functioning.
+BullMQ automatically moves jobs to "failed" state after exhausting retries. Query failed jobs for manual inspection:
+
+```typescript title="dlq-inspection.ts"
+const failedJobs = await queue.getFailed(0, 100) // Get first 100 failed jobs
+for (const job of failedJobs) {
+  console.log(`Job ${job.id} failed: ${job.failedReason}`)
+  // Optionally: fix data and retry
+  await job.retry()
+}
+```
 
 ### 3.3 Idempotent Consumers
 
-Most distributed messaging systems offer at-least-once delivery guarantees, meaning messages might be delivered more than once under certain failure conditions.
+Distributed queues provide **at-least-once delivery**. Network partitions, worker crashes, or lock expiration can cause duplicate delivery. Consumers must handle this safely.
+
+**Idempotency strategies:**
+
+| Strategy | Implementation | Trade-off |
+| -------- | -------------- | --------- |
+| **Unique constraint** | DB unique index on job ID | Simple; fails fast on duplicate |
+| **Idempotency key** | Store processed keys in Redis/DB with TTL | Allows explicit duplicate check |
+| **Conditional write** | `UPDATE ... WHERE version = ?` | Handles concurrent execution |
 
 ```typescript title="idempotent-consumer.ts" collapse={1-3}
 import { Worker } from "bullmq"
 import { db } from "./database"
 
-const idempotentWorker = new Worker("user-registration", async (job) => {
+const worker = new Worker("user-registration", async (job) => {
   const { userId, userData } = job.data
 
-  // Check if already processed
-  const existingUser = await db.users.findByPk(userId)
-  if (existingUser) {
-    console.log(`User ${userId} already exists, skipping`)
+  // Check if already processed using job ID
+  const existing = await db.processedJobs.findByPk(job.id)
+  if (existing) {
+    console.log(`Job ${job.id} already processed, skipping`)
     return
   }
 
-  // Process in transaction to ensure atomicity
+  // Atomic: create user + mark job processed
   await db.transaction(async (t) => {
     await db.users.create(userData, { transaction: t })
-    await db.processedJobs.create(
-      {
-        jobId: job.id,
-        processedAt: new Date(),
-      },
-      { transaction: t },
-    )
+    await db.processedJobs.create({ jobId: job.id, processedAt: new Date() }, { transaction: t })
   })
-
-  console.log(`User ${userId} registered successfully`)
 })
 ```
 
@@ -408,54 +451,51 @@ const idempotentWorker = new Worker("user-registration", async (job) => {
 
 ### 4.1 Transactional Outbox Pattern
 
-A common challenge in event-driven architectures is ensuring that database updates and event publishing happen atomically.
+**Problem**: How do you atomically update a database AND publish an event? If you publish first and the DB write fails, you've sent an invalid event. If you write first and publishing fails, the event is lost.
 
 <figure>
 
 ```mermaid
 graph TD
     subgraph "Application"
-        A[Application Service]
-        DB[(Database)]
-        OT[Outbox Table]
+        A[Service] -->|1. Single Transaction| DB[(Database)]
+        DB -->|Write| BT[Business Table]
+        DB -->|Write| OT[Outbox Table]
     end
 
-    subgraph "Message Relay"
-        MR[Message Relay Process]
-        MB[Message Broker]
+    subgraph "Relay Process"
+        MR[Message Relay]
+        MR -->|2. Poll| OT
+        MR -->|3. Publish| MB[Message Broker]
+        MR -->|4. Mark sent| OT
     end
-
-    A -->|1. Business Transaction| DB
-    DB -->|2. Write Event| OT
-    MR -->|3. Read Events| OT
-    MR -->|4. Publish Events| MB
 
     classDef appClass fill:#ffcc99,stroke:#000,stroke-width:2px
     classDef dbClass fill:#cc99ff,stroke:#000,stroke-width:2px
     classDef relayClass fill:#99ffcc,stroke:#000,stroke-width:2px
 
     class A appClass
-    class DB,OT dbClass
+    class DB,BT,OT dbClass
     class MR,MB relayClass
 ```
 
-<figcaption>Transactional outbox pattern showing how database transactions and event publishing are coordinated atomically</figcaption>
+<figcaption>Transactional outbox ensures atomic DB writes and event publishing via relay process</figcaption>
 
 </figure>
 
-The Transactional Outbox pattern writes events to an "outbox" table within the same database transaction as business data. A separate message relay process then reads from this table and publishes events to the message broker.
+**Solution**: Write events to an "outbox" table in the same transaction as business data. A separate relay process polls the outbox and publishes to the message broker.
 
 ```typescript title="transactional-outbox.ts"
 async function createUserWithEvent(userData: UserData) {
   return await db.transaction(async (t) => {
-    // 1. Create user
     const user = await db.users.create(userData, { transaction: t })
 
-    // 2. Write event to outbox in same transaction
+    // Event written atomically with business data
     await db.outbox.create(
       {
         eventType: "USER_CREATED",
-        eventData: { userId: user.id, ...userData },
+        aggregateId: user.id,
+        payload: JSON.stringify({ userId: user.id, ...userData }),
         status: "PENDING",
       },
       { transaction: t },
@@ -464,81 +504,103 @@ async function createUserWithEvent(userData: UserData) {
     return user
   })
 }
+
+// Separate relay process (runs continuously)
+async function relayOutboxEvents() {
+  const pending = await db.outbox.findAll({ where: { status: "PENDING" }, limit: 100 })
+  for (const event of pending) {
+    await messageBroker.publish(event.eventType, JSON.parse(event.payload))
+    await event.update({ status: "SENT" })
+  }
+}
 ```
+
+**Trade-offs:**
+
+- **Pros**: Guarantees consistency between DB and events; survives broker outages
+- **Cons**: Adds latency (polling interval); requires relay process; eventual consistency only
 
 ### 4.2 Saga Pattern for Distributed Transactions
 
-In microservices architecture, coordinating updates across multiple services requires the Saga pattern.
+When a business operation spans multiple services (each with its own database), traditional ACID transactions don't apply. The Saga pattern coordinates distributed operations through a sequence of local transactions with compensating actions for rollback.
 
 <figure>
 
 ```mermaid
 graph LR
-    subgraph "Choreography Saga"
-        S1[Service 1]
-        S2[Service 2]
-        S3[Service 3]
-        S4[Service 4]
+    subgraph "Order Saga - Happy Path"
+        S1[1. Reserve Inventory]
+        S2[2. Charge Payment]
+        S3[3. Ship Order]
+        S4[4. Confirm]
     end
 
-    S1 -->|Event| S2
-    S2 -->|Event| S3
-    S3 -->|Event| S4
-    S4 -->|Compensation Event| S3
-    S3 -->|Compensation Event| S2
-    S2 -->|Compensation Event| S1
+    subgraph "Compensation - On Failure"
+        C3[Cancel Shipment]
+        C2[Refund Payment]
+        C1[Release Inventory]
+    end
 
-    classDef serviceClass fill:#ffcc99,stroke:#000,stroke-width:2px
-    class S1,S2,S3,S4 serviceClass
+    S1 --> S2 --> S3 --> S4
+    S3 -->|Failure| C3 --> C2 --> C1
+
+    classDef stepClass fill:#99ffcc,stroke:#000,stroke-width:2px
+    classDef compClass fill:#ff9999,stroke:#000,stroke-width:2px
+
+    class S1,S2,S3,S4 stepClass
+    class C1,C2,C3 compClass
 ```
 
-<figcaption>Choreography saga pattern showing event-driven communication between services with compensation events for rollback</figcaption>
+<figcaption>Saga with compensating transactions: each step has a corresponding rollback action</figcaption>
 
 </figure>
 
-**Saga Implementation Types:**
+**Choreography vs. Orchestration:**
 
-1. **Choreography**: Services communicate via events without central controller
-   - Highly decoupled
-   - Harder to debug (workflow logic distributed)
+| Aspect | Choreography | Orchestration |
+| ------ | ------------ | ------------- |
+| **Coordination** | Services react to events autonomously | Central orchestrator directs steps |
+| **Coupling** | Loose—services don't know about each other | Tighter—orchestrator knows all steps |
+| **Debugging** | Harder—flow distributed across services | Easier—single point of visibility |
+| **Failure point** | Distributed | Orchestrator (must be resilient) |
 
-2. **Orchestration**: Central orchestrator manages workflow
-   - Centralized logic, easier to monitor
-   - Potential single point of failure
-
-```typescript title="saga-orchestrator.ts" collapse={23-29}
+```typescript title="saga-orchestrator.ts" collapse={20-26}
 class OrderSagaOrchestrator {
-  async executeOrderSaga(orderData: OrderData) {
+  async execute(orderData: OrderData) {
+    const steps: SagaStep[] = [
+      { action: () => this.reserveInventory(orderData), compensate: () => this.releaseInventory(orderData) },
+      { action: () => this.chargePayment(orderData), compensate: () => this.refundPayment(orderData) },
+      { action: () => this.createShipment(orderData), compensate: () => this.cancelShipment(orderData) },
+    ]
+
+    const completed: SagaStep[] = []
     try {
-      // Step 1: Reserve inventory
-      await this.reserveInventory(orderData.items)
-
-      // Step 2: Process payment
-      await this.processPayment(orderData.payment)
-
-      // Step 3: Create shipping label
-      await this.createShippingLabel(orderData.shipping)
-
-      // Step 4: Confirm order
-      await this.confirmOrder(orderData.id)
+      for (const step of steps) {
+        await step.action()
+        completed.push(step)
+      }
     } catch (error) {
-      // Execute compensating transactions
-      await this.compensateOrderSaga(orderData, error)
+      // Compensate in reverse order
+      for (const step of completed.reverse()) {
+        await step.compensate()
+      }
+      throw error
     }
   }
 
-  private async compensateOrderSaga(orderData: OrderData, error: Error) {
-    // Reverse operations in reverse order
-    await this.cancelShippingLabel(orderData.shipping)
-    await this.refundPayment(orderData.payment)
-    await this.releaseInventory(orderData.items)
+  private async reserveInventory(order: OrderData) {
+    /* ... */
   }
+  private async releaseInventory(order: OrderData) {
+    /* ... */
+  }
+  // ... other steps
 }
 ```
 
-### 4.3 Event Sourcing and CQRS with Kafka
+### 4.3 Event Sourcing with Message Queues
 
-For applications requiring full audit history, Event Sourcing stores immutable sequences of state-changing events.
+Event Sourcing stores state changes as an immutable sequence of events rather than current state. Queues distribute these events to consumers that build read models (CQRS).
 
 <figure>
 
@@ -546,73 +608,98 @@ For applications requiring full audit history, Event Sourcing stores immutable s
 graph TD
     subgraph "Write Side"
         C[Command Handler]
-        ES[Event Store]
-        W[Write Model]
+        ES[(Event Store)]
+    end
+
+    subgraph "Event Distribution"
+        Q[Message Queue]
     end
 
     subgraph "Read Side"
-        Q[Query Handler]
-        MV[Materialized Views]
-        R[Read Model]
+        R1[Read Model 1]
+        R2[Read Model 2]
+        R3[Analytics]
     end
 
-    C --> ES
-    ES --> W
-    ES --> MV
-    MV --> R
-    Q --> R
+    C -->|Append Event| ES
+    ES -->|Publish| Q
+    Q --> R1
+    Q --> R2
+    Q --> R3
 
     classDef writeClass fill:#ffcc99,stroke:#000,stroke-width:2px
+    classDef queueClass fill:#cc99ff,stroke:#000,stroke-width:2px
     classDef readClass fill:#99ffcc,stroke:#000,stroke-width:2px
-    classDef storeClass fill:#cc99ff,stroke:#000,stroke-width:2px
 
-    class C,W writeClass
-    class Q,R readClass
-    class ES,MV storeClass
+    class C,ES writeClass
+    class Q queueClass
+    class R1,R2,R3 readClass
 ```
 
-<figcaption>Event sourcing and CQRS architecture showing the separation between write and read sides with event store as the source of truth</figcaption>
+<figcaption>Event Sourcing with CQRS: events flow from write side through queue to multiple read models</figcaption>
 
 </figure>
 
-Apache Kafka's durable, replayable log is ideal for event stores. Key features include log compaction, which retains the last known value for each message key.
+**Why use queues with Event Sourcing?**
 
-```typescript title="event-sourcing-example.ts" collapse={17-28}
-class UserEventStore {
-  async appendEvent(userId: string, event: UserEvent) {
-    await kafka.produce({
-      topic: "user-events",
-      key: userId,
-      value: JSON.stringify({
-        eventId: uuid(),
-        userId,
-        eventType: event.type,
-        eventData: event.data,
-        timestamp: new Date().toISOString(),
-      }),
-    })
-  }
+- **Decoupling**: Read model consumers don't need to poll the event store
+- **Replay**: Queue consumers can replay from a point in time (Kafka log compaction)
+- **Scaling**: Multiple consumer groups process events independently
 
-  async getUserEvents(userId: string): Promise<UserEvent[]> {
-    const events = await kafka.consume({
-      topic: "user-events",
-      key: userId,
-    })
-    return events.map((event) => JSON.parse(event.value))
-  }
+**Kafka** is commonly used because its durable, replayable log naturally fits the event store pattern. Log compaction retains the last event per key, enabling efficient state reconstruction.
 
-  async getUserState(userId: string): Promise<UserState> {
-    const events = await this.getUserEvents(userId)
-    return events.reduce(this.applyEvent, {})
-  }
-}
-```
+## Conclusion
 
-## References
+Async queue patterns form the backbone of scalable Node.js systems. The progression from in-memory queues to distributed systems follows increasing requirements:
 
-- [MDN With Resolvers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/withResolvers)
-- [BullMQ Documentation](https://docs.bullmq.io/)
-- [Node.js Event Loop](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/)
-- [Saga Pattern](https://microservices.io/patterns/data/saga.html)
-- [Event Sourcing](https://martinfowler.com/eaaDev/EventSourcing.html)
-- [Transactional Outbox](https://microservices.io/patterns/data/transactional-outbox.html)
+1. **In-memory** (p-queue, fastq): Local concurrency control, no durability
+2. **Distributed** (BullMQ): Cross-process coordination, persistence, at-least-once delivery
+3. **Workflow orchestration** (Temporal, Sagas): Complex multi-step operations with compensation
+
+Key design principles apply at every level:
+
+- **Bound your queues**: Implement backpressure to prevent memory exhaustion
+- **Design for failure**: Exponential backoff, idempotent consumers, dead letter queues
+- **Monitor everything**: Queue depth, processing latency, retry rate, stalled job count
+- **Match concurrency to workload**: High for I/O-bound, low (with sandboxing) for CPU-bound
+
+## Appendix
+
+### Prerequisites
+
+- Node.js event loop fundamentals (phases, microtask queue)
+- JavaScript Promises and async/await
+- Redis basics (for BullMQ sections)
+- Database transactions (for outbox pattern)
+
+### Terminology
+
+- **Backpressure**: Mechanism to slow producers when consumers can't keep up
+- **Competing Consumers**: Pattern where multiple workers pull from the same queue
+- **DLQ (Dead Letter Queue)**: Queue for messages that fail processing repeatedly
+- **Idempotency**: Property where repeated operations produce the same result
+- **Jitter**: Random delay added to prevent synchronized retries
+- **Stalled Job**: Job whose lock expired without completion (worker crash or CPU starvation)
+
+### Summary
+
+- In-memory queues (p-queue v9.x, fastq v1.20.x) control local concurrency with no persistence
+- BullMQ v5.x provides Redis-backed distributed queues with retries, rate limiting, flows, and stalled detection
+- Exponential backoff with jitter prevents thundering herd on transient failures
+- Idempotent consumers are mandatory for at-least-once delivery systems
+- Transactional outbox ensures atomic DB writes and event publishing
+- Saga pattern coordinates distributed transactions through compensating actions
+- Monitor queue depth, latency, retry rate, and stalled job count in production
+
+### References
+
+- [Node.js Event Loop Documentation](https://nodejs.org/en/learn/asynchronous-work/event-loop-timers-and-nexttick) - Official guide to event loop phases and microtask processing
+- [BullMQ Documentation](https://docs.bullmq.io/) - Complete reference for BullMQ v5.x
+- [BullMQ Stalled Jobs Guide](https://docs.bullmq.io/guide/workers/stalled-jobs) - Lock-based stalled detection mechanism
+- [BullMQ Concurrency Guide](https://docs.bullmq.io/guide/workers/concurrency) - Tuning guidance for different workloads
+- [p-queue npm](https://www.npmjs.com/package/p-queue) - Promise-based queue with priority and rate limiting
+- [fastq GitHub](https://github.com/mcollina/fastq) - High-performance in-memory queue by Matteo Collina
+- [MDN Promise.withResolvers()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/withResolvers) - Baseline 2024 API
+- [Saga Pattern - microservices.io](https://microservices.io/patterns/data/saga.html) - Distributed transaction coordination
+- [Transactional Outbox - microservices.io](https://microservices.io/patterns/data/transactional-outbox.html) - Atomic DB writes and event publishing
+- [Event Sourcing - Martin Fowler](https://martinfowler.com/eaaDev/EventSourcing.html) - Foundational pattern explanation

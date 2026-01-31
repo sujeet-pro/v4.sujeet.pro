@@ -31,10 +31,10 @@ const searchIndexPath = getFilePath("search/index.json")
             <h3 class="filter-group-title">Categories</h3>
             <div class="filter-group-list" id="category-filters">
               {categories.map((cat) => (
-                <label class="filter-chip" title={cat.title}>
+                <label class="filter-chip" title={cat.title} data-filter-id={cat.id}>
                   <input type="checkbox" name="category" value={cat.id} class="filter-chip-input peer" />
                   <span class="tag peer-checked:badge-accent">
-                    {cat.name} <span class="text-muted">({cat.count})</span>
+                    {cat.name} <span class="filter-count text-muted" data-count-for={cat.id}>({cat.count})</span>
                   </span>
                 </label>
               ))}
@@ -50,10 +50,10 @@ const searchIndexPath = getFilePath("search/index.json")
             <h3 class="filter-group-title">Topics</h3>
             <div class="filter-group-list" id="topic-filters">
               {topics.map((topic) => (
-                <label class="filter-chip" title={topic.title}>
+                <label class="filter-chip" title={topic.title} data-filter-id={topic.id}>
                   <input type="checkbox" name="topic" value={topic.id} class="filter-chip-input peer" />
                   <span class="tag peer-checked:badge-accent">
-                    {topic.name} <span class="text-muted">({topic.count})</span>
+                    {topic.name} <span class="filter-count text-muted" data-count-for={topic.id}>({topic.count})</span>
                   </span>
                 </label>
               ))}
@@ -79,9 +79,9 @@ const searchIndexPath = getFilePath("search/index.json")
     <p id="result-count" class="result-count is-hidden"></p>
 
     <!-- Results -->
-    <ul id="search-results" class="content-list">
-      <li id="search-placeholder" class="content-item">
-        <p class="text-muted">Enter a search term or select filters to find content.</p>
+    <ul id="search-results" class="article-list">
+      <li id="search-placeholder" class="search-placeholder">
+        <p class="text-muted">Loading articles...</p>
       </li>
     </ul>
   </div>
@@ -138,6 +138,9 @@ const searchIndexPath = getFilePath("search/index.json")
 
   let db: Awaited<ReturnType<typeof create<typeof searchSchema>>> | null = null
 
+  // Use DOM marker to track initialization (survives script re-execution)
+  const INIT_MARKER = "data-search-initialized"
+
   // Get search index path from server-rendered data
   const searchIndexPath = JSON.parse(
     document.getElementById("search-index-path")?.textContent ?? '"/search/index.json"',
@@ -166,7 +169,7 @@ const searchIndexPath = getFilePath("search/index.json")
     }
   }
 
-  // Update URL and trigger search via pushState
+  // Update URL and trigger search via replaceState
   function updateUrl(params: SearchParams) {
     const url = new URL(window.location.href)
 
@@ -179,10 +182,10 @@ const searchIndexPath = getFilePath("search/index.json")
     if (params.topics.length) url.searchParams.set("topics", params.topics.join(","))
     else url.searchParams.delete("topics")
 
-    // Use pushState to enable back/forward navigation
-    window.history.pushState({}, "", url.toString())
-    // Dispatch popstate to trigger search
-    window.dispatchEvent(new PopStateEvent("popstate"))
+    // Use replaceState to update URL without adding to history
+    window.history.replaceState({}, "", url.toString())
+    // Trigger search with new params
+    handleUrlChange()
   }
 
   // Toggle a value in an array (add if not present, remove if present)
@@ -195,9 +198,9 @@ const searchIndexPath = getFilePath("search/index.json")
     }
   }
 
-  // Check if any filters are active
-  function hasActiveFilters(params: SearchParams) {
-    return params.q || params.categories.length || params.topics.length
+  // Check if any filters (categories/topics) are active
+  function hasFiltersActive(params: SearchParams) {
+    return params.categories.length > 0 || params.topics.length > 0
   }
 
   // Sync UI with current URL params
@@ -205,6 +208,8 @@ const searchIndexPath = getFilePath("search/index.json")
     const queryInput = document.getElementById("search-query") as HTMLInputElement
     const hintEl = document.getElementById("search-hint") as HTMLParagraphElement
     const clearBtn = document.getElementById("clear-filters") as HTMLButtonElement
+
+    if (!queryInput) return
 
     queryInput.value = params.q
 
@@ -218,18 +223,106 @@ const searchIndexPath = getFilePath("search/index.json")
       cb.checked = params.topics.includes(cb.value)
     })
 
-    // Show/hide hint and clear button
+    // Show/hide hint based on query
     if (params.q) {
-      hintEl.classList.add("is-hidden")
+      hintEl?.classList.add("is-hidden")
     } else {
-      hintEl.classList.remove("is-hidden")
+      hintEl?.classList.remove("is-hidden")
     }
 
-    if (hasActiveFilters(params)) {
-      clearBtn.classList.remove("is-hidden")
+    // Show clear button only when filters (not query) are active
+    if (hasFiltersActive(params)) {
+      clearBtn?.classList.remove("is-hidden")
     } else {
-      clearBtn.classList.add("is-hidden")
+      clearBtn?.classList.add("is-hidden")
     }
+  }
+
+  // Render a single result item HTML
+  function renderResultItem(hit: any): string {
+    const doc = hit.document
+    const href = doc.href || ""
+    const title = doc.title || "Untitled"
+    const description = doc.description || ""
+    const categoryId = doc.category || ""
+    const categoryName = doc.categoryName || ""
+    const topicId = doc.topic || ""
+    const topicName = doc.topicName || ""
+    const minutesRead = doc.minutesRead || ""
+
+    return `
+      <li class="article-card">
+        <h3 class="article-card-title">
+          <a href="${href}" class="article-card-link">${title}</a>
+        </h3>
+        <div class="frontmatter article-card-frontmatter">
+          <span class="frontmatter-item">
+            ${categoryName ? `<button type="button" class="frontmatter-filter-btn" data-filter-type="category" data-filter-value="${categoryId}">${categoryName}</button>` : ""}
+            ${topicName ? `<span class="frontmatter-separator">/</span><button type="button" class="frontmatter-filter-btn" data-filter-type="topic" data-filter-value="${topicId}">${topicName}</button>` : ""}
+          </span>
+          ${
+            minutesRead
+              ? `<span class="frontmatter-item">
+            <svg xmlns="http://www.w3.org/2000/svg" class="frontmatter-icon" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></svg>
+            <span>${minutesRead}</span>
+          </span>`
+              : ""
+          }
+        </div>
+        <p class="article-card-excerpt">${description}</p>
+      </li>
+    `
+  }
+
+  // Calculate facet counts from a set of hits
+  function calculateFacetCounts(hits: any[]): { categories: Map<string, number>; topics: Map<string, number> } {
+    const categories = new Map<string, number>()
+    const topics = new Map<string, number>()
+
+    for (const hit of hits) {
+      const category = hit.document.category || ""
+      const topic = hit.document.topic || ""
+
+      if (category) {
+        categories.set(category, (categories.get(category) || 0) + 1)
+      }
+      if (topic) {
+        topics.set(topic, (topics.get(topic) || 0) + 1)
+      }
+    }
+
+    return { categories, topics }
+  }
+
+  // Update sidebar facet counts
+  function updateFacetCounts(counts: { categories: Map<string, number>; topics: Map<string, number> }) {
+    // Update category counts
+    document.querySelectorAll('#category-filters [data-count-for]').forEach((el) => {
+      const id = el.getAttribute('data-count-for')
+      if (id) {
+        const count = counts.categories.get(id) || 0
+        el.textContent = `(${count})`
+        // Dim the label if count is 0
+        const label = el.closest('.filter-chip')
+        if (label) {
+          label.classList.toggle('filter-chip--empty', count === 0)
+        }
+      }
+    })
+
+    // Update topic counts
+    document.querySelectorAll('#topic-filters [data-count-for]').forEach((el) => {
+      const id = el.getAttribute('data-count-for')
+      if (id) {
+        const count = counts.topics.get(id) || 0
+        el.textContent = `(${count})`
+        // Dim the label if count is 0
+        const label = el.closest('.filter-chip')
+        if (label) {
+          label.classList.toggle('filter-chip--empty', count === 0)
+        }
+      }
+    })
   }
 
   // Execute search
@@ -243,103 +336,59 @@ const searchIndexPath = getFilePath("search/index.json")
     const resultsEl = document.getElementById("search-results") as HTMLUListElement
     const countEl = document.getElementById("result-count") as HTMLParagraphElement
 
-    // Show placeholder if no search query and no filters
-    if (!params.q && !params.categories.length && !params.topics.length) {
-      resultsEl.innerHTML = `
-        <li id="search-placeholder" class="content-item">
-          <p class="text-muted">Enter a search term or select filters to find content.</p>
-        </li>
-      `
-      countEl.classList.add("is-hidden")
-      return
-    }
+    if (!resultsEl) return
 
-    // Execute search (use empty term if only filtering)
+    // Step 1: Execute search query (empty term returns all documents)
     const results = await search(db, {
       term: params.q || "",
-      limit: 100,
+      limit: 1000,
     })
 
-    // Filter results
-    let filteredHits = results.hits as any[]
+    // Step 2: Get query-filtered results (before category/topic filters)
+    const queryFilteredHits = results.hits as any[]
 
-    // Category filter (OR)
+    // Step 3: Apply category/topic filters on top of query results
+    let finalHits = queryFilteredHits
+
+    // Category filter (OR logic - match any selected category)
     if (params.categories.length > 0) {
-      filteredHits = filteredHits.filter((hit) => {
+      finalHits = finalHits.filter((hit) => {
         const category = hit.document.category || ""
         return params.categories.includes(category)
       })
     }
 
-    // Topic filter (OR)
+    // Topic filter (OR logic - match any selected topic)
     if (params.topics.length > 0) {
-      filteredHits = filteredHits.filter((hit) => {
+      finalHits = finalHits.filter((hit) => {
         const topic = hit.document.topic || ""
         return params.topics.includes(topic)
       })
     }
 
-    // Render results
-    renderResults({ hits: filteredHits, count: filteredHits.length }, resultsEl, countEl)
-  }
+    // Step 4: Calculate facet counts from final results (current displayed set)
+    const facetCounts = calculateFacetCounts(finalHits)
+    updateFacetCounts(facetCounts)
 
-  // Render search results
-  function renderResults(
-    results: { hits: any[]; count: number },
-    resultsEl: HTMLUListElement,
-    countEl: HTMLParagraphElement,
-  ) {
-    if (results.count === 0) {
+    // Handle no results
+    if (finalHits.length === 0) {
       resultsEl.innerHTML = `
-        <li class="content-item">
-          <p class="text-muted">No results found. Try different search terms or filters.</p>
+        <li class="search-placeholder">
+          <p class="text-muted">No matching articles found. Try different search terms or filters.</p>
         </li>
       `
-      countEl.classList.add("is-hidden")
+      countEl?.classList.add("is-hidden")
       return
     }
 
-    countEl.textContent = `${results.count} result${results.count === 1 ? "" : "s"} found`
-    countEl.classList.remove("is-hidden")
+    // Show result count
+    if (countEl) {
+      countEl.textContent = `${finalHits.length} article${finalHits.length === 1 ? "" : "s"} found`
+      countEl.classList.remove("is-hidden")
+    }
 
-    resultsEl.innerHTML = results.hits
-      .map((hit) => {
-        const doc = hit.document
-        const href = doc.href || ""
-        const title = doc.title || "Untitled"
-        const description = doc.description || ""
-        const categoryId = doc.category || ""
-        const categoryName = doc.categoryName || ""
-        const topicId = doc.topic || ""
-        const topicName = doc.topicName || ""
-        const categoryHref = categoryId ? `/articles/${categoryId}` : ""
-        const topicHref = categoryId && topicId ? `/articles/${categoryId}/${topicId}` : ""
-        const minutesRead = doc.minutesRead || ""
-
-        return `
-          <li class="content-item cursor-pointer">
-            <h3 class="content-item-title">
-              <a href="${href}" class="content-item-link">${title}</a>
-            </h3>
-            <div class="frontmatter mb-4">
-              <span class="inline-flex items-center gap-1">
-                ${categoryName ? `<a href="${categoryHref}" class="hover:underline text-muted">${categoryName}</a>` : ""}
-                ${topicName ? `<span class="text-muted">/</span><a href="${topicHref}" class="hover:underline text-muted">${topicName}</a>` : ""}
-              </span>
-              ${
-                minutesRead
-                  ? `<span class="inline-flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></svg>
-                <span>${minutesRead}</span>
-              </span>`
-                  : ""
-              }
-            </div>
-            <p class="content-item-excerpt">${description}</p>
-          </li>
-        `
-      })
-      .join("")
+    // Render all results
+    resultsEl.innerHTML = finalHits.map(renderResultItem).join("")
   }
 
   // Update filter count badge
@@ -457,9 +506,8 @@ const searchIndexPath = getFilePath("search/index.json")
 
     modalClearBtn?.addEventListener("click", () => {
       const params = getUrlParams()
-      params.categories = []
-      params.topics = []
-      updateUrl(params)
+      // Clear only filters, keep query
+      updateUrl({ q: params.q, categories: [], topics: [] })
       closeModal()
     })
 
@@ -471,19 +519,69 @@ const searchIndexPath = getFilePath("search/index.json")
     })
   }
 
-  // Initialize
-  document.addEventListener("DOMContentLoaded", async () => {
+  // Main initialization function
+  async function initSearchPage() {
+    // Guard: only run on search page
     const queryInput = document.getElementById("search-query") as HTMLInputElement
+    if (!queryInput) return
+
+    // Guard: prevent double initialization using DOM marker
+    if (queryInput.hasAttribute(INIT_MARKER)) return
+    queryInput.setAttribute(INIT_MARKER, "true")
+
     const clearBtn = document.getElementById("clear-filters") as HTMLButtonElement
+    const resultsEl = document.getElementById("search-results")
+    const filterSidebar = document.getElementById("filter-sidebar")
 
     // Initialize filter modal
     initFilterModal()
 
-    // Listen for URL changes (back/forward navigation and programmatic changes)
+    // Listen for URL changes (back/forward navigation)
     window.addEventListener("popstate", handleUrlChange)
 
-    // Initial sync and search based on current URL
-    await handleUrlChange()
+    // Handle filter button clicks in search results (event delegation)
+    resultsEl?.addEventListener("click", (e: Event) => {
+      const target = e.target as HTMLElement
+      if (!target) return
+
+      const filterBtn = target.closest(".frontmatter-filter-btn") as HTMLButtonElement | null
+      if (!filterBtn) return
+
+      e.preventDefault()
+      e.stopPropagation()
+
+      const filterType = filterBtn.getAttribute("data-filter-type")
+      const filterValue = filterBtn.getAttribute("data-filter-value")
+      if (!filterType || !filterValue) return
+
+      const params = getUrlParams()
+
+      if (filterType === "category") {
+        params.categories = toggleArrayValue(params.categories, filterValue)
+      } else if (filterType === "topic") {
+        params.topics = toggleArrayValue(params.topics, filterValue)
+      }
+
+      updateUrl(params)
+    })
+
+    // Handle sidebar filter changes (event delegation on sidebar)
+    filterSidebar?.addEventListener("change", (e: Event) => {
+      const target = e.target as HTMLInputElement
+      if (!target || target.type !== "checkbox") return
+
+      const filterName = target.name
+      const filterValue = target.value
+      const params = getUrlParams()
+
+      if (filterName === "category") {
+        params.categories = toggleArrayValue(params.categories, filterValue)
+      } else if (filterName === "topic") {
+        params.topics = toggleArrayValue(params.topics, filterValue)
+      }
+
+      updateUrl(params)
+    })
 
     // Query input: update URL on Enter
     queryInput.addEventListener("keydown", (e) => {
@@ -494,38 +592,25 @@ const searchIndexPath = getFilePath("search/index.json")
       }
     })
 
-    // Category filters: toggle value in URL
-    document.querySelectorAll<HTMLInputElement>('#filter-sidebar input[name="category"]').forEach((cb) => {
-      cb.addEventListener("change", () => {
-        const params = getUrlParams()
-        params.categories = toggleArrayValue(params.categories, cb.value)
-        updateUrl(params)
-      })
-    })
-
-    // Topic filters: toggle value in URL
-    document.querySelectorAll<HTMLInputElement>('#filter-sidebar input[name="topic"]').forEach((cb) => {
-      cb.addEventListener("change", () => {
-        const params = getUrlParams()
-        params.topics = toggleArrayValue(params.topics, cb.value)
-        updateUrl(params)
-      })
-    })
-
-    // Clear all filters: reset URL
+    // Clear all filters (keep query): reset filters only
     clearBtn?.addEventListener("click", () => {
-      const emptyParams: SearchParams = { q: "", categories: [], topics: [] }
-      updateUrl(emptyParams)
+      const params = getUrlParams()
+      updateUrl({ q: params.q, categories: [], topics: [] })
     })
 
     // Focus input on load
     queryInput.focus()
-  })
 
-  // Re-initialize on Astro page navigation
-  document.addEventListener("astro:page-load", () => {
-    initFilterModal()
-  })
+    // Initial sync and search based on current URL
+    await handleUrlChange()
+  }
+
+  // Initialize on DOMContentLoaded
+  document.addEventListener("DOMContentLoaded", initSearchPage)
+
+  // Re-initialize on Astro page navigation (for SPA)
+  // DOM marker will be naturally reset when page content is replaced
+  document.addEventListener("astro:page-load", initSearchPage)
 </script>
 
 <style>
@@ -537,6 +622,10 @@ const searchIndexPath = getFilePath("search/index.json")
     min-width: 200px;
   }
 
+  .search-placeholder {
+    padding: 2rem 0;
+  }
+
   /* Active filter chip styling */
   .filter-chip input:checked + .tag {
     background: var(--color-accent);
@@ -545,6 +634,16 @@ const searchIndexPath = getFilePath("search/index.json")
 
   .filter-chip input:checked + .tag .text-muted-foreground {
     color: rgba(255, 255, 255, 0.8);
+  }
+
+  /* Empty filter chip (count is 0) */
+  .filter-chip--empty {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .filter-chip--empty .tag {
+    cursor: not-allowed;
   }
 
   /* Floating filter button - hidden by default, shown via JS */
@@ -689,5 +788,27 @@ const searchIndexPath = getFilePath("search/index.json")
     gap: 1rem;
     padding: 1rem 1.25rem;
     border-top: 1px solid var(--color-border);
+  }
+
+  /* Filter buttons in search results */
+  .frontmatter-filter-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: color 0.15s ease;
+  }
+
+  .frontmatter-filter-btn:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
+
+  .frontmatter-filter-btn:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 </style>

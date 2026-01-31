@@ -20,9 +20,9 @@ content/
 ├── work/             # Design docs, case studies
 ├── uses/             # Tools and setup
 ├── pages/            # Static pages
-├── tags.jsonc        # Tag definitions
-├── categories.jsonc  # Deep-dive categories
-└── series.jsonc      # Content series groupings
+├── tags.json5        # Tag definitions
+├── categories.json5  # Deep-dive categories
+└── series.json5      # Content series groupings
 
 plugins/
 ├── remark-*.ts       # Custom remark plugins
@@ -43,7 +43,7 @@ Content is organized into typed collections using Astro's Content Collections AP
 - `uses` - Tools and setup articles
 - `pages` - Static pages
 
-**JSONC Collections:**
+**JSON5 Collections:**
 
 - `tags` - Tag ID to display name mapping
 - `categories` - Deep-dive category hierarchy with subcategories

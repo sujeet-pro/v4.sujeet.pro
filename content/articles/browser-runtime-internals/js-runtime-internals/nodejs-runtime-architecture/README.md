@@ -1,6 +1,6 @@
 # Node.js Runtime Architecture: Event Loop, Streams, and APIs
 
-Node.js is a host environment that pairs V8 with libuv, a C++ bindings layer, and a large set of JavaScript core modules and application programming interfaces (APIs). This article focuses on the runtime boundaries that matter at scale: event loop ordering, microtasks, thread pool backpressure, buffer and stream memory, and Application Binary Interface (ABI) stable extension points.
+Node.js is a host environment that pairs V8 with libuv, a C++ bindings layer, and a large set of JavaScript core modules and Application Programming Interfaces (APIs). This article focuses on the runtime boundaries that matter at scale: event loop ordering, microtasks, thread pool backpressure, buffer and stream memory, and Application Binary Interface (ABI) stable extension points. Coverage is current as of Node.js 22 LTS (libuv 1.49+, V8 12.4+).
 
 <figure>
 
@@ -43,31 +43,45 @@ flowchart TB
 <figcaption>Runtime layering from JavaScript to native engines, dependencies, and the OS.</figcaption>
 </figure>
 
-## TLDR
+## Abstract
 
-### Architecture in one screen
+Node.js runtime behavior is defined by three boundaries: the V8 JavaScript-to-native edge (where JIT tiers and GC pauses originate), the libuv event loop (where phase ordering and microtask interleaving determine callback timing), and the thread pool (where nominally "async" file I/O becomes a blocking queue). Mastering the runtime means understanding what crosses each boundary and when.
 
-- V8 executes ECMAScript; libuv owns the event loop and asynchronous I/O (Input/Output); C++ bindings bridge the two.
-- Node-API is the only ABI (Application Binary Interface) stable native surface across Node.js major versions.
-- Example: A single `fs.readFile` call crosses JavaScript -> C++ bindings -> libuv thread pool before re-entering JavaScript.
+<figure>
 
-### Scheduling and concurrency
+```mermaid
+flowchart LR
+  subgraph JS["JavaScript"]
+    code["User code"]
+    micro["Microtask queue<br/>(nextTick > Promise)"]
+  end
 
-- Event loop phases are timers, pending callbacks, poll, check, close. Since libuv 1.45 (Node.js 20), timers run only after poll.
-- Node drains the `process.nextTick` queue before Promise microtasks and before the next loop phase.
-- Example: Inside an I/O callback, `setImmediate` typically wins over `setTimeout(0)`; recursive `nextTick` chains can starve poll.
+  subgraph Loop["libuv Event Loop"]
+    timers["timers"]
+    poll["poll"]
+    check["check"]
+    close["close"]
+  end
 
-### Data movement and backpressure
+  subgraph Offload["Offload paths"]
+    pool["Thread pool<br/>(fs, dns.lookup, crypto)"]
+    async["OS async I/O<br/>(sockets, dns.resolve*)"]
+  end
 
-- `Writable.write()` returning `false` is a hard signal to stop; ignoring it can spike RSS (Resident Set Size) and even abort the process.
-- Buffers are `Uint8Array` backed; small `allocUnsafe` buffers use a shared pool.
-- Example: A 200 MB upload piped through `stream.pipeline()` stays bounded by `highWaterMark`, while manual writes can overrun memory.
+  code --> micro --> timers --> poll --> check --> close --> timers
+  poll --> pool
+  poll --> async
+```
 
-### Operational guardrails
+<figcaption>Mental model: JavaScript triggers microtasks, which drain before the loop advances. The poll phase dispatches to either the thread pool (blocking) or OS async I/O (non-blocking).</figcaption>
+</figure>
 
-- `monitorEventLoopDelay()` measures loop lag; `process.memoryUsage().arrayBuffers` exposes Buffer footprint.
-- The libuv thread pool defaults to 4 threads and is tuned via `UV_THREADPOOL_SIZE` (max 1024).
-- Example: 64 concurrent file reads queue behind 4 workers unless you resize the pool.
+**Key mental models:**
+
+- **Scheduling**: `process.nextTick` drains before Promise microtasks, which drain before any event loop phase advances. Unbounded recursion in either queue starves I/O.
+- **Thread pool bottleneck**: File system ops, `dns.lookup`, and CPU-bound crypto share a default 4-thread pool. Network I/O and `dns.resolve*` bypass it entirely.
+- **Backpressure contract**: `Writable.write()` returning `false` is a hard stop signal; ignoring it causes unbounded memory growth until OOM or abort.
+- **ABI stability**: Node-API is the only stable native addon interface across majors. Direct V8/libuv header use requires rebuild per major.
 
 ## Runtime Layers and Call Path
 
@@ -79,15 +93,28 @@ Example: A gateway handling 30k idle keep-alive sockets is fine as long as reque
 
 ## Event Loop, Microtasks, and Ordering
 
-The Node.js event loop executes callbacks in phases (timers, pending callbacks, poll, check, close). `setImmediate()` callbacks run in the check phase, after poll. As of libuv 1.45 (Node.js 20), timers are only run after poll, which changes the timing of `setTimeout()` relative to `setImmediate()` in some scenarios.
+The Node.js event loop executes callbacks in six phases:
 
-`process.nextTick()` is not part of the event loop phases; its queue is drained after the current JavaScript stack completes and before the loop is allowed to continue. Recursive `nextTick` scheduling can starve I/O.
+1. **timers** - `setTimeout()` and `setInterval()` callbacks
+2. **pending callbacks** - I/O callbacks deferred from the previous iteration
+3. **idle, prepare** - internal libuv use
+4. **poll** - retrieve new I/O events, execute I/O callbacks
+5. **check** - `setImmediate()` callbacks
+6. **close callbacks** - close event handlers (`socket.on('close')`)
+
+As of libuv 1.45 (Node.js 20+), timers run only after the poll phase, changing the timing of `setTimeout()` relative to `setImmediate()`. Prior to libuv 1.45, timers could fire both before and after poll, making the `setTimeout(0)` vs `setImmediate()` race nondeterministic even inside I/O callbacks.
+
+`process.nextTick()` is not part of the event loop phases. Its queue drains after the current JavaScript stack completes and before the loop advances to the next phase. The draining order is:
+
+1. All `process.nextTick()` callbacks (recursively, until empty)
+2. All Promise microtask callbacks (recursively, until empty)
+3. Next event loop phase
 
 ECMAScript defines job queues for Promise reactions but leaves inter-queue ordering to the host:
 
 > "This specification does not define the order in which multiple Job Queues are serviced." (ECMA-262)
 
-Node documents that it drains the `process.nextTick` queue before the Promise microtask queue, then proceeds to macrotask phases.
+Node's implementation choice to drain `nextTick` before Promises is a deliberate departure from browser behavior, where only the microtask queue exists. This creates a subtle portability trap: code relying on `nextTick` priority behaves differently in browsers using `queueMicrotask()`.
 
 ```js title="timeout-vs-immediate.js" collapse={1-3,6-7}
 import { readFile } from "node:fs"
@@ -98,35 +125,95 @@ readFile(__filename, () => {
 })
 ```
 
-Example: If you need "after poll" ordering inside an I/O callback, use `setImmediate()`; `setTimeout(0)` can slip past it depending on poll timing and the libuv 1.45 timer change.
+Example: Inside an I/O callback on libuv 1.45+, `setImmediate` always fires before `setTimeout(0)` because check phase precedes the next timer phase. Outside an I/O callback, the order depends on process timing and remains nondeterministic.
+
+**Edge case**: Recursive `nextTick` chains starve I/O indefinitely. A `while (true) process.nextTick(fn)` pattern blocks the event loop forever because the loop cannot advance until the `nextTick` queue empties.
 
 ## libuv Thread Pool: When Async I/O Is Not Truly Non-Blocking
 
-libuv uses a shared thread pool to offload operations that do not have non-blocking OS primitives. The pool is used for file system operations and `getaddrinfo` / `getnameinfo`. The default size is 4 threads, configurable via `UV_THREADPOOL_SIZE` with a maximum of 1024. The pool is global across event loops and preallocated to the configured maximum.
+libuv uses a shared thread pool to offload operations that lack non-blocking OS primitives. The pool is global, shared across all event loops, and preallocated at startup.
 
-Example: On a 16 core machine, 64 concurrent `fs.readFile` calls still execute only four at a time by default. Raising `UV_THREADPOOL_SIZE` reduces queueing but increases memory and context switching.
+**Pool configuration:**
+
+- Default size: 4 threads
+- Maximum: 1024 (increased from 128 in libuv 1.30.0)
+- Set via `UV_THREADPOOL_SIZE` environment variable at process startup
+- Cannot be resized after the first I/O operation triggers pool initialization
+
+**Operations using the thread pool:**
+
+| Category    | Operations                                                                                                      |
+| ----------- | --------------------------------------------------------------------------------------------------------------- |
+| File system | All `fs` APIs except `fs.FSWatcher()` and explicitly synchronous methods                                        |
+| DNS         | `dns.lookup()`, `dns.lookupService()`                                                                           |
+| Crypto      | `crypto.pbkdf2()`, `crypto.scrypt()`, `crypto.randomBytes()`, `crypto.randomFill()`, `crypto.generateKeyPair()` |
+| Compression | All `zlib` APIs except explicitly synchronous methods                                                           |
+
+**Operations bypassing the thread pool:**
+
+| Category       | Operations               | Mechanism                                   |
+| -------------- | ------------------------ | ------------------------------------------- |
+| Network I/O    | TCP, UDP, HTTP sockets   | OS non-blocking sockets (epoll/kqueue/IOCP) |
+| DNS resolution | `dns.resolve*()` methods | c-ares library (true async)                 |
+
+The distinction between `dns.lookup()` (uses thread pool, honors `/etc/hosts`) and `dns.resolve*()` (uses c-ares, DNS protocol only) is a common source of confusion. Under load, `dns.lookup()` can saturate the thread pool and block file system operations.
+
+Example: On a 16-core machine, 64 concurrent `fs.readFile` calls still execute only four at a time by default. Raising `UV_THREADPOOL_SIZE` reduces queueing but increases memory footprint and context-switch overhead. A common production value is 64–128 for I/O-heavy workloads.
+
+**Edge case**: Setting `UV_THREADPOOL_SIZE` after any I/O operation has already occurred has no effect. The pool size is fixed at first use. This catches teams who try to configure it dynamically based on runtime conditions.
 
 ## V8 Execution and Garbage Collection in Node
 
-V8 runs a tiered pipeline: Ignition interprets bytecode, Sparkplug adds a fast non-optimizing just-in-time (JIT) tier between Ignition and TurboFan, and Maglev sits between Sparkplug and TurboFan as a fast optimizing tier. TurboFan remains the top tier for peak optimization.
+V8 runs a four-tier Just-In-Time (JIT) pipeline, each tier trading compilation speed for generated code quality:
 
-V8 uses generational garbage collection (GC). The young generation is intentionally small (up to about 16 MiB (mebibytes) in the Orinoco design), so it fills quickly and triggers frequent scavenges; survivors are promoted to the old generation. The young generation scavenger runs in parallel to reduce pause time.
+| Tier          | Role               | Trigger threshold | Speed vs quality                                                                                  |
+| ------------- | ------------------ | ----------------- | ------------------------------------------------------------------------------------------------- |
+| **Ignition**  | Interpreter        | First call        | Instant start, slowest execution                                                                  |
+| **Sparkplug** | Baseline compiler  | ~8 invocations    | Compiles bytecode to machine code without optimization; no IR (Intermediate Representation)       |
+| **Maglev**    | Mid-tier optimizer | ~500 invocations  | SSA-based CFG (Control Flow Graph); ~10× slower than Sparkplug, ~10× faster than TurboFan compile |
+| **TurboFan**  | Advanced optimizer | ~6000 invocations | Aggressive speculative optimization; peak throughput                                              |
 
-Example (inference): Long lived services with stable object shapes benefit from Maglev and TurboFan tier-up, while short lived serverless functions spend most of their time in Ignition and Sparkplug.
+Sparkplug was introduced in V8 9.1 (Chrome 91). Maglev shipped in V8 11.7 (Chrome M117, December 2023) and is available in Node.js 22+.
+
+The tiering thresholds reset if type feedback changes—for example, if a function previously saw only integers suddenly receives a string, it may deoptimize and re-tier. This explains why monomorphic call sites (single type) optimize better than polymorphic ones.
+
+V8 uses generational Garbage Collection (GC). The young generation is intentionally small (up to ~16 MiB in the Orinoco design), so it fills quickly and triggers frequent scavenges; survivors are promoted to the old generation. The Orinoco parallel scavenger splits young-generation collection across multiple threads, reducing pause times to sub-millisecond on typical workloads.
+
+**GC pause implications:**
+
+- Young-generation scavenges are frequent but fast (~0.5–2 ms)
+- Old-generation major GCs can pause 10–100+ ms on large heaps
+- Incremental marking spreads old-generation work across frames, reducing peak pause
+
+Example: Long-lived services with stable object shapes benefit from Maglev and TurboFan tier-up. Short-lived serverless functions (sub-100ms) spend most execution time in Ignition and Sparkplug, making startup latency and interpreter performance the dominant factors. For serverless, minimizing cold-start bytecode size matters more than peak TurboFan throughput.
 
 ## Buffers and Streams: Moving Bytes Without Blowing RAM
 
 ### Buffers
 
-`Buffer` is a subclass of `Uint8Array`; Node.js APIs accept plain `Uint8Array` where buffers are supported. `Buffer.allocUnsafe()` returns uninitialized memory and may use a shared internal pool for small allocations. `process.memoryUsage().arrayBuffers` includes memory held by `Buffer` and `SharedArrayBuffer` objects.
+`Buffer` is a subclass of `Uint8Array`; Node.js APIs accept plain `Uint8Array` where buffers are supported. `Buffer.allocUnsafe()` returns uninitialized memory—this is a security consideration because the memory may contain sensitive data from previous allocations.
 
-Example: If `arrayBuffers` grows by 200 MB while `heapUsed` is flat, you likely have large binary payloads or pooled buffers, not a JavaScript heap leak.
+**Pool behavior:**
+
+- `Buffer.poolSize` default: 8192 bytes (8 KiB)
+- Pool used when allocation size < `Buffer.poolSize >>> 1` (4096 bytes)
+- Methods using the pool: `Buffer.allocUnsafe()`, `Buffer.from(array)`, `Buffer.from(string)`, `Buffer.concat()`
+- `Buffer.allocUnsafeSlow()` never uses the pool (allocates dedicated ArrayBuffer)
+
+`process.memoryUsage().arrayBuffers` includes memory held by `Buffer` and `SharedArrayBuffer` objects, distinct from the V8 heap.
+
+Example: If `arrayBuffers` grows by 200 MB while `heapUsed` is flat, you have large binary payloads or pooled buffers, not a JavaScript heap leak. Conversely, thousands of small `allocUnsafe` calls may reuse the same 8 KiB pool and not show up as memory growth until the pool is exhausted.
 
 ### Streams and backpressure
 
-`Writable.write()` returns `false` when the internal buffer exceeds `highWaterMark`. Once this happens, no more data should be written until the `drain` event fires. Ignoring this rule forces Node to buffer until it hits maximum memory and aborts, and it can expose a vulnerability if the remote peer never drains.
+`Writable.write()` returns `false` when the internal buffer exceeds `highWaterMark`. This is a **hard signal** to stop writing until the `drain` event fires.
 
-Node's backpressure guidance notes a common default `highWaterMark` of 16 KB for byte streams (or 16 objects in object mode), but this can be tuned per stream.
+**Default `highWaterMark` values:**
+
+- Binary streams: 16384 bytes (16 KiB)
+- Object mode streams: 16 objects
+
+`highWaterMark` is a threshold, not a hard limit. Specific stream implementations may enforce stricter limits, but the base classes do not prevent writes when the threshold is exceeded—they only signal via the return value.
 
 ```js title="write-with-drain.js" collapse={1-2,6-7}
 const ok = writable.write(chunk)
@@ -136,29 +223,88 @@ if (!ok) {
 }
 ```
 
-Example: A 200 MB upload that is piped through `stream.pipeline()` stays bounded by `highWaterMark`. The same upload pushed via a tight `write()` loop can spike RSS and trigger an abort.
+**Failure mode**: Ignoring `write() → false` forces Node to buffer indefinitely. Memory grows until the process hits heap limits and aborts, or the OS kills it. This is also a security vector: a slow or malicious client that never drains can cause unbounded memory growth (slowloris-style attack on memory).
+
+Example: A 200 MB upload piped through `stream.pipeline()` stays bounded by `highWaterMark`. The same upload pushed via a tight `write()` loop can spike Resident Set Size (RSS) to gigabytes and trigger an OOM abort.
 
 ### Web Streams alignment
 
-Node's Web Streams API is an implementation of the WHATWG Streams Standard and is stable in modern releases. Web streams define a queuing strategy with a `highWaterMark` that can be any non-negative number (including Infinity, which disables backpressure).
+Node's Web Streams API implements the WHATWG Streams Standard and has been stable since Node.js 21.0.0 (Stability 2). Prior to v21, it was experimental and emitted runtime warnings.
 
-Example: When building a library shared between browser and Node, prefer Web Streams and convert Node streams with `toWeb()` / `fromWeb()` to keep backpressure semantics consistent.
+Web Streams define a queuing strategy with a `highWaterMark` that can be any non-negative number, including `Infinity` (which disables backpressure). The semantics differ from Node streams: Web Streams use a "pull" model with explicit controller signaling rather than the Node "push + drain" model.
+
+**Interop helpers:**
+
+- `Readable.toWeb()` / `Writable.toWeb()` - convert Node streams to Web Streams
+- `Readable.fromWeb()` / `Writable.fromWeb()` - convert Web Streams to Node streams
+
+Example: When building a library shared between browser and Node, prefer Web Streams for the public API and convert internally with `toWeb()` / `fromWeb()`. This keeps backpressure semantics consistent across environments.
 
 ## Native Extensions and ABI Stability
 
-Node's native addon story is now defined by Node-API (N-API). It was introduced in Node.js 8.6 and marked stable in Node.js 8.12. Node-API provides a forward compatibility guarantee across major Node.js versions, while the C++ APIs in `node.h`, `uv.h`, and `v8.h` do not provide ABI stability across majors.
+Node-API (formerly N-API) is the only ABI-stable surface for native addons. It was introduced in Node.js 8.0 as experimental, marked stable in Node.js 8.12, and has been the recommended approach since.
 
-Example: If you ship a native addon using Node-API only, a single build can run across multiple Node.js major versions. If you include `v8.h`, you should expect to rebuild for every major.
+**ABI stability guarantee:**
+
+- Functions in `node_api.h` are ABI-stable across major Node.js versions
+- Addons compiled against Node-API run on later Node.js versions without recompilation
+- Node-API versions are additive: a higher version includes all previous version symbols
+
+**Current Node-API versions (as of Node.js 22):**
+
+| Node-API version | Minimum Node.js          |
+| ---------------- | ------------------------ |
+| 10               | 22.14.0, 23.6.0          |
+| 9                | 18.17.0, 20.3.0          |
+| 8                | 12.22.0, 14.17.0, 16.0.0 |
+
+If `NAPI_VERSION` is not defined at compile time, it defaults to 8.
+
+**What is NOT ABI-stable:**
+
+- Node.js C++ APIs (`node.h`, `node_buffer.h`)
+- libuv APIs (`uv.h`)
+- V8 APIs (`v8.h`)
+
+Using any of these headers directly requires rebuilding for each major Node.js version. V8's C++ API changes frequently; even minor V8 updates can break compilation.
+
+Example: If you ship a native addon using only `node_api.h`, a single build runs across Node.js 16, 18, 20, 22, and 24. If you include `v8.h` for direct V8 access, expect to maintain separate builds per major version and handle API churn (e.g., V8's handle scope changes, isolate API updates).
 
 ## Module Loading and Package Scope
 
-Within a package, the `package.json` `"type"` field defines how Node.js treats `.js` files. `"type": "module"` means `.js` files are ECMAScript (ES) modules; no `"type"` means `.js` files are CommonJS. `.mjs` is always ES module and `.cjs` is always CommonJS, regardless of the `type` field. The rule applies to entry points and to files referenced by `import` or `import()`.
+Within a package, the `package.json` `"type"` field defines how Node.js treats `.js` files:
 
-Example: In a `"type": "module"` package, name legacy config files `*.cjs` to keep tooling that still uses `require()` working.
+| `"type"` value | `.js` treatment | Default                    |
+| -------------- | --------------- | -------------------------- |
+| `"module"`     | ES module       | No                         |
+| `"commonjs"`   | CommonJS        | Yes (when `"type"` absent) |
+
+File extensions override the `"type"` field: `.mjs` is always ES module, `.cjs` is always CommonJS.
+
+### `require(esm)` support (Node.js 22.12+)
+
+As of Node.js 22.12.0 (backported to 20.19.0), `require()` can load ES modules without flags. This eliminates the historical barrier where CommonJS code could not synchronously import ES modules.
+
+**Limitation**: `require(esm)` only works for ES modules without top-level `await`. If the module uses top-level `await`, Node throws `ERR_REQUIRE_ASYNC_MODULE`.
+
+```js title="require-esm.js" collapse={1-2,5-6}
+// Node.js 22.12+ allows this
+const esModule = require("./es-module.mjs")
+
+console.log(esModule.default)
+```
+
+> **Prior to Node.js 22.12**: `require()` could not load ES modules at all. The only way to use ESM from CJS was dynamic `import()`, which returns a Promise and cannot be used synchronously. This forced many libraries to ship dual CJS/ESM builds.
+
+Check `process.features.require_module` to verify if your runtime supports `require(esm)`. The feature can be disabled with `--no-experimental-require-module`.
+
+Example: In a `"type": "module"` package, name legacy config files `*.cjs` to keep tooling that still uses `require()` working. In Node.js 22.12+, you can simplify by using `require()` to load `.mjs` files directly, avoiding the dual-build complexity.
 
 ## Observability and Failure Modes
 
-Use `perf_hooks.monitorEventLoopDelay()` to measure event loop delay as a histogram; it samples delays in nanoseconds and is tied to the libuv loop. Use `process.memoryUsage()` to track `arrayBuffers` separately from the V8 heap. Remember that `process.nextTick()` is drained before I/O, so unbounded recursion can block progress.
+### Event loop delay monitoring
+
+`perf_hooks.monitorEventLoopDelay()` samples loop delays in nanoseconds and exposes them as a histogram. This is the primary tool for detecting event loop blocking.
 
 ```js title="event-loop-delay.js" collapse={1-3,6-7}
 import { monitorEventLoopDelay } from "node:perf_hooks"
@@ -167,53 +313,109 @@ const h = monitorEventLoopDelay({ resolution: 20 })
 h.enable()
 ```
 
-Example: If event loop delay stays low but file latency is high, suspect thread pool saturation; if delay spikes, look for synchronous CPU work or large GC pauses.
+**Interpreting delay metrics:**
+
+| Metric         | Healthy value | Investigation path                                            |
+| -------------- | ------------- | ------------------------------------------------------------- |
+| p50 delay      | < 5ms         | Normal operation                                              |
+| p99 delay      | < 50ms        | Occasional GC or sync work                                    |
+| p99 delay      | > 100ms       | Synchronous CPU blocking, large GC, or thread pool starvation |
+| min/max spread | < 10×         | Consistent behavior                                           |
+
+### Memory breakdown
+
+`process.memoryUsage()` returns:
+
+- `heapUsed` / `heapTotal` - V8 JavaScript heap
+- `external` - C++ objects bound to JavaScript (e.g., native addon memory)
+- `arrayBuffers` - `Buffer`, `ArrayBuffer`, `SharedArrayBuffer` (outside V8 heap)
+- `rss` - total resident set size (includes all of the above plus code, stacks, etc.)
+
+Example: If `arrayBuffers` grows by 200 MB while `heapUsed` is flat, you have binary payloads or stream buffers accumulating, not a JavaScript object leak. Profile with `--heapsnapshot-near-heap-limit` to catch JavaScript leaks; use `/proc/[pid]/smaps` on Linux to diagnose native memory.
+
+### Diagnostic failure patterns
+
+| Symptom                           | Likely cause                        | Investigation                                                              |
+| --------------------------------- | ----------------------------------- | -------------------------------------------------------------------------- |
+| Low loop delay, high file latency | Thread pool saturation              | Check `UV_THREADPOOL_SIZE`, reduce concurrent `fs` calls                   |
+| High loop delay spikes            | Synchronous CPU work                | Profile with `--cpu-prof`, look for JSON.parse/stringify on large payloads |
+| Steady loop delay increase        | Recursive `nextTick`/Promise chains | Add `nextTick` depth limits, break long chains with `setImmediate`         |
+| `arrayBuffers` growth             | Stream backpressure ignored         | Ensure `write() → false` pauses producers                                  |
+| `heapUsed` growth                 | JavaScript object leak              | Heap snapshot comparison, look for detached DOM/closures                   |
+
+**Edge case**: `process.nextTick()` recursion is invisible to `monitorEventLoopDelay()` because the delay is measured between loop iterations, not within microtask draining. Infinite `nextTick` chains freeze the process without spiking the delay histogram.
 
 ## Conclusion
 
-Node.js performance lives at the boundaries: JavaScript to C++, event loop phases to microtasks, and buffer queues to OS backpressure. Treat those boundary points as explicit design surfaces, and instrument them, or they will surface as tail latency and memory spikes.
+Node.js performance lives at three boundaries: the V8 JIT/GC edge (tiering thresholds, pause times), the libuv event loop (phase ordering, microtask priority), and the thread pool (4-thread default, blocking semantics). Treat these boundaries as explicit design surfaces. Instrument them with `monitorEventLoopDelay()`, `process.memoryUsage()`, and thread pool sizing—or they surface as tail latency, memory spikes, and mysterious blocking under load.
 
 ## Appendix
 
 ### Prerequisites
 
-- Familiarity with JavaScript execution and the event loop
-- Basic OS I/O primitives (epoll, kqueue, IOCP)
-- C/C++ shared library concepts
+- JavaScript execution model and event-driven programming
+- OS I/O multiplexing primitives (epoll, kqueue, IOCP)
+- Basic understanding of native addons and shared libraries
 
 ### Terminology
 
-- ABI (Application Binary Interface): The binary contract between compiled modules.
-- API (Application Programming Interface): The callable surface exposed to users.
-- GC (Garbage Collection): Automatic memory reclamation.
-- I/O (Input/Output): Data movement to or from external devices.
-- RSS (Resident Set Size): Memory resident in RAM for a process.
+| Term                                    | Definition                                                                                  |
+| --------------------------------------- | ------------------------------------------------------------------------------------------- |
+| ABI (Application Binary Interface)      | Binary contract between compiled modules; determines if they can link without recompilation |
+| API (Application Programming Interface) | Callable surface exposed to users; source-level contract                                    |
+| CFG (Control Flow Graph)                | Compiler IR representing program control flow as a directed graph                           |
+| GC (Garbage Collection)                 | Automatic memory reclamation                                                                |
+| I/O (Input/Output)                      | Data movement to or from external devices                                                   |
+| IR (Intermediate Representation)        | Compiler's internal data structure representing code between parsing and code generation    |
+| JIT (Just-In-Time)                      | Compilation strategy that compiles code during execution rather than ahead of time          |
+| OOM (Out of Memory)                     | Condition where memory allocation fails due to exhausted resources                          |
+| RSS (Resident Set Size)                 | Memory currently resident in physical RAM for a process                                     |
+| SSA (Static Single Assignment)          | IR form where each variable is assigned exactly once                                        |
 
 ### Summary
 
-- Node.js layers V8, libuv, and C++ bindings behind a large JavaScript core API.
-- Event loop ordering is phase based; `process.nextTick` and Promise microtasks are higher priority than timers.
-- Thread pool limits and backpressure dominate tail latency and memory in I/O heavy systems.
-- V8 tiering and GC behavior explain warmup and pause characteristics.
-- Node-API is the only ABI stable native extension point across majors.
+- Node.js layers V8, libuv, and C++ bindings; performance depends on understanding all three boundaries
+- Event loop phases run in fixed order; `nextTick` > Promises > timers/poll/check
+- Thread pool (default 4) handles fs, `dns.lookup()`, crypto; network I/O and `dns.resolve*()` bypass it
+- V8 tiering (Ignition → Sparkplug → Maglev → TurboFan) explains warmup; GC pauses dominate tail latency on large heaps
+- Stream backpressure (`write() → false`) must be respected or memory grows unbounded
+- Node-API is the only ABI-stable addon interface; direct V8/libuv use requires rebuild per major
+- `require(esm)` in Node.js 22.12+ simplifies ESM/CJS interop for synchronous modules
 
 ### References
 
-- [ECMAScript 2017 Language Specification](https://tc39.es/ecma262/2017/) - Job queues and ordering
-- [Streams Standard](https://streams.spec.whatwg.org/) - Queuing strategy and `highWaterMark`
-- [Node.js Event Loop](https://nodejs.org/en/guides/event-loop-timers-and-nexttick)
-- [Node.js `process` API](https://nodejs.org/docs/latest/api/process.html) - `process.nextTick`, `process.memoryUsage`
+**Specifications:**
+
+- [ECMAScript Language Specification](https://tc39.es/ecma262/) - Job queues, Promise semantics
+- [WHATWG Streams Standard](https://streams.spec.whatwg.org/) - Queuing strategy, `highWaterMark`
+
+**Node.js Official Documentation:**
+
+- [Node.js Event Loop, Timers, and nextTick](https://nodejs.org/en/learn/asynchronous-work/event-loop-timers-and-nexttick)
+- [Node.js Don't Block the Event Loop](https://nodejs.org/en/learn/asynchronous-work/dont-block-the-event-loop) - Thread pool operations
 - [Node.js Streams API](https://nodejs.org/api/stream.html) - `write()`, `drain`, backpressure
 - [Node.js Backpressuring in Streams](https://nodejs.org/en/learn/modules/backpressuring-in-streams)
-- [Node.js Buffer API](https://nodejs.org/api/buffer.html)
+- [Node.js Buffer API](https://nodejs.org/api/buffer.html) - Pool behavior, `allocUnsafe`
 - [Node.js Web Streams API](https://nodejs.org/api/webstreams.html)
 - [Node.js Packages (ESM/CJS)](https://nodejs.org/api/packages.html)
+- [Node.js ESM Documentation](https://nodejs.org/api/esm.html) - `require(esm)` support
 - [Node.js Performance Hooks](https://nodejs.org/api/perf_hooks.html) - `monitorEventLoopDelay`
-- [Node.js Worker Threads](https://nodejs.org/api/worker_threads.html) - structured clone, `transferList`
-- [Node.js ABI Stability](https://nodejs.org/en/learn/modules/abi-stability)
+- [Node.js process API](https://nodejs.org/api/process.html) - `memoryUsage`, `nextTick`
 - [Node-API Documentation](https://nodejs.org/api/n-api.html)
+- [Node.js ABI Stability](https://nodejs.org/en/learn/modules/abi-stability)
+
+**libuv Documentation:**
+
 - [libuv Design Overview](https://docs.libuv.org/en/latest/design.html)
 - [libuv Thread Pool](https://docs.libuv.org/en/v1.x/threadpool.html)
-- [Sparkplug: a non-optimizing JavaScript compiler](https://v8.dev/blog/sparkplug)
+
+**V8 Engine (Core Maintainer):**
+
+- [Sparkplug: V8's non-optimizing JavaScript compiler](https://v8.dev/blog/sparkplug)
 - [Maglev: V8's fastest optimizing JIT](https://v8.dev/blog/maglev)
 - [Orinoco: young generation garbage collection](https://v8.dev/blog/orinoco-parallel-scavenger)
+
+**Core Maintainer Content:**
+
+- [The Dangers of setImmediate (Platformatic/Matteo Collina)](https://blog.platformatic.dev/the-dangers-of-setimmediate) - libuv 1.45 timer changes
+- [require(esm) in Node.js: From Experiment to Stability (Joyee Cheung)](https://joyeecheung.github.io/blog/2025/12/30/require-esm-in-node-js-from-experiment-to-stability/)

@@ -31,69 +31,80 @@ flowchart TB
 
 </figure>
 
-## TLDR
+## Abstract
 
-**Search algorithms** find elements in data structures with different trade-offs between preprocessing, query time, and optimality.
+Search algorithms answer a fundamental question: _how do I find what I'm looking for?_ The answer depends on two factors: **data organization** and **search goal**.
 
-### Array Search Strategies
+<figure>
 
-- **Linear Search**: O(n) but works on unsorted data; use for small arrays or single queries
-- **Binary Search**: O(log n) requires sorted data; the standard for large sorted datasets
-- **Jump Search**: O(√n) with fewer random accesses; better for disk-based searches
-- **Interpolation Search**: O(log log n) average for uniformly distributed data; O(n) worst case
+```mermaid
+flowchart TB
+    subgraph "The Search Decision"
+        Q["What are you searching?"]
+        Q --> A["Array"]
+        Q --> G["Graph"]
 
-### Graph Search Strategies
+        A --> AS["Sorted?"]
+        AS -->|No| LS["Linear O(n)"]
+        AS -->|Yes| BS["Binary O(log n)"]
 
-- **BFS**: Level-by-level exploration; guarantees shortest path in unweighted graphs
-- **DFS**: Deep exploration with backtracking; O(h) space vs BFS's O(width)
-- **Dijkstra**: Shortest path in weighted graphs; requires non-negative weights
-- **A\***: Dijkstra with heuristic guidance; faster when good heuristic available
+        G --> GW["Weighted?"]
+        GW -->|No| BFS["BFS (shortest)"]
+        GW -->|No| DFS["DFS (any path)"]
+        GW -->|Yes| D["Dijkstra"]
+        GW -->|Yes + heuristic| ASTAR["A*"]
+    end
+```
 
-### When to Use What
+<figcaption>The core mental model: data structure and goal determine algorithm choice</figcaption>
 
-- **Unweighted shortest path**: BFS (guaranteed optimal)
-- **Any path / cycle detection**: DFS (memory efficient)
-- **Weighted shortest path**: Dijkstra (no heuristic) or A\* (with heuristic)
-- **Sorted array lookup**: Binary Search (guaranteed O(log n))
-- **Unsorted single query**: Linear Search (no preprocessing cost)
+</figure>
 
-### Key Trade-offs
+**Core trade-offs to internalize:**
 
-- **Preprocessing vs Query Time**: Binary search needs sorted data but fast queries
-- **Completeness vs Optimality**: DFS finds any path; BFS finds shortest
-- **Space vs Time**: BFS uses O(width) space; DFS uses O(depth)
-- **Informed vs Uninformed**: A\* with good heuristic dramatically outperforms Dijkstra
+| Trade-off                    | Left Choice              | Right Choice                  | When to pick right        |
+| ---------------------------- | ------------------------ | ----------------------------- | ------------------------- |
+| Preprocessing vs Query       | Linear (no prep, O(n))   | Binary (O(n log n) prep, O(log n)) | Multiple queries          |
+| Space vs Optimality          | DFS (O(depth) space)     | BFS (O(width) space)          | Need shortest path        |
+| Guaranteed vs Average        | Binary (O(log n) always) | Interpolation (O(log log n) avg) | Uniform data distribution |
+| Uninformed vs Informed       | Dijkstra (explores all)  | A* (guided by heuristic)      | Good heuristic available  |
 
-## Core Philosophies
+**Key insight:** The "best" algorithm is the one that exploits your data's structure. Sorted data enables binary search. Known goals enable heuristic guidance. Uniform distribution enables interpolation. The worst case is searching unstructured data for an unknown target—that's always O(n).
 
-### The Fundamental Trade-offs
+## Core Concepts
 
-1. **Time vs Space**: Binary Search requires O(log n) time but needs sorted data. Hash-based search offers O(1) average time but requires O(n) extra space.
+### Why These Trade-offs Exist
 
-2. **Preprocessing vs Query Time**: Binary Search needs sorted data (O(n log n) preprocessing). Linear Search works on unsorted data but queries are O(n).
+Every search algorithm makes a fundamental bargain. Understanding _why_ these trade-offs exist helps you choose correctly.
 
-3. **Completeness vs Optimality**: Breadth-First Search (BFS) finds the shortest path but uses more memory. Depth-First Search (DFS) uses less space but may not find the optimal solution.
+**Time vs Space:** Binary search achieves O(log n) by eliminating half the search space each step—but this only works if elements are sorted, meaning either O(n log n) preprocessing or maintaining a sorted structure on insert. Hash tables achieve O(1) average by trading O(n) space for direct addressing. The trade-off exists because faster access requires either more memory or more upfront organization.
 
-4. **Guaranteed vs Average Performance**: Binary Search guarantees O(log n). Interpolation Search can be O(log log n) for uniformly distributed data but degrades to O(n) in worst case.
+**Preprocessing vs Query Time:** This trade-off optimizes for different access patterns. Linear search's O(n) query with zero preprocessing beats binary search for single queries (sorting costs O(n log n)). But for k queries, binary search wins when k × O(log n) + O(n log n) < k × O(n), which holds for roughly k > log n queries. Real systems make this choice constantly—databases build indexes (preprocessing) to speed queries.
 
-### The Search Problem Spectrum
+**Completeness vs Optimality:** BFS (Breadth-First Search) explores level-by-level, guaranteeing the shortest path in unweighted graphs. DFS (Depth-First Search) explores depth-first, using O(depth) space vs BFS's O(width). BFS is _complete_ (finds a solution if one exists) and _optimal_ (finds shortest). DFS is complete but not optimal. The trade-off exists because shortest-path guarantees require tracking all paths at each distance level.
 
-**Key insight**: Different search problems require different algorithms based on the data structure and what you're searching for.
+**Guaranteed vs Average Performance:** Binary search's O(log n) is _worst-case_—it never degrades. Interpolation search achieves O(log log n) _average_ on uniformly distributed data by guessing where the target likely is, but degrades to O(n) when the guess is wrong (skewed data). Average-case algorithms bet on data properties; worst-case algorithms make no assumptions.
 
-**Data structure types**:
+### The Search Problem Taxonomy
 
-- **Arrays**: Linear Search, Binary Search, Jump Search
-- **Graphs/Trees**: BFS, DFS, A\*, Dijkstra's
-- **Hash Tables**: Direct access, O(1) average case
-- **Strings**: Pattern matching (KMP, Boyer-Moore, Rabin-Karp)
+Search problems vary along two axes: **data structure** and **search goal**.
 
-**Search goals**:
+| Data Structure | Algorithms                        | Key Constraint        |
+| -------------- | --------------------------------- | --------------------- |
+| Unsorted Array | Linear Search                     | No random access      |
+| Sorted Array   | Binary, Jump, Interpolation, Exp. | Requires sorted order |
+| Graph          | BFS, DFS, Dijkstra, A*            | Edge relationships    |
+| Hash Table     | Direct lookup                     | O(n) extra space      |
+| String         | KMP, Boyer-Moore, Rabin-Karp      | Pattern matching      |
 
-- Find a specific element
-- Find all matching elements
-- Find the shortest path
-- Explore all reachable nodes
-- Check if a path exists
+| Search Goal         | Best Algorithm(s)       | Why                                       |
+| ------------------- | ----------------------- | ----------------------------------------- |
+| Exact element       | Binary (sorted), Hash   | O(log n) or O(1)                          |
+| All matches         | Linear + collect        | Must scan all                             |
+| Shortest path (unw) | BFS                     | Level-order guarantees minimum hops       |
+| Shortest path (w)   | Dijkstra, A*            | Priority queue processes minimum distance |
+| Any path            | DFS                     | Memory efficient, finds first path        |
+| Cycle detection     | DFS + recursion stack   | Back edge indicates cycle                 |
 
 ---
 
@@ -1810,49 +1821,67 @@ function dfsLimited(graph: Graph, node: number, target: number, depth: number, v
 
 ---
 
-## Key Takeaways
+## Conclusion
 
-### Choosing the Right Algorithm
+Search algorithms are fundamentally about exploiting structure. The more you know about your data, the faster you can find what you're looking for.
 
-1. **Array search - sorted data**: Binary Search offers O(log n) guarantees and is the standard choice for large sorted datasets
-2. **Array search - unsorted data**: Linear Search is the only option unless sorting is justified by multiple queries
-3. **Graph shortest path - unweighted**: BFS guarantees shortest path in O(V + E) time
-4. **Graph shortest path - weighted**: Dijkstra for general case, A\* when you have a good heuristic
-5. **Graph exploration**: DFS for memory efficiency, cycle detection, topological sorting
-6. **Optimization problems**: Consider binary search on answer space or ternary search for unimodal functions
+**For arrays:** Sorted data unlocks logarithmic search. If you only search once, sorting isn't worth it. If you search repeatedly, build an index (sort, hash, or tree).
 
-### Understanding the Trade-offs
+**For graphs:** The choice between BFS and DFS depends on what you're optimizing. BFS guarantees shortest paths but uses O(width) memory. DFS uses O(depth) memory but may not find optimal paths. When edges have weights, Dijkstra extends BFS; when you have a good heuristic, A* focuses the search.
 
-- **Preprocessing vs Query Time**: Binary search needs sorted data, but offers fast queries. Linear search works on any data but queries are slow.
-- **Completeness vs Optimality**: DFS may find a path quickly but not the shortest. BFS guarantees shortest but uses more memory.
-- **Average vs Worst Case**: Interpolation search can be O(log log n) but degrades to O(n). Binary search guarantees O(log n).
-- **Memory vs Time**: BFS uses O(width) space, DFS uses O(depth) space. Choose based on graph structure.
+**In practice:** Theoretical complexity is a starting point, not the final answer. Cache effects, branch prediction, and constant factors matter. Profile with real data. And remember: hash tables exist—O(1) average lookup often beats clever algorithms for point queries.
 
-### Practical Application Principles
+## Appendix
 
-1. **Know your data**: Sorted vs unsorted, weighted vs unweighted, sparse vs dense graphs
-2. **Understand query patterns**: Single search favors linear search. Multiple searches justify preprocessing.
-3. **Consider constraints**: Memory limits favor DFS. Real-time requirements favor guaranteed performance.
-4. **Use built-in structures**: Hash tables offer O(1) average lookup when range queries aren't needed.
-5. **Leverage domain knowledge**: Good heuristics make A\* vastly superior to Dijkstra.
-6. **Profile in production**: Theoretical complexity doesn't account for cache effects and constant factors.
+### Prerequisites
 
-### Common Patterns to Recognize
+- **Big-O notation**: Familiarity with time and space complexity analysis
+- **Basic data structures**: Arrays, linked lists, stacks, queues, hash tables
+- **Graph fundamentals**: Vertices, edges, adjacency lists, directed vs undirected graphs
+- **Recursion**: Understanding of recursive function calls and the call stack
 
-- **Binary search variations**: Lower bound, upper bound, rotated arrays - master the template
-- **BFS for shortest path**: When you see "minimum steps/moves/distance" in unweighted graphs
-- **DFS for existence**: "Does path exist", "find any solution", "detect cycle"
-- **Topological sort**: Whenever you see "dependency ordering", "prerequisite courses", "build order"
-- **Binary search on answer**: "Find minimum/maximum value such that condition holds"
+### Terminology
 
-The best search algorithm depends on your data structure, query patterns, and constraints—not just theoretical complexity.
+| Term                | Definition                                                                                  |
+| ------------------- | ------------------------------------------------------------------------------------------- |
+| **Admissible**      | A heuristic that never overestimates the cost to reach the goal (A* requirement)            |
+| **BFS**             | Breadth-First Search—explores all neighbors before moving to the next level                 |
+| **Branching factor**| Average number of successors per node (b)                                                   |
+| **Complete**        | An algorithm that is guaranteed to find a solution if one exists                            |
+| **Consistent**      | A heuristic where h(n) ≤ cost(n,n') + h(n') for every edge (triangle inequality)            |
+| **DFS**             | Depth-First Search—explores as deep as possible before backtracking                         |
+| **IDDFS**           | Iterative Deepening DFS—combines DFS space efficiency with BFS completeness                 |
+| **Lower bound**     | First position where an element can be inserted while maintaining sorted order              |
+| **Optimal**         | An algorithm that is guaranteed to find the best (e.g., shortest) solution                  |
+| **Upper bound**     | First position where an element is strictly greater than the target                         |
 
-## References
+### Summary
 
-- [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/) - Comprehensive algorithm reference
-- [A\* Search Algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm) - Heuristic pathfinding
-- [Dijkstra's Algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) - Weighted graph shortest path
-- [Red-Black Trees](https://en.wikipedia.org/wiki/Red%E2%80%93black_tree) - Balanced BST for O(log n) operations
-- [OSPF Protocol](https://datatracker.ietf.org/doc/html/rfc2328) - Dijkstra in network routing
-- [Git Bisect](https://git-scm.com/docs/git-bisect) - Binary search for bug-finding
-- [A\* for Video Games](http://theory.stanford.edu/~amitp/GameProgramming/) - Amit's game programming guide
+- **Linear search O(n)**: Only option for unsorted data; optimal for small arrays or single queries
+- **Binary search O(log n)**: Standard for sorted arrays; watch for integer overflow in mid calculation
+- **BFS O(V+E)**: Guarantees shortest path in unweighted graphs; level-order exploration
+- **DFS O(V+E)**: Memory efficient (O(depth) vs O(width)); use for cycle detection, topological sort
+- **Dijkstra O((V+E) log V)**: Shortest path for non-negative weighted graphs; greedy with priority queue
+- **A\* O(E) best case**: Dijkstra + heuristic; exponentially faster with good heuristic, optimal if admissible
+
+### References
+
+**Foundational Texts:**
+
+- [Introduction to Algorithms (CLRS), 4th Edition](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/) - Cormen, Leiserson, Rivest, Stein. Chapters 22-24 cover graph algorithms; Chapter 12 covers binary search trees.
+
+**Algorithm-Specific Sources:**
+
+- [A\* Search Algorithm - Wikipedia](https://en.wikipedia.org/wiki/A*_search_algorithm) - History, optimality proofs, and variants. Originally published by Hart, Nilsson, Raphael (1968).
+- [Dijkstra's Algorithm - Wikipedia](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm) - Original 1959 paper reference, complexity analysis with different heap implementations.
+- [Interpolation Search - Wikipedia](https://en.wikipedia.org/wiki/Interpolation_search) - Average-case O(log log n) proof for uniformly distributed data.
+
+**Standards and RFCs:**
+
+- [RFC 2328: OSPF Version 2](https://datatracker.ietf.org/doc/html/rfc2328) - Section 16 details Dijkstra's algorithm in network routing context.
+
+**Practical Implementations:**
+
+- [Git Bisect Documentation](https://git-scm.com/docs/git-bisect) - Binary search applied to version control for bug finding.
+- [Amit's A\* Pages](http://theory.stanford.edu/~amitp/GameProgramming/) - Comprehensive guide to pathfinding in games, heuristic design, and optimization techniques.
+- [Red Blob Games: Introduction to A\*](https://www.redblobgames.com/pathfinding/a-star/introduction.html) - Interactive visualizations of BFS, Dijkstra, and A*.

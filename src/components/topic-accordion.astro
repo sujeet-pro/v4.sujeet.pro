@@ -1,0 +1,219 @@
+---
+/**
+ * Topic Accordion Component
+ *
+ * A collapsible topic section with title-only article links.
+ * - Click topic name: navigates to topic page
+ * - Click anywhere else: toggles accordion
+ *
+ * Used on: /browse, homepage featured topics
+ */
+import Link from "@/components/link.astro"
+import { formatCount } from "@/utils/format.utils"
+import type { TopicCardInfo } from "@/utils/content.types"
+
+interface Props {
+  topic: TopicCardInfo
+  /** Show category in meta */
+  showCategory?: boolean
+  /** Heading level for topic title */
+  headingLevel?: "h2" | "h3" | "h4"
+  /** Default expanded state */
+  defaultExpanded?: boolean
+}
+
+const { topic, showCategory = true, headingLevel = "h2", defaultExpanded = false } = Astro.props
+
+const HeadingTag = headingLevel
+const articleHeadingLevel = headingLevel === "h2" ? "h3" : headingLevel === "h3" ? "h4" : "h5"
+const ArticleHeading = articleHeadingLevel
+---
+
+<article class="topic-accordion">
+  <button
+    class="topic-accordion-trigger"
+    type="button"
+    aria-expanded={defaultExpanded ? "true" : "false"}
+    aria-controls={`topic-${topic.id}-content`}
+  >
+    <div class="topic-accordion-header">
+      <HeadingTag class="topic-accordion-title">
+        <Link href={topic.href}>{topic.name}</Link>
+      </HeadingTag>
+      <span class="topic-accordion-meta">
+        {
+          showCategory && (
+            <>
+              <Link href={topic.category.href} class="topic-accordion-category">
+                {topic.category.name}
+              </Link>
+              <span class="topic-accordion-separator">·</span>
+            </>
+          )
+        }
+        <span>{formatCount(topic.articleCount, "article")}</span>
+      </span>
+    </div>
+    <span class="topic-accordion-icon" aria-hidden="true">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </span>
+  </button>
+
+  <div id={`topic-${topic.id}-content`} class="topic-accordion-content" hidden={!defaultExpanded}>
+    <ul class="topic-accordion-articles">
+      {
+        topic.articles.map((article) => (
+          <li class="topic-accordion-article">
+            <ArticleHeading class="topic-accordion-article-title">
+              <Link href={article.href}>
+                <span class="topic-accordion-article-bullet" aria-hidden="true" />
+                {article.title}
+              </Link>
+            </ArticleHeading>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</article>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  .topic-accordion {
+    @apply border-b;
+    border-color: var(--color-border);
+  }
+
+  .topic-accordion:last-child {
+    @apply border-b-0;
+  }
+
+  /* Trigger button - spans full width */
+  .topic-accordion-trigger {
+    @apply flex w-full cursor-pointer items-center justify-between gap-4 border-0 bg-transparent p-2 text-left;
+    border-radius: 0.25rem;
+    transition: background-color var(--transition-fast);
+  }
+
+  .topic-accordion-trigger:hover {
+    background: var(--color-bg-alt);
+  }
+
+  .topic-accordion-trigger:hover .topic-accordion-icon {
+    color: var(--color-accent);
+  }
+
+  /* Header contains title + meta inline */
+  .topic-accordion-header {
+    @apply flex flex-1 flex-wrap items-baseline gap-x-3 gap-y-0;
+  }
+
+  /* Topic title */
+  .topic-accordion-title {
+    @apply m-0 font-sans text-base font-semibold;
+    color: var(--color-text);
+  }
+
+  .topic-accordion-title a {
+    @apply no-underline;
+    color: inherit;
+    transition: color var(--transition-fast);
+  }
+
+  .topic-accordion-title a:hover {
+    color: var(--color-accent);
+  }
+
+  /* Meta (category + count) - inline with title */
+  .topic-accordion-meta {
+    @apply text-xs;
+    color: var(--color-text-muted);
+  }
+
+  .topic-accordion-category {
+    @apply no-underline;
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast);
+  }
+
+  .topic-accordion-category:hover {
+    color: var(--color-accent);
+  }
+
+  .topic-accordion-separator {
+    @apply mx-1;
+  }
+
+  /* Chevron icon */
+  .topic-accordion-icon {
+    @apply pointer-events-none shrink-0 transition-transform duration-200;
+    color: var(--color-text-muted);
+  }
+
+  .topic-accordion-trigger[aria-expanded="true"] .topic-accordion-icon {
+    transform: rotate(180deg);
+  }
+
+  /* Content area */
+  .topic-accordion-content {
+    @apply px-2 pb-2;
+  }
+
+  .topic-accordion-content[hidden] {
+    display: none;
+  }
+
+  /* Article list */
+  .topic-accordion-articles {
+    @apply m-0 flex list-none flex-col gap-0 p-0;
+  }
+
+  .topic-accordion-article {
+    @apply m-0 p-0;
+  }
+
+  .topic-accordion-article-title {
+    @apply m-0 font-sans text-sm font-normal;
+    color: var(--color-text);
+  }
+
+  .topic-accordion-article-title a {
+    @apply flex items-baseline gap-2 rounded-sm px-2 py-1.5 no-underline;
+    color: inherit;
+    transition:
+      color var(--transition-fast),
+      background-color var(--transition-fast);
+  }
+
+  .topic-accordion-article-title a:hover {
+    color: var(--color-accent);
+    background: var(--color-bg-alt);
+  }
+
+  /* Bullet indicator - always visible */
+  .topic-accordion-article-bullet {
+    @apply shrink-0;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--color-text-muted);
+    margin-top: 0.45em; /* Align with text baseline */
+  }
+
+  .topic-accordion-article-title a:hover .topic-accordion-article-bullet {
+    background: var(--color-accent);
+  }
+</style>

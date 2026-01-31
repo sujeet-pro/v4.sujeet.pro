@@ -30,10 +30,10 @@ content/
 │   │       ├── README.md
 │   │       └── <article>/
 │   │           └── README.md
-├── ordering.jsonc   # Global ordering config
-├── home.jsonc       # Homepage config
-├── site.jsonc       # Site metadata
-└── vanity.jsonc     # Redirects
+├── ordering.json5   # Global ordering config
+├── home.json5       # Homepage config
+├── site.json5       # Site metadata
+└── vanity.json5     # Redirects
 ```
 
 ## Writing Content
@@ -95,7 +95,7 @@ Prefix title with "Draft:" to mark as draft:
 
 ### Ordering (Required)
 
-Add new categories, topics, and articles to `content/ordering.jsonc`:
+Add new categories, topics, and articles to `content/ordering.json5`:
 
 - `categoryOrder`, `topicsOrder`, `articlesOrder`
 - `categoryVsTopics`, `topicVsArticlesOrder`

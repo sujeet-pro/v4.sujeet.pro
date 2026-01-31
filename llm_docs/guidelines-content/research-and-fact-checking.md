@@ -47,17 +47,18 @@ Deep research is **mandatory** for both new articles and updates. Always validat
 
 ## Source Priority Order (Strict Hierarchy)
 
-| Priority | Source Type | Examples | Use For |
-|----------|-------------|----------|---------|
-| 1 | **Specifications** | RFCs, WHATWG, ECMA-262, W3C, IETF | Authoritative behavior, edge cases, guarantees |
-| 2 | **Official Documentation** | Vendor docs, MDN, framework guides | API details, recommended patterns |
-| 3 | **Core Maintainer Content** | Blog posts/talks by project leads | Design rationale, "why" behind decisions |
-| 4 | **Source Code** | GitHub repos, reference implementations | Actual behavior, undocumented limits |
-| 5 | **Peer-reviewed Papers** | ACM, IEEE, arXiv (for algorithms/systems) | Theoretical foundations, benchmarks |
-| 6 | **Industry Expert Blogs** | Recognized engineers' technical blogs | Practical insights, war stories |
-| 7 | **Community Q&A** | Stack Overflow, GitHub issues | Narrow implementation details only |
+| Priority | Source Type                 | Examples                                  | Use For                                        |
+| -------- | --------------------------- | ----------------------------------------- | ---------------------------------------------- |
+| 1        | **Specifications**          | RFCs, WHATWG, ECMA-262, W3C, IETF         | Authoritative behavior, edge cases, guarantees |
+| 2        | **Official Documentation**  | Vendor docs, MDN, framework guides        | API details, recommended patterns              |
+| 3        | **Core Maintainer Content** | Blog posts/talks by project leads         | Design rationale, "why" behind decisions       |
+| 4        | **Source Code**             | GitHub repos, reference implementations   | Actual behavior, undocumented limits           |
+| 5        | **Peer-reviewed Papers**    | ACM, IEEE, arXiv (for algorithms/systems) | Theoretical foundations, benchmarks            |
+| 6        | **Industry Expert Blogs**   | Recognized engineers' technical blogs     | Practical insights, war stories                |
+| 7        | **Community Q&A**           | Stack Overflow, GitHub issues             | Narrow implementation details only             |
 
 **Core maintainer examples:**
+
 - React: Dan Abramov, Sebastian Markbåge, Andrew Clark
 - Node.js: Matteo Collina, James Snell, original Ryan Dahl posts
 - V8: Benedikt Meurer, v8.dev blog
@@ -66,6 +67,7 @@ Deep research is **mandatory** for both new articles and updates. Always validat
 - Go: Rob Pike, Russ Cox
 
 **Industry expert blog examples:**
+
 - web.dev (Chrome DevRel)
 - Julia Evans (systems/networking)
 - Brendan Gregg (performance)
@@ -90,6 +92,7 @@ When writing about topics where behavior has changed:
 3. **Explain the change**: Why did the previous approach have problems? What drove the new design?
 
 **Example format:**
+
 ```markdown
 ## Suspense for Data Fetching
 
@@ -101,6 +104,7 @@ The concurrent model allows React to "pause" rendering while waiting for data, e
 ```
 
 This helps readers who:
+
 - Encounter older code or documentation
 - Need to maintain backward compatibility
 - Want to understand why current patterns exist
@@ -129,12 +133,12 @@ References should be a dedicated section in the Appendix:
 
 ## Research Depth by Article Type
 
-| Article Type | Research Depth | Key Sources |
-|--------------|----------------|-------------|
-| **API/Library deep dive** | Exhaustive | Specs, source code, maintainer blogs, changelogs |
-| **Concept explanation** | Thorough | Specs, academic papers, canonical implementations |
-| **How-to/Pattern** | Focused | Official docs, maintainer recommendations, source code |
-| **Comparison** | Comprehensive | All compared items' specs/docs, benchmarks, design rationale |
-| **Debugging/Troubleshooting** | Targeted | Source code, issue trackers, error handling paths |
+| Article Type                  | Research Depth | Key Sources                                                  |
+| ----------------------------- | -------------- | ------------------------------------------------------------ |
+| **API/Library deep dive**     | Exhaustive     | Specs, source code, maintainer blogs, changelogs             |
+| **Concept explanation**       | Thorough       | Specs, academic papers, canonical implementations            |
+| **How-to/Pattern**            | Focused        | Official docs, maintainer recommendations, source code       |
+| **Comparison**                | Comprehensive  | All compared items' specs/docs, benchmarks, design rationale |
+| **Debugging/Troubleshooting** | Targeted       | Source code, issue trackers, error handling paths            |
 
 All types require primary sources. The depth determines how many secondary sources you triangulate with.

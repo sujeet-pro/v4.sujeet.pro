@@ -1,6 +1,6 @@
 # JavaScript String Length: Graphemes, UTF-16, and Unicode
 
-Understand why `'👨‍👩‍👧‍👦'.length` returns 11 instead of 1, and learn how to properly handle Unicode characters, grapheme clusters, and international text in JavaScript applications.
+JavaScript's `string.length` returns UTF-16 code units—a 1995 design decision that predates Unicode's expansion beyond 65,536 characters. This causes `'👨‍👩‍👧‍👦'.length` to return 11 instead of 1, breaking character counting, truncation, and cursor positioning for any text containing emoji, combining marks, or supplementary plane characters. Understanding the three abstraction layers—grapheme clusters, code points, and code units—is essential for correct Unicode handling.
 
 <figure>
 
@@ -52,386 +52,531 @@ flowchart TD
 <figcaption>Text exists at multiple abstraction layers: grapheme clusters (what users see), code points (Unicode characters), and code units (what JavaScript counts)</figcaption>
 </figure>
 
-## TL;DR
+## Abstract
 
-JavaScript's `string.length` property counts UTF-16 code units, not user-perceived characters. This mismatch causes bugs when handling emoji, combining characters, and international text.
+Text exists at three abstraction layers, and JavaScript operates at the wrong one for user-facing operations:
 
-### The Core Problem
+| Layer | What It Represents | JavaScript API | `'👨‍👩‍👧‍👦'` |
+|-------|-------------------|----------------|-------------|
+| **Grapheme clusters** | User-perceived characters | `Intl.Segmenter` | 1 |
+| **Code points** | Unicode abstract characters | `[...str]`, `codePointAt()` | 7 |
+| **Code units** | UTF-16 encoding units | `string.length`, `charAt()` | 11 |
 
-- **`string.length`** returns UTF-16 code units, not characters
-- **Emoji** require 2+ code units (surrogate pairs for supplementary plane characters)
-- **Complex emoji** like `👨‍👩‍👧‍👦` combine multiple code points with Zero-Width Joiners (ZWJ)
-- **Grapheme clusters** represent what users perceive as single characters
+**The design constraint**: JavaScript adopted Java's UCS-2 encoding in 1995 when Unicode fit in 16 bits. When Unicode expanded (UTF-16, 1996), JavaScript preserved backward compatibility by exposing surrogate pairs as separate characters rather than breaking existing code.
 
-### Three Abstraction Layers
+**The solution**: Use `Intl.Segmenter` (Baseline April 2024) for grapheme-aware operations. For code point operations, use spread `[...str]` or the `u` regex flag. Reserve `string.length` for byte-level operations only.
 
-- **Grapheme clusters**: User-perceived characters (use `Intl.Segmenter`)
-- **Code points**: Unicode abstract characters (use spread `[...str]` or `codePointAt`)
-- **Code units**: What JavaScript counts (what `string.length` returns)
-
-### Safe APIs
-
-- **`Intl.Segmenter`**: Correct grapheme-aware iteration ([Baseline since April 2024](https://web.dev/blog/intl-segmenter))
-- **Spread `[...str]`**: Code point iteration (handles surrogate pairs)
-- **`/regex/u` flag**: Unicode-aware regex matching
-- **`normalize()`**: Handle equivalent character representations
-
-### Unsafe APIs (operate on code units)
-
-- **`string.length`**, **`charAt()`**, **`charCodeAt()`**
-- **`substring()`**, **`slice()`** with arbitrary indices
-- **`split('')`** (splits surrogate pairs)
-
-```typescript
-console.log("👨‍👩‍👧‍👦".length) // 11 - UTF-16 code units
-console.log(getGraphemeLength("👨‍👩‍👧‍👦")) // 1 - User-perceived characters
-```
+**Critical gotchas**:
+- `string.slice(0, n)` can corrupt emoji by splitting surrogate pairs
+- `split('')` breaks supplementary plane characters into invalid halves
+- ES2024 added `isWellFormed()` and `toWellFormed()` to detect and fix lone surrogates
 
 ## The Problem: What You See vs. What You Get
 
-The JavaScript string [`.length` property](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length) operates at the lowest level of text abstraction—UTF-16 code units. What developers perceive as a single character is often a complex composition of multiple code units.
+Per [ECMA-262 §6.1.4](https://tc39.es/ecma262/#sec-ecmascript-language-types-string-type), a String is "a finite ordered sequence of zero or more 16-bit unsigned integer values." The `length` property returns the number of these 16-bit code units—not characters, not code points, not graphemes.
+
+This design predates Unicode's expansion beyond the Basic Multilingual Plane (BMP). When emoji and supplementary characters were added, they required surrogate pairs (two code units), but JavaScript couldn't change `length` semantics without breaking the web.
 
 ```typescript
 const logLengths = (...items) => console.log(items.map((item) => `${item}: ${item.length}`))
 
-// Basic characters work as expected
+// BMP characters (U+0000 to U+FFFF): 1 code unit each
 logLengths("A", "a", "À", "⇐", "⇟")
 // ['A: 1', 'a: 1', 'À: 1', '⇐: 1', '⇟: 1']
 
-// Emoji require multiple code units
+// Supplementary plane emoji (U+10000+): 2 code units (surrogate pair)
 logLengths("🧘", "🌦", "😂", "😃", "🥖", "🚗")
 // ['🧘: 2', '🌦: 2', '😂: 2', '😃: 2', '🥖: 2', '🚗: 2']
 
-// Complex emoji sequences are even longer
+// ZWJ sequences: multiple code points joined by U+200D
 logLengths("🧘", "🧘🏻‍♂️", "👨‍👩‍👧‍👦")
 // ['🧘: 2', '🧘🏻‍♂️: 7', '👨‍👩‍👧‍👦: 11']
 ```
 
+The family emoji `👨‍👩‍👧‍👦` consists of 7 code points (4 emoji + 3 ZWJ characters), but 11 code units because each base emoji requires a surrogate pair.
+
 ## The Solution: Intl.Segmenter
 
-The [`Intl.Segmenter` API](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter) provides the correct abstraction for user-perceived characters (grapheme clusters). It became [Baseline Newly Available](https://web.dev/blog/intl-segmenter) in April 2024, with full support across all modern browsers:
+`Intl.Segmenter` implements [Unicode Standard Annex #29](https://unicode.org/reports/tr29/) (UAX #29), which defines grapheme cluster boundaries. It became [Baseline](https://web.dev/blog/intl-segmenter) in April 2024 and is defined in [ECMA-402](https://tc39.es/ecma402/#segmenter-objects) (ECMAScript Internationalization API).
+
+**Why a separate API?** Grapheme cluster rules are complex and locale-sensitive. UAX #29 includes 13+ rules covering Hangul syllables, Indic conjuncts, emoji ZWJ sequences, and regional indicators. This logic doesn't belong in core string methods.
 
 ```typescript
-function getGraphemeLength(str, locale = "en") {
+function getGraphemeLength(str: string, locale = "en"): number {
   return [...new Intl.Segmenter(locale, { granularity: "grapheme" }).segment(str)].length
 }
 
-console.log("👨‍👩‍👧‍👦".length) // 11
-console.log(getGraphemeLength("👨‍👩‍👧‍👦")) // 1
+console.log("👨‍👩‍👧‍👦".length) // 11 (code units)
+console.log(getGraphemeLength("👨‍👩‍👧‍👦")) // 1 (grapheme)
 
 // Iterate over grapheme clusters
 const segmenter = new Intl.Segmenter("en", { granularity: "grapheme" })
-for (const grapheme of segmenter.segment("👨‍👩‍👧‍👦🌦️🧘🏻‍♂️")) {
-  console.log(`'${grapheme.segment}' at index ${grapheme.index}`)
+for (const { segment, index } of segmenter.segment("👨‍👩‍👧‍👦🌦️🧘🏻‍♂️")) {
+  console.log(`'${segment}' at code unit index ${index}`)
 }
-// '👨‍👩‍👧‍👦' at index 0
-// '🌦️' at index 11
-// '🧘🏻‍♂️' at index 14
+// '👨‍👩‍👧‍👦' at code unit index 0
+// '🌦️' at code unit index 11
+// '🧘🏻‍♂️' at code unit index 14
 ```
 
-## The Historical Foundation: From ASCII to Unicode
+The `granularity` option supports `"grapheme"` (default), `"word"`, and `"sentence"`. Word segmentation is particularly valuable for languages like Thai, Japanese, and Chinese that don't use whitespace between words.
 
-### The Age of ASCII (1960s)
+## Why UTF-16? The Historical Constraints
 
-ASCII emerged from the economic constraints of 1960s computing. Teleprinters were expensive, and data transmission costs were significant. The 7-bit design (128 characters) was a deliberate trade-off:
+### The UCS-2 Era (1991-1996)
 
-- **95 printable characters**: English letters, digits, punctuation
-- **33 control characters**: Device instructions (carriage return, line feed)
-- **Economic constraint**: 8-bit would double transmission costs
+Unicode 1.0 (1991) assumed 65,536 characters would suffice for all human writing systems. UCS-2 (Universal Character Set, 2-byte) encoded each code point directly as a 16-bit integer. Java adopted UCS-2 in 1995, and JavaScript—designed to "look like Java"—followed suit.
+
+**The critical assumption**: 16 bits = all of Unicode. This held for 5 years.
+
+### Unicode Expands (1996)
+
+Unicode 2.0 (1996) introduced supplementary planes to support historic scripts, mathematical symbols, and eventually emoji. The encoding expanded from 65,536 to 1,114,112 possible code points (17 planes × 65,536 each).
+
+UTF-16 extended UCS-2 with surrogate pairs: code points above U+FFFF are encoded as two 16-bit code units. The BMP range D800-DFFF was reserved for surrogates, ensuring backward compatibility—existing UCS-2 text remained valid UTF-16.
+
+### JavaScript's Compatibility Constraint
+
+JavaScript couldn't break existing code by changing `length` semantics. The solution: expose UTF-16 code units directly. Per [Mathias Bynens' analysis](https://mathiasbynens.be/notes/javascript-encoding), JavaScript engines use "UCS-2 with surrogates"—they allow lone surrogates that strict UTF-16 would reject.
 
 ```typescript
-// ASCII characters (U+0000 to U+007F) are single UTF-16 code units
-"A".charCodeAt(0) // 65 (U+0041)
-"a".charCodeAt(0) // 97 (U+0061)
+// Lone surrogate (invalid UTF-16, valid JavaScript string)
+const invalid = "\uD800" // High surrogate without low surrogate
+invalid.length // 1
+invalid.isWellFormed() // false (ES2024)
 ```
 
-### The Extended ASCII Chaos
+**Design trade-off**: Backward compatibility over correctness. Existing string manipulation code continued to work, but character counting became unreliable for supplementary characters.
 
-ASCII's 128-character limit proved inadequate for global use. This led to hundreds of incompatible 8-bit "Extended ASCII" encodings:
-
-- **IBM Code Pages**: CP437 (North America), CP850 (Western Europe)
-- **ISO 8859 series**: ISO-8859-1 (Latin-1), ISO-8859-5 (Cyrillic)
-- **Vendor-specific**: Windows-1252, Mac OS Roman
-
-The result was `mojibake`—garbled text when documents crossed encoding boundaries.
-
-### The Unicode Revolution
-
-[Unicode](https://unicode.org/standard/standard.html) introduced a fundamental separation between abstract characters and their byte representations:
-
-- **Character Set**: Abstract code points (U+0000 to U+10FFFF)
-- **Encoding**: Concrete byte representations (UTF-8, UTF-16, UTF-32)
-
-```typescript
-// Unicode code points vs. encoding
-"€".codePointAt(0) // 8364 (U+20AC)
-"💩".codePointAt(0) // 128169 (U+1F4A9)
-```
-
-## Unicode Architecture: Planes and Code Units
+## Unicode Architecture: Planes and Surrogate Pairs
 
 ### The 17 Unicode Planes
 
-Unicode organizes its 1,114,112 code points into 17 planes:
+Unicode allocates 1,114,112 code points across 17 planes. Only planes 0-3 and 14-16 are currently assigned:
 
-| Plane | Range            | Name                                      | Contents                                                                                                  |
-| ----- | ---------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 0     | U+0000–U+FFFF    | Basic Multilingual Plane (BMP)            | Most modern scripts (Latin, Cyrillic, Greek, Arabic, CJK), symbols, punctuation                           |
-| 1     | U+10000–U+1FFFF  | Supplementary Multilingual Plane (SMP)    | Historic scripts (Linear B, Egyptian Hieroglyphs), musical notation, mathematical symbols, and most emoji |
-| 2     | U+20000–U+2FFFF  | Supplementary Ideographic Plane (SIP)     | Additional, less common, and historic CJK Unified Ideographs                                              |
-| 3     | U+30000–U+3FFFF  | Tertiary Ideographic Plane (TIP)          | Additional historic CJK Unified Ideographs, Oracle Bone script                                            |
-| 4–13  | U+40000–U+DFFFF  | Unassigned                                | Reserved for future use                                                                                   |
-| 14    | U+E0000–U+EFFFF  | Supplementary Special-purpose Plane (SSP) | Non-graphical characters, such as language tags and variation selectors                                   |
-| 15–16 | U+F0000–U+10FFFF | Supplementary Private Use Area (SPUA-A/B) | Available for private use by applications and vendors; not standardized                                   |
+| Plane | Range            | Name                                   | JavaScript Implications                    |
+| ----- | ---------------- | -------------------------------------- | ------------------------------------------ |
+| 0     | U+0000–U+FFFF    | Basic Multilingual Plane (BMP)         | 1 code unit per character                  |
+| 1     | U+10000–U+1FFFF  | Supplementary Multilingual Plane (SMP) | 2 code units; contains most emoji          |
+| 2-3   | U+20000–U+3FFFF  | Ideographic Extension Planes           | 2 code units; rare CJK characters          |
+| 14    | U+E0000–U+EFFFF  | Special-purpose Plane                  | Variation selectors, language tags         |
+| 15-16 | U+F0000–U+10FFFF | Private Use Areas                      | Application-defined; 2 code units          |
 
-### Code Units: The Building Blocks
+### Surrogate Pair Encoding
 
-Each encoding uses fixed-size code units:
-
-- **UTF-8**: 8-bit code units (1-4 bytes per character)
-- **UTF-16**: 16-bit code units (1-2 code units per character)
-- **UTF-32**: 32-bit code units (1 code unit per character)
+Supplementary characters (U+10000+) are encoded using a mathematical transformation that maps them to surrogate pairs:
 
 ```typescript
-// UTF-16 encoding examples
-"€".length // 1 (BMP character)
-"💩".length // 2 (supplementary plane - surrogate pair)
-"👨‍👩‍👧‍👦".length // 11 (complex grapheme cluster)
+// Encoding algorithm for code point → surrogate pair
+function toSurrogatePair(codePoint: number): [number, number] {
+  const temp = codePoint - 0x10000
+  const high = Math.floor(temp / 0x400) + 0xD800 // D800-DBFF
+  const low = (temp % 0x400) + 0xDC00            // DC00-DFFF
+  return [high, low]
+}
+
+// U+1F4A9 (💩) → [0xD83D, 0xDCA9]
+toSurrogatePair(0x1F4A9) // [55357, 56489]
+
+// Verification
+"💩".charCodeAt(0) // 55357 (0xD83D) - high surrogate
+"💩".charCodeAt(1) // 56489 (0xDCA9) - low surrogate
+"💩".codePointAt(0) // 128169 (0x1F4A9) - full code point
 ```
 
-## JavaScript's UTF-16 Legacy
+The ranges D800-DBFF (high surrogates) and DC00-DFFF (low surrogates) are permanently reserved in the BMP—they never represent characters directly.
 
-JavaScript's string representation is a [historical artifact from the UCS-2 era](https://mathiasbynens.be/notes/javascript-encoding) (1995). When Unicode expanded beyond 16 bits, JavaScript maintained backward compatibility by adopting UTF-16's surrogate pair mechanism.
+## Unsafe String Operations
 
-### Surrogate Pairs
+JavaScript's pre-ES6 string methods operate on code units, creating several failure modes:
 
-Supplementary plane characters (U+10000 to U+10FFFF) are encoded using surrogate pairs:
+### Corruption via Slicing
 
 ```typescript
-// Surrogate pair encoding for U+1F4A9 (💩)
-const highSurrogate = 0xd83d // U+D800 to U+DBFF
-const lowSurrogate = 0xdca9 // U+DC00 to U+DFFF
+const text = "Hello 💩 World"
 
-// Mathematical transformation
-const codePoint = 0x1f4a9
-const temp = codePoint - 0x10000
-const high = Math.floor(temp / 0x400) + 0xd800
-const low = (temp % 0x400) + 0xdc00
+// Dangerous: arbitrary index may split surrogate pair
+text.substring(0, 7) // "Hello �" - corrupted high surrogate
 
-console.log(high.toString(16), low.toString(16)) // 'd83d', 'dca9'
+// Safe: slice at code point boundaries
+const chars = [...text]
+chars.slice(0, 7).join("") // "Hello 💩"
 ```
 
-### The Legacy API Problem
+### Invalid Split Results
 
-JavaScript's core string methods operate on code units, not code points:
+```typescript
+// Dangerous: splits surrogate pairs into invalid characters
+"💩".split("") // ['\uD83D', '\uDCA9'] - two invalid strings
+
+// Safe: spread preserves code points
+[..."💩"] // ['💩']
+```
+
+### charAt and charCodeAt Limitations
 
 ```typescript
 const emoji = "💩"
 
-// Unsafe operations
-emoji.length // 2 (code units)
-emoji.charAt(0) // '\uD83D' (incomplete surrogate)
-emoji.charCodeAt(0) // 55357 (high surrogate only)
+emoji.length      // 2 (code units, not characters)
+emoji.charAt(0)   // '\uD83D' (lone high surrogate - invalid)
+emoji.charAt(1)   // '\uDCA9' (lone low surrogate - invalid)
+emoji.charCodeAt(0) // 55357 (high surrogate value)
 
-// Safe operations
+// Safe alternatives
 emoji.codePointAt(0) // 128169 (full code point)
-[...emoji].length // 1 (code points)
+emoji.at(0)          // '\uD83D' (still code unit based - ES2022)
+[...emoji][0]        // '💩' (code point)
 ```
 
-## Modern Unicode-Aware JavaScript
+### ES2024: Well-Formed String Detection
 
-### Code Point Iteration
+ES2024 added `isWellFormed()` and `toWellFormed()` to detect and fix lone surrogates—a common source of bugs when interfacing with APIs that require valid UTF-16:
 
-ES6+ provides code point-aware iteration:
+```typescript
+const wellFormed = "Hello 💩"
+const illFormed = "Hello \uD800" // lone high surrogate
+
+wellFormed.isWellFormed() // true
+illFormed.isWellFormed()  // false
+
+// Fix by replacing lone surrogates with U+FFFD (replacement character)
+illFormed.toWellFormed() // "Hello �"
+
+// Use case: encodeURI throws on ill-formed strings
+encodeURI(illFormed)            // URIError
+encodeURI(illFormed.toWellFormed()) // "Hello%20%EF%BF%BD"
+```
+
+## Safe Unicode Operations
+
+### Code Point Iteration (ES6+)
+
+The `for...of` loop and spread operator iterate over code points, not code units:
 
 ```typescript
 const text = "A💩Z"
 
-// Unsafe: iterates over code units
+// Code unit iteration (broken)
 for (let i = 0; i < text.length; i++) {
-  console.log(text[i]) // 'A', '\uD83D', '\uDCA9', 'Z'
+  console.log(text[i]) // 'A', '\uD83D', '\uDCA9', 'Z' - 4 items
 }
 
-// Safe: iterates over code points
+// Code point iteration (correct for supplementary characters)
 for (const char of text) {
-  console.log(char) // 'A', '💩', 'Z'
+  console.log(char) // 'A', '💩', 'Z' - 3 items
 }
 
-// Spread operator also works
-console.log([...text]) // ['A', '💩', 'Z']
+// Spread also iterates code points
+[...text] // ['A', '💩', 'Z']
+[...text].length // 3 (code points)
+text.length // 4 (code units)
 ```
 
-### Grapheme Cluster Segmentation
-
-For user-perceived characters, use `Intl.Segmenter`:
-
-```typescript
-const family = "👨‍👩‍👧‍👦"
-const segmenter = new Intl.Segmenter("en", { granularity: "grapheme" })
-
-// Count grapheme clusters
-console.log([...segmenter.segment(family)].length) // 1
-
-// Iterate over grapheme clusters
-for (const grapheme of segmenter.segment(family)) {
-  console.log(grapheme.segment) // '👨‍👩‍👧‍👦'
-}
-```
+**Limitation**: Code point iteration still doesn't handle grapheme clusters. `[..."👨‍👩‍👧‍👦"]` returns 7 elements (4 emoji + 3 ZWJ), not 1.
 
 ### Unicode-Aware Regular Expressions
 
-The `u` flag enables Unicode-aware regex:
+The `u` flag (ES6) enables code point matching and Unicode property escapes:
 
 ```typescript
-// Without u flag: matches code units
-/^.$/.test("💩") // false (2 code units)
+// Without u flag: . matches one code unit
+/^.$/.test("💩") // false (💩 is 2 code units)
 
-// With u flag: matches code points
-/^.$/u.test("💩") // true (1 code point)
+// With u flag: . matches one code point
+/^.$/u.test("💩") // true
 
-// Unicode property escapes
-/\p{Emoji}/u.test("💩") // true
-/\p{Script=Latin}/u.test("A") // true
+// Unicode property escapes (ES2018)
+/\p{Emoji}/u.test("💩")           // true
+/\p{Script=Latin}/u.test("A")    // true
+/\p{Script=Cyrillic}/u.test("а") // true (Cyrillic 'а', not Latin 'a')
+
+// Extended grapheme cluster matching (ES2024 /v flag)
+/^\p{RGI_Emoji}$/v.test("👨‍👩‍👧‍👦") // true - matches full ZWJ sequence
 ```
 
 ### String Normalization
 
-Handle different representations of the same character:
+Unicode allows multiple representations of the same visual character. Normalize before comparison:
 
 ```typescript
-const e1 = "é" // U+00E9 (precomposed)
-const e2 = "e\u0301" // U+0065 + U+0301 (decomposed)
+const e1 = "é"       // U+00E9 (precomposed: single code point)
+const e2 = "e\u0301" // U+0065 + U+0301 (decomposed: base + combining acute)
 
-console.log(e1 === e2) // false
-console.log(e1.normalize() === e2.normalize()) // true
+e1 === e2                          // false (different code points)
+e1.normalize() === e2.normalize()  // true (NFC: canonical composition)
+e1.length                          // 1
+e2.length                          // 2
+
+// Normalization forms
+"é".normalize("NFC")  // Canonical Composition (default)
+"é".normalize("NFD")  // Canonical Decomposition
+"é".normalize("NFKC") // Compatibility Composition
+"é".normalize("NFKD") // Compatibility Decomposition
 ```
 
-## Beyond JavaScript: Full-Stack Unicode Considerations
+**When to normalize**: Always normalize user input before storage or comparison. Use NFC (default) for general text; NFKC for search/matching where compatibility equivalents should match.
 
-### Database Storage
+## Full-Stack Unicode Considerations
 
-MySQL's [legacy `utf8` charset only supports 3 bytes](https://dev.mysql.com/blog-archive/mysql-8-0-when-to-use-utf8mb3-over-utf8mb4/) per character, excluding supplementary plane characters (emoji, mathematical symbols). The `utf8` alias is deprecated in MySQL 8.0:
+### Database Storage: The MySQL utf8 Trap
+
+MySQL's `utf8` charset is actually `utf8mb3`—a 3-byte encoding that cannot store supplementary plane characters:
 
 ```sql
--- Legacy (incomplete UTF-8)
+-- Dangerous: silently truncates emoji or throws errors
 CREATE TABLE users (name VARCHAR(255) CHARACTER SET utf8);
+INSERT INTO users VALUES ('Hello 💩'); -- Error or truncation
 
--- Modern (complete UTF-8)
+-- Safe: full UTF-8 support (4 bytes per character max)
 CREATE TABLE users (name VARCHAR(255) CHARACTER SET utf8mb4);
 ```
 
-### API Design Best Practices
+As of MySQL 8.0, `utf8` is deprecated and `utf8mb4` is the default. PostgreSQL's `UTF8` encoding has always supported the full Unicode range.
 
-1. **Explicit Encoding**: Always specify UTF-8 in Content-Type headers
-2. **Server-Side Normalization**: Normalize all input to canonical form
-3. **Opaque Strings**: Don't expose internal character representations
+### API Design
 
 ```typescript
-// API response with explicit encoding
+// Always specify encoding in Content-Type
 res.setHeader("Content-Type", "application/json; charset=utf-8")
 
-// Input normalization
-const normalizedInput = userInput.normalize("NFC")
+// Normalize input at system boundary
+const sanitized = userInput
+  .normalize("NFC")           // Canonical composition
+  .replace(/\p{C}/gu, "")     // Remove control characters
+
+// Validate well-formedness before external APIs
+if (!sanitized.isWellFormed()) {
+  throw new Error("Invalid Unicode input")
+}
 ```
 
-## Common Unicode-Related Bugs
+### Character Limits in APIs
 
-### Surrogate Pair Corruption
+When enforcing length limits, decide which layer you're measuring:
 
 ```typescript
-const emoji = "💩"
+const MAX_GRAPHEMES = 280 // Twitter-style limit
 
-// Dangerous: splits surrogate pair
-const corrupted = emoji.substring(0, 1) // '\uD83D' (invalid)
+function validateLength(text: string): boolean {
+  const segmenter = new Intl.Segmenter("en", { granularity: "grapheme" })
+  const graphemeCount = [...segmenter.segment(text)].length
+  return graphemeCount <= MAX_GRAPHEMES
+}
 
-// Safe: use code point-aware methods
-const safe = [...emoji][0] // '💩'
+// "👨‍👩‍👧‍👦".repeat(280) passes - 280 graphemes
+// But it's 11 * 280 = 3080 code units for storage
 ```
 
-### Buffer Overflow with Multi-byte Characters
+## Edge Cases and Failure Modes
+
+### Cursor Positioning
+
+Text editors must position cursors between grapheme clusters, not code units or code points:
 
 ```typescript
-// Dangerous: assumes 1 byte per character
-const buffer = Buffer.alloc(100)
-buffer.write(text.slice(0, 100)) // May overflow with emoji
+// User sees: "👨‍👩‍👧‍👦" (1 character)
+// Code units: 11 positions
+// Code points: 7 positions
+// Valid cursor positions: 2 (before and after)
 
-// Safe: use proper encoding
-const safeBuffer = Buffer.from(text, "utf8")
+function getCursorPositions(text: string): number[] {
+  const segmenter = new Intl.Segmenter("en", { granularity: "grapheme" })
+  const positions = [0]
+  for (const { index, segment } of segmenter.segment(text)) {
+    positions.push(index + segment.length)
+  }
+  return positions
+}
+
+getCursorPositions("👨‍👩‍👧‍👦") // [0, 11] - only 2 valid positions
 ```
 
 ### Visual Spoofing (Homograph Attacks)
 
-```typescript
-// Cyrillic 'а' vs Latin 'a'
-const cyrillicA = "а" // U+0430
-const latinA = "a" // U+0061
-
-console.log(cyrillicA === latinA) // false
-console.log(cyrillicA.normalize() === latinA.normalize()) // false
-```
-
-## Defensive Programming Strategies
-
-### The Unicode Sanctuary Pattern
+Different scripts contain visually identical characters:
 
 ```typescript
-class UnicodeSanctuary {
-  // Decode on input
-  static decode(input: Buffer, encoding: string = "utf8"): string {
-    return input.toString(encoding).normalize("NFC")
-  }
+const cyrillicA = "а" // U+0430 (Cyrillic Small Letter A)
+const latinA = "a"    // U+0061 (Latin Small Letter A)
 
-  // Process internally (always Unicode)
-  static process(text: string): string {
-    // All operations on normalized Unicode
-    return text.toUpperCase()
-  }
+cyrillicA === latinA                          // false
+cyrillicA.normalize() === latinA.normalize()  // false (different scripts)
 
-  // Encode on output
-  static encode(text: string, encoding: string = "utf8"): Buffer {
-    return Buffer.from(text, encoding)
+// Detecting mixed scripts
+function detectMixedScripts(text: string): boolean {
+  const scripts = new Set<string>()
+  for (const char of text) {
+    // Check script property (simplified)
+    if (/\p{Script=Latin}/u.test(char)) scripts.add("Latin")
+    if (/\p{Script=Cyrillic}/u.test(char)) scripts.add("Cyrillic")
+    // Add more scripts as needed
   }
+  return scripts.size > 1
 }
+
+detectMixedScripts("pаypal.com") // true - mixed Latin and Cyrillic
 ```
 
-### Validation and Sanitization
+### Buffer Size Calculations
+
+UTF-8 byte length differs from code unit count:
 
 ```typescript
-function validateUsername(username: string): boolean {
-  // Normalize first
+// Code units vs UTF-8 bytes
+const text = "Hello 💩"
+text.length                        // 8 code units
+Buffer.byteLength(text, "utf8")    // 10 bytes (💩 = 4 bytes in UTF-8)
+
+// Safe buffer allocation
+function safeBuffer(text: string): Buffer {
+  return Buffer.from(text, "utf8") // Auto-sizes correctly
+}
+
+// Dangerous: assumes code units = bytes
+const buf = Buffer.alloc(text.length) // Only 8 bytes
+buf.write(text)                        // Truncation risk
+```
+
+### Combining Characters and Length
+
+Combining marks attach to preceding base characters:
+
+```typescript
+const composed = "é"        // U+00E9 (1 code point)
+const decomposed = "e\u0301" // U+0065 + U+0301 (2 code points)
+
+composed.length   // 1
+decomposed.length // 2
+
+// Both render identically, but different lengths
+// Always normalize before length checks
+```
+
+## Practical Patterns
+
+### Safe String Truncation
+
+```typescript
+function truncateGraphemes(text: string, maxGraphemes: number, ellipsis = "…"): string {
+  const segmenter = new Intl.Segmenter("en", { granularity: "grapheme" })
+  const segments = [...segmenter.segment(text)]
+
+  if (segments.length <= maxGraphemes) return text
+
+  return segments
+    .slice(0, maxGraphemes - 1)
+    .map(s => s.segment)
+    .join("") + ellipsis
+}
+
+truncateGraphemes("Hello 👨‍👩‍👧‍👦 World", 8) // "Hello 👨‍👩‍👧‍👦…"
+// Code unit truncation would break: "Hello 👨‍👩‍👧‍👦 World".slice(0, 8) = "Hello �"
+```
+
+### Username Validation
+
+```typescript
+function validateUsername(username: string): { valid: boolean; error?: string } {
   const normalized = username.normalize("NFC")
 
-  // Check for homographs
-  const hasHomographs = /[\u0430-\u044F]/.test(normalized) // Cyrillic
+  // Check well-formedness
+  if (!normalized.isWellFormed()) {
+    return { valid: false, error: "Invalid Unicode" }
+  }
 
-  // Validate grapheme length
+  // Count graphemes
   const segmenter = new Intl.Segmenter("en", { granularity: "grapheme" })
   const graphemeCount = [...segmenter.segment(normalized)].length
 
-  return !hasHomographs && graphemeCount >= 3 && graphemeCount <= 20
+  if (graphemeCount < 3 || graphemeCount > 20) {
+    return { valid: false, error: "Username must be 3-20 characters" }
+  }
+
+  // Detect mixed scripts (homograph defense)
+  const hasLatin = /\p{Script=Latin}/u.test(normalized)
+  const hasCyrillic = /\p{Script=Cyrillic}/u.test(normalized)
+  if (hasLatin && hasCyrillic) {
+    return { valid: false, error: "Mixed scripts not allowed" }
+  }
+
+  return { valid: true }
+}
+```
+
+### Normalize-on-Boundary Pattern
+
+Normalize text at system boundaries (input/output), process internally with consistent encoding:
+
+```typescript
+class TextProcessor {
+  // Normalize and validate on input
+  static ingest(raw: string): string {
+    const normalized = raw.normalize("NFC")
+    if (!normalized.isWellFormed()) {
+      throw new Error("Ill-formed Unicode input")
+    }
+    return normalized
+  }
+
+  // Internal processing on normalized text
+  static process(text: string): string {
+    // Safe to use code point iteration here
+    return [...text].map(c => c.toUpperCase()).join("")
+  }
+
+  // Ensure well-formed output
+  static emit(text: string): string {
+    return text.toWellFormed() // Replace any lone surrogates
+  }
 }
 ```
 
 ## Conclusion
 
-JavaScript's string length behavior isn't a flaw—it's a historical artifact reflecting the evolution of character encoding standards. Understanding this history is essential for building robust, globally-compatible applications.
+JavaScript's `string.length` returning UTF-16 code units is a 1995 design decision that predates Unicode's expansion. The language preserved backward compatibility at the cost of intuitive character counting.
 
-The key insights:
+The fix isn't to "repair" `length`—it's to use the right abstraction layer for each task:
 
-1. **Abstraction Layers**: Characters exist at multiple levels (grapheme clusters, code points, code units)
-2. **Historical Context**: JavaScript's UTF-16 choice reflects 1990s industry assumptions
-3. **Modern Solutions**: Use `Intl.Segmenter` for grapheme-aware operations
-4. **Full-Stack Awareness**: Unicode considerations extend beyond the browser
+- **User-facing operations** (counting, truncation, cursor positioning): `Intl.Segmenter`
+- **Protocol/encoding work** (surrogate handling, regex matching): Code point APIs (`[...str]`, `/u` flag)
+- **Byte-level operations** (buffer sizing, wire format): Code units (`length`, `charCodeAt`)
 
-For expert developers, mastery of Unicode is no longer optional. In a globalized world, the ability to handle every script, symbol, and emoji correctly is fundamental to building secure, reliable software.
+ES2024's `isWellFormed()` and `toWellFormed()` close the gap for interoperability with systems that require valid UTF-16. Combined with `Intl.Segmenter`, JavaScript now has a complete Unicode story—you just need to know which tool to reach for.
 
-## References
+## Appendix
 
-- [String.length - MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/length) - UTF-16 code unit counting behavior
-- [Intl.Segmenter - MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter) - Grapheme-aware text segmentation
+### Prerequisites
+
+- Basic JavaScript string operations
+- Understanding of what Unicode is (character sets vs encodings)
+
+### Terminology
+
+- **BMP (Basic Multilingual Plane)**: Unicode code points U+0000 to U+FFFF; require 1 UTF-16 code unit
+- **Code point**: A Unicode character's numerical value (U+0000 to U+10FFFF)
+- **Code unit**: A fixed-size encoding unit (16 bits for UTF-16, 8 bits for UTF-8)
+- **Grapheme cluster**: A user-perceived character, potentially composed of multiple code points (defined by UAX #29)
+- **Surrogate pair**: Two UTF-16 code units encoding a supplementary plane character (U+10000+)
+- **ZWJ (Zero-Width Joiner)**: U+200D; combines emoji into sequences like 👨‍👩‍👧‍👦
+
+### Summary
+
+- `string.length` returns UTF-16 code units, not characters or graphemes
+- Supplementary characters (emoji, rare CJK) require 2 code units (surrogate pairs)
+- ZWJ sequences combine multiple code points into single visual characters
+- Use `Intl.Segmenter` for grapheme-aware operations (Baseline April 2024)
+- Use `[...str]` or `/u` flag for code point-level operations
+- ES2024 added `isWellFormed()` and `toWellFormed()` for surrogate validation
+- Always normalize user input with `normalize("NFC")` before storage/comparison
+
+### References
+
+- [ECMA-262 §6.1.4: The String Type](https://tc39.es/ecma262/#sec-ecmascript-language-types-string-type) - Specification defining strings as 16-bit code unit sequences
+- [ECMA-402: Intl.Segmenter](https://tc39.es/ecma402/#segmenter-objects) - Internationalization API specification for text segmentation
+- [UAX #29: Unicode Text Segmentation](https://unicode.org/reports/tr29/) - Unicode Standard Annex defining grapheme cluster boundaries
+- [JavaScript's internal character encoding: UCS-2 or UTF-16? - Mathias Bynens](https://mathiasbynens.be/notes/javascript-encoding) - Historical analysis of JavaScript's encoding choice
+- [String.prototype.isWellFormed - MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/isWellFormed) - ES2024 well-formed string detection
+- [Intl.Segmenter - MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Segmenter) - API documentation and browser support
 - [Intl.Segmenter is now part of Baseline - web.dev](https://web.dev/blog/intl-segmenter) - Browser support announcement (April 2024)
-- [JavaScript's internal character encoding - Mathias Bynens](https://mathiasbynens.be/notes/javascript-encoding) - UCS-2 vs UTF-16 history
-- [JavaScript has a Unicode Problem - Mathias Bynens](https://mathiasbynens.be/notes/javascript-unicode) - Comprehensive Unicode handling guide
-- [Unicode Standard](https://unicode.org/standard/standard.html) - Official specification
-- [UTF-8 Everywhere](http://utf8everywhere.org/) - UTF-8 advocacy and encoding comparisons
-- [MySQL utf8mb4 - MySQL Blog](https://dev.mysql.com/blog-archive/mysql-8-0-when-to-use-utf8mb3-over-utf8mb4/) - Database character set guidance
+- [MySQL 8.0: When to use utf8mb3 over utf8mb4](https://dev.mysql.com/blog-archive/mysql-8-0-when-to-use-utf8mb3-over-utf8mb4/) - Database charset guidance

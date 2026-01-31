@@ -210,7 +210,7 @@ export interface Series {
 }
 
 // =============================================================================
-// Meta.jsonc Types
+// Meta.json5 Types
 // =============================================================================
 
 export interface CategoryMeta {
@@ -229,19 +229,44 @@ export interface ArticleMeta {
 // Ordering Config Type (unified ordering for all content)
 // =============================================================================
 
-export interface OrderingConfig {
-  // Complete lists (must include ALL items - validation ensures global uniqueness)
-  categoryOrder: string[] // Category IDs in display order
-  topicsOrder: string[] // All topic IDs (globally unique across categories)
-  articlesOrder: string[] // All article slugs (globally unique across topics)
+/**
+ * Topic ordering entry with articles
+ */
+export interface TopicOrderEntry {
+  id: string
+  articles: string[]
+}
 
-  // Hierarchical mappings
-  categoryVsTopics: Record<string, string[]> // categoryId -> topicIds
-  topicVsArticlesOrder: Record<string, string[]> // topicId -> article slugs
+/**
+ * Category ordering entry with topics
+ */
+export interface CategoryOrderEntry {
+  id: string
+  topics: TopicOrderEntry[]
+}
+
+/**
+ * Simplified ordering config - hierarchical structure
+ * Order is determined by array position at each level
+ */
+export interface OrderingConfig {
+  // Hierarchical structure: categories -> topics -> articles
+  categories: CategoryOrderEntry[]
 
   // Featured subsets (for homepage)
   featuredArticles: string[] // Article slugs
   featuredTopics: string[] // Topic IDs
+}
+
+/**
+ * Derived ordering helpers (computed from hierarchical structure)
+ */
+export interface DerivedOrdering {
+  categoryOrder: string[]
+  topicsOrder: string[]
+  articlesOrder: string[]
+  categoryVsTopics: Record<string, string[]>
+  topicVsArticlesOrder: Record<string, string[]>
 }
 
 // =============================================================================

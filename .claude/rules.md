@@ -18,10 +18,10 @@ Astro-based technical blog for experienced software professionals (senior/staff/
 **Key content paths**:
 
 - `content/articles/` - Category/Topic/Article hierarchy
-- `content/ordering.jsonc` - Global ordering config
-- `content/home.jsonc` - Homepage config
-- `content/site.jsonc` - Site metadata
-- `content/vanity.jsonc` - Redirects
+- `content/ordering.json5` - Global ordering config
+- `content/home.json5` - Homepage config
+- `content/site.json5` - Site metadata
+- `content/vanity.json5` - Redirects
 
 **IMPORTANT**: Before executing any skill, read the relevant documentation files using absolute paths from the project root:
 

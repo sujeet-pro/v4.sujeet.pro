@@ -1,1213 +1,739 @@
-# HTTP/3 and QUIC: Transport Independence and TLS 1.3
+# HTTP/3 and QUIC: Transport Layer Revolution
 
-A focused guide to HTTP/3, QUIC transport, TLS 1.3 handshakes, and the negotiation mechanisms browsers use to upgrade connections.
+HTTP/3 eliminates TCP's head-of-line blocking by building HTTP directly on QUIC, a UDP-based transport with integrated TLS 1.3. This article covers QUIC's design rationale, the TLS 1.3 integration that enables 1-RTT handshakes, 0-RTT security trade-offs, and the DNS/Alt-Svc discovery mechanisms browsers use for protocol negotiation.
 
-## TLDR
-
-- **HTTP/3 runs over QUIC** to eliminate TCP head-of-line blocking and enable stream-level independence.
-- **TLS 1.3 is integrated** into QUIC, reducing handshake latency to 1-RTT (or 0-RTT on resumption).
-- **Negotiation is proactive** via Alt-Svc and DNS SVCB/HTTPS records, with TCP fallback when QUIC fails.
-- **Operational success depends** on monitoring fallback rates, handshake times, and middlebox interference.
-
-## Browser HTTP Version Selection Flow
-
-Selecting the optimal HTTP and TLS versions—and leveraging DNS-based discovery—demands deep understanding of connection establishment costs, head-of-line blocking at application and transport layers, protocol negotiation mechanisms, and DNS service records. This document synthesizes the evolution, trade-offs, constraints, and benefits of each protocol version, comparison tables, mermaid diagrams, and a complete browser decision flow.
+<figure>
 
 ```mermaid
 flowchart TD
-    A[Browser initiates connection] --> B{Check DNS SVCB/HTTPS records}
-    B -->|SVCB/HTTPS available| C[Get supported protocols from DNS]
-    B -->|No SVCB/HTTPS| D[Start with TCP connection]
+    subgraph Discovery["Protocol Discovery"]
+        DNS["DNS SVCB/HTTPS Records"]
+        AltSvc["Alt-Svc Header"]
+    end
 
-    C --> E{Protocols include HTTP/3?}
-    E -->|Yes| F[Try QUIC connection first]
-    E -->|No| D
+    subgraph Transport["Transport Layer"]
+        TCP["TCP + TLS 1.3"]
+        QUIC["QUIC (UDP + TLS 1.3)"]
+    end
 
-    F --> G{QUIC connection successful?}
-    G -->|Yes| H[Use HTTP/3]
-    G -->|No| D
+    subgraph Application["Application Layer"]
+        H1["HTTP/1.1"]
+        H2["HTTP/2"]
+        H3["HTTP/3"]
+    end
 
-    D --> I[Establish TLS connection]
-    I --> J[Send ALPN extension with supported protocols]
-    J --> K{Server responds with ALPN?}
+    DNS -->|"alpn=h3,h2"| QUIC
+    DNS -->|"alpn=h2"| TCP
+    AltSvc -->|"h3=:443"| QUIC
 
-    K -->|Yes| L{Server supports HTTP/2?}
-    K -->|No| M[Assume HTTP/1.x only]
+    TCP --> H1
+    TCP --> H2
+    QUIC --> H3
 
-    L -->|Yes| N[Use HTTP/2]
-    L -->|No| M
-
-    M --> O[Use HTTP/1.1 with keep-alive]
-
-    N --> P{Server sends Alt-Svc header?}
-    P -->|Yes| Q[Try HTTP/3 upgrade]
-    P -->|No| R[Continue with HTTP/2]
-
-    Q --> S{QUIC connection successful?}
-    S -->|Yes| T[Switch to HTTP/3, close TCP]
-    S -->|No| R
-
-    H --> U[HTTP/3 connection established]
-    R --> V[HTTP/2 connection established]
-    O --> W[HTTP/1.1 connection established]
-    T --> U
-
-    style A fill:#e1f5fe
-    style H fill:#c8e6c9
-    style N fill:#c8e6c9
-    style O fill:#c8e6c9
-    style U fill:#4caf50
-    style V fill:#4caf50
-    style W fill:#4caf50
+    style QUIC fill:#4caf50
+    style H3 fill:#4caf50
 ```
 
-## Unified TLS Connection Establishment: TCP vs QUIC
+<figcaption>HTTP/3 runs over QUIC, which integrates TLS 1.3 into UDP-based transport. Discovery occurs via DNS SVCB/HTTPS records or Alt-Svc headers.</figcaption>
+</figure>
 
-The establishment of secure connections varies significantly between TCP-based (HTTP/1.1, HTTP/2) and QUIC-based (HTTP/3) protocols. This section shows the unified view of how TLS is established over different transport layers.
+## Abstract
 
-### 2.1 TCP + TLS Connection Establishment
+HTTP/3 exists because TCP's design creates unavoidable head-of-line (HOL) blocking—when one packet is lost, all streams sharing that TCP connection stall waiting for retransmission. QUIC solves this by implementing reliable, ordered delivery per-stream rather than per-connection.
+
+**Core mental model:**
+
+- **QUIC = UDP + TLS 1.3 + Stream Multiplexing**: A user-space transport that encrypts everything except the connection ID, enabling both rapid protocol evolution and ossification resistance
+- **Stream Independence**: Each QUIC stream has its own retransmission buffer. Lost packets on stream A don't block streams B or C—the exact property HTTP/2-over-TCP lacks
+- **Connection Migration**: Connections are identified by Connection IDs, not IP:port tuples. Network changes (WiFi→cellular) don't require re-handshaking
+- **1-RTT/0-RTT Handshakes**: TLS 1.3 is integrated into QUIC's transport handshake, not layered on top. New connections complete in 1-RTT; resumption can send data in 0-RTT (with replay risk for non-idempotent requests)
+
+**Protocol discovery flow:**
+
+1. DNS SVCB/HTTPS records advertise HTTP/3 support before connection (preferred)
+2. Alt-Svc headers advertise HTTP/3 on existing TCP connections (fallback)
+3. Browsers race QUIC and TCP, preferring QUIC when both succeed
+
+## Why QUIC Exists: TCP's Fundamental Limitations
+
+### Head-of-Line Blocking
+
+HTTP/2 multiplexes streams over a single TCP connection. TCP guarantees in-order, reliable delivery—but this guarantee applies to the entire byte stream, not individual HTTP streams.
 
 ```mermaid
 sequenceDiagram
     participant C as Client
     participant S as Server
 
-    %% TCP Three-Way Handshake %%
-    C->>S: SYN (seq=x)
-    S-->>C: SYN-ACK (seq=y,ack=x+1)
-    C->>S: ACK (ack=y+1)
-    Note over C,S: TCP connection established (1 RTT)
+    Note over C,S: HTTP/2 over TCP: All streams share one byte stream
+    S->>C: Packet 1 (Stream A data)
+    S->>C: Packet 2 (Stream B data)
+    S--xC: Packet 3 (Stream A data) LOST
+    S->>C: Packet 4 (Stream C data)
 
-    rect rgb(240, 248, 255)
-    Note over C,S: TLS 1.3 Handshake (1 RTT)
-    C->>S: ClientHello (versions, ciphers, key share)
-    S-->>C: ServerHello+EncryptedExtensions+Certificate+Finished
-    C->>S: Finished
-    Note over C,S: TLS 1.3 secure channel established (1 RTT)
+    Note over C: TCP holds packets 4+ until packet 3 retransmitted
+    Note over C: Streams B and C blocked despite having all their data
+```
+
+**The problem**: When packet 3 (belonging to Stream A) is lost, TCP cannot deliver packets 4+ to the application until packet 3 arrives. Streams B and C stall even though they have complete data waiting in the receive buffer.
+
+**Quantified impact**: On lossy networks (2% packet loss), HTTP/2 can perform worse than HTTP/1.1 with multiple connections because all multiplexed streams suffer from every lost packet.
+
+### TCP Ossification
+
+TCP's success created a deployment problem: middleboxes (firewalls, NATs, load balancers) inspect TCP headers and make routing decisions based on specific field values. When TCP implementations try to use new features or modify header behavior, middleboxes drop or corrupt these packets.
+
+**Real-world ossification examples:**
+
+- TCP Fast Open (TFO): Despite RFC 7413 (2014), deployment stalled because ~6.5% of network paths encounter harmful middlebox interference
+- ECN (Explicit Congestion Notification): Middleboxes drop packets with ECN bits set
+- Multipath TCP: Requires complex handshakes to work around middlebox inspection
+
+**QUIC's solution**: Build on UDP, which middleboxes generally pass through unchanged, and encrypt everything that could be ossified.
+
+### Kernel-Space Constraints
+
+TCP lives in the OS kernel. Protocol changes require kernel updates, which means:
+
+- Years for new features to reach users (OS upgrade cycles)
+- No A/B testing of transport algorithms
+- Platform-specific implementations diverge
+
+QUIC runs in user space, enabling browser/server updates to deploy new congestion control algorithms (CUBIC→BBR), flow control mechanisms, or security fixes without OS changes.
+
+## QUIC Architecture
+
+### Packet Structure and Encryption
+
+QUIC encrypts almost everything. Per RFC 9000, only these fields are visible to network observers:
+
+| Field | Visibility | Purpose |
+|-------|------------|---------|
+| Version (4 bytes) | Visible in long headers | Protocol version negotiation |
+| Connection ID | Visible | Routing to correct endpoint |
+| Packet Number | Encrypted | Replay protection, ordering |
+| Payload | Encrypted | All application data |
+
+**Design rationale**: Encrypting packet numbers and payload prevents middleboxes from making decisions based on these values, avoiding ossification. The Connection ID must remain visible for routing but changes periodically to prevent tracking.
+
+### Connection IDs and Migration
+
+TCP identifies connections by the 4-tuple: (source IP, source port, destination IP, destination port). When any value changes—common during WiFi→cellular handoffs—the connection dies.
+
+QUIC uses Connection IDs instead. Per RFC 9000 Section 5.1:
+
+> "The primary function of a connection ID is to ensure that changes in addressing at lower protocol layers (UDP, IP) do not cause packets for a QUIC connection to be delivered to the wrong endpoint."
+
+**Security requirement**: Connection IDs "MUST NOT contain any information that can be used by an external observer... to correlate them with other connection IDs for the same connection."
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    Note over C,S: Initial connection on WiFi
+    C->>S: Packets with CID_1 (192.168.1.10)
+
+    Note over C: Network switch to cellular
+    C->>S: PATH_CHALLENGE (new IP: 100.64.0.5)
+    S->>C: PATH_RESPONSE (validates new path)
+
+    Note over C,S: Connection continues with same CID
+    C->>S: Packets with CID_1 (100.64.0.5)
+    Note over C,S: No re-handshake required
+```
+
+**PATH_CHALLENGE/PATH_RESPONSE** (RFC 9000 Sections 8.2, 19.17-19.18):
+
+1. Initiating endpoint sends PATH_CHALLENGE with 8 random bytes on new path
+2. Receiving endpoint echoes identical bytes in PATH_RESPONSE
+3. Successful response confirms peer controls that address and path is viable
+4. This exchange also measures RTT for the new path
+
+**When connection migration works:**
+
+- NAT rebinding (external address changes)
+- WiFi→cellular handoffs
+- IPv6 temporary address expiration
+
+**When it doesn't:**
+
+- Server-initiated migration (not supported in RFC 9000)
+- Zero-length Connection IDs (can't demultiplex)
+- Anycast/ECMP routing (packets may hit different servers)
+- Load balancers without QUIC-aware routing
+
+### Stream Multiplexing
+
+Each QUIC stream maintains independent state: flow control windows, retransmission buffers, and delivery ordering.
+
+```mermaid
+graph TD
+    subgraph QUIC["QUIC Connection"]
+        S0["Stream 0 (Control)"]
+        S4["Stream 4 (Request 1)"]
+        S8["Stream 8 (Request 2)"]
+        S12["Stream 12 (Request 3)"]
     end
 
-    rect rgb(255, 248, 220)
-    Note over C,S: TLS 1.3 0-RTT Resumption (0 RTT)
-    C->>S: ClientHello (PSK, early data)
-    S-->>C: ServerHello (PSK accepted)
-    Note over C,S: TLS 1.3 0-RTT resumption (0 RTT)
+    subgraph Loss["Packet Loss on Stream 4"]
+        L1["Stream 4: Awaiting retransmit"]
+        L2["Stream 8: Continues processing"]
+        L3["Stream 12: Continues processing"]
     end
+
+    S4 --> L1
+    S8 --> L2
+    S12 --> L3
+```
+
+**Stream ID structure** (RFC 9114 Section 6.1):
+
+- Bits 0-1 encode stream type: client/server initiated, bidirectional/unidirectional
+- Client-initiated bidirectional streams: 0, 4, 8, 12... (used for HTTP requests)
+- Server-initiated unidirectional streams: 3, 7, 11... (used for server push, control)
+
+**HTTP/3 stream requirements:**
+
+- Servers MUST allow at least 100 concurrent client-initiated bidirectional streams
+- Each endpoint MUST create exactly one control stream (type 0x00) and one QPACK encoder/decoder stream pair
+
+## TLS 1.3 Integration
+
+### Why Integration Matters
+
+Traditional HTTPS requires sequential handshakes: TCP (1-RTT) then TLS (1-2 RTT). QUIC integrates TLS 1.3 directly into the transport handshake.
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
 
     rect rgb(255, 240, 245)
-    Note over C,S: TLS 1.2 Handshake (2 RTTs) - Reference
-    C->>S: ClientHello
-    S-->>C: ServerHello+Certificate+ServerKeyExchange+ServerHelloDone
-    C->>S: ClientKeyExchange+ChangeCipherSpec+Finished
-    S-->>C: ChangeCipherSpec+Finished
-    Note over C,S: TLS 1.2 secure channel established (2 RTTs)
+    Note over C,S: TCP + TLS 1.3: 2 RTT minimum
+    C->>S: TCP SYN
+    S->>C: TCP SYN-ACK
+    C->>S: TCP ACK + TLS ClientHello
+    S->>C: TLS ServerHello + Certificate + Finished
+    C->>S: TLS Finished
+    Note over C,S: Ready to send HTTP request
+    end
+
+    rect rgb(240, 255, 240)
+    Note over C,S: QUIC + TLS 1.3: 1 RTT
+    C->>S: Initial (ClientHello + key share)
+    S->>C: Initial (ServerHello) + Handshake (Cert + Finished)
+    C->>S: Handshake Finished + 1-RTT Data
+    Note over C,S: HTTP request sent with handshake completion
     end
 ```
 
-### 2.2 QUIC + TLS Connection Establishment
+**Latency comparison:**
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant S as Server
+| Protocol Stack | New Connection | Resumption |
+|----------------|----------------|------------|
+| TCP + TLS 1.2 | 3 RTT | 2 RTT |
+| TCP + TLS 1.3 | 2 RTT | 1 RTT (0-RTT data possible) |
+| QUIC + TLS 1.3 | 1 RTT | 0 RTT (early data) |
 
-    %% QUIC 1-RTT New Connection %%
-    C->>S: Initial (connection ID, key share, TLS ClientHello)
-    S-->>C: Initial (connection ID, key share, TLS ServerHello)
-    C->>S: Handshake (TLS Finished)
-    S-->>C: Handshake (TLS Finished)
-    Note over C,S: QUIC + TLS 1.3 new connection (1 RTT)
+### Encryption Levels
 
-    %% QUIC 0-RTT Resumption %%
-    C->>S: 0-RTT (PSK, application data)
-    S-->>C: Handshake (TLS Finished)
-    Note over C,S: QUIC 0-RTT resumption (0 RTT)
+QUIC uses four encryption levels, each with distinct keys (RFC 9001 Section 4):
 
-    %% QUIC Connection Migration %%
-    C->>S: PATH_CHALLENGE (new IP/port)
-    S-->>C: PATH_RESPONSE
-    Note over C,S: Connection migration (no re-handshake)
-```
+1. **Initial**: Connection establishment. Keys derived from Connection ID (publicly derivable—provides no confidentiality, only integrity)
+2. **0-RTT**: Early data on resumption. Keys from previous session's PSK
+3. **Handshake**: Key exchange completion. Keys from ECDHE shared secret
+4. **1-RTT (Application)**: All application data after handshake
 
-### 2.3 Unified Connection Establishment Comparison
+**Important**: Initial packets are encrypted but not confidential. Anyone can derive the keys from the Connection ID. This is by design—it prevents middlebox ossification while still providing integrity.
 
-```mermaid
-graph TD
-    A[Client initiates connection] --> B{Transport Protocol?}
+### 0-RTT: Speed vs. Security Trade-off
 
-    B -->|TCP| C[TCP 3-way handshake<br/>1 RTT]
-    B -->|QUIC| D[QUIC Initial packet<br/>Includes TLS ClientHello]
+0-RTT resumption lets clients send data immediately, saving a full round trip. But it introduces replay vulnerability.
 
-    C --> E[TLS 1.3 handshake<br/>1 RTT]
-    C --> F[TLS 1.2 handshake<br/>2 RTTs]
-    C --> G[TLS 1.3 0-RTT resumption<br/>0 RTT]
+**The replay attack:**
 
-    D --> H[QUIC + TLS 1.3 combined<br/>1 RTT]
-    D --> I[QUIC 0-RTT resumption<br/>0 RTT]
+1. Client sends 0-RTT request: "Transfer $100 to Alice"
+2. Attacker records encrypted packet
+3. Attacker replays packet to server
+4. Server processes request twice—$200 transferred
 
-    E --> J[HTTP/1.1 or HTTP/2<br/>Total: 2 RTTs]
-    F --> J
-    G --> K[HTTP/1.1 or HTTP/2<br/>Total: 1 RTT]
-    H --> L[HTTP/3<br/>Total: 1 RTT]
-    I --> M[HTTP/3<br/>Total: 0 RTT]
+**Why 0-RTT is vulnerable** (RFC 9001 Section 9.2): "0-RTT provides no protection against replay attacks." The server cannot cryptographically distinguish original from replayed 0-RTT data.
 
-    style J fill:#ffeb3b
-    style K fill:#ff9800
-    style L fill:#4caf50
-    style M fill:#8bc34a
-```
+**Required mitigations:**
 
-**Trade-offs & Constraints**
-
-- **TCP + TLS**: Reliable, ordered delivery but adds 1 RTT (TCP) + 1-2 RTTs (TLS)
-- **QUIC + TLS**: Integrated transport and security, 1 RTT for new connections, 0 RTT for resumption
-- **TLS 1.3**: Mandates forward secrecy, eliminates legacy algorithms, reduces handshake complexity
-- **0-RTT**: Enables immediate data transmission but introduces replay attack risks
-
-## HTTP/3: The QUIC Revolution
-
-HTTP/3 represents a fundamental paradigm shift by abandoning TCP entirely in favor of QUIC (Quick UDP Internet Connections), a new transport protocol built on UDP.
-
-### 6.1 QUIC Architecture: User-Space Transport
-
-**Key Innovation**: QUIC implements transport logic in user space rather than the OS kernel, enabling:
-
-- **Rapid Evolution**: New features can be deployed with browser/server updates
-- **Protocol Ossification Resistance**: No dependency on network middlebox updates
-- **Integrated Security**: TLS 1.3 is built into the transport layer
-
-### 6.2 Core QUIC Mechanisms
-
-#### Stream Independence
-
-```mermaid
-graph TD
-    A[QUIC Connection] --> B[Stream 1: CSS]
-    A --> C[Stream 2: JS]
-    A --> D[Stream 3: Image]
-
-    E[Lost Packet: Stream 1] --> F[Stream 2 & 3 continue processing]
-    F --> G[Stream 1 retransmitted independently]
-```
-
-**Elimination of HOL Blocking**: Each QUIC stream is independent at the transport layer. Packet loss on one stream doesn't affect others.
-
-```javascript collapse={1-8, 22-31}
-// QUIC stream structure and independence
-class QUICStream {
-  constructor(streamId, type) {
-    this.streamId = streamId
-    this.type = type // unidirectional or bidirectional
-    this.state = "open"
-    this.flowControl = new FlowControl()
-  }
-
-  sendData(data) {
-    // Each stream has independent flow control and retransmission
-    const packet = this.createPacket(data)
-    this.sendPacket(packet)
-  }
-
-  handlePacketLoss(packet) {
-    // Only this stream is affected, others continue
-    this.retransmitPacket(packet)
-    // Other streams remain unaffected
-  }
-}
-
-// QUIC connection manages multiple independent streams
-class QUICConnection {
-  constructor() {
-    this.streams = new Map()
-    this.connectionId = this.generateConnectionId()
-  }
-
-  createStream(streamId) {
-    const stream = new QUICStream(streamId)
-    this.streams.set(streamId, stream)
-    return stream
-  }
-
-  // Packet loss on one stream doesn't block others
-  handlePacketLoss(streamId, packet) {
-    const stream = this.streams.get(streamId)
-    if (stream) {
-      stream.handlePacketLoss(packet)
-    }
-    // Other streams continue processing normally
-  }
-}
-```
-
-#### Connection Migration
-
-```javascript
-// QUIC enables seamless connection migration
-const quicConnection = {
-  connectionId: "unique-cid-12345",
-  migrateToNewPath: (newIP, newPort) => {
-    // Connection persists across network changes
-    // No re-handshake required
-    return true
-  },
-}
-```
-
-**Session Continuity**: Connections persist across IP/port changes (e.g., WiFi to cellular), enabling uninterrupted sessions.
-
-```javascript collapse={1-7, 33-40}
-// Detailed QUIC connection migration implementation
-class QUICConnectionMigration {
-  constructor() {
-    this.connectionId = this.generateConnectionId()
-    this.activePaths = new Map()
-    this.preferredPath = null
-  }
-
-  // Handle network interface changes
-  async migrateToNewPath(newIP, newPort) {
-    const newPath = { ip: newIP, port: newPort }
-
-    // Validate new path
-    if (!this.isPathValid(newPath)) {
-      throw new Error("Invalid path for migration")
-    }
-
-    // Send PATH_CHALLENGE to validate connectivity
-    const challenge = await this.sendPathChallenge(newPath)
-
-    if (challenge.successful) {
-      // Update preferred path
-      this.preferredPath = newPath
-      this.activePaths.set(this.getPathKey(newPath), newPath)
-
-      // Notify all streams of path change
-      this.notifyStreamsOfMigration(newPath)
-
-      return true
-    }
-
-    return false
-  }
-
-  // Streams continue operating during migration
-  notifyStreamsOfMigration(newPath) {
-    this.streams.forEach((stream) => {
-      stream.updatePath(newPath)
-      // No interruption to data flow
-    })
-  }
-}
-
-// Example: WiFi to cellular handover
-const migrationExample = {
-  scenario: "User moves from WiFi to cellular",
-  steps: [
-    "1. QUIC detects network interface change",
-    "2. Sends PATH_CHALLENGE to new IP/port",
-    "3. Validates connectivity on new path",
-    "4. Updates preferred path without re-handshake",
-    "5. All streams continue seamlessly",
-  ],
-}
-```
-
-#### Advanced Handshakes
-
-- **1-RTT Handshake**: Combined transport and cryptographic setup
-- **0-RTT Resumption**: Immediate data transmission for returning visitors
-
-```javascript collapse={1-6, 33-52}
-// QUIC handshake implementation
-class QUICHandshake {
-  constructor() {
-    this.state = "initial"
-    this.psk = null // Pre-shared key for 0-RTT
-  }
-
-  // 1-RTT handshake for new connections
-  async perform1RTTHandshake() {
-    // Client sends Initial packet with key share
-    const initialPacket = {
-      type: "initial",
-      connectionId: this.generateConnectionId(),
-      token: null,
-      length: 1200,
-      packetNumber: 0,
-      keyShare: this.generateKeyShare(),
-      supportedVersions: ["0x00000001"], // QUIC v1
-    }
-
-    // Server responds with handshake packet
-    const handshakePacket = {
-      type: "handshake",
-      connectionId: this.connectionId,
-      keyShare: this.serverKeyShare,
-      certificate: this.certificate,
-      finished: this.calculateFinished(),
-    }
-
-    // Connection established in 1 RTT
-    this.state = "connected"
-    return true
-  }
-
-  // 0-RTT resumption for returning clients
-  async perform0RTTHandshake() {
-    if (!this.psk) {
-      throw new Error("No PSK available for 0-RTT")
-    }
-
-    // Client can send data immediately
-    const zeroRTTPacket = {
-      type: "0-rtt",
-      connectionId: this.connectionId,
-      data: this.applicationData, // Can include HTTP requests
-      psk: this.psk,
-    }
-
-    // Server validates PSK and processes data
-    this.state = "connected"
-    return true
-  }
-}
-
-// Performance comparison
-const handshakeComparison = {
-  "TCP+TLS1.2": { rtts: 3, latency: "high" },
-  "TCP+TLS1.3": { rtts: 2, latency: "medium" },
-  "QUIC+TLS1.3": { rtts: 1, latency: "low" },
-  "QUIC+0RTT": { rtts: 0, latency: "minimal" },
-}
-```
-
-### 6.3 Congestion Control Evolution
-
-QUIC's user-space implementation enables pluggable congestion control algorithms:
-
-```javascript
-// CUBIC vs BBR performance characteristics
-const congestionControl = {
-  CUBIC: {
-    type: "loss-based",
-    behavior: "aggressive increase, drastic reduction on loss",
-    bestFor: "stable, wired networks",
-  },
-  BBR: {
-    type: "model-based",
-    behavior: "probes network, maintains optimal pacing",
-    bestFor: "lossy networks, mobile connections",
-  },
-}
-```
-
-```javascript collapse={1-31, 57-86}
-// Pluggable congestion control implementation
-class QUICCongestionControl {
-  constructor(algorithm = "cubic") {
-    this.algorithm = this.createAlgorithm(algorithm)
-    this.cwnd = 10 // Initial congestion window
-    this.ssthresh = 65535 // Slow start threshold
-  }
-
-  createAlgorithm(type) {
-    switch (type) {
-      case "cubic":
-        return new CUBICAlgorithm()
-      case "bbr":
-        return new BBRAlgorithm()
-      case "newreno":
-        return new NewRenoAlgorithm()
-      default:
-        return new CUBICAlgorithm()
-    }
-  }
-
-  onPacketAcked(packet) {
-    this.algorithm.onAck(packet)
-    this.updateWindow()
-  }
-
-  onPacketLost(packet) {
-    this.algorithm.onLoss(packet)
-    this.updateWindow()
-  }
-}
-
-// CUBIC implementation - loss-based congestion control
-class CUBICAlgorithm {
-  constructor() {
-    this.Wmax = 0 // Maximum window size before loss
-    this.K = 0 // Time to reach Wmax
-    this.t = 0 // Time since last congestion event
-  }
-
-  onAck(packet) {
-    this.t += packet.rtt
-    const Wcubic = this.calculateCubicWindow()
-    this.cwnd = Math.min(Wcubic, this.ssthresh)
-  }
-
-  onLoss(packet) {
-    this.Wmax = this.cwnd
-    this.K = Math.cbrt((this.Wmax * 0.3) / 0.4) // CUBIC constant
-    this.t = 0
-    this.cwnd = this.Wmax * 0.7 // Multiplicative decrease
-  }
-
-  calculateCubicWindow() {
-    return 0.4 * Math.pow(this.t - this.K, 3) + this.Wmax
-  }
-}
-
-// BBR implementation - model-based congestion control
-class BBRAlgorithm {
-  constructor() {
-    this.bw = 0 // Estimated bottleneck bandwidth
-    this.rtt = 0 // Minimum RTT
-    this.btlbw = 0 // Bottleneck bandwidth
-    this.rtprop = 0 // Round-trip propagation time
-  }
-
-  onAck(packet) {
-    this.updateBandwidth(packet)
-    this.updateRTT(packet)
-    this.updateWindow()
-  }
-
-  updateBandwidth(packet) {
-    const deliveryRate = packet.delivered / packet.deliveryTime
-    this.bw = Math.max(this.bw, deliveryRate)
-  }
-
-  updateRTT(packet) {
-    if (packet.rtt < this.rtt || this.rtt === 0) {
-      this.rtt = packet.rtt
-    }
-  }
-
-  updateWindow() {
-    // BBR uses bandwidth-delay product
-    this.cwnd = this.bw * this.rtt
-  }
-}
-```
-
-## Protocol Negotiation and Upgrade Mechanisms
-
-### 7.1 ALPN (Application-Layer Protocol Negotiation)
-
-ALPN enables seamless protocol negotiation during the TLS handshake without additional round trips:
-
-```javascript
-// TLS handshake with ALPN extension
-const tlsHandshake = {
-  clientHello: {
-    supportedProtocols: ["h2", "http/1.1"],
-    alpnExtension: true,
-  },
-  serverHello: {
-    selectedProtocol: "h2", // Server chooses HTTP/2
-    alpnExtension: true,
-  },
-}
-```
-
-**Benefits**: No extra RTT, seamless protocol selection
-**Constraints**: Only works for HTTPS connections
-
-### 7.2 HTTP/1.1 Upgrade Mechanism (h2c)
-
-For clear-text HTTP/2 connections (rarely used by browsers):
-
-```http
-GET / HTTP/1.1
-Host: example.com
-Connection: Upgrade
-Upgrade: h2c
-HTTP2-Settings: <base64url encoding of HTTP/2 SETTINGS payload>
-```
-
-**Server Response Options**:
-
-```http
-# Accepts upgrade
-HTTP/1.1 101 Switching Protocols
-Connection: Upgrade
-Upgrade: h2c
-
-# Rejects upgrade
-HTTP/1.1 200 OK
-Content-Type: text/html
-# ... normal HTTP/1.1 response
-```
-
-### 7.3 Alt-Svc Header for HTTP/3 Upgrade
-
-HTTP/3 uses server-initiated upgrade through HTTP headers:
-
-```http
-# HTTP/1.1 response with Alt-Svc header
-HTTP/1.1 200 OK
-Content-Type: text/html
-Alt-Svc: h3=":443"; ma=86400
-
-# HTTP/2 response with ALTSVC frame
-HTTP/2 200 OK
-ALTSVC: h3=":443"; ma=86400
-```
-
-**Upgrade Process**:
-
-```javascript
-// Browser protocol upgrade logic
-const upgradeToHTTP3 = async (altSvcHeader) => {
-  const quicConfig = parseAltSvc(altSvcHeader)
-
-  try {
-    // Attempt QUIC connection to same hostname
-    const quicConnection = await establishQUIC(quicConfig.host, quicConfig.port)
-
-    if (quicConnection.successful) {
-      // Close TCP connection, use QUIC
-      closeTCPConnection()
-      return "HTTP/3"
-    }
-  } catch (error) {
-    // Fallback to existing TCP connection
-    console.log("QUIC connection failed, continuing with TCP")
-  }
-
-  return "HTTP/2" // or HTTP/1.1
-}
-```
-
-## Browser Protocol Negotiation Mechanisms
-
-Browsers employ sophisticated mechanisms to determine the optimal HTTP version for each connection.
-
-### 8.1 DNS-Based Protocol Discovery (SVCB/HTTPS Records)
-
-```bash
-; Modern DNS records for protocol negotiation
-example.com. 3600 IN HTTPS 1 . alpn="h3,h2" port=443
-example.com. 3600 IN SVCB 1 . alpn="h3,h2" port=443
-```
-
-**Benefits**:
-
-- Eliminates initial TCP connection for HTTP/3-capable servers
-- Reduces connection establishment latency
-- Enables parallel connection attempts
-
-#### DNS Load Balancing Considerations
-
-When using multiple CDNs or load balancers, DNS responses might come from different sources:
-
-```bash
-; A record from CDN A
-example.com. 300 IN A 192.0.2.1
-
-; HTTPS record from CDN B
-example.com. 3600 IN HTTPS 1 . alpn="h3,h2"
-```
-
-**Problem**: If the HTTPS record advertises HTTP/3 support but the client connects to a CDN that doesn't support it, the connection will fail.
-
-**Solution**: Include IP hints in the HTTPS record:
-
-```bash
-example.com. 3600 IN HTTPS 1 . alpn="h3,h2" ipv4hint="192.0.2.1" ipv6hint="2001:db8::1"
-```
-
-```javascript
-// DNS resolver implementation for SVCB/HTTPS records
-class DNSResolver {
-  constructor() {
-    this.cache = new Map()
-    this.resolvers = ["8.8.8.8", "1.1.1.1"]
-  }
-
-  async resolveHTTPS(domain) {
-    const cacheKey = `https:${domain}`
-    if (this.cache.has(cacheKey)) {
-      return this.cache.get(cacheKey)
-    }
-
-    const response = await this.queryDNS(domain, "HTTPS")
-    const parsed = this.parseHTTPSRecord(response)
-
-    this.cache.set(cacheKey, parsed)
-    return parsed
-  }
-
-  parseHTTPSRecord(record) {
-    return {
-      priority: record.priority,
-      target: record.target,
-      alpn: this.parseALPN(record.alpn),
-      port: record.port || 443,
-      ipv4hint: record.ipv4hint?.split(","),
-      ipv6hint: record.ipv6hint?.split(","),
-      echconfig: record.echconfig,
-    }
-  }
-
-  parseALPN(alpnString) {
-    return alpnString?.split(",") || []
-  }
-
-  // Validate that advertised protocols match endpoint capabilities
-  async validateEndpoint(domain, ip, protocols) {
-    try {
-      const connection = await this.testConnection(ip, protocols)
-      return connection.successful
-    } catch (error) {
-      console.warn(`Endpoint validation failed for ${ip}:`, error)
-      return false
-    }
-  }
-}
-
-// Load balancing with protocol awareness
-class ProtocolAwareLoadBalancer {
-  constructor() {
-    this.endpoints = new Map()
-    this.dnsResolver = new DNSResolver()
-  }
-
-  async selectEndpoint(domain, clientIP) {
-    // Get HTTPS record
-    const httpsRecord = await this.dnsResolver.resolveHTTPS(domain)
-
-    // Filter endpoints by protocol support
-    const compatibleEndpoints =
-      this.endpoints.get(domain)?.filter((ep) => ep.supportsProtocols.some((p) => httpsRecord.alpn.includes(p))) || []
-
-    // Apply load balancing logic
-    return this.balanceLoad(compatibleEndpoints, clientIP)
-  }
-
-  balanceLoad(endpoints, clientIP) {
-    // Geographic load balancing
-    const geoEndpoint = this.findClosestEndpoint(endpoints, clientIP)
-
-    // Health check
-    if (geoEndpoint.isHealthy()) {
-      return geoEndpoint
-    }
-
-    // Fallback to next best endpoint
-    return this.findNextBestEndpoint(endpoints, geoEndpoint)
-  }
-}
-```
-
-#### Alternative Service Endpoints
-
-SVCB and HTTPS records can also define alternative endpoints:
-
-```bash
-; Primary endpoint with HTTP/3 support
-example.com. 3600 IN HTTPS 1 example.net alpn="h3,h2"
-
-; Fallback endpoint with HTTP/2 only
-example.com. 3600 IN HTTPS 2 example.org alpn="h2"
-```
-
-### 8.2 TLS ALPN (Application-Layer Protocol Negotiation)
-
-```javascript
-// TLS handshake with ALPN extension
-const tlsHandshake = {
-  clientHello: {
-    supportedProtocols: ["h2", "http/1.1"],
-    alpnExtension: true,
-  },
-  serverHello: {
-    selectedProtocol: "h2", // Server chooses HTTP/2
-    alpnExtension: true,
-  },
-}
-```
-
-**Fallback Mechanism**: If ALPN is unavailable, browsers assume HTTP/1.1 support.
-
-### 8.3 Alt-Svc Header for HTTP/3 Upgrade
-
-```http
-HTTP/2 200 OK
-Alt-Svc: h3=":443"; ma=86400
-```
-
-**Server-Initiated Upgrade**: Servers advertise HTTP/3 availability, allowing browsers to attempt QUIC connections.
-
-### 8.4 HTTP/3 Upgrade Mechanism
-
-HTTP/3 uses a fundamentally different transport protocol (QUIC over UDP), making inline upgrades impossible. The upgrade process is server-initiated and requires multiple steps.
-
-#### Initial TCP Connection
-
-Since browsers can't know a priori if a server supports QUIC, they must establish an initial TCP connection:
-
-```javascript
-// Browser always starts with TCP + TLS
-const initialConnection = {
-  transport: "TCP",
-  protocol: "TLS 1.3",
-  alpn: ["h2", "http/1.1"], // Note: no h3 in initial ALPN
-  purpose: "discover HTTP/3 support",
-}
-```
-
-#### Server-Initiated HTTP/3 Advertisement
-
-The server advertises HTTP/3 support through HTTP headers:
-
-```http
-# HTTP/1.1 response with Alt-Svc header
-HTTP/1.1 200 OK
-Content-Type: text/html
-Alt-Svc: h3=":443"; ma=86400
-
-# HTTP/2 response with ALTSVC frame
-HTTP/2 200 OK
-ALTSVC: h3=":443"; ma=86400
-```
-
-#### Browser QUIC Connection Attempt
-
-Upon receiving the Alt-Svc header, the browser attempts a QUIC connection:
-
-```javascript
-// Browser protocol upgrade logic
-const upgradeToHTTP3 = async (altSvcHeader) => {
-  const quicConfig = parseAltSvc(altSvcHeader)
-
-  try {
-    // Attempt QUIC connection to same hostname
-    const quicConnection = await establishQUIC(quicConfig.host, quicConfig.port)
-
-    if (quicConnection.successful) {
-      // Close TCP connection, use QUIC
-      closeTCPConnection()
-      return "HTTP/3"
-    }
-  } catch (error) {
-    // Fallback to existing TCP connection
-    console.log("QUIC connection failed, continuing with TCP")
-  }
-
-  return "HTTP/2" // or HTTP/1.1
-}
-```
-
-#### DNS-Based HTTP/3 Discovery
-
-Modern browsers can discover HTTP/3 support through DNS records, eliminating the need for initial TCP connections:
-
-```bash
-; SVCB record for HTTP/3 discovery
-example.com. 3600 IN SVCB 1 . alpn="h3,h2" port=443
-
-; HTTPS record (alternative format)
-example.com. 3600 IN HTTPS 1 . alpn="h3,h2" port=443
-```
-
-**Key Points**:
-
-- HTTP/3 upgrade is server-initiated, not client-initiated
-- Requires initial TCP connection for discovery (unless DNS records are used)
-- Alt-Svc header or ALTSVC frame advertises QUIC support
-- Browser attempts QUIC connection and falls back to TCP if it fails
-- DNS-based discovery can eliminate the initial TCP connection requirement
-
-## Performance Characteristics and Decision Factors
-
-### Quantitative Performance Analysis
-
-**Latency Improvements**:
-
-- **HTTP/2 vs HTTP/1.1**: 200-400ms improvement for typical web pages
-- **HTTP/3 vs HTTP/2**: 200-1200ms improvement, scaling with network latency
-- **0-RTT Resumption**: Additional 100-300ms improvement for returning visitors
-
-**Throughput Characteristics**:
-
-```javascript
-const performanceProfile = {
-  "stable-broadband": {
-    http1: "baseline",
-    http2: "significant improvement",
-    http3: "minimal additional benefit",
-  },
-  "mobile-lossy": {
-    http1: "baseline",
-    http2: "moderate improvement",
-    http3: "dramatic improvement",
-  },
-  "high-latency": {
-    http1: "baseline",
-    http2: "good improvement",
-    http3: "excellent improvement",
-  },
-}
-```
-
-### Browser Decision Logic
-
-```javascript
-// Comprehensive browser protocol selection logic
-class ProtocolSelector {
-  constructor() {
-    this.dnsResolver = new DNSResolver()
-    this.connectionManager = new ConnectionManager()
-    this.protocolCache = new Map()
-  }
-
-  async selectProtocol(hostname) {
-    const cacheKey = `protocol:${hostname}`
-    if (this.protocolCache.has(cacheKey)) {
-      return this.protocolCache.get(cacheKey)
-    }
-
-    // 1. Check DNS SVCB/HTTPS records
-    const dnsInfo = await this.dnsResolver.resolveHTTPS(hostname)
-    if (dnsInfo && dnsInfo.alpn.includes("h3")) {
-      const quicSuccess = await this.tryQUIC(hostname, dnsInfo)
-      if (quicSuccess) {
-        this.protocolCache.set(cacheKey, "HTTP/3")
-        return "HTTP/3"
-      }
-    }
-
-    // 2. Fallback to TCP + TLS ALPN
-    const tlsInfo = await this.establishTLS(hostname)
-    if (tlsInfo.supportsHTTP2) {
-      // 3. Check for Alt-Svc upgrade
-      const altSvc = await this.checkAltSvc(hostname)
-      if (altSvc && (await this.tryQUIC(hostname))) {
-        this.protocolCache.set(cacheKey, "HTTP/3")
-        return "HTTP/3"
-      }
-      this.protocolCache.set(cacheKey, "HTTP/2")
-      return "HTTP/2"
-    }
-
-    this.protocolCache.set(cacheKey, "HTTP/1.1")
-    return "HTTP/1.1"
-  }
-
-  async tryQUIC(hostname, dnsInfo = null) {
-    const config = {
-      hostname,
-      port: dnsInfo?.port || 443,
-      timeout: 5000,
-      retries: 2,
-    }
-
-    for (let attempt = 0; attempt < config.retries; attempt++) {
-      try {
-        const connection = await this.connectionManager.createQUICConnection(config)
-        if (connection.isEstablished()) {
-          return true
-        }
-      } catch (error) {
-        console.warn(`QUIC attempt ${attempt + 1} failed:`, error)
-      }
-    }
-    return false
-  }
-
-  async establishTLS(hostname) {
-    const tlsConfig = {
-      hostname,
-      port: 443,
-      alpn: ["h2", "http/1.1"],
-      timeout: 10000,
-    }
-
-    const connection = await this.connectionManager.createTLSConnection(tlsConfig)
-    return {
-      supportsHTTP2: connection.negotiatedProtocol === "h2",
-      supportsHTTP11: connection.negotiatedProtocol === "http/1.1",
-    }
-  }
-
-  async checkAltSvc(hostname) {
-    // Make initial request to check for Alt-Svc header
-    const response = await this.connectionManager.makeRequest(hostname, "/")
-    return response.headers["alt-svc"]
-  }
-}
-
-// Connection manager for different protocols
-class ConnectionManager {
-  constructor() {
-    this.activeConnections = new Map()
-  }
-
-  async createQUICConnection(config) {
-    const connection = new QUICConnection(config)
-    await connection.handshake()
-    this.activeConnections.set(config.hostname, connection)
-    return connection
-  }
-
-  async createTLSConnection(config) {
-    const connection = new TLSConnection(config)
-    await connection.handshake()
-    this.activeConnections.set(config.hostname, connection)
-    return connection
-  }
-
-  async makeRequest(hostname, path) {
-    const connection = this.activeConnections.get(hostname)
-    if (!connection) {
-      throw new Error("No active connection")
-    }
-    return connection.request(path)
-  }
-}
-```
-
-## Security Implications and Network Visibility
-
-### The Encryption Paradigm Shift
-
-HTTP/3's pervasive encryption challenges traditional network security models:
-
-```javascript
-// Traditional network inspection vs HTTP/3
-const securityModel = {
-  traditional: {
-    inspection: "deep packet inspection",
-    visibility: "full protocol metadata",
-    filtering: "SNI-based, header-based",
-  },
-  http3: {
-    inspection: "endpoint-based only",
-    visibility: "minimal transport metadata",
-    filtering: "application-layer required",
-  },
-}
-```
-
-### 0-RTT Security Considerations
-
-```javascript
-// 0-RTT replay attack mitigation
-const zeroRTTPolicy = {
-  allowedMethods: ["GET", "HEAD", "OPTIONS"], // Idempotent only
-  forbiddenMethods: ["POST", "PUT", "DELETE"],
-  replayDetection: "application-level nonces required",
-}
-```
-
-## Strategic Implementation Considerations
-
-### Server Support Matrix
-
-| Server | HTTP/2     | HTTP/3      | Configuration Complexity |
-| ------ | ---------- | ----------- | ------------------------ |
-| Nginx  | ✅ Mature  | ✅ v1.25.0+ | 🔴 High (custom build)   |
-| Caddy  | ✅ Default | ✅ Default  | 🟢 Minimal               |
-| Apache | ✅ Mature  | ❌ None     | 🟡 CDN-dependent         |
-
-### CDN Strategy
-
-```javascript
-// CDN-based HTTP/3 adoption
-const cdnStrategy = {
-  benefits: [
-    "no server configuration required",
-    "automatic protocol negotiation",
-    "built-in security and optimization",
-  ],
-  considerations: [
-    "reduced visibility into origin connection",
-    "potential for suboptimal routing",
-    "dependency on CDN provider capabilities",
-  ],
-}
-```
-
-### Performance Monitoring
-
-```javascript
-// Key metrics for protocol performance analysis
-const performanceMetrics = {
-  userCentric: ["LCP", "TTFB", "PLT", "CLS"],
-  networkLevel: ["RTT", "packetLoss", "bandwidth"],
-  serverSide: ["CPU utilization", "memory usage", "connection count"],
-}
-```
-
-## Conclusion and Best Practices
-
-### Performance Optimization Strategies
-
-**Reduce Handshake Overhead**:
-
-- Deploy TLS 1.3 with 0-RTT resumption for returning visitors
-- Adopt HTTP/3 when network conditions permit (especially for mobile/lossy networks)
-- Implement session resumption with appropriate PSK management
-
-**Mitigate HOL Blocking**:
-
-- Leverage HTTP/2 or HTTP/3 multiplexing for concurrent resource loading
-- Implement intelligent resource prioritization based on critical rendering path
-- Use server push judiciously to preempt critical resources
-
-**DNS and Protocol Discovery**:
-
-- Publish DNS SVCB/HTTPS records to drive clients to optimal protocol versions
-- Include IP hints in DNS records to ensure protocol-capable endpoints
-- Implement intelligent DNS load balancing combining geographic, weighted, and health-aware strategies
-
-### Security Considerations
-
-```javascript
+```javascript collapse={1-5, 25-35}
 // 0-RTT security policy implementation
-class ZeroRTTSecurityPolicy {
-  constructor() {
-    this.allowedMethods = ["GET", "HEAD", "OPTIONS"] // Idempotent only
-    this.forbiddenMethods = ["POST", "PUT", "DELETE", "PATCH"]
-    this.replayWindow = 60000 // 60 seconds
-  }
+class ZeroRTTPolicy {
+  allowedMethods = ['GET', 'HEAD', 'OPTIONS']
+  replayWindow = 60_000 // 60 seconds
 
-  validate0RTTRequest(request) {
-    // Only allow idempotent methods
+  validate(request) {
+    // 1. Only idempotent methods
     if (!this.allowedMethods.includes(request.method)) {
-      return { allowed: false, reason: "Non-idempotent method" }
+      return { allowed: false, reason: 'Non-idempotent method in 0-RTT' }
     }
 
-    // Check replay window
-    if (Date.now() - request.timestamp > this.replayWindow) {
-      return { allowed: false, reason: "Replay window expired" }
+    // 2. Check Early-Data header (RFC 8470)
+    // Intermediaries add this; origin can reject with 425 Too Early
+    if (request.headers['early-data'] === '1') {
+      // Origin must decide if request is safe to process
     }
 
-    // Validate nonce if present
-    if (request.nonce && !this.validateNonce(request.nonce)) {
-      return { allowed: false, reason: "Invalid nonce" }
+    // 3. Application-level idempotency key
+    if (request.idempotencyKey) {
+      const cached = this.replayCache.get(request.idempotencyKey)
+      if (cached) return { allowed: false, reason: 'Replay detected', cachedResponse: cached }
     }
 
     return { allowed: true }
   }
 }
+
+// RFC 8470: 425 Too Early response
+const handleEarlyData = (req, res) => {
+  if (req.headers['early-data'] === '1' && !isIdempotent(req)) {
+    res.status(425).set('Retry-After', '0').send('Too Early')
+    return
+  }
+  // Process request normally
+}
 ```
 
-### Monitoring and Observability
+**Production guidance:**
 
-```javascript
+- Cloudflare: 0-RTT allowed only for GET requests with no query parameters
+- Most CDNs: 0-RTT disabled for POST/PUT/DELETE
+- Financial APIs: Require idempotency keys regardless of 0-RTT
+
+**Forward secrecy limitation**: 0-RTT data uses keys derived from the PSK (Pre-Shared Key), not fresh ECDHE. If the PSK is compromised, all 0-RTT data encrypted with it can be decrypted.
+
+## QPACK: Header Compression for Out-of-Order Delivery
+
+### Why HPACK Doesn't Work for HTTP/3
+
+HTTP/2's HPACK header compression assumes in-order delivery—it maintains synchronized encoder/decoder state through implicit acknowledgment of processed frames.
+
+Per RFC 9204 Section 1:
+
+> "If HPACK were used for HTTP/3, it would induce head-of-line blocking for field sections due to built-in assumptions of a total ordering across frames on all streams."
+
+The problem: HPACK references previous headers by index into a dynamic table. If stream B references an entry added by stream A, but stream A's packets haven't arrived, stream B blocks.
+
+### QPACK's Solution
+
+QPACK uses explicit synchronization via dedicated unidirectional streams:
+
+| Stream Type | Direction | Purpose |
+|-------------|-----------|---------|
+| Encoder (0x02) | Encoder→Decoder | Dynamic table updates |
+| Decoder (0x03) | Decoder→Encoder | Acknowledgments |
+
+**Key mechanism**: Each encoded header block includes a "Required Insert Count"—the minimum dynamic table state needed to decode it. If the decoder's current insert count is lower, the stream blocks until encoder stream updates arrive.
+
+```mermaid
+sequenceDiagram
+    participant E as Encoder
+    participant ES as Encoder Stream
+    participant RS as Request Stream
+    participant D as Decoder
+    participant DS as Decoder Stream
+
+    E->>ES: Insert "x-custom: value" (index 62)
+    E->>RS: Header block (Required Insert Count: 63)
+
+    Note over D: Decoder receives request stream first
+    Note over D: Required Insert Count (63) > Current (62)
+    Note over D: Stream BLOCKED
+
+    ES->>D: Dynamic table update arrives
+    Note over D: Insert Count now 63, unblock
+
+    D->>DS: Section Acknowledgment
+```
+
+**Design trade-off**: QPACK can still cause blocking if encoder stream packets are delayed. But this blocking is localized to streams that actually reference the missing dynamic table entries, not all streams.
+
+### Static Table Differences
+
+| Feature | HPACK | QPACK |
+|---------|-------|-------|
+| Static table start index | 1 | 0 |
+| Static table size | 61 entries | 99 entries |
+| `:authority` pseudo-header | Index 1 | Index 0 |
+
+QPACK's larger static table reduces dynamic table pressure for common HTTP/3 headers like `alt-svc` and `content-security-policy`.
+
+## Protocol Discovery and Negotiation
+
+### DNS SVCB/HTTPS Records (RFC 9460)
+
+DNS-based discovery enables protocol selection before any TCP/QUIC connection attempt.
+
+```bash
+# HTTPS record advertising HTTP/3 and HTTP/2 support
+example.com. 3600 IN HTTPS 1 . alpn="h3,h2" port=443
+
+# With IP hints for consistent routing
+example.com. 3600 IN HTTPS 1 . alpn="h3,h2" ipv4hint="192.0.2.1" ipv6hint="2001:db8::1"
+
+# Encrypted Client Hello (ECH) configuration
+example.com. 3600 IN HTTPS 1 . alpn="h3,h2" ech="..."
+```
+
+**Key SvcParams:**
+
+| Parameter | Purpose |
+|-----------|---------|
+| `alpn` | Supported application protocols (h3, h2, http/1.1) |
+| `port` | Alternative port (default 443) |
+| `ipv4hint`/`ipv6hint` | IP addresses for the service |
+| `ech` | Encrypted Client Hello configuration |
+| `no-default-alpn` | Disable implicit protocol support |
+
+**Why HTTPS records matter:**
+
+1. **Pre-connection discovery**: Client knows server supports HTTP/3 before opening any connection
+2. **Apex domain support**: Unlike CNAME, HTTPS records work at zone apex
+3. **ECH integration**: Encrypted SNI requires DNS-based key distribution
+
+Per RFC 9460 Section 7.1.2:
+
+> "if the SVCB ALPN set is ["http/1.1", "h3"] and the client supports HTTP/1.1, HTTP/2, and HTTP/3, the client could attempt to connect using TLS over TCP with a ProtocolNameList of ["http/1.1", "h2"] and could also attempt a connection using QUIC with a ProtocolNameList of ["h3"]."
+
+### Alt-Svc Header (Fallback Discovery)
+
+When DNS records aren't available, servers advertise HTTP/3 via HTTP headers:
+
+```http
+HTTP/2 200 OK
+Alt-Svc: h3=":443"; ma=86400, h3-29=":443"; ma=86400
+```
+
+| Parameter | Meaning |
+|-----------|---------|
+| `h3` | HTTP/3 (QUIC v1, RFC 9114) |
+| `h3-29` | HTTP/3 draft-29 (legacy) |
+| `:443` | Port (same origin) |
+| `ma=86400` | Max-age: cache for 24 hours |
+
+**Upgrade flow:**
+
+```mermaid
+flowchart TD
+    A[Client connects via TCP] --> B[HTTP/2 established]
+    B --> C{Server sends Alt-Svc?}
+    C -->|Yes| D[Client attempts QUIC]
+    C -->|No| E[Continue HTTP/2]
+
+    D --> F{QUIC succeeds?}
+    F -->|Yes| G[Switch to HTTP/3]
+    F -->|No| E
+
+    G --> H[Close TCP connection]
+    H --> I[Future requests use QUIC]
+```
+
+### Browser Protocol Selection
+
+```mermaid
+flowchart TD
+    A[Browser initiates request] --> B{DNS HTTPS record?}
+
+    B -->|Yes, alpn includes h3| C[Race QUIC + TCP]
+    B -->|No| D[TCP + TLS only]
+
+    C --> E{QUIC wins race?}
+    E -->|Yes| F[Use HTTP/3]
+    E -->|No| G[Use HTTP/2 or 1.1]
+
+    D --> H[TLS ALPN negotiation]
+    H --> I{Server supports h2?}
+    I -->|Yes| J[HTTP/2]
+    I -->|No| K[HTTP/1.1]
+
+    J --> L{Alt-Svc header?}
+    L -->|Yes| M[Cache & try QUIC next request]
+    L -->|No| N[Continue HTTP/2]
+
+    style F fill:#4caf50
+    style J fill:#8bc34a
+    style K fill:#ffeb3b
+```
+
+**Happy Eyeballs for QUIC**: Browsers race QUIC and TCP connections simultaneously. If QUIC fails (UDP blocked, middlebox interference), TCP provides immediate fallback without user-visible delay.
+
+## Middlebox Interference and Ossification Resistance
+
+### The UDP Deployment Advantage
+
+QUIC uses UDP because deploying new IP-level protocols is effectively impossible on today's internet.
+
+**Historical failures:**
+
+- SCTP (RFC 4960, 2007): Blocked by most middleboxes despite years of existence
+- DCCP (RFC 4340, 2006): Never achieved meaningful deployment
+- New IP protocol numbers: Firewalls default-deny unknown protocols
+
+UDP passes through nearly all middleboxes because it's been in use since 1980 (RFC 768). QUIC exploits this deployability while implementing its own reliability.
+
+### Encryption as Anti-Ossification
+
+QUIC encrypts everything middleboxes might inspect and make decisions on:
+
+- **Packet numbers**: Encrypted to prevent selective dropping based on sequence
+- **ACK frames**: Encrypted to prevent RTT estimation by observers
+- **Stream IDs**: Encrypted to prevent stream-based traffic shaping
+
+**What remains visible** (by necessity):
+
+- Version field in long headers (for version negotiation)
+- Connection IDs (for routing—but rotate to prevent tracking)
+- Packet type bits (Initial, Handshake, 0-RTT, 1-RTT)
+
+### GREASE and Version 2
+
+GREASE (Generate Random Extensions And Sustain Extensibility) sends random values in reserved fields to prevent middleboxes from assuming specific values.
+
+**QUIC Version 2** (RFC 9369, May 2023) exists primarily for ossification resistance:
+
+> "The purpose of this change is to combat ossification"
+
+Version 2 uses different cryptographic constants but is otherwise identical to Version 1. Its existence forces middleboxes to handle multiple version values, preventing v1-specific ossification.
+
+**Deployment reality** (2024):
+
+- QUICv2 adoption: <0.003% of domains
+- QUIC Bit greasing: <0.013% of QUICv1 domains
+- Ossification already observed: First byte flags field was "promptly ossified by a middlebox vendor, leading to packets being dropped when a new flag was set"
+
+### Nation-State Interference
+
+QUIC's encryption doesn't prevent all inspection:
+
+- **China (GFW)**: Since April 2024, decrypts QUIC Initial packets at scale (keys derivable from Connection ID). Blocked 58,207 FQDNs via QUIC DPI (Oct 2024 - Jan 2025)
+- **Iran**: DPI filtering on UDP ports with QUIC payloads in select autonomous systems
+
+Initial packet encryption provides integrity, not confidentiality. SNI remains visible in the ClientHello within Initial packets until Encrypted Client Hello (ECH) achieves broader deployment.
+
+## Server Support and Configuration
+
+### Support Matrix (2025)
+
+| Server | HTTP/3 Support | Notes |
+|--------|----------------|-------|
+| Nginx | 1.25.0+ | Requires `--with-http_v3_module` at compile time |
+| Caddy | Default | Zero-config HTTP/3, automatic cert management |
+| Apache | None | Requires reverse proxy (Cloudflare, nginx) |
+| HAProxy | 2.6+ | Experimental in 2.6, stable in 2.8+ |
+| Envoy | 1.19+ | Full support via QUICHE library |
+
+### Nginx Configuration
+
+```nginx collapse={1-5, 20-25}
+# nginx.conf - HTTP/3 configuration
+http {
+    # ... other settings
+
+    server {
+        listen 443 ssl;
+        listen 443 quic reuseport;  # QUIC listener
+
+        http2 on;
+        http3 on;
+
+        ssl_certificate     /etc/ssl/cert.pem;
+        ssl_certificate_key /etc/ssl/key.pem;
+
+        # Advertise HTTP/3 availability
+        add_header Alt-Svc 'h3=":443"; ma=86400';
+
+        # QUIC-specific settings
+        ssl_early_data on;  # Enable 0-RTT
+        quic_retry on;      # Address validation
+
+        location / {
+            # ... location config
+        }
+    }
+}
+```
+
+**Key settings:**
+
+- `listen 443 quic reuseport`: Enable QUIC on UDP 443 with kernel load balancing
+- `quic_retry on`: Require address validation token (prevents amplification attacks)
+- `ssl_early_data on`: Enable 0-RTT (ensure application handles replay)
+
+### CDN Strategy
+
+For most deployments, CDN-based HTTP/3 is simpler:
+
+| CDN | HTTP/3 | 0-RTT | Notes |
+|-----|--------|-------|-------|
+| Cloudflare | Default | Restricted | 0-RTT only for safe GET requests |
+| AWS CloudFront | Opt-in | Yes | Via distribution settings |
+| Fastly | Default | Yes | Full QUIC implementation |
+| Akamai | Default | Yes | Extensive QUIC deployment |
+
+**Trade-off**: CDN handles protocol complexity; you lose visibility into origin connection characteristics.
+
+## Performance Monitoring
+
+### Key Metrics
+
+| Metric | HTTP/2 Baseline | HTTP/3 Target | Why It Matters |
+|--------|-----------------|---------------|----------------|
+| TTFB (Time to First Byte) | 2× RTT + processing | 1× RTT + processing | Handshake reduction |
+| Connection migration success | N/A | >95% | Mobile user experience |
+| 0-RTT acceptance rate | N/A | 60-80% | Returning visitor speedup |
+| QUIC fallback rate | N/A | <5% | UDP blocking detection |
+
+### Monitoring Implementation
+
+```javascript collapse={1-10, 40-55}
 // Protocol performance monitoring
-class ProtocolMonitor {
+class ProtocolMetrics {
   constructor() {
-    this.metrics = {
-      http1: new MetricsCollector(),
-      http2: new MetricsCollector(),
-      http3: new MetricsCollector(),
+    this.metrics = new Map()
+    this.thresholds = {
+      quicFallbackRate: 0.05,
+      zeroRTTAcceptance: 0.6,
+      migrationSuccess: 0.95
     }
   }
 
-  recordConnection(protocol, metrics) {
-    this.metrics[protocol].record({
-      handshakeTime: metrics.handshakeTime,
-      timeToFirstByte: metrics.ttfb,
-      totalLoadTime: metrics.loadTime,
-      packetLoss: metrics.packetLoss,
-      connectionErrors: metrics.errors,
-    })
-  }
+  recordConnection(event) {
+    const { protocol, handshakeTime, ttfb, wasResumed, usedZeroRTT } = event
 
-  generateReport() {
-    return {
-      http1: this.metrics.http1.getSummary(),
-      http2: this.metrics.http2.getSummary(),
-      http3: this.metrics.http3.getSummary(),
-      recommendations: this.generateRecommendations(),
+    // Track protocol distribution
+    this.increment(`protocol.${protocol}`)
+
+    // Track handshake performance
+    this.histogram(`handshake.${protocol}`, handshakeTime)
+
+    // Track 0-RTT usage
+    if (protocol === 'h3' && wasResumed) {
+      this.increment(usedZeroRTT ? '0rtt.accepted' : '0rtt.rejected')
+    }
+
+    // Detect QUIC failures
+    if (event.quicAttempted && protocol !== 'h3') {
+      this.increment('quic.fallback')
+      this.recordFallbackReason(event.fallbackReason)
     }
   }
 
-  generateRecommendations() {
-    const recommendations = []
+  recordMigration(event) {
+    this.increment(event.success ? 'migration.success' : 'migration.failed')
+    if (!event.success) {
+      this.recordMigrationFailure(event.reason)
+    }
+  }
 
-    if (this.metrics.http3.getAverage("handshakeTime") < this.metrics.http2.getAverage("handshakeTime") * 0.8) {
-      recommendations.push("Consider enabling HTTP/3 for better performance")
+  getAlerts() {
+    const alerts = []
+
+    const fallbackRate = this.getRate('quic.fallback', 'quic.attempted')
+    if (fallbackRate > this.thresholds.quicFallbackRate) {
+      alerts.push({
+        severity: 'warning',
+        message: `QUIC fallback rate ${(fallbackRate * 100).toFixed(1)}% exceeds threshold`,
+        action: 'Check UDP 443 accessibility and middlebox interference'
+      })
     }
 
-    if (this.metrics.http2.getAverage("packetLoss") > 0.01) {
-      recommendations.push("High packet loss detected - HTTP/3 may provide better performance")
-    }
-
-    return recommendations
+    return alerts
   }
 }
 ```
 
-### Implementation Checklist
+**What to alert on:**
 
-**Server Configuration**:
-
-- [ ] Enable TLS 1.3 with modern cipher suites
-- [ ] Configure ALPN for HTTP/2 and HTTP/3
-- [ ] Implement 0-RTT resumption with proper security policies
-- [ ] Set up Alt-Svc headers for HTTP/3 advertisement
-- [ ] Configure appropriate session ticket lifetimes
-
-**DNS Configuration**:
-
-- [ ] Publish SVCB/HTTPS records with ALPN information
-- [ ] Include IP hints for protocol-capable endpoints
-- [ ] Set up health-aware DNS load balancing
-- [ ] Configure appropriate TTL values for failover scenarios
-
-**Monitoring Setup**:
-
-- [ ] Track protocol adoption rates and performance metrics
-- [ ] Monitor connection establishment times and success rates
-- [ ] Implement alerting for protocol-specific issues
-- [ ] Set up A/B testing for protocol performance comparison
-
-**Security Hardening**:
-
-- [ ] Implement strict 0-RTT policies for non-idempotent requests
-- [ ] Configure appropriate certificate transparency monitoring
-- [ ] Set up HSTS with appropriate max-age values
-- [ ] Implement certificate pinning where appropriate
-
-### Continuous Benchmarking
-
-Use tools like `wrk`, `openssl s_time`, and SSL Labs to verify latency, throughput, and security posture align with application requirements:
-
-```bash
-# Benchmark HTTP/2 vs HTTP/3 performance
-wrk -t12 -c400 -d30s --latency https://example.com
-
-# Test TLS handshake performance
-openssl s_time -connect example.com:443 -new -time 30
-
-# Verify security configuration
-curl -s https://www.ssllabs.com/ssltest/analyze.html?d=example.com
-```
+- QUIC fallback rate >5%: Indicates UDP blocking or middlebox issues
+- 0-RTT rejection rate >40%: Check session ticket configuration or clock skew
+- Connection migration failures: May indicate load balancer misconfiguration
 
 ## Conclusion
 
-The browser's HTTP version selection process represents a sophisticated balance of performance optimization, security requirements, and network adaptability. Understanding this process is crucial for:
+HTTP/3 and QUIC represent a fundamental architectural shift: moving transport logic from kernel space to user space, integrating encryption as a first-class concern, and designing for network ossification from the start.
 
-1. **Infrastructure Planning**: Choosing appropriate server configurations and CDN strategies
-2. **Performance Optimization**: Implementing protocol-specific optimizations
-3. **Security Architecture**: Adapting to the new encrypted transport paradigm
-4. **Monitoring Strategy**: Developing appropriate observability for each protocol
+**When HTTP/3 provides significant benefit:**
 
-The evolution from HTTP/1.1 to HTTP/3 demonstrates how protocol design must address both immediate performance bottlenecks and long-term architectural constraints. For expert engineers, this knowledge enables informed decisions about when and how to adopt new protocols based on specific use cases, user demographics, and technical capabilities.
+- High-latency networks (satellite, intercontinental)
+- Lossy networks (mobile, congested WiFi)
+- Users who switch networks frequently
+- Applications sensitive to tail latency
 
-## References
+**When it provides minimal benefit:**
 
-- [RFC 9114: HTTP/3](https://datatracker.ietf.org/doc/html/rfc9114) - HTTP/3 specification defining the protocol built on QUIC
-- [RFC 9000: QUIC - A UDP-Based Multiplexed and Secure Transport](https://datatracker.ietf.org/doc/html/rfc9000) - Core QUIC transport protocol specification
-- [RFC 9460: Service Binding and Parameter Specification via the DNS (SVCB and HTTPS RRs)](https://datatracker.ietf.org/doc/rfc9460/) - DNS records for protocol discovery and service binding
-- [RFC 8446: The Transport Layer Security (TLS) Protocol Version 1.3](https://datatracker.ietf.org/doc/html/rfc8446) - TLS 1.3 specification including 0-RTT
-- [RFC 9204: QPACK - Field Compression for HTTP/3](https://datatracker.ietf.org/doc/rfc9204/) - HTTP/3 header compression specification
-- [Speeding up HTTPS and HTTP/3 negotiation with... DNS](https://blog.cloudflare.com/speeding-up-https-and-http-3-negotiation-with-dns/) - Cloudflare blog on DNS-based protocol discovery
-- [HTTP/3 and QUIC Protocol Guide](https://www.debugbear.com/blog/http3-quic-protocol-guide) - Technical overview of HTTP/3 and QUIC
-- [Nginx QUIC and HTTP/3 Support](https://nginx.org/en/docs/quic.html) - Official Nginx documentation for HTTP/3 configuration
+- Low-latency, reliable networks
+- Single long-lived connections
+- Applications already optimized for HTTP/2
+
+**Implementation priorities:**
+
+1. Enable TLS 1.3 on existing infrastructure (immediate latency win)
+2. Publish DNS HTTPS records for protocol discovery
+3. Deploy HTTP/3 via CDN for lowest operational burden
+4. Monitor fallback rates to detect UDP blocking
+5. Implement strict 0-RTT policies for non-idempotent requests
+
+## Appendix
+
+### Prerequisites
+
+- TCP/IP fundamentals (3-way handshake, flow control)
+- TLS 1.2/1.3 handshake mechanics
+- HTTP/2 multiplexing and stream concepts
+- DNS record types and resolution
+
+### Terminology
+
+| Term | Definition |
+|------|------------|
+| **HOL Blocking** | Head-of-Line Blocking: when processing of later items is delayed by earlier items |
+| **ALPN** | Application-Layer Protocol Negotiation: TLS extension for protocol selection |
+| **CID** | Connection ID: QUIC's connection identifier enabling migration |
+| **PSK** | Pre-Shared Key: cached session secret for resumption |
+| **SVCB** | Service Binding DNS record type (RR type 64) |
+| **ECH** | Encrypted Client Hello: encrypts SNI in TLS handshake |
+| **QPACK** | HTTP/3 header compression (replaces HPACK) |
+| **RTT** | Round-Trip Time: network latency measure |
+
+### Summary
+
+- QUIC eliminates TCP HOL blocking by maintaining per-stream retransmission buffers
+- TLS 1.3 integration reduces new connections to 1-RTT, resumption to 0-RTT
+- 0-RTT enables immediate data transmission but requires application-level replay protection
+- Connection IDs enable seamless network migration without re-handshaking
+- QPACK replaces HPACK with explicit synchronization for out-of-order delivery
+- DNS SVCB/HTTPS records enable pre-connection protocol discovery
+- Encryption and GREASE combat middlebox ossification
+- CDN deployment provides HTTP/3 with minimal operational overhead
+
+### References
+
+**Specifications:**
+
+- [RFC 9000: QUIC Transport](https://datatracker.ietf.org/doc/html/rfc9000) - Core QUIC protocol (May 2021)
+- [RFC 9001: Using TLS to Secure QUIC](https://datatracker.ietf.org/doc/html/rfc9001) - TLS 1.3 integration (May 2021)
+- [RFC 9002: QUIC Loss Detection and Congestion Control](https://datatracker.ietf.org/doc/html/rfc9002) - Recovery mechanisms (May 2021)
+- [RFC 9114: HTTP/3](https://datatracker.ietf.org/doc/html/rfc9114) - HTTP/3 specification (June 2022)
+- [RFC 9204: QPACK](https://datatracker.ietf.org/doc/rfc9204/) - Header compression (June 2022)
+- [RFC 9368: Compatible Version Negotiation](https://datatracker.ietf.org/doc/html/rfc9368) - Version negotiation (May 2023)
+- [RFC 9369: QUIC Version 2](https://datatracker.ietf.org/doc/rfc9369/) - Ossification resistance (May 2023)
+- [RFC 9460: SVCB and HTTPS DNS Records](https://datatracker.ietf.org/doc/html/rfc9460) - Protocol discovery (November 2023)
+- [RFC 8999: Version-Independent Properties of QUIC](https://www.rfc-editor.org/rfc/rfc8999.html) - Protocol invariants (May 2021)
+- [RFC 8470: Using Early Data in HTTP](https://datatracker.ietf.org/doc/html/rfc8470) - 0-RTT handling (September 2018)
+
+**Implementation Guides:**
+
+- [Nginx QUIC and HTTP/3](https://nginx.org/en/docs/quic.html) - Server configuration
+- [Cloudflare HTTP/3](https://blog.cloudflare.com/http3-the-past-present-and-future/) - Production deployment
+- [Can I Use: HTTP/3](https://caniuse.com/http3) - Browser support matrix
+
+**Technical Analysis:**
+
+- [QUIC Ossification Measurements](https://pulse.internetsociety.org/blog/now-theres-a-way-to-measure-quic-targeting-by-middleboxes) - Middlebox interference data
+- [Protocol Ossification](https://en.wikipedia.org/wiki/Protocol_ossification) - TCP deployment challenges

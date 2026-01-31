@@ -1,0 +1,280 @@
+{
+  // Hierarchical content ordering (most complex first)
+  // Structure: categories[] -> topics[] -> articles[]
+  // Order is determined by array position
+  categories: [
+    // ==========================================================================
+    // System Design - Distributed systems (highest complexity)
+    // ==========================================================================
+    {
+      id: "system-design",
+      topics: [
+        {
+          id: "system-design-problems",
+          articles: [
+            "design-uber-ride-hailing",
+            "design-google-docs-collaboration",
+            "design-youtube-video-platform",
+            "design-notification-system",
+            "design-chat-messaging",
+            "design-social-feed",
+            "design-search-autocomplete",
+            "url-shortener-design",
+          ],
+        },
+        {
+          id: "system-design-fundamentals",
+          articles: [
+            "consistency-and-cap-theorem",
+            "sharding-and-replication",
+            "circuit-breaker-patterns",
+            "service-discovery-and-registry",
+            "queues-and-pubsub",
+            "api-gateway-patterns",
+            "rate-limiting-strategies",
+            "load-balancers-architecture",
+            "cdn-architecture-and-caching",
+            "caching-fundamentals-and-strategies",
+            "lru-cache-design",
+          ],
+        },
+        {
+          id: "data-reliability-patterns",
+          articles: [
+            "failure-modes-and-resilience",
+            "capacity-planning-back-of-envelope",
+            "indexing-and-query-optimization",
+            "sql-vs-nosql-storage-choices",
+          ],
+        },
+      ],
+    },
+
+    // ==========================================================================
+    // Browser Runtime Internals - Deep engine internals
+    // ==========================================================================
+    {
+      id: "browser-runtime-internals",
+      topics: [
+        {
+          id: "critical-rendering-path",
+          articles: [
+            "crp-rendering-pipeline-overview",
+            "crp-dom-construction",
+            "crp-cssom-construction",
+            "crp-style-recalculation",
+            "crp-layout",
+            "crp-prepaint",
+            "crp-paint",
+            "crp-commit",
+            "crp-layerize",
+            "crp-raster",
+            "crp-composit",
+            "crp-draw",
+          ],
+        },
+        {
+          id: "js-runtime-internals",
+          articles: [
+            "v8-engine-architecture",
+            "browser-internals",
+            "browser-event-loop",
+            "nodejs-runtime-architecture",
+            "libuv-event-loop-internals",
+            "nodejs-event-loop",
+            "js-event-loop",
+          ],
+        },
+      ],
+    },
+
+    // ==========================================================================
+    // Platform Engineering - Infrastructure at scale
+    // ==========================================================================
+    {
+      id: "platform-engineering",
+      topics: [
+        {
+          id: "media-systems",
+          articles: [
+            "drm-basics-for-streaming",
+            "video-transcoding-pipeline",
+            "web-video-playback-architecture",
+            "image-processing-service-design",
+          ],
+        },
+        {
+          id: "observability-reliability",
+          articles: ["slos-slis-error-budgets", "csp-violation-reporting-pipeline", "logging-metrics-tracing"],
+        },
+        {
+          id: "infrastructure-delivery",
+          articles: [
+            "edge-delivery-and-cache-invalidation",
+            "deployment-strategies-blue-green-canary",
+            "ssg-performance-optimizations",
+            "build-pipelines-ci-cd",
+          ],
+        },
+        {
+          id: "experimentation-testing",
+          articles: [
+            "load-testing-strategy-capacity-planning",
+            "k6-load-testing-overview",
+            "statsig-experimentation-overview",
+          ],
+        },
+        {
+          id: "platform-migrations",
+          articles: ["ecommerce-ssg-to-ssr-migration", "data-migration-strategies"],
+        },
+      ],
+    },
+
+    // ==========================================================================
+    // Frontend Engineering - Architecture and optimization
+    // ==========================================================================
+    {
+      id: "frontend-engineering",
+      topics: [
+        {
+          id: "frontend-architecture-patterns",
+          articles: [
+            "frontend-architecture-at-scale",
+            "micro-frontends-architecture",
+            "rendering-strategies-csr-ssr-ssg-isr",
+            "state-management-patterns",
+            "data-fetching-patterns",
+            "css-architecture-strategies",
+            "component-architecture-blueprint",
+          ],
+        },
+        {
+          id: "web-performance-optimization",
+          articles: [
+            "web-performance-infrastructure-stack",
+            "web-performance-javascript-optimization",
+            "web-performance-css-typography",
+            "web-performance-image-optimization",
+            "core-web-vitals-measurement",
+            "web-performance-overview",
+          ],
+        },
+        {
+          id: "design-systems",
+          articles: [
+            "design-system-implementation-scaling",
+            "component-library-architecture-and-governance",
+            "design-tokens-and-theming",
+            "design-system-adoption-foundations",
+          ],
+        },
+        {
+          id: "react-architecture",
+          articles: [
+            "react-performance-patterns",
+            "react-hooks-advanced-patterns",
+            "react-rendering-architecture",
+            "react-hooks-fundamentals",
+          ],
+        },
+      ],
+    },
+
+    // ==========================================================================
+    // Web Foundations - Foundational protocols and security
+    // ==========================================================================
+    {
+      id: "web-foundations",
+      topics: [
+        {
+          id: "web-security-auth",
+          articles: [
+            "csrf-and-cors-defense",
+            "oauth-oidc-flow-guide",
+            "web-app-security-architecture",
+            "auth-foundations-sessions-tokens",
+            "owasp-top-10-guide",
+          ],
+        },
+        {
+          id: "networking-protocols",
+          articles: [
+            "http3-quic-and-tls",
+            "http1-1-to-http2-evolution",
+            "tls-1-3-handshake-and-https",
+            "dns-security-doh-dot-dnssec",
+            "dns-troubleshooting-playbook",
+            "dns-records-ttl-and-caching",
+            "dns-resolution-path",
+          ],
+        },
+        {
+          id: "browser-apis",
+          articles: [
+            "web-workers-and-worklets",
+            "service-workers-and-cache-api",
+            "fetch-and-streaming-apis",
+            "storage-apis-local-indexeddb",
+            "dom-api-essentials",
+          ],
+        },
+        {
+          id: "accessibility-standards",
+          articles: ["accessibility-testing-tooling", "wcag-2-2-practical-guide"],
+        },
+      ],
+    },
+
+    // ==========================================================================
+    // Programming Patterns - Algorithms and patterns
+    // ==========================================================================
+    {
+      id: "programming-patterns",
+      topics: [
+        {
+          id: "data-structures",
+          articles: ["heaps-and-priority-queues", "trees-and-graphs", "arrays-and-hash-maps"],
+        },
+        {
+          id: "algorithms-foundations",
+          articles: ["k-crystal-balls-problem", "sorting-algorithms-guide", "search-algorithms-guide"],
+        },
+        {
+          id: "javascript-patterns",
+          articles: [
+            "publish-subscribe-pattern",
+            "exponential-backoff-retry-strategy",
+            "async-queue-pattern",
+            "javascript-error-handling-patterns",
+            "javascript-string-length",
+          ],
+        },
+      ],
+    },
+
+    // ==========================================================================
+    // Developer Experience - Tooling (utility focused)
+    // ==========================================================================
+    {
+      id: "developer-experience",
+      topics: [
+        {
+          id: "productivity-workflows",
+          articles: ["chrome-developer-setup", "editor-terminal-setup"],
+        },
+      ],
+    },
+  ],
+
+  // Featured content for homepage
+  featuredArticles: [
+    "design-uber-ride-hailing",
+    "consistency-and-cap-theorem",
+    "frontend-architecture-at-scale",
+    "web-performance-infrastructure-stack",
+    "v8-engine-architecture",
+  ],
+
+  featuredTopics: ["system-design-problems", "critical-rendering-path"],
+}

@@ -6,7 +6,7 @@
  *
  * ## Architecture
  * - processAllContent(): Main processor for all articles and index files
- * - Ordering utilities: Access to ordering.jsonc configuration
+ * - Ordering utilities: Access to ordering.json5 configuration
  * - Draft utilities: Filter drafts based on environment
  *
  * ## Structure
@@ -22,6 +22,7 @@ import type {
   CategoryRef,
   ContentItem,
   ContentItemWithoutContent,
+  DerivedOrdering,
   IndexItem,
   OrderingConfig,
   TopicIndex,
@@ -70,23 +71,20 @@ export function filterDrafts<T extends { isDraft: boolean }>(items: T[]): T[] {
 // =============================================================================
 
 let cachedOrdering: OrderingConfig | null = null
+let cachedDerivedOrdering: DerivedOrdering | null = null
 
 /**
- * Get the full ordering configuration from ordering.jsonc
+ * Get the full ordering configuration from ordering.json5
  */
 export async function getOrdering(): Promise<OrderingConfig> {
   if (!cachedOrdering) {
     const orderingCollection = await getCollection("ordering")
     const orderingData = orderingCollection[0]
     if (!orderingData) {
-      throw new Error("ordering.jsonc not found or empty")
+      throw new Error("ordering.json5 not found or empty")
     }
     cachedOrdering = {
-      categoryOrder: orderingData.data.categoryOrder,
-      topicsOrder: orderingData.data.topicsOrder,
-      articlesOrder: orderingData.data.articlesOrder,
-      categoryVsTopics: orderingData.data.categoryVsTopics,
-      topicVsArticlesOrder: orderingData.data.topicVsArticlesOrder,
+      categories: orderingData.data.categories,
       featuredArticles: orderingData.data.featuredArticles,
       featuredTopics: orderingData.data.featuredTopics,
     }
@@ -95,43 +93,81 @@ export async function getOrdering(): Promise<OrderingConfig> {
 }
 
 /**
+ * Derive flat ordering lists from hierarchical structure
+ */
+export async function getDerivedOrdering(): Promise<DerivedOrdering> {
+  if (!cachedDerivedOrdering) {
+    const ordering = await getOrdering()
+
+    const categoryOrder: string[] = []
+    const topicsOrder: string[] = []
+    const articlesOrder: string[] = []
+    const categoryVsTopics: Record<string, string[]> = {}
+    const topicVsArticlesOrder: Record<string, string[]> = {}
+
+    for (const category of ordering.categories) {
+      categoryOrder.push(category.id)
+      const topicIds: string[] = []
+
+      for (const topic of category.topics) {
+        topicIds.push(topic.id)
+        topicsOrder.push(topic.id)
+        topicVsArticlesOrder[topic.id] = topic.articles
+        articlesOrder.push(...topic.articles)
+      }
+
+      categoryVsTopics[category.id] = topicIds
+    }
+
+    cachedDerivedOrdering = {
+      categoryOrder,
+      topicsOrder,
+      articlesOrder,
+      categoryVsTopics,
+      topicVsArticlesOrder,
+    }
+  }
+  return cachedDerivedOrdering
+}
+
+/**
  * Get the display order of categories
  */
 export async function getCategoryOrderFromConfig(): Promise<string[]> {
-  const ordering = await getOrdering()
-  return ordering.categoryOrder
+  const derived = await getDerivedOrdering()
+  return derived.categoryOrder
 }
 
 /**
  * Get the global list of all topics in display order
  */
 export async function getTopicsOrderFromConfig(): Promise<string[]> {
-  const ordering = await getOrdering()
-  return ordering.topicsOrder
+  const derived = await getDerivedOrdering()
+  return derived.topicsOrder
 }
 
 /**
  * Get topics for a specific category in display order
  */
 export async function getTopicsForCategoryFromConfig(categoryId: string): Promise<string[]> {
-  const ordering = await getOrdering()
-  return ordering.categoryVsTopics[categoryId] ?? []
+  const derived = await getDerivedOrdering()
+  return derived.categoryVsTopics[categoryId] ?? []
 }
 
 /**
  * Get the global list of all articles in display order
  */
 export async function getArticlesOrderFromConfig(): Promise<string[]> {
-  const ordering = await getOrdering()
-  return ordering.articlesOrder
+  const derived = await getDerivedOrdering()
+  return derived.articlesOrder
 }
 
 /**
  * Get articles for a specific topic in display order
  */
 export async function getArticlesForTopicFromConfig(topicId: string): Promise<string[]> {
-  const ordering = await getOrdering()
-  return ordering.topicVsArticlesOrder[topicId] ?? []
+  const derived = await getDerivedOrdering()
+  return derived.topicVsArticlesOrder[topicId] ?? []
 }
 
 /**
@@ -230,7 +266,7 @@ function validateContentStructure(
   // Validate categories are in order
   for (const [categoryId] of categoryLookup) {
     if (!categoryOrder.includes(categoryId)) {
-      errors.push(`Category "${categoryId}" is missing from ordering.jsonc categoryOrder`)
+      errors.push(`Category "${categoryId}" is missing from ordering.json5 categoryOrder`)
     }
   }
 
@@ -239,7 +275,7 @@ function validateContentStructure(
     const categoryId = topicKey.split("/")[0] ?? ""
     const order = topicOrder.get(categoryId) ?? []
     if (!order.includes(topicRef.id)) {
-      errors.push(`Topic "${topicRef.id}" is missing from ordering.jsonc categoryVsTopics["${categoryId}"]`)
+      errors.push(`Topic "${topicRef.id}" is missing from ordering.json5 categoryVsTopics["${categoryId}"]`)
     }
   }
 
@@ -248,7 +284,7 @@ function validateContentStructure(
     const order = articleOrder.get(article.topicId) ?? []
     if (!order.includes(article.postId)) {
       errors.push(
-        `Article "${article.postId}" is missing from ordering.jsonc topicVsArticlesOrder["${article.topicId}"]`,
+        `Article "${article.postId}" is missing from ordering.json5 topicVsArticlesOrder["${article.topicId}"]`,
       )
     }
 
@@ -286,7 +322,7 @@ function validateContentStructure(
 }
 
 /**
- * Sort articles according to ordering.jsonc order
+ * Sort articles according to ordering.json5 order
  */
 function sortArticlesByOrdering(articles: ContentItem[], articleOrder: Map<string, string[]>): ContentItem[] {
   return [...articles].sort((a, b) => {
@@ -295,7 +331,7 @@ function sortArticlesByOrdering(articles: ContentItem[], articleOrder: Map<strin
       return 0
     }
 
-    // Same topic - use ordering.jsonc order
+    // Same topic - use ordering.json5 order
     const order = articleOrder.get(a.topicId) ?? []
     const indexA = order.indexOf(a.postId)
     const indexB = order.indexOf(b.postId)
@@ -334,12 +370,12 @@ async function processAllContent(): Promise<ProcessedContent> {
   const indexItems: IndexItem[] = []
   const articles: ContentItem[] = []
 
-  // Load ordering from ordering.jsonc
+  // Load ordering from ordering.json5
   const categoryOrder = await getCategoryOrderFromConfig()
   const topicOrder = new Map<string, string[]>()
   const articleOrder = new Map<string, string[]>()
 
-  // Load topic and article ordering from ordering.jsonc
+  // Load topic and article ordering from ordering.json5
   for (const categoryId of categoryOrder) {
     const topics = await getTopicsForCategoryFromConfig(categoryId)
     topicOrder.set(categoryId, topics)
@@ -474,7 +510,7 @@ async function processAllContent(): Promise<ProcessedContent> {
   // Validate content structure
   validateContentStructure(articles, categoryLookup, topicLookup, categoryOrder, topicOrder, articleOrder)
 
-  // Sort articles by ordering.jsonc order
+  // Sort articles by ordering.json5 order
   const sortedArticles = sortArticlesByOrdering(articles, articleOrder)
 
   // Create articles without content for listings

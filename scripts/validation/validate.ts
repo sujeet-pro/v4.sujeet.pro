@@ -77,9 +77,9 @@ export async function runValidateAll() {
   const fileContents = markdownFiles ? loadMarkdownContents(markdownFiles) : undefined
   const contentStructure = contentDirExists ? discoverContent() : undefined
 
-  const homeConfig = loadJsonc<HomeJsonc>(path.join(process.cwd(), "content/home.jsonc"))
-  const orderingConfig = loadJsonc<OrderingJsonc>(path.join(process.cwd(), "content/ordering.jsonc"))
-  const vanityConfig = loadJsonc<VanityEntry[]>(path.join(process.cwd(), "content/vanity.jsonc"))
+  const homeConfig = loadJsonc<HomeJsonc>(path.join(process.cwd(), "content/home.json5"))
+  const orderingConfig = loadJsonc<OrderingJsonc>(path.join(process.cwd(), "content/ordering.json5"))
+  const vanityConfig = loadJsonc<VanityEntry[]>(path.join(process.cwd(), "content/vanity.json5"))
 
   const sharedContentOptions: Parameters<typeof runContentH1Validation>[0] = {}
   if (markdownFiles) sharedContentOptions.markdownFiles = markdownFiles

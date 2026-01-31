@@ -1,16 +1,16 @@
+import JSON5 from "json5"
 import { existsSync, readFileSync } from "node:fs"
 
-export function parseJsonc<T>(content: string): T {
-  const cleaned = content.replace(/"(?:[^"\\]|\\.)*"|\/\/[^\n]*|\/\*[\s\S]*?\*\//g, (match) => {
-    if (match.startsWith('"')) return match
-    return ""
-  })
-  const noTrailingCommas = cleaned.replace(/,(\s*[}\]])/g, "$1")
-  return JSON.parse(noTrailingCommas) as T
+export function parseJson5<T>(content: string): T {
+  return JSON5.parse(content) as T
 }
 
-export function loadJsonc<T>(filePath: string): T | null {
+export function loadJson5<T>(filePath: string): T | null {
   if (!existsSync(filePath)) return null
   const content = readFileSync(filePath, "utf-8")
-  return parseJsonc<T>(content)
+  return parseJson5<T>(content)
 }
+
+// Legacy aliases for backward compatibility
+export const parseJsonc = parseJson5
+export const loadJsonc = loadJson5

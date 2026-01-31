@@ -26,7 +26,7 @@ export interface ContentHomeValidationOptions {
 
 export async function runContentHomeValidation(options: ContentHomeValidationOptions = {}) {
   const logger = new Logger("validate-content-home", { humanReadable: true })
-  const homePath = path.join(process.cwd(), "content/home.jsonc")
+  const homePath = path.join(process.cwd(), "content/home.json5")
   const homeRelative = path.relative(process.cwd(), homePath)
 
   logger.info("=".repeat(60))
@@ -38,7 +38,7 @@ export async function runContentHomeValidation(options: ContentHomeValidationOpt
   const hasHomeConfig = Object.prototype.hasOwnProperty.call(options, "homeConfig")
   const homeConfig = hasHomeConfig ? options.homeConfig : loadJsonc<HomeJsonc>(homePath)
   if (!homeConfig) {
-    logger.error("home.jsonc not found")
+    logger.error("home.json5 not found")
     const summary = {
       schemaVersion: 1,
       tool: "validate-content-home",
@@ -51,7 +51,7 @@ export async function runContentHomeValidation(options: ContentHomeValidationOpt
       files: [
         {
           file: homeRelative,
-          issues: [{ message: "home.jsonc not found" }],
+          issues: [{ message: "home.json5 not found" }],
         },
       ],
     }
@@ -80,7 +80,7 @@ export async function runContentHomeValidation(options: ContentHomeValidationOpt
       logger.error(issue.message)
     }
   } else {
-    logger.success("home.jsonc structure looks good.")
+    logger.success("home.json5 structure looks good.")
   }
 
   const summary = {

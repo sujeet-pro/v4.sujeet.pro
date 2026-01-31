@@ -33,34 +33,40 @@ This skill produces research-driven, factually accurate content for senior/staff
 ## Workflow
 
 ### 1. Clarify scope and placement
+
 - Confirm the topic, depth, and target audience.
 - Identify the expected category/topic path.
 - Determine current version/release to document.
 
 ### 2. Read relevant code and context
+
 - Inspect the local codebase when the article is tied to implementation details.
 - Note constraints, defaults, and real behavior to ground examples.
 - Check source code for undocumented edge cases.
 
 ### 3. Breadth research (topic survey)
+
 - Survey the topic using the **source priority hierarchy** (specs > official docs > core maintainer > source code).
 - Identify canonical concepts, edge cases, and common misconceptions.
 - Note what has changed in recent versions.
 - Use this to outline the article and required Appendix content.
 
 ### 4. Section-level deep research
+
 - For each section, gather **primary sources** and spec clauses.
 - Find design rationale: why were these choices made?
 - Capture limits, defaults, version-specific behaviors, and edge cases.
 - Look for core maintainer explanations (blog posts, talks, GitHub discussions).
 
 ### 5. Outline the article
+
 - Required structure: H1, description, diagram, **Abstract (mental model)**, main sections, conclusion, Appendix.
 - The Abstract should be a revision-friendly mental model, NOT a section-by-section summary.
 - Plan in-depth technical analysis for each main section.
 - Plan where to explain design decisions and version evolution.
 
 ### 6. Draft the article
+
 - Create `content/articles/<category>/<topic>/<slug>/README.md`.
 - Use a concise H1 and description paragraph(s).
 - **Abstract**: Distill the core mental model (diagram, bullets, or prose—whatever works best).
@@ -71,13 +77,15 @@ This skill produces research-driven, factually accurate content for senior/staff
 - Expand abbreviations on first use (excluding headings).
 
 ### 7. Update ordering
-- Add new IDs to `content/ordering.jsonc`:
+
+- Add new IDs to `content/ordering.json5`:
   - `articlesOrder`
   - `topicVsArticlesOrder[topic]`
 - If new category/topic, also update:
   - `categoryOrder`, `topicsOrder`, `categoryVsTopics`
 
 ### 8. Quality review
+
 - Verify all non-negotiable rules from content-guidelines.md.
 - Check: Why and how explained, not just what?
 - Check: Design reasoning explicit for each major choice?

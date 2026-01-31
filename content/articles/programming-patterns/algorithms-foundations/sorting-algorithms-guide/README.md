@@ -34,76 +34,83 @@ flowchart TB
 
 </figure>
 
-## TLDR
+## Abstract
 
-**Sorting algorithms** organize data with different trade-offs between time complexity, space usage, stability, and cache efficiency.
+Sorting algorithms exist on a spectrum defined by three fundamental constraints:
 
-### Algorithm Selection
+<figure>
 
-- **General purpose**: Quick Sort (randomized pivot) offers best practical performance
-- **Stability required**: Merge Sort maintains relative order of equal elements
-- **Small arrays (n < 50)**: Insertion Sort beats complex algorithms due to lower overhead
-- **Guaranteed worst-case**: Heap Sort provides O(n log n) with O(1) space
+```mermaid
+flowchart LR
+    subgraph "The Sorting Triangle"
+        TIME["Time Complexity<br/>O(n²) → O(n log n) → O(n)"]
+        SPACE["Space Complexity<br/>O(1) → O(log n) → O(n)"]
+        STABILITY["Stability<br/>Preserves equal-element order"]
+    end
 
-### Linear-Time Alternatives
+    TIME <--> SPACE
+    SPACE <--> STABILITY
+    STABILITY <--> TIME
+```
 
-- **Counting Sort**: O(n + k) for integers with small range k; stable and fast
-- **Radix Sort**: O(d × n) for d-digit integers; sorts digit-by-digit
-- **Bucket Sort**: O(n) average for uniformly distributed data; degrades to O(n²) if skewed
+<figcaption>Every sorting algorithm makes trade-offs between time, space, and stability—optimizing one often sacrifices another.</figcaption>
+</figure>
 
-### Production Realities
+**Core mental model:**
 
-- **Tim Sort**: Python/Java hybrid of Merge Sort + Insertion Sort; exploits existing order
-- **Introsort**: C++ STL uses Quick Sort + Heap Sort + Insertion Sort; guarantees O(n log n)
-- **Cache locality**: Quick Sort's sequential access pattern is 2-3× faster than Heap Sort in practice
-- **The O(n log n) barrier**: Comparison-based sorting cannot do better (log₂(n!) comparisons needed)
+- **Comparison sorts** (Quick Sort, Merge Sort, Heap Sort) are bounded by Ω(n log n)—a mathematical limit proven via decision trees. You cannot comparison-sort faster without exploiting input structure.
+- **Non-comparison sorts** (Counting, Radix, Bucket) achieve O(n) by trading generality for constraints on input type (integers, fixed-width keys, uniform distribution).
+- **Production sorts** (Tim Sort, Introsort, pdqsort) are hybrids that detect patterns and switch strategies—they exploit the gap between theoretical bounds and real-world data characteristics.
 
-### Key Trade-offs
+**The practical insight**: Cache locality and branch prediction often matter more than asymptotic complexity. Quick Sort's 2-3× speedup over Heap Sort comes from sequential memory access, not Big-O.
 
-- **Time vs Space**: Merge Sort uses O(n) extra space for guaranteed O(n log n)
-- **Stability vs Speed**: Quick Sort is faster but unstable; Merge Sort is stable but uses more memory
-- **Worst case vs Average**: Quick Sort O(n²) worst but randomization makes it practically impossible
-
-## Core Philosophies
+## Core Concepts
 
 ### The Fundamental Trade-offs
 
-1. **Time vs Space**: Merge Sort uses O(n) extra space for O(n log n) guaranteed time. Quick Sort uses O(log n) stack space but has O(n²) worst case.
+1. **Time vs Space**: Merge Sort uses O(n) extra space for O(n log n) guaranteed time. Quick Sort uses O(log n) stack space but has O(n²) worst case. This trade-off exists because maintaining sorted subarrays during merge requires temporary storage.
 
-2. **Stability vs Performance**: Stable sorts preserve relative order of equal elements. Sometimes you sacrifice stability for speed.
+2. **Stability vs Performance**: Stable sorts preserve relative order of equal elements—critical for multi-key sorting (sort by department, then by salary within department). Quick Sort sacrifices stability for in-place partitioning; Merge Sort maintains stability but needs auxiliary arrays.
 
-3. **Adaptivity**: Some algorithms (Insertion Sort, Tim Sort) perform better on partially sorted data.
+3. **Adaptivity**: Some algorithms (Insertion Sort, Tim Sort) detect existing order and exploit it. Tim Sort achieves O(n) on already-sorted data by identifying "runs" of ordered elements. Non-adaptive algorithms (Heap Sort, standard Quick Sort) perform the same regardless of input order.
 
-4. **In-place vs Out-of-place**: In-place algorithms modify the original array; out-of-place need extra memory.
+4. **In-place vs Out-of-place**: In-place algorithms modify the original array using O(1) or O(log n) extra space; out-of-place algorithms need O(n) auxiliary memory. The choice affects memory pressure in constrained environments.
 
-### The O(n log n) Barrier
+### The Ω(n log n) Comparison Sort Lower Bound
 
-**Key insight**: Comparison-based sorting cannot do better than O(n log n) in the average/worst case ([CLRS, Chapter 8.1](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/)).
+Comparison-based sorting cannot do better than Ω(n log n) in the worst case. This is a mathematical limit, not a practical limitation.
 
-**Why?** There are n! permutations of n elements. A comparison tree needs log₂(n!) ≈ n log n comparisons to distinguish all permutations.
+**The decision tree argument**: Any comparison-based algorithm can be modeled as a binary decision tree where each node represents a comparison. With n elements, there are n! possible permutations. The tree must have at least n! leaves (one per permutation). A binary tree of height h has at most 2^h leaves, so:
 
-**Breaking the barrier**: Non-comparison sorts (Counting, Radix, Bucket) can achieve O(n) but have constraints on input.
+$$
+2^h \geq n! \implies h \geq \log_2(n!) \approx n \log n
+$$
 
----
+Using Stirling's approximation: $n! \approx \sqrt{2\pi n}(n/e)^n$, giving $\log(n!) = \Theta(n \log n)$.
+
+**Information-theoretic interpretation**: Each comparison yields one bit of information. To distinguish among n! possibilities, you need at least log₂(n!) bits—roughly n log n comparisons.
+
+**Breaking the barrier**: Non-comparison sorts (Counting, Radix, Bucket) achieve O(n) by exploiting input structure—they don't compare elements, they examine digits or values directly. This requires constraints: bounded integer range, fixed-width keys, or uniform distribution.
 
 ## Comparison-Based Sorting
 
-### 1. Bubble Sort
+### Bubble Sort
 
-**Philosophy**: Repeatedly swap adjacent elements if they're in the wrong order. Largest elements "bubble up" to the end.
+**Design rationale**: Bubble Sort repeatedly swaps adjacent elements if they're in wrong order. Largest elements "bubble up" to the end with each pass. The algorithm exists primarily for educational purposes—its simplicity makes it ideal for teaching sorting concepts, but its O(n²) time makes it impractical for production use.
 
-```typescript
+```typescript collapse={1-4, 14-16}
 function bubbleSort(arr: number[]): number[] {
   const n = arr.length
   for (let i = 0; i < n - 1; i++) {
     let swapped = false
+    // Inner loop: compare adjacent pairs
     for (let j = 0; j < n - i - 1; j++) {
       if (arr[j] > arr[j + 1]) {
         ;[arr[j], arr[j + 1]] = [arr[j + 1], arr[j]]
         swapped = true
       }
     }
-    if (!swapped) break // Optimization: already sorted
+    if (!swapped) break // Optimization: early exit if sorted
   }
   return arr
 }
@@ -117,26 +124,26 @@ function bubbleSort(arr: number[]): number[] {
 | In-place | Yes                                  |
 | Use case | Educational, detecting sorted arrays |
 
-**Optimization**: The `swapped` flag gives O(n) for already-sorted arrays.
+**Why the `swapped` flag exists**: Without it, Bubble Sort always runs O(n²) even on sorted input. The flag enables O(n) detection of already-sorted arrays—one of Bubble Sort's few practical uses.
 
-**Practical applications**: While rarely used in production due to poor performance, Bubble Sort serves well in educational contexts and can efficiently detect if an array is already sorted. In some embedded systems with severe memory constraints and very small datasets (n < 10), its simplicity can outweigh performance concerns.
+**When to actually use it**: Almost never in production. The only legitimate scenarios are: (1) teaching sorting fundamentals, (2) checking if an array is already sorted (though a simple linear scan is clearer), or (3) extremely memory-constrained embedded systems with n < 10 where code size matters more than performance.
 
----
+### Selection Sort
 
-### 2. Selection Sort
+**Design rationale**: Selection Sort finds the minimum element and places it at the beginning, repeating for the remaining array. The key insight is that it performs exactly n-1 swaps regardless of input—making it optimal when write operations are expensive relative to comparisons.
 
-**Philosophy**: Find the minimum element and put it at the beginning. Repeat for remaining elements.
-
-```typescript
+```typescript collapse={1-3, 15-17}
 function selectionSort(arr: number[]): number[] {
   const n = arr.length
   for (let i = 0; i < n - 1; i++) {
     let minIdx = i
+    // Find minimum in unsorted portion
     for (let j = i + 1; j < n; j++) {
       if (arr[j] < arr[minIdx]) {
         minIdx = j
       }
     }
+    // Single swap per iteration
     if (minIdx !== i) {
       ;[arr[i], arr[minIdx]] = [arr[minIdx], arr[i]]
     }
@@ -153,22 +160,21 @@ function selectionSort(arr: number[]): number[] {
 | In-place | Yes                              |
 | Use case | Minimizing swaps (memory writes) |
 
-**Key insight**: Always does exactly n-1 swaps. Useful when writes are expensive.
+**Why it's unstable**: When swapping the minimum with the current position, equal elements can change relative order. For example, sorting `[2a, 2b, 1]` swaps `2a` with `1`, producing `[1, 2b, 2a]`—the two 2s reversed.
 
-**Practical applications**: Selection Sort excels in scenarios where write operations are costly—flash memory (EEPROM, NAND) with limited write cycles, or when physically moving objects is expensive (robotics, warehouse automation). The predictable number of swaps makes it valuable for hardware where write operations must be minimized. It's also used in certain database systems when updating index pointers is expensive but comparisons are cheap.
+**When to use it**: Flash memory (EEPROM, NAND) with limited write cycles—Selection Sort's exactly n-1 writes can extend device lifespan. Also valuable in robotics or warehouse automation where physically moving objects is expensive. Database systems sometimes use it when updating index pointers costs more than comparisons.
 
----
+### Insertion Sort
 
-### 3. Insertion Sort
+**Design rationale**: Insertion Sort builds a sorted array one element at a time, inserting each element into its correct position within the already-sorted prefix. Its power lies in adaptivity—it does O(k) work where k is the number of inversions (out-of-order pairs). For nearly-sorted data, k ≈ n, giving O(n) performance.
 
-**Philosophy**: Build the sorted array one element at a time by inserting each element into its correct position.
-
-```typescript
+```typescript collapse={1-3, 14-16}
 function insertionSort(arr: number[]): number[] {
   const n = arr.length
   for (let i = 1; i < n; i++) {
     const key = arr[i]
     let j = i - 1
+    // Shift elements right until correct position found
     while (j >= 0 && arr[j] > key) {
       arr[j + 1] = arr[j]
       j--
@@ -185,23 +191,20 @@ function insertionSort(arr: number[]): number[] {
 | Space    | O(1)                                     |
 | Stable   | Yes                                      |
 | In-place | Yes                                      |
-| Adaptive | Yes - O(n) for nearly sorted             |
+| Adaptive | Yes - O(n + k) where k = inversions      |
 | Use case | Small arrays, nearly sorted data, online |
 
-**Key characteristics**:
+**Why hybrid sorts use Insertion Sort for small subarrays**: For n < 20-50 elements, Insertion Sort's low overhead (no recursion, no function calls, tight inner loop) beats Quick Sort and Merge Sort despite worse asymptotic complexity. The crossover point depends on hardware but typically falls in the 16-64 element range.
 
-- Used as the base case in hybrid sorts (Tim Sort, Introsort)
-- Optimal for small arrays (n < 10-20) due to low overhead
-- Online algorithm: can sort data as it arrives in real-time
-- Excellent cache locality due to sequential access pattern
+**Online sorting**: Insertion Sort processes elements as they arrive—each new element is inserted into the sorted portion in O(n) worst case. This makes it suitable for real-time systems where data streams continuously and you need a sorted view at any moment.
 
----
+**Cache behavior**: The inner loop shifts elements sequentially through memory, maximizing L1 cache hits. Combined with branch predictability (the while condition becomes consistent after a few iterations), this makes Insertion Sort remarkably fast on small arrays.
 
-### 4. Merge Sort
+### Merge Sort
 
-**Philosophy**: Divide and conquer. Split array in half, recursively sort each half, merge the sorted halves.
+**Design rationale**: Merge Sort uses divide-and-conquer: split the array in half, recursively sort each half, then merge the sorted halves. The key insight is that merging two sorted arrays takes O(n) time with O(n) space—trading memory for guaranteed O(n log n) worst-case performance and stability.
 
-```typescript collapse={12-26}
+```typescript collapse={1-10, 18-27}
 function mergeSort(arr: number[]): number[] {
   if (arr.length <= 1) return arr
 
@@ -212,12 +215,12 @@ function mergeSort(arr: number[]): number[] {
   return merge(left, right)
 }
 
-// Merge helper: combines two sorted arrays
 function merge(left: number[], right: number[]): number[] {
   const result: number[] = []
   let i = 0,
     j = 0
 
+  // Key: use <= for stability (equal elements from left come first)
   while (i < left.length && j < right.length) {
     if (left[i] <= right[j]) {
       result.push(left[i++])
@@ -239,31 +242,19 @@ function merge(left: number[], right: number[]): number[] {
 | Parallelizable | Yes - independent subproblems                    |
 | Use case       | Linked lists, external sorting, stability needed |
 
-**Critical insights**:
+**Why O(n) space is unavoidable for array-based stable sorting**: To maintain stability while merging, you must preserve the relative order of equal elements. This requires comparing elements from both halves without modifying either until the comparison is complete—necessitating auxiliary storage.
 
-1. **Guaranteed O(n log n)** - No worst case degradation
-2. **Stable** - Critical for multi-key sorting
-3. **External sorting** - Natural for disk-based sorting
-4. **Linked lists** - Merge is O(1) space for linked lists
+**Linked list optimization**: For linked lists, merge requires only O(1) extra space—you just rewire node pointers rather than copying elements. This makes Merge Sort optimal for linked list sorting.
 
-**Optimization**: Bottom-up merge sort avoids recursion overhead.
+**External sorting**: When data exceeds RAM, Merge Sort's sequential access pattern (read chunks, sort in memory, write sorted chunks, k-way merge) minimizes disk seeks. Database systems (PostgreSQL, MySQL) use merge-based algorithms for large result sets.
 
-**Practical applications**: Merge Sort is widely used in production systems:
+**Bottom-up variant**: Iterative Merge Sort avoids recursion overhead by starting with size-1 subarrays and doubling the merge size each pass. Same O(n log n) time, but eliminates O(log n) stack frames.
 
-- **Database systems**: External sorting for large datasets that don't fit in memory (PostgreSQL, MySQL use merge-based algorithms)
-- **Version control systems**: Merging file changes in Git relies on merge-like algorithms
-- **E-commerce platforms**: Multi-criteria product sorting (price within category) requires stable sorting
-- **Log aggregation**: Merging pre-sorted log files from multiple servers
-- **Language implementations**: Java's `Arrays.sort()` for objects and Python's `sorted()` use Tim Sort (merge-based)
+### Quick Sort
 
----
+**Design rationale**: Quick Sort picks a pivot element, partitions the array so smaller elements are left of the pivot and larger elements are right, then recursively sorts the partitions. Its power comes from in-place partitioning with excellent cache locality—sequential memory access during partition makes it 2-3× faster than Heap Sort in practice despite similar Big-O.
 
-### 5. Quick Sort
-
-**Philosophy**: Pick a pivot, partition array so elements smaller than pivot are on left, larger on right. Recursively sort partitions.
-
-```typescript collapse={1-9}
-// Main quicksort - divide and conquer
+```typescript collapse={1-10}
 function quickSort(arr: number[], low: number = 0, high: number = arr.length - 1): number[] {
   if (low < high) {
     const pivotIdx = partition(arr, low, high)
@@ -273,9 +264,9 @@ function quickSort(arr: number[], low: number = 0, high: number = arr.length - 1
   return arr
 }
 
-// Partition: the core of Quick Sort (Lomuto scheme)
+// Lomuto partition scheme - simpler but ~3× more swaps than Hoare
 function partition(arr: number[], low: number, high: number): number {
-  const pivot = arr[high] // Using last element as pivot
+  const pivot = arr[high]
   let i = low - 1
 
   for (let j = low; j < high; j++) {
@@ -297,26 +288,27 @@ function partition(arr: number[], low: number, high: number): number {
 | In-place | Yes                             |
 | Use case | General purpose, cache-friendly |
 
-**Pivot Selection Strategies**:
+**Pivot selection strategies and their trade-offs**:
 
-1. **Last/First element**: Simple but O(n²) for sorted arrays
-2. **Random pivot**: Expected O(n log n)
-3. **Median-of-three**: Pick median of first, middle, last
-4. **Median-of-medians**: Guaranteed O(n log n) but slower in practice
+| Strategy          | Worst Case Trigger       | Overhead | Use When                    |
+| ----------------- | ------------------------ | -------- | --------------------------- |
+| First/Last        | Sorted/reverse input     | O(1)     | Never in production         |
+| Random            | Astronomically unlikely  | O(1)     | Default choice              |
+| Median-of-three   | Crafted adversarial      | O(1)     | Known random input          |
+| Median-of-medians | None (guaranteed O(n lg n)) | O(n)     | Adversarial input possible  |
 
-**3-Way Partition (Dutch National Flag)**:
-Essential for arrays with many duplicates:
+**3-Way Partition (Dutch National Flag Problem)**: Essential for arrays with many duplicates. Standard 2-way partition degrades to O(n²) when all elements are equal; 3-way partition handles this in O(n) by grouping equal elements in the middle.
 
-```typescript
+```typescript collapse={1-6, 22-25}
 function quickSort3Way(arr: number[], low: number, high: number): void {
   if (low >= high) return
 
-  let lt = low // arr[low..lt-1] < pivot
-  let gt = high // arr[gt+1..high] > pivot
+  let lt = low    // arr[low..lt-1] < pivot
+  let gt = high   // arr[gt+1..high] > pivot
   let i = low + 1
   const pivot = arr[low]
 
-  // Partition into three regions: <pivot, ==pivot, >pivot
+  // Partition into: <pivot | ==pivot | >pivot
   while (i <= gt) {
     if (arr[i] < pivot) {
       ;[arr[lt], arr[i]] = [arr[i], arr[lt]]
@@ -326,48 +318,39 @@ function quickSort3Way(arr: number[], low: number, high: number): void {
       ;[arr[i], arr[gt]] = [arr[gt], arr[i]]
       gt--
     } else {
-      i++ // Equal elements stay in middle
+      i++
     }
   }
 
-  quickSort3Way(arr, low, lt - 1) // Sort < pivot
-  quickSort3Way(arr, gt + 1, high) // Sort > pivot
+  quickSort3Way(arr, low, lt - 1)
+  quickSort3Way(arr, gt + 1, high)
 }
 ```
 
-**Practical applications**: Quick Sort dominates general-purpose sorting:
+**Why Quick Sort dominates production sorting**: C++ `std::sort()` (Introsort), Go's `sort.Sort()` (pdqsort since Go 1.19), and Rust's `sort_unstable` all use Quick Sort variants. The combination of in-place sorting, cache-friendly access, and predictable branch behavior makes it 2-3× faster than alternatives on random data.
 
-- **Standard libraries**: C++ `std::sort()` (Introsort), Go's `sort.Sort()`, and most language primitives use Quick Sort variants
-- **In-memory databases**: Redis, Memcached use Quick Sort for range queries
-- **File systems**: Sorting directory entries for fast lookup
-- **Analytics engines**: Apache Spark, Hadoop use Quick Sort for in-memory shuffle operations
-- **3-way partition use case**: Log processing systems with repeated severity levels (INFO, WARN, ERROR)
+### Heap Sort
 
----
+**Design rationale**: Heap Sort builds a max-heap from the array, then repeatedly extracts the maximum to build the sorted array from the end. It's the only comparison sort that's both in-place (O(1) space) and guaranteed O(n log n)—no pathological inputs exist. The trade-off is poor cache locality: parent-child relationships (i, 2i+1, 2i+2) cause random memory access patterns.
 
-### 6. Heap Sort
-
-**Philosophy**: Build a max-heap, repeatedly extract the maximum to build sorted array from the end.
-
-```typescript collapse={18-31}
+```typescript collapse={1-6, 18-31}
 function heapSort(arr: number[]): number[] {
   const n = arr.length
 
-  // Build max heap (bottom-up)
+  // Build max-heap bottom-up in O(n) time
   for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
     heapify(arr, n, i)
   }
 
-  // Extract elements from heap one by one
+  // Extract max n times: O(n log n)
   for (let i = n - 1; i > 0; i--) {
-    ;[arr[0], arr[i]] = [arr[i], arr[0]] // Move max to end
-    heapify(arr, i, 0) // Restore heap property
+    ;[arr[0], arr[i]] = [arr[i], arr[0]]
+    heapify(arr, i, 0)
   }
 
   return arr
 }
 
-// Heapify: maintain max-heap property
 function heapify(arr: number[], n: number, i: number): void {
   let largest = i
   const left = 2 * i + 1
@@ -392,29 +375,21 @@ function heapify(arr: number[], n: number, i: number): void {
 | Cache-friendly | No - random access pattern     |
 | Use case       | Guaranteed O(n log n) in-place |
 
-**Key insight**: Heap Sort is the only comparison sort that is both in-place AND guaranteed O(n log n).
+**Why build-heap is O(n), not O(n log n)**: Intuition suggests n insertions at O(log n) each = O(n log n). But bottom-up heapify does less work: most nodes are near the bottom (height 0-1), few are at the top. Summing the work: $\sum_{h=0}^{\log n} \frac{n}{2^{h+1}} \cdot O(h) = O(n)$.
 
-**Practical applications**: Heap Sort and heap-based structures are essential in specific domains:
+**Why Heap Sort loses to Quick Sort in practice**: The parent-child index relationships (i → 2i+1, 2i+2) cause cache misses. For a 10M element array, parent and children are ~5M indices apart—far beyond any cache line. Branch prediction also suffers: the comparison `arr[left] > arr[largest]` vs `arr[right] > arr[largest]` is essentially random.
 
-- **Real-time systems**: Avionics, medical devices where O(n²) worst-case is unacceptable and memory is severely constrained
-- **Priority queues**: Task schedulers (Linux CFS), network packet routing, event-driven simulations
-- **Streaming algorithms**: Finding top-K elements in data streams (YouTube trending, stock tickers)
-- **Graph algorithms**: Dijkstra's shortest path, Prim's MST use min-heaps
-- **Operating systems**: Kernel memory allocators use heap-based priority queues
-- **Partial sorting**: When you only need the k largest elements (O(n log k) with a heap)
-
----
+**When to use Heap Sort**: (1) Real-time systems where O(n²) worst-case is unacceptable and you can't afford O(n) auxiliary space. (2) Partial sorting—finding top-k elements in O(n + k log n). (3) Priority queue operations where you need repeated extract-min/max.
 
 ## Non-Comparison Sorting
 
-These break the O(n log n) barrier by not comparing elements directly.
+Non-comparison sorts break the Ω(n log n) barrier by examining element values directly rather than comparing pairs. The trade-off: they require constraints on input type (integers, fixed-width keys, uniform distribution).
 
-### 7. Counting Sort
+### Counting Sort
 
-**Philosophy**: Count occurrences of each value, then place elements based on counts.
+**Design rationale**: Counting Sort counts occurrences of each distinct value, then uses cumulative counts to place elements in their final positions. It achieves O(n + k) time where k is the value range—faster than comparison sorts when k = O(n). The trade-off is O(k) space for the count array, making it impractical when k >> n.
 
-```typescript collapse={1-9}
-// Setup: find range and initialize arrays
+```typescript collapse={1-10}
 function countingSort(arr: number[]): number[] {
   if (arr.length === 0) return arr
 
@@ -424,17 +399,17 @@ function countingSort(arr: number[]): number[] {
   const count = new Array(range).fill(0)
   const output = new Array(arr.length)
 
-  // Count occurrences
+  // Phase 1: Count occurrences - O(n)
   for (const num of arr) {
     count[num - min]++
   }
 
-  // Cumulative count (for stability)
+  // Phase 2: Cumulative counts give final positions - O(k)
   for (let i = 1; i < range; i++) {
     count[i] += count[i - 1]
   }
 
-  // Build output (iterate backwards for stability)
+  // Phase 3: Build output (backwards for stability) - O(n)
   for (let i = arr.length - 1; i >= 0; i--) {
     output[count[arr[i] - min] - 1] = arr[i]
     count[arr[i] - min]--
@@ -451,30 +426,23 @@ function countingSort(arr: number[]): number[] {
 | Stable   | Yes (if implemented correctly) |
 | Use case | Small range of integers        |
 
-**When to use**: Range of values (k) is O(n) or smaller.
+**Why iterate backwards for stability**: When placing elements, going backwards ensures that among equal values, the last one encountered (rightmost in original) goes to the highest index position. This preserves relative order.
 
-**Practical applications**: Counting Sort excels when sorting bounded-range data:
+**When k makes sense**: Counting Sort is optimal when k ≤ n. For exam scores (0-100) with 1000 students: O(1100) beats O(1000 × 10). For 32-bit integers (k = 4 billion): use Radix Sort instead.
 
-- **Grading systems**: Sorting students by test scores (0-100), letter grades (A-F)
-- **Age-based sorting**: Demographics analysis, customer segmentation (ages 0-120)
-- **Histogram generation**: Image processing (pixel values 0-255), frequency analysis
-- **Character sorting**: Text processing, anagram detection (26 lowercase letters)
-- **Voting systems**: Counting ballots, survey responses with limited options
-- **Gaming leaderboards**: Score sorting when scores have known maximum values
+**Real-world applications**: Image processing (8-bit pixels, k=256), grading systems (0-100), character frequency counting (k=26 for lowercase English), histogram generation.
 
----
+### Radix Sort
 
-### 8. Radix Sort
+**Design rationale**: Radix Sort processes elements digit-by-digit, using a stable sort (typically Counting Sort) as a subroutine. LSD (Least Significant Digit) Radix Sort processes from rightmost digit to leftmost; stability ensures earlier digits remain sorted when processing later digits. Time is O(d × (n + k)) where d is digit count and k is the radix (base)—effectively O(n) when d is constant.
 
-**Philosophy**: Sort by individual digits, from least significant to most significant (LSD) or vice versa (MSD).
-
-```typescript collapse={14-37}
+```typescript collapse={1-5, 14-37}
 function radixSort(arr: number[]): number[] {
   if (arr.length === 0) return arr
 
   const max = Math.max(...arr)
 
-  // Sort by each digit using counting sort as subroutine (LSD)
+  // LSD: sort by each digit position, least significant first
   for (let exp = 1; Math.floor(max / exp) > 0; exp *= 10) {
     countingSortByDigit(arr, exp)
   }
@@ -482,7 +450,6 @@ function radixSort(arr: number[]): number[] {
   return arr
 }
 
-// Stable counting sort for a single digit position
 function countingSortByDigit(arr: number[], exp: number): void {
   const n = arr.length
   const output = new Array(n)
@@ -511,28 +478,29 @@ function countingSortByDigit(arr: number[], exp: number): void {
 
 | Property | Value                            |
 | -------- | -------------------------------- |
-| Time     | O(d \* (n + k)) where d = digits |
+| Time     | O(d × (n + k)) where d = digits  |
 | Space    | O(n + k)                         |
 | Stable   | Yes                              |
 | Use case | Fixed-length integers, strings   |
 
-**Practical applications**: Radix Sort is optimal for fixed-width data:
+**LSD vs MSD (Most Significant Digit)**:
 
-- **Network routing**: Sorting IP addresses (32-bit integers), MAC addresses
-- **Telecommunications**: Sorting phone numbers, IMEI numbers
-- **Database indexing**: Sorting fixed-length keys (UUIDs, product codes)
-- **Financial systems**: Sorting transaction IDs, account numbers
-- **Bioinformatics**: Suffix array construction for DNA sequences (A, C, G, T alphabet)
-- **Data compression**: Building frequency tables for Huffman coding
-- **Distributed systems**: Sorting timestamps (64-bit Unix timestamps)
+| Variant | Process Order     | Stability Required | Best For              |
+| ------- | ----------------- | ------------------ | --------------------- |
+| LSD     | Right → Left      | Yes (critical)     | Fixed-width integers  |
+| MSD     | Left → Right      | Not required       | Variable-length strings, early termination |
 
----
+**Why LSD needs stability**: After sorting by units digit, `[170, 45, 75, 90]` becomes `[170, 90, 45, 75]`. When sorting by tens digit, 170 and 75 both have tens digit 7. Stability ensures 170 stays before 75 (preserving the units-digit order).
 
-### 9. Bucket Sort
+**Choosing the radix**: Base 10 is intuitive but not optimal. Base 256 (byte-based) reduces passes for 32-bit integers from 10 to 4, at the cost of larger count arrays. For 64-bit integers, 8 passes with base 256 is typically faster than 20 passes with base 10.
 
-**Philosophy**: Distribute elements into buckets, sort each bucket, concatenate results.
+**Real-world applications**: IP address sorting (4 passes, base 256), suffix array construction in bioinformatics (DNA alphabet k=4), timestamp sorting (8 passes for 64-bit Unix timestamps).
 
-```typescript
+### Bucket Sort
+
+**Design rationale**: Bucket Sort distributes elements into buckets based on their value, sorts each bucket (typically with Insertion Sort), then concatenates results. It achieves O(n) expected time when elements are uniformly distributed—each bucket contains O(1) elements on average, making per-bucket sorting O(1). The trade-off: skewed distributions degrade to O(n²) when many elements land in one bucket.
+
+```typescript collapse={1-5, 17-18}
 function bucketSort(arr: number[], bucketCount: number = 10): number[] {
   if (arr.length === 0) return arr
 
@@ -541,68 +509,77 @@ function bucketSort(arr: number[], bucketCount: number = 10): number[] {
   const bucketSize = (max - min) / bucketCount + 1
   const buckets: number[][] = Array.from({ length: bucketCount }, () => [])
 
-  // Distribute into buckets
+  // Distribute: O(n)
   for (const num of arr) {
     const idx = Math.floor((num - min) / bucketSize)
     buckets[Math.min(idx, bucketCount - 1)].push(num)
   }
 
-  // Sort individual buckets and concatenate
+  // Sort + concatenate: O(n) expected if uniform
   return buckets.flatMap((bucket) => insertionSort(bucket))
 }
 ```
 
 | Property | Value                                |
 | -------- | ------------------------------------ |
-| Time     | O(n + k) avg, O(n²) worst            |
-| Space    | O(n + k)                             |
+| Time     | O(n) expected, O(n²) worst           |
+| Space    | O(n + k) where k = bucket count      |
 | Stable   | Depends on bucket sorting algorithm  |
 | Use case | Uniformly distributed floating point |
 
-**Practical applications**: Bucket Sort is ideal for uniformly distributed numeric data:
+**Why uniform distribution matters**: With n elements and n buckets, uniform distribution means each bucket gets ~1 element (expected). Insertion Sort on 1-element arrays is O(1). Total: O(n) distribution + O(n × 1) sorting = O(n). Skewed distribution (all elements in one bucket) degrades to O(n²) Insertion Sort.
 
-- **Scientific computing**: Sorting sensor readings, measurement data with known ranges
-- **Geospatial systems**: Sorting coordinates (latitude -90 to 90, longitude -180 to 180)
-- **Financial analytics**: Sorting uniformly distributed price changes, percentage returns
-- **Weather systems**: Temperature data, precipitation measurements in known ranges
-- **A/B testing**: Sorting conversion rates, click-through rates (0.0 to 1.0)
-- **Computer graphics**: Sorting normalized color values (0.0 to 1.0 for RGB)
-- **Statistical analysis**: Sorting probability distributions, random samples
+**Choosing bucket count**: Too few buckets → many elements per bucket → slower sorting. Too many buckets → wasted space + overhead. Rule of thumb: use n buckets for n elements when distribution is uniform.
 
----
+**Stability**: Bucket Sort is stable if the per-bucket sort is stable and elements are placed in buckets in order. Using stable Insertion Sort and processing buckets left-to-right preserves stability.
 
-## Sorting Algorithm Comparison
+**Real-world applications**: Sorting uniformly distributed floats in [0,1) (graphics, random samples), sensor data with known ranges, geographic coordinates within bounded regions.
+
+## Algorithm Comparison
 
 ### Quick Reference Table
 
-| Algorithm      | Best       | Average    | Worst      | Space    | Stable | In-place |
+| Algorithm      | Best       | Average    | Worst      | Space    | Stable | Adaptive |
 | -------------- | ---------- | ---------- | ---------- | -------- | ------ | -------- |
 | Bubble Sort    | O(n)       | O(n²)      | O(n²)      | O(1)     | Yes    | Yes      |
-| Selection Sort | O(n²)      | O(n²)      | O(n²)      | O(1)     | No     | Yes      |
+| Selection Sort | O(n²)      | O(n²)      | O(n²)      | O(1)     | No     | No       |
 | Insertion Sort | O(n)       | O(n²)      | O(n²)      | O(1)     | Yes    | Yes      |
 | Merge Sort     | O(n log n) | O(n log n) | O(n log n) | O(n)     | Yes    | No       |
-| Quick Sort     | O(n log n) | O(n log n) | O(n²)      | O(log n) | No     | Yes      |
-| Heap Sort      | O(n log n) | O(n log n) | O(n log n) | O(1)     | No     | Yes      |
-| Counting Sort  | O(n + k)   | O(n + k)   | O(n + k)   | O(n + k) | Yes    | No       |
-| Radix Sort     | O(nk)      | O(nk)      | O(nk)      | O(n + k) | Yes    | No       |
-| Bucket Sort    | O(n + k)   | O(n + k)   | O(n²)      | O(n + k) | Yes    | No       |
+| Quick Sort     | O(n log n) | O(n log n) | O(n²)      | O(log n) | No     | No       |
+| Heap Sort      | O(n log n) | O(n log n) | O(n log n) | O(1)     | No     | No       |
+| Counting Sort  | O(n + k)   | O(n + k)   | O(n + k)   | O(n + k) | Yes    | N/A      |
+| Radix Sort     | O(dn)      | O(dn)      | O(dn)      | O(n + k) | Yes    | N/A      |
+| Bucket Sort    | O(n)       | O(n)       | O(n²)      | O(n + k) | Yes*   | N/A      |
 
-### Decision Tree: Which Sort to Use?
+*Bucket Sort stability depends on the per-bucket sorting algorithm used.
 
+### Decision Flowchart
+
+<figure>
+
+```mermaid
+flowchart TD
+    START["Need to sort"] --> Q1{"Data type?"}
+
+    Q1 -->|"Integers, small range k ≤ n"| COUNTING["Counting Sort<br/>O(n + k)"]
+    Q1 -->|"Fixed-width integers"| RADIX["Radix Sort<br/>O(d × n)"]
+    Q1 -->|"Uniform floats [0,1)"| BUCKET["Bucket Sort<br/>O(n) expected"]
+    Q1 -->|"General comparable"| Q2{"Stability needed?"}
+
+    Q2 -->|"Yes"| Q3{"Array or linked list?"}
+    Q2 -->|"No"| Q4{"Guaranteed O(n log n)?"}
+
+    Q3 -->|"Linked list"| MERGE["Merge Sort<br/>O(1) space for lists"]
+    Q3 -->|"Array, n < 50"| INSERT["Insertion Sort"]
+    Q3 -->|"Array, n ≥ 50"| MERGE
+
+    Q4 -->|"Yes, O(1) space"| HEAP["Heap Sort"]
+    Q4 -->|"Yes, O(n) space OK"| MERGE
+    Q4 -->|"No, fastest average"| QUICK["Quick Sort<br/>(randomized pivot)"]
 ```
-Is stability required?
-├── Yes
-│   ├── Need guaranteed O(n log n)? → Merge Sort
-│   ├── Small array (n < 20)? → Insertion Sort
-│   └── Integers with small range? → Counting Sort
-└── No
-    ├── Need guaranteed O(n log n) + O(1) space? → Heap Sort
-    ├── Practical fastest (general case)? → Quick Sort
-    ├── Many duplicates? → 3-Way Quick Sort
-    └── Integers with known range? → Radix Sort
-```
 
----
+<figcaption>Algorithm selection based on data constraints and requirements</figcaption>
+</figure>
 
 ## Why Quick Sort Beats Heap Sort in Practice
 
@@ -756,494 +733,114 @@ Despite Quick Sort's advantages, Heap Sort has its place:
 
 **Bottom line**: Use Quick Sort (with randomized pivot) as your default. The theoretical worst case is a non-issue in practice, and the real-world performance gains from cache efficiency and lower constant factors are substantial.
 
----
+## Production Hybrid Algorithms
 
-## Practical Usage Guide: When to Use Each Algorithm
+Modern language runtimes don't use any single algorithm—they combine multiple approaches to exploit each algorithm's strengths while avoiding its weaknesses.
 
-Understanding which sorting algorithm to use in real-world scenarios is crucial. Here's a comprehensive guide based on practical constraints.
+### Tim Sort (Python, Java Objects, JavaScript)
 
-### Insertion Sort: The Small Array Champion
+Tim Sort, developed by Tim Peters for Python in 2002, combines Merge Sort and Insertion Sort. It exploits a key observation: real-world data often contains pre-existing order ("runs").
 
-**Use when:**
+**How it works**:
 
-- Array size is small (n < 20-50 elements)
-- Data is nearly sorted (few inversions)
-- Online sorting (elements arrive one at a time)
-- Stability is required with minimal overhead
+1. Scan the array for natural runs (already sorted sequences, including reversed ones which are flipped)
+2. Ensure minimum run length (typically 32-64) by extending short runs with Insertion Sort
+3. Merge runs using an optimized merge that includes "galloping mode" when one run dominates
 
-**Real-world examples:**
+**Why it's effective**: On random data, Tim Sort performs like Merge Sort. On partially sorted data (common in practice—appending to sorted lists, nearly-sorted databases), it approaches O(n) because natural runs require minimal merging.
 
-```typescript
-// 1. Hybrid sort base case (Tim Sort, Introsort)
-function hybridSort(arr: number[], low: number, high: number): void {
-  if (high - low < 32) {
-    insertionSort(arr, low, high) // Small subarray
-    return
-  }
-  // ... continue with Quick Sort or Merge Sort
-}
+### Introsort (C++ STL)
 
-// 2. Maintaining a sorted small collection
-class TopScores {
-  private scores: number[] = []
+Introsort (introspective sort), invented by David Musser in 1997, starts with Quick Sort but monitors recursion depth. If depth exceeds 2 × log₂(n), it switches to Heap Sort to guarantee O(n log n) worst case. For small subarrays (typically n < 16), it uses Insertion Sort.
 
-  addScore(score: number): void {
-    // Insert in sorted position - O(k) for k scores
-    let i = this.scores.length - 1
-    this.scores.push(score)
-    while (i >= 0 && this.scores[i] > score) {
-      this.scores[i + 1] = this.scores[i]
-      i--
-    }
-    this.scores[i + 1] = score
-  }
-}
+**Design insight**: Introsort gets Quick Sort's average-case speed (cache locality, low constant factors) with Heap Sort's worst-case guarantee—the best of both worlds.
 
-// 3. Nearly sorted data (e.g., log files with minor timestamp issues)
-// If only a few elements are out of place, Insertion Sort is O(n)
-```
+### Pattern-Defeating Quicksort (pdqsort) (Go, Rust unstable)
 
-**Why it works**: For small arrays, the overhead of divide-and-conquer (function calls, index calculations) exceeds the benefit. Insertion Sort's simplicity and cache-friendly sequential access win.
+pdqsort, created by Orson Peters, extends Introsort with pattern detection. It recognizes sorted, reverse-sorted, and equal-element sequences, handling them in O(n) time. It also uses BlockQuicksort's branchless partitioning for better branch prediction on random data.
 
----
+**Adoption**: Go switched to pdqsort in Go 1.19 (via `slices.Sort` in Go 1.22+). Rust uses pdqsort for `sort_unstable`. Benchmarks show 2-60× speedup over traditional Quick Sort on patterned data.
 
-### Quick Sort: The General-Purpose Workhorse
+### Language Standard Library Implementations
 
-**Use when:**
+| Language   | Stable Sort           | Unstable Sort      | Notes                                                                 |
+| ---------- | --------------------- | ------------------ | --------------------------------------------------------------------- |
+| JavaScript | Tim Sort              | —                  | Stable required since ES2019 ([V8 blog](https://v8.dev/features/stable-sort)) |
+| Python     | Tim Sort              | —                  | `list.sort()` and `sorted()` both stable                              |
+| Java       | Tim Sort (Objects)    | Dual-pivot Quick Sort (primitives) | Objects need stability; primitives prioritize speed |
+| C++        | —                     | Introsort          | `std::stable_sort` uses Merge Sort; `std::sort` uses Introsort        |
+| Go         | —                     | pdqsort            | Since Go 1.19; `slices.Sort` in Go 1.22+                              |
+| Rust       | Tim Sort              | pdqsort            | `sort()` vs `sort_unstable()`                                         |
 
-- General-purpose sorting needed
-- Stability not required
-- Average-case performance matters most
-- Memory is constrained (need in-place)
-
-**Real-world examples:**
-
-```typescript
-// 1. Sorting user-generated data
-function sortUserPosts(posts: Post[]): Post[] {
-  return posts.sort((a, b) => b.timestamp - a.timestamp)
-  // Most languages use Quick Sort or hybrid internally
-}
-
-// 2. Database query results (when no index available)
-// Quick Sort's cache efficiency makes it ideal for in-memory sorting
-
-// 3. Competitive programming - fast and simple
-function solve(arr: number[]): number {
-  arr.sort((a, b) => a - b) // Quick Sort under the hood
-  // ... solve problem with sorted array
-}
-```
-
-**Avoid when:**
-
-- Adversarial input possible without randomization
-- Absolute worst-case guarantees needed
-- Stability required
-
----
-
-### Merge Sort: The Stable Guarantee
-
-**Use when:**
-
-- Stability is required
-- Guaranteed O(n log n) is needed
-- Sorting linked lists
-- External sorting (disk-based)
-- Parallelization is desired
-
-**Real-world examples:**
-
-```typescript
-// 1. Multi-key sorting (stability preserves secondary order)
-interface Employee {
-  name: string
-  department: string
-  salary: number
-}
-
-function sortByDeptThenSalary(employees: Employee[]): Employee[] {
-  // First sort by salary (secondary key)
-  employees.sort((a, b) => b.salary - a.salary)
-  // Then stable sort by department (primary key)
-  // Employees within same dept remain sorted by salary
-  return stableSortByDept(employees)
-}
-
-// 2. Sorting linked lists - O(1) extra space for merge
-function sortLinkedList(head: ListNode | null): ListNode | null {
-  // Merge Sort is optimal for linked lists
-  // No random access penalty, merge is O(1) space
-}
-
-// 3. External sorting (files too large for memory)
-function externalSort(inputFile: string, outputFile: string): void {
-  // 1. Read chunks that fit in memory
-  // 2. Sort each chunk with any algorithm
-  // 3. Write sorted chunks to temp files
-  // 4. K-way merge sorted chunks (Merge Sort's merge step)
-}
-
-// 4. Counting inversions (modified merge sort)
-function countInversions(arr: number[]): number {
-  // During merge, count pairs where left[i] > right[j]
-}
-```
-
-**Why linked lists**: No random access means Quick Sort loses its cache advantage. Merge Sort's merge step only needs sequential access and can be done with O(1) extra space.
-
----
-
-### Heap Sort: The Guaranteed In-Place Option
-
-**Use when:**
-
-- Need guaranteed O(n log n) worst case
-- Need in-place sorting (O(1) extra space)
-- Finding top-k elements efficiently
-- Priority queue operations
-
-**Real-world examples:**
-
-```typescript
-// 1. Real-time systems with strict timing requirements
-function sortCriticalData(arr: number[]): void {
-  // When O(n²) worst case could cause system failure
-  heapSort(arr)
-}
-
-// 2. Finding k largest/smallest elements
-function topK(arr: number[], k: number): number[] {
-  // Build min-heap of size k
-  // O(n log k) instead of O(n log n) for full sort
-  const heap = new MinHeap()
-  for (const num of arr) {
-    heap.push(num)
-    if (heap.size() > k) heap.pop()
-  }
-  return heap.toArray()
-}
-
-// 3. Priority queue / task scheduling
-class TaskScheduler {
-  private heap = new MaxHeap<Task>()
-
-  addTask(task: Task): void {
-    this.heap.push(task) // O(log n)
-  }
-
-  getNextTask(): Task {
-    return this.heap.pop() // O(log n)
-  }
-}
-
-// 4. Median maintenance (two heaps)
-class MedianFinder {
-  private maxHeap = new MaxHeap() // Lower half
-  private minHeap = new MinHeap() // Upper half
-
-  addNum(num: number): void {
-    // Maintain balanced heaps for O(1) median access
-  }
-}
-```
-
----
-
-### Counting Sort: The Integer Speedster
-
-**Use when:**
-
-- Sorting integers (or data mappable to integers)
-- Range of values k is O(n) or smaller
-- Stability needed with O(n) time
-
-**Real-world examples:**
-
-```typescript
-// 1. Sorting exam scores (0-100)
-function sortScores(scores: number[]): number[] {
-  // k = 101, so O(n + k) = O(n)
-  return countingSort(scores, 0, 100)
-}
-
-// 2. Sorting characters in a string
-function sortString(s: string): string {
-  const count = new Array(26).fill(0)
-  for (const c of s) count[c.charCodeAt(0) - 97]++
-
-  let result = ""
-  for (let i = 0; i < 26; i++) {
-    result += String.fromCharCode(i + 97).repeat(count[i])
-  }
-  return result
-}
-
-// 3. Age-based sorting (0-150)
-function sortByAge(people: Person[]): Person[] {
-  // Use counting sort as subroutine for O(n) sorting
-}
-
-// 4. Histogram / frequency analysis
-function getHistogram(data: number[], maxVal: number): number[] {
-  const counts = new Array(maxVal + 1).fill(0)
-  for (const val of data) counts[val]++
-  return counts
-}
-```
-
-**Avoid when:**
-
-- Range k >> n (wastes space and time)
-- Floating point numbers
-- Complex objects without integer keys
-
----
-
-### Radix Sort: The Fixed-Width Specialist
-
-**Use when:**
-
-- Sorting fixed-width integers or strings
-- Large datasets with bounded value range
-- Need O(n) time complexity
-
-**Real-world examples:**
-
-```typescript
-// 1. Sorting IP addresses
-function sortIPAddresses(ips: string[]): string[] {
-  // Convert to 32-bit integers
-  // Radix sort with base 256 (4 passes for 4 bytes)
-}
-
-// 2. Sorting phone numbers
-function sortPhoneNumbers(phones: string[]): string[] {
-  // Fixed 10-digit format
-  // LSD radix sort: 10 passes for 10 digits
-}
-
-// 3. Sorting fixed-length strings (e.g., product codes)
-function sortProductCodes(codes: string[]): string[] {
-  // "ABC-12345" format
-  // MSD radix sort for strings
-}
-
-// 4. Suffix arrays (specialized string algorithms)
-// Radix sort is used in linear-time suffix array construction
-
-// 5. Sorting database records by ID
-function sortByID(records: Record[]): Record[] {
-  // If ID is 64-bit integer: 8 passes with base 256
-  // O(8n) = O(n)
-}
-```
-
----
-
-### Bucket Sort: The Distribution Optimizer
-
-**Use when:**
-
-- Data is uniformly distributed
-- Floating point numbers in a known range
-- Can guarantee good distribution into buckets
-
-**Real-world examples:**
-
-```typescript
-// 1. Sorting uniformly distributed floats (0 to 1)
-function sortUniformFloats(arr: number[]): number[] {
-  const n = arr.length
-  const buckets: number[][] = Array.from({ length: n }, () => [])
-
-  for (const num of arr) {
-    const idx = Math.floor(num * n)
-    buckets[Math.min(idx, n - 1)].push(num)
-  }
-
-  // Each bucket has ~1 element on average
-  return buckets.flatMap((b) => insertionSort(b))
-}
-
-// 2. Geographic data (latitude/longitude)
-function sortByLatitude(locations: Location[]): Location[] {
-  // Latitudes are -90 to 90, fairly uniform
-  // Bucket by latitude ranges
-}
-
-// 3. Sorting test scores for grading curves
-function sortForCurve(scores: number[]): number[] {
-  // Scores often follow normal distribution
-  // Bucket sort with appropriate bucket boundaries
-}
-```
-
-**Avoid when:**
-
-- Data is highly skewed (all elements in one bucket → O(n²))
-- Distribution is unknown
-
----
-
-### Selection Sort: The Minimal-Write Expert
-
-**Use when:**
-
-- Writes are extremely expensive (flash memory, EEPROM)
-- Need exactly n-1 swaps
-- Educational purposes
-
-**Real-world examples:**
-
-```typescript
-// 1. Sorting on flash memory with limited write cycles
-function sortFlashMemory(arr: number[]): void {
-  // Selection sort: exactly n-1 writes
-  // Other sorts may do O(n log n) writes
-  selectionSort(arr)
-}
-
-// 2. Physical sorting (moving physical objects)
-// Minimizing moves is more important than comparisons
-```
-
----
-
-### Summary: Algorithm Selection Flowchart
-
-```
-Start
-  │
-  ▼
-Is n < 50? ──Yes──→ Insertion Sort
-  │
-  No
-  │
-  ▼
-Are values integers with small range? ──Yes──→ Counting Sort
-  │
-  No
-  │
-  ▼
-Are values fixed-width integers? ──Yes──→ Radix Sort
-  │
-  No
-  │
-  ▼
-Is data uniformly distributed floats? ──Yes──→ Bucket Sort
-  │
-  No
-  │
-  ▼
-Is stability required?
-  │
-  ├──Yes──→ Is it a linked list? ──Yes──→ Merge Sort (O(1) space)
-  │                │
-  │                No
-  │                │
-  │                ▼
-  │         Merge Sort
-  │
-  No
-  │
-  ▼
-Need guaranteed O(n log n)? ──Yes──→ Need O(1) space? ──Yes──→ Heap Sort
-  │                                       │
-  No                                      No
-  │                                       │
-  ▼                                       ▼
-Quick Sort (randomized)              Merge Sort
-```
-
-### Language Standard Library Choices
-
-| Language   | Array Sort         | Notes                                                                 |
-| ---------- | ------------------ | --------------------------------------------------------------------- |
-| JavaScript | Tim Sort (V8)      | Stable since ES2019 ([V8](https://v8.dev/features/stable-sort))       |
-| Python     | Tim Sort           | Stable, hybrid                                                        |
-| Java       | Tim Sort (objects) | Dual-pivot Quick Sort (prims)                                         |
-| C++        | Introsort          | Quick + Heap + Insertion                                              |
-| Go         | pdqsort            | Since Go 1.19 ([Go Issue](https://github.com/golang/go/issues/50154)) |
-| Rust       | Tim Sort (stable)  | pdqsort (unstable)                                                    |
-
-**Key insight**: Production implementations are always hybrids that combine the strengths of multiple algorithms.
-
----
-
-## Advanced Topics
-
-### Tim Sort (Used in Python, Java, JavaScript)
-
-Tim Sort is a hybrid of Merge Sort and Insertion Sort, developed by Tim Peters for Python in 2002 ([V8 Blog](https://v8.dev/blog/array-sort)):
-
-1. Divide array into "runs" (32-64 elements)
-2. Sort runs with Insertion Sort
-3. Merge runs with optimized Merge Sort
-
-Key optimizations:
-
-- Galloping mode for large differences
-- Exploit existing order in data
-- Minimum run length calculation
-
-### Introsort (Used in C++ STL)
-
-Introsort (introspective sort) was invented by David Musser in 1997 ([Wikipedia](https://en.wikipedia.org/wiki/Introsort)). It's a hybrid of Quick Sort, Heap Sort, and Insertion Sort:
-
-1. Start with Quick Sort
-2. If recursion depth exceeds 2\*log(n), switch to Heap Sort
-3. For small subarrays, use Insertion Sort
-
-Guarantees O(n log n) worst case while being practical.
+**Key insight**: Every production implementation is a hybrid. The choice reflects trade-offs: stability (Tim Sort for objects), raw speed (pdqsort for unstable), or guaranteed worst-case (Introsort).
 
 ### Parallel Sorting
 
-- Merge Sort: Natural parallelism in divide step
-- Quick Sort: Can parallelize recursive calls
-- Sample Sort: Extension of Quick Sort for distributed systems
-- Bitonic Sort: Designed for parallel architectures
+For multi-core systems, parallelization can significantly reduce wall-clock time:
 
----
+- **Merge Sort**: Natural parallelism—each recursive subproblem is independent. Split work across cores, then merge results.
+- **Quick Sort**: Parallelize left and right partitions after each pivot selection. Less balanced than Merge Sort due to pivot variance.
+- **Sample Sort**: Extension of Quick Sort for distributed systems. Sample elements to choose good splitters, distribute to processors, sort locally, merge.
+- **Bitonic Sort**: O(n log² n) comparisons but highly parallel (O(log² n) parallel steps). Used in GPU sorting where massive parallelism compensates for extra work.
 
-## Key Takeaways
+## Conclusion
 
-### Choosing the Right Algorithm
+Sorting algorithm selection depends on three factors: **data characteristics**, **system constraints**, and **requirements**.
 
-1. **General-purpose sorting**: Quick Sort (with randomized pivot) offers the best practical performance for most use cases
-2. **Stability required**: Merge Sort maintains relative order of equal elements, crucial for multi-key sorting
-3. **Small datasets**: Insertion Sort outperforms complex algorithms when n < 20 due to lower overhead
-4. **Guaranteed performance**: Heap Sort provides O(n log n) worst case with O(1) space; Merge Sort provides the same with stability
-5. **Integer-specific optimizations**: Counting and Radix Sort achieve O(n) time when value ranges are constrained
-6. **Uniformly distributed data**: Bucket Sort excels with floating-point numbers in known ranges
+For general-purpose sorting on comparable data, use your language's default—modern implementations (Tim Sort, Introsort, pdqsort) are highly optimized hybrids. For integers with bounded range, Counting Sort or Radix Sort achieve O(n). For stability, Merge Sort or Tim Sort. For guaranteed O(n log n) in O(1) space, Heap Sort.
 
-### Understanding the Trade-offs
+The Ω(n log n) lower bound for comparison sorts is mathematical—you cannot do better without exploiting input structure. Non-comparison sorts (Counting, Radix, Bucket) trade generality for speed by examining values directly.
 
-- **Time vs Space**: Merge Sort sacrifices O(n) extra space for guaranteed O(n log n); Quick Sort uses O(log n) stack but risks O(n²)
-- **Stability vs Performance**: Stable sorts preserve order but may be slower; Quick Sort trades stability for speed
-- **Cache locality matters**: Quick Sort's sequential access pattern significantly outperforms Heap Sort's random jumps
-- **Production implementations**: Real-world sorting uses hybrid algorithms (Tim Sort, Introsort) that combine multiple approaches
+In practice, cache locality and branch prediction often matter more than asymptotic complexity. Quick Sort's 2-3× advantage over Heap Sort comes from sequential memory access, not Big-O. Profile before optimizing.
 
-### Practical Application Principles
+## Appendix
 
-1. **Know your data characteristics**: Is it nearly sorted? Uniformly distributed? Contains duplicates?
-2. **Consider system constraints**: Memory limits, real-time requirements, write costs
-3. **Leverage language defaults**: Modern standard libraries provide highly optimized implementations
-4. **Profile before optimizing**: Measure actual performance rather than assuming based on Big-O alone
-5. **Use sorting as a tool**: Many complex problems become trivial after sorting (interval merging, finding duplicates, etc.)
+### Prerequisites
 
-The best sorting algorithm isn't determined by theoretical complexity alone—it depends on data characteristics, system constraints, and practical performance requirements.
+- Big-O notation and complexity analysis
+- Basic data structures (arrays, linked lists, heaps)
+- Understanding of recursion and divide-and-conquer strategies
 
-## References
+### Terminology
 
-- [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/) - Comprehensive algorithm analysis including comparison sort lower bound proofs
-- [Algorithms, 4th Edition (Sedgewick & Wayne)](https://algs4.cs.princeton.edu/) - Practical algorithm analysis with comparison counts
-- [The Art of Computer Programming, Vol. 3](https://www-cs-faculty.stanford.edu/~knuth/taocp.html) - Knuth's definitive sorting reference
-- [Tim Sort](https://en.wikipedia.org/wiki/Timsort) - Python and Java's hybrid sorting algorithm
-- [Introsort](https://en.wikipedia.org/wiki/Introsort) - C++ STL's introspective sort implementation
-- [Pattern-defeating Quicksort](https://github.com/orlp/pdqsort) - Go and Rust's optimized quicksort
-- [V8 Array.sort() Implementation](https://v8.dev/blog/array-sort) - JavaScript engine sorting internals
+- **Stable sort**: A sort that preserves the relative order of elements with equal keys
+- **In-place sort**: A sort that uses O(1) or O(log n) auxiliary space (not counting the input array)
+- **Adaptive sort**: A sort whose performance improves when input is partially sorted
+- **Comparison sort**: A sort that only examines elements through pairwise comparisons
+- **Non-comparison sort**: A sort that examines element values directly (digits, ranges)
+- **Inversion**: A pair of elements (i, j) where i < j but arr[i] > arr[j]
+- **Run**: A maximal sequence of consecutive elements that is already sorted
+
+### Summary
+
+- **Comparison sorts** are bounded by Ω(n log n)—proven via decision tree argument
+- **Quick Sort** dominates general-purpose sorting due to cache locality and low constants, despite O(n²) worst case
+- **Merge Sort** is preferred when stability or guaranteed O(n log n) is required
+- **Heap Sort** is the only comparison sort that's both in-place and guaranteed O(n log n)
+- **Non-comparison sorts** (Counting, Radix, Bucket) achieve O(n) with input constraints
+- **Production sorts** (Tim Sort, Introsort, pdqsort) are hybrids that detect patterns and switch strategies
+
+### References
+
+**Specifications and Foundational Texts:**
+
+- [Introduction to Algorithms (CLRS), 4th Edition](https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/) - Chapter 8.1: Comparison sort lower bound proofs; Chapter 7: Quicksort; Chapter 6: Heapsort
+- [Algorithms, 4th Edition (Sedgewick & Wayne)](https://algs4.cs.princeton.edu/) - Chapters 2.1-2.4: Sorting implementations with empirical analysis
+- [The Art of Computer Programming, Vol. 3: Sorting and Searching](https://www-cs-faculty.stanford.edu/~knuth/taocp.html) - Knuth's definitive reference
+
+**Algorithm Papers and Design Documents:**
+
+- [Pattern-defeating Quicksort (pdqsort)](https://arxiv.org/abs/2106.05123) - Orson Peters' algorithm combining Quick Sort, Heap Sort, and pattern detection
+- [Introsort (Wikipedia)](https://en.wikipedia.org/wiki/Introsort) - David Musser's 1997 introspective sort combining Quick Sort and Heap Sort
+- [Tim Sort (Wikipedia)](https://en.wikipedia.org/wiki/Timsort) - Tim Peters' 2002 hybrid Merge Sort + Insertion Sort
+
+**Implementation References:**
+
+- [V8 Array.sort() Implementation](https://v8.dev/blog/array-sort) - JavaScript engine Tim Sort implementation details
 - [V8 Stable Sort](https://v8.dev/features/stable-sort) - ECMAScript 2019 stable sort requirement
-- [Go pdqsort Issue](https://github.com/golang/go/issues/50154) - Discussion and implementation of pdqsort in Go 1.19
-- [Intel 64 and IA-32 Optimization Manual](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html) - CPU cache behavior and latency
+- [Go pdqsort Issue #50154](https://github.com/golang/go/issues/50154) - Go 1.19 pdqsort adoption discussion
+- [pdqsort GitHub Repository](https://github.com/orlp/pdqsort) - Reference implementation
+
+**Performance Analysis:**
+
+- [Intel 64 and IA-32 Architectures Optimization Reference Manual](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html) - CPU cache behavior, memory latency, branch prediction

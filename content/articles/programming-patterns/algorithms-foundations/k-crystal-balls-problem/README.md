@@ -1,338 +1,412 @@
 # K-Crystal Balls Problem: Jump Search Pattern
 
-This note explains how to derive the optimal jump size of `n^(1/k)` for the k-crystal-balls problem.
+The K-crystal balls (or K-egg drop) problem demonstrates how constrained resources fundamentally change optimal search strategy. With unlimited test resources, binary search achieves O(log n). With exactly k resources that are consumed on failure, the optimal worst-case complexity becomes O(n^(1/k))—a jump search pattern where each resource enables one level of hierarchical partitioning.
 
 <figure>
 
 ```mermaid
-flowchart LR
-    subgraph "k=1"
-        L1["Linear O(n)"]
+flowchart TB
+    subgraph "Strategy Evolution by Resource Count"
+        direction TB
+
+        subgraph K1["k=1: Linear Only"]
+            L1["1→2→3→...→n"]
+        end
+
+        subgraph K2["k=2: Jump + Linear"]
+            J2["Jump √n"] --> S2["Linear √n"]
+        end
+
+        subgraph K3["k=3: Jump² + Jump + Linear"]
+            J31["Jump n^(2/3)"] --> J32["Jump n^(1/3)"] --> S3["Linear n^(1/3)"]
+        end
+
+        subgraph KINF["k=∞: Binary Search"]
+            B["Halve repeatedly → log n"]
+        end
     end
 
-    subgraph "k=2"
-        J2["Jump √n"] --> L2["Linear √n"]
-        style J2 fill:#e3f2fd
-    end
-
-    subgraph "k=3"
-        J31["Jump n^(2/3)"] --> J32["Jump n^(1/3)"] --> L3["Linear n^(1/3)"]
-        style J31 fill:#e8f5e9
-        style J32 fill:#e8f5e9
-    end
-
-    subgraph "Complexity"
-        C1["O(n)"]
-        C2["O(√n)"]
-        C3["O(n^(1/3))"]
-    end
+    K1 -.->|"Add resource"| K2
+    K2 -.->|"Add resource"| K3
+    K3 -.->|"..."| KINF
 ```
 
-<figcaption>K crystal balls problem: more balls enable larger jumps, reducing worst-case complexity from O(n) to O(n^(1/k))</figcaption>
+<figcaption>Resource count determines search depth: each additional resource enables one more level of hierarchical partitioning, reducing worst-case from O(n) toward O(log n).</figcaption>
 
 </figure>
 
-## TLDR
+## Abstract
 
-**K Crystal Balls** is an optimization problem demonstrating how additional resources (balls) enable more aggressive search strategies.
+The K-crystal balls problem models **threshold detection with consumable test resources**—a pattern appearing in software version bisection, network MTU discovery, and reliability testing.
 
-### Core Formula
+**Core insight**: When resources are limited, balance work across all phases by making each phase contribute equally to worst-case cost. For k resources and n positions:
 
-- **Jump size**: n^(1/k) where k = number of balls
-- **Worst-case drops**: k × n^(1/k)
-- **Complexity**: O(n^(1/k)) for fixed k
+- **Jump size at phase i**: $n^{(k-i)/k}$
+- **Worst-case operations**: $k \cdot n^{1/k}$
+- **Complexity**: $O(n^{1/k})$ for fixed k
 
-### Key Cases
+The formula emerges from setting all phase costs equal and solving the resulting geometric sequence. This isn't arbitrary—it's the unique configuration where no phase can be improved without making another worse.
 
-- **k=1**: Linear search only, O(n) drops (can't risk breaking the single ball)
-- **k=2**: Jump by √n, then linear search; 2√n drops worst case
-- **k=3**: Two jump phases then linear; 3 × ∛n drops worst case
-- **k=∞**: Binary search, O(log n) drops
+| Resources (k) | Jump Pattern | Worst Case | Complexity |
+|---------------|--------------|------------|------------|
+| 1 | Linear only | n | O(n) |
+| 2 | √n → linear | 2√n | O(√n) |
+| 3 | n^(2/3) → n^(1/3) → linear | 3·∛n | O(∛n) |
+| k | n^((k-1)/k) → ... → n^(1/k) → 1 | k·n^(1/k) | O(n^(1/k)) |
+| log n | 2 → 2 → ... | 2·log n | O(log n) |
 
-### The Insight
+## Problem Definition
 
-- Balance work across all k phases by making each phase do equal work
-- If phases are unequal, redistribute effort to minimize the maximum
-- Setting all terms equal gives n/j₁ = j₁/j₂ = ... = j\_{k-1} = x, solving to x = n^(1/k)
+Given k identical crystal balls and a structure with n floors, find the exact threshold floor where balls start breaking using minimum drops in the **worst case**.
 
-## Problem Recap
+**Formal model**:
+- Floors form a sorted boolean array: `[false, false, ..., false, true, true, ..., true]`
+- All floors below threshold are safe (false); threshold and above break (true)
+- A broken ball is permanently consumed
+- **Objective**: Minimize maximum drops across all possible threshold positions
 
-Given `k` identical crystal balls and a building with `n` floors, find the exact floor where balls start breaking using the minimum number of drops in the **worst case**.
+**Why worst-case matters**: In production systems, you often can't afford to rely on average-case luck. The worst-case bound guarantees performance regardless of where the threshold lies.
 
-- Floors are represented as a sorted boolean array: all `false` (safe) followed by all `true` (breaks)
-- Once a ball breaks, it's gone
-- Goal: Minimize the worst-case number of drops
+## Why Binary Search Fails
 
-## Building Intuition: Start with k = 1, 2, 3
+Binary search seems natural—it's optimal for searching sorted data. With k=2 balls and n=100 floors:
 
-### Case k = 1 (One Ball)
+1. Drop from floor 50
+2. If it breaks, you have 1 ball left and must linear search floors 1-49
+3. Worst case: 1 + 49 = 50 drops
 
-With only one ball, we can't risk breaking it early. We must check floors sequentially.
+The problem: **binary search assumes tests are non-destructive**. When a test consumes the resource on failure, the search space constraints change asymmetrically. After a break, you lose both the ball and the ability to take risks.
 
-**Strategy**: Linear search from floor 1 to n
+This asymmetry is why the optimal strategy for k=2 isn't "binary then linear" (worst case ~n/2) but "jump √n then linear" (worst case 2√n). The sqrt improvement comes from properly accounting for resource consumption.
 
-**Worst case**: `n` drops
+## Building the Solution: k=1, k=2, k=3
+
+### Case k=1: No Risk Tolerance
+
+With one ball, any break ends the search without finding the threshold. The only safe strategy is linear search.
+
+**Strategy**: Test floors 1, 2, 3, ..., n sequentially
+
+**Worst case**: n drops (threshold is at floor n)
 
 **Complexity**: O(n)
 
----
+This establishes the baseline—with zero tolerance for resource loss, you cannot exploit structure.
 
-### Case k = 2 (Two Balls)
+### Case k=2: One Exploratory Break Allowed
 
-With two balls, we can afford one "exploratory" break.
-
-**Strategy**:
-
-1. Jump by some interval `j` with the first ball
-2. When it breaks, linear search the previous `j` floors with the second ball
-
-**Analysis**:
-
-- Number of jumps: `n/j`
-- Linear search after break: `j` (worst case)
-- Total drops: `n/j + j`
-
-**Optimization**: Minimize `f(j) = n/j + j`
-
-Take derivative: `f'(j) = -n/j² + 1 = 0`
-
-Solve: `j² = n` → `j = √n = n^(1/2)`
-
-**Worst case**: `n/√n + √n = 2√n`
-
-**Complexity**: O(n^(1/2)) = O(√n)
-
----
-
-### Case k = 3 (Three Balls)
-
-With three balls, we have two "exploratory" breaks before falling back to linear search.
+With two balls, you can afford one "exploratory" break before falling back to linear search.
 
 **Strategy**:
-
-1. Jump by interval `j₁` with the first ball
-2. When it breaks, jump by interval `j₂` within that segment with the second ball
-3. When it breaks, linear search with the third ball
+1. Jump by interval j with the first ball
+2. When it breaks at some floor, linear search the previous j floors with the second ball
 
 **Analysis**:
+- Number of jumps before break: at most ⌈n/j⌉
+- Linear search after break: at most j-1 steps
+- Total worst case: n/j + j (approximately)
 
-- First phase jumps: `n/j₁`
-- Second phase jumps: `j₁/j₂`
-- Linear search: `j₂`
-- Total: `n/j₁ + j₁/j₂ + j₂`
+**Optimization**: Minimize f(j) = n/j + j
 
-**Optimization**: To minimize, all three terms should be equal.
+Taking the derivative:
+$$f'(j) = -\frac{n}{j^2} + 1 = 0$$
 
-Set `n/j₁ = j₁/j₂ = j₂ = x`
+Solving:
+$$j^2 = n \implies j = \sqrt{n}$$
 
-- From `j₂ = x`: j₂ = x
-- From `j₁/j₂ = x`: j₁ = x · j₂ = x²
-- From `n/j₁ = x`: n = x · j₁ = x · x² = x³
+Second derivative confirms minimum: $f''(j) = \frac{2n}{j^3} > 0$
 
-Therefore: `x = n^(1/3)`
+**Worst case**: $\frac{n}{\sqrt{n}} + \sqrt{n} = 2\sqrt{n}$
+
+**Complexity**: O(√n)
+
+### Case k=3: Two Exploratory Breaks
+
+With three balls, you can partition twice before linear search.
+
+**Strategy**:
+1. Jump by j₁ with the first ball
+2. Within the broken segment, jump by j₂ with the second ball
+3. Linear search the final segment with the third ball
+
+**Analysis**:
+- Phase 1: n/j₁ jumps
+- Phase 2: j₁/j₂ jumps
+- Phase 3: j₂ linear steps
+- Total: n/j₁ + j₁/j₂ + j₂
+
+**Optimization**: To minimize the maximum of these terms (worst case), make them equal.
+
+Set $\frac{n}{j_1} = \frac{j_1}{j_2} = j_2 = x$
+
+Working backwards:
+- $j_2 = x$
+- $j_1 = x \cdot j_2 = x^2$
+- $n = x \cdot j_1 = x \cdot x^2 = x^3$
+
+Therefore: $x = n^{1/3}$
 
 **Jump sizes**:
+- $j_1 = x^2 = n^{2/3}$
+- $j_2 = x = n^{1/3}$
 
-- j₁ = x² = n^(2/3)
-- j₂ = x = n^(1/3)
-
-**Worst case**: `3 · n^(1/3)`
+**Worst case**: $3 \cdot n^{1/3}$
 
 **Complexity**: O(n^(1/3))
 
----
+## General Pattern: k Resources
 
-## General Pattern: k Balls
+### The Hierarchical Jump Strategy
 
-### The Strategy
+With k resources, create k phases of decreasing granularity:
 
-With `k` balls, we create `k` phases:
-
-1. Phase 1: Jump by `j₁` until first ball breaks
-2. Phase 2: Within that segment, jump by `j₂` until second ball breaks
+1. **Phase 1**: Jump by $j_1$ until first resource consumed
+2. **Phase 2**: Within that segment, jump by $j_2$ until second consumed
 3. ...
-4. Phase k: Linear search (jump by 1)
+4. **Phase k**: Linear search (jump by 1)
 
-### Total Drops Formula
+### Total Operations Formula
 
-```
-Total = n/j₁ + j₁/j₂ + j₂/j₃ + ... + j_{k-1}
-```
+$$\text{Total} = \frac{n}{j_1} + \frac{j_1}{j_2} + \frac{j_2}{j_3} + \cdots + j_{k-1}$$
 
-Where `j_k = 1` (linear search in final phase).
+Where $j_k = 1$ (linear search in final phase).
 
-### Optimization Approach
+### Why Equal Terms Minimize Worst Case
 
-To minimize the maximum (worst case), we want all terms to be equal. Let each term equal `x`:
+Consider any configuration where terms are unequal. The largest term determines the worst case. By reducing the largest term (larger jumps) and increasing smaller terms (smaller jumps), we can improve overall worst case until all terms equalize.
 
-```
-n/j₁ = j₁/j₂ = j₂/j₃ = ... = j_{k-1} = x
-```
+Formally: for a fixed product of terms (constrained by n), the sum is minimized when all terms are equal (AM-GM inequality application).
 
 ### Solving the Recurrence
 
-Working backwards from the last phase:
+Set each term equal to x:
+$$\frac{n}{j_1} = \frac{j_1}{j_2} = \frac{j_2}{j_3} = \cdots = j_{k-1} = x$$
 
-```
-j_{k-1} = x                    (linear search segment size)
-j_{k-2} = x · j_{k-1} = x²
-j_{k-3} = x · j_{k-2} = x³
-...
-j₁ = x^(k-1)
-```
+Working backwards from $j_{k-1} = x$:
+
+$$j_{k-1} = x$$
+$$j_{k-2} = x \cdot j_{k-1} = x^2$$
+$$j_{k-3} = x \cdot j_{k-2} = x^3$$
+$$\vdots$$
+$$j_1 = x^{k-1}$$
 
 From the first equation:
+$$\frac{n}{j_1} = x \implies n = x \cdot j_1 = x \cdot x^{k-1} = x^k$$
 
+**Solution**: $x = n^{1/k}$
+
+### Jump Size Formula
+
+For phase i (1 ≤ i ≤ k-1):
+$$j_i = n^{(k-i)/k}$$
+
+This creates a geometric sequence of jump sizes, each smaller than the previous by factor $n^{1/k}$.
+
+### Complexity Result
+
+**Worst-case operations**: $k \cdot n^{1/k}$
+
+**Time complexity**: O(k · n^(1/k))
+
+For fixed k, this simplifies to **O(n^(1/k))**.
+
+## Design Reasoning: Why This Structure?
+
+### The Balancing Principle
+
+The solution emerges from a single insight: **balance work across phases**. Any imbalance means one phase dominates worst-case cost, and that phase could be improved by stealing resources from cheaper phases.
+
+This is the **minimax principle** in action—minimizing the maximum cost across all phases.
+
+### Why Not Variable Jump Sizes?
+
+An alternative approach uses decreasing jumps (x, x-1, x-2, ...) to account for "wasted" successful drops. This yields slightly better constants:
+
+For k=2 and n=100:
+- Fixed √n jumps: worst case ≈ 20 drops
+- Decreasing jumps (14, 13, 12, ...): worst case = 14 drops
+
+The decreasing approach satisfies $\frac{x(x+1)}{2} \geq n$, giving $x = \lceil\frac{-1 + \sqrt{1+8n}}{2}\rceil$.
+
+However, the fixed jump approach is simpler, has the same asymptotic complexity, and generalizes cleanly to k > 2.
+
+### Diminishing Returns of Additional Resources
+
+Each additional resource reduces the exponent by 1/k(k+1):
+
+| Resources | n = 1,000,000 | Improvement Factor |
+|-----------|---------------|-------------------|
+| 1 | 1,000,000 | — |
+| 2 | 2,000 | 500× |
+| 3 | 300 | 6.7× |
+| 4 | 126 | 2.4× |
+| 5 | 79 | 1.6× |
+
+The first few resources provide massive gains; subsequent ones help less. This matches intuition—once you can partition sufficiently, additional partitioning levels add diminishing value.
+
+### Connection to Binary Search
+
+When k = log₂(n), the jump size becomes approximately 2, and you get near-binary-search behavior.
+
+With unlimited resources (k → ∞), pure binary search is optimal: O(log n).
+
+The K-crystal balls problem thus interpolates between:
+- **k=1**: Linear search, no structure exploitation
+- **k=∞**: Binary search, maximum structure exploitation
+
+## Implementation
+
+```ts title="k-crystal-balls.ts" collapse={1-5, 39-50}
+/**
+ * K-Crystal Balls: Jump search with limited test resources
+ * Time: O(k * n^(1/k)) where k = number of balls
+ * Space: O(1)
+ */
+
+function findBreakingFloor(floors: boolean[], k: number): number {
+  const n = floors.length;
+  if (n === 0) return -1;
+  if (k === 0) return -1; // No resources to test
+
+  // k=1: Must use linear search
+  if (k === 1) {
+    for (let i = 0; i < n; i++) {
+      if (floors[i]) return i;
+    }
+    return -1;
+  }
+
+  // General case: Jump by n^(1/k), recurse with k-1 resources
+  const jumpSize = Math.max(1, Math.floor(Math.pow(n, (k - 1) / k)));
+
+  let lastSafe = 0;
+  let position = jumpSize;
+
+  // Phase 1: Jump search with first resource
+  while (position < n && !floors[position]) {
+    lastSafe = position;
+    position += jumpSize;
+  }
+
+  // Found segment [lastSafe, min(position, n-1)] containing threshold
+  // Recursively search with k-1 resources
+  const segmentStart = lastSafe;
+  const segmentEnd = Math.min(position, n - 1);
+  const segment = floors.slice(segmentStart, segmentEnd + 1);
+
+  const relativeIndex = findBreakingFloor(segment, k - 1);
+  return relativeIndex === -1 ? -1 : segmentStart + relativeIndex;
+}
+
+// Iterative version for k=2 (most common case)
+function twoEggDrop(floors: boolean[]): number {
+  const n = floors.length;
+  const jump = Math.floor(Math.sqrt(n));
+
+  let lastSafe = 0;
+  let pos = 0;
+
+  // Jump phase
+  while (pos < n && !floors[pos]) {
+    lastSafe = pos;
+    pos += jump;
+  }
+
+  // Linear phase
+  for (let i = lastSafe; i < Math.min(pos + 1, n); i++) {
+    if (floors[i]) return i;
+  }
+  return -1;
+}
 ```
-n/j₁ = x
-n = x · j₁ = x · x^(k-1) = x^k
+
+## Edge Cases and Failure Modes
+
+### Edge Cases
+
+| Condition | Behavior |
+|-----------|----------|
+| k = 0 | Cannot determine threshold (no test resources) |
+| k > log₂(n) | Binary search suffices; extra resources unused |
+| n = 0 | No floors to test; return -1 |
+| n = 1 | Single test determines threshold |
+| All false | No breaking floor exists; return -1 |
+| All true | Threshold at floor 0 |
+| Threshold at floor 1 | First jump overshoots; linear search finds it |
+
+### Numerical Precision
+
+For very large n, $n^{1/k}$ may have floating-point errors. Use integer-safe computation:
+
+```ts
+// Avoid: Math.pow(n, 1/k) has precision issues for large n
+// Prefer: Newton's method or integer nth-root algorithms
 ```
 
-Therefore:
+### Off-by-One Boundaries
 
-```
-x = n^(1/k)
-```
+The jump search must handle:
+- Jumping past the array bounds (clamp to n-1)
+- Segment boundaries (inclusive vs exclusive)
+- The case where threshold is exactly at a jump position
 
-### Jump Sizes
+## Real-World Applications
 
-```
-j₁ = n^((k-1)/k)
-j₂ = n^((k-2)/k)
-j₃ = n^((k-3)/k)
-...
-j_{k-1} = n^(1/k)
-```
+### Software Version Bisection
 
-### Worst-Case Drops
+**Problem**: A bug exists in version V but not version V-100. Find the introducing commit with minimal builds.
 
-Total drops = `k · x = k · n^(1/k)`
+This is k-crystal-balls with k = number of parallel build machines. With 2 machines, jump by √100 ≈ 10 versions, then linear search the breaking segment.
 
-**Complexity**: O(k · n^(1/k))
+### Network MTU Discovery
 
-For fixed k, this simplifies to **O(n^(1/k))**
+**Problem**: Find the maximum transmission unit (MTU) for a network path without excessive packet loss.
 
----
+Packets that exceed MTU are dropped (the "ball breaks"). With limited retransmission budget, jump search finds optimal MTU faster than linear probing.
 
-## Summary Table
+### Reliability Testing
 
-| Balls (k) | Jump Size    | Worst Case Drops | Complexity |
-| --------- | ------------ | ---------------- | ---------- |
-| 1         | 1            | n                | O(n)       |
-| 2         | n^(1/2) = √n | 2√n              | O(√n)      |
-| 3         | n^(1/3) = ∛n | 3·∛n             | O(n^(1/3)) |
-| 4         | n^(1/4) = ∜n | 4·∜n             | O(n^(1/4)) |
-| k         | n^(1/k)      | k·n^(1/k)        | O(n^(1/k)) |
-| log(n)    | 2            | log(n)·2         | O(log n)   |
-| ∞         | n/2 (binary) | log₂(n)          | O(log n)   |
+**Problem**: Find the load threshold where a system fails, using limited destructive test runs.
 
----
+Each test that causes failure consumes resources (hardware, time, budget). The K-crystal balls strategy minimizes tests needed to bracket the threshold.
 
-## Key Insights
+### Database Index Tuning
 
-### 1. Balancing Phases
+**Problem**: Find the selectivity threshold where an index becomes beneficial, with limited benchmark runs.
 
-The optimal solution balances the work across all phases. If any phase does more work than others, we can improve by redistributing.
+Each benchmark consumes time. Jump search with k benchmark "resources" finds the crossover point efficiently.
 
-### 2. Why Equal Terms?
+## Appendix
 
-Consider the total: `T = a₁ + a₂ + ... + aₖ`
+### Prerequisites
 
-If terms are unequal, we can reduce the maximum by:
+- Basic calculus (derivatives for optimization)
+- Understanding of time complexity notation
+- Familiarity with binary search and its assumptions
 
-- Decreasing the largest term
-- Increasing smaller terms to compensate
+### Terminology
 
-The minimum maximum occurs when all terms are equal.
+- **Threshold floor**: The lowest floor where balls break (the target to find)
+- **Worst case**: Maximum operations across all possible threshold positions
+- **Jump search**: Search strategy using fixed-size jumps followed by linear scan
+- **Consumable resource**: A test resource that is destroyed on certain outcomes
 
-### 3. The Trade-off
+### Summary
 
-More balls = more phases = each phase does less work
+- K-crystal balls models threshold detection with limited destructive tests
+- Optimal jump size at phase i is $n^{(k-i)/k}$, derived from equalizing phase costs
+- Worst-case complexity is O(n^(1/k)) for fixed k
+- k=1 gives O(n); k=∞ gives O(log n); intermediate k interpolates between these
+- Applications include version bisection, MTU discovery, and reliability testing
+- The solution demonstrates the minimax principle: balance work to minimize maximum cost
 
-```
-k=1:  [─────────────────────────────────] n drops
-k=2:  [──────√n──────][──────√n──────]   2√n drops
-k=3:  [───∛n───][───∛n───][───∛n───]     3∛n drops
-```
+### References
 
-### 4. Diminishing Returns
-
-Each additional ball helps less:
-
-| Balls | n = 1,000,000 | Improvement |
-| ----- | ------------- | ----------- |
-| 1     | 1,000,000     | -           |
-| 2     | 2,000         | 500x        |
-| 3     | 300           | 6.7x        |
-| 4     | 126           | 2.4x        |
-| 5     | 79            | 1.6x        |
-
-### 5. Connection to Binary Search
-
-When k = log₂(n), the jump size becomes approximately 2, and we approach binary search behavior.
-
-With unlimited balls (k → ∞), we get pure binary search: O(log n).
-
----
-
-## Mathematical Proof (Calculus)
-
-For those who prefer a rigorous derivation:
-
-### Lagrange Multiplier Approach
-
-Minimize `max(n/j₁, j₁/j₂, ..., j_{k-1})` subject to the constraint that we use exactly k phases.
-
-At the optimum, all terms must be equal (otherwise we could improve by adjusting).
-
-### Direct Calculus (k = 2 case)
-
-Minimize `f(j) = n/j + j`
-
-```
-f'(j) = -n/j² + 1 = 0
-j² = n
-j = √n
-```
-
-Second derivative test: `f''(j) = 2n/j³ > 0` (confirms minimum)
-
-### Generalization
-
-For k balls with function:
-
-```
-f(j₁, j₂, ..., j_{k-1}) = n/j₁ + j₁/j₂ + ... + j_{k-1}
-```
-
-Setting partial derivatives to zero and solving the system yields:
-
-```
-j_i = n^((k-i)/k)
-```
-
----
-
-## Interview Application
-
-When explaining this in an interview:
-
-1. **Start simple**: "With 2 balls, I want to balance jump size and fallback search"
-
-2. **Show the trade-off**: "Jumping by j means n/j jumps, but j linear searches if it breaks"
-
-3. **Minimize**: "To minimize n/j + j, I set them equal: n/j = j, so j = √n"
-
-4. **Generalize**: "With k balls, I have k phases. Balancing them equally gives jump size n^(1/k)"
-
-5. **Verify with example**: "For n=1000000 and k=2: √1000000 = 1000, so about 2000 drops worst case"
-
----
-
-## References
-
-- [Egg Dropping - Brilliant Math & Science Wiki](https://brilliant.org/wiki/egg-dropping/) - Comprehensive mathematical derivation with binomial approach
-- [Egg Dropping Puzzle | DP-11 - GeeksforGeeks](https://www.geeksforgeeks.org/dsa/egg-dropping-puzzle-dp-11/) - DP-based solution approaches and complexity analysis
-- [The Egg-Drop Numbers - Michael Boardman (PDF)](https://users.math.msu.edu/users/magyarp/math481/Egg-Drop-Recurrence.pdf) - Academic treatment with binomial coefficient proofs
-- [887. Super Egg Drop - LeetCode](https://leetcode.com/problems/super-egg-drop/) - The classic DP formulation
+- [Egg Dropping - Brilliant Math & Science Wiki](https://brilliant.org/wiki/egg-dropping/) - Comprehensive mathematical derivation with recurrence relations and binomial coefficient approach
+- [Egg Drop Problems: They Are All They Are Cracked Up To Be](https://arxiv.org/html/2511.18330) - Academic treatment with multidimensional generalizations and induction proofs (2025)
+- [The Egg Problem - Spencer Mortensen](https://spencermortensen.com/articles/egg-problem/) - Clear derivation of recurrence relation $D(k,t) = 1 + D(k-1,t-1) + D(k,t-1)$
+- [887. Super Egg Drop - LeetCode](https://leetcode.com/problems/super-egg-drop/) - The classic DP formulation with O(k·n·log n) solution
 - [1884. Egg Drop With 2 Eggs and N Floors - LeetCode](https://leetcode.com/problems/egg-drop-with-2-eggs-and-n-floors/) - Simplified k=2 variant
+- [Two Crystal Balls Problem - Frontend Masters](https://frontendmasters.com/courses/algorithms/two-crystal-balls-problem/) - ThePrimeagen's algorithmic treatment
+- [MIT OCW: Please Do Break the Crystal](https://ocw.mit.edu/courses/6-s095-programming-for-the-puzzled-january-iap-2018/pages/puzzle-4-please-do-break-the-crystal/) - Programming for the Puzzled course material
+- [Egg Drop Problem Applications - AlgoCademy](https://algocademy.com/blog/egg-drop-problem-a-comprehensive-guide-to-this-classic-algorithmic-challenge/) - Real-world applications including version bisection and MTU discovery

@@ -32,16 +32,19 @@ This skill produces research-driven, factually accurate content for senior/staff
 ## Workflow
 
 ### 1. Read the current article and relevant code
+
 - Identify scope, structure, and gaps.
 - Inspect local code or implementations if the article refers to them.
 - Check source code for undocumented edge cases.
 
 ### 2. Clarify the update scope
+
 - Focus only on the requested area.
 - Do not expand into unrelated topics.
 - Identify if versions have changed since the article was written.
 
 ### 3. Rigorous Research & Fact-Checking
+
 - **Hierarchy of Sources (Strict Priority):**
   1. **Specifications:** RFCs, WHATWG, ECMA-262, W3C specs. _Primary source of truth._
   2. **Official Documentation:** Vendor docs, framework guides, MDN.
@@ -52,18 +55,21 @@ This skill produces research-driven, factually accurate content for senior/staff
 - **Design Rationale:** Look for why decisions were made, not just what they are.
 
 ### 4. Target Audience Alignment (Senior/Staff/Principal)
+
 - **Assume Expertise:** The reader is highly technical. Skip beginner explanations.
 - **No Fluff:** Eliminate filler words ("basically", "simply", "in order to"). Be direct and dense.
 - **Handling Basics:** If a basic concept _must_ be defined, move it to the **Appendix** (under "Terminology" or "Prerequisites"). Keep the main body focused on advanced internals, patterns, and system design.
 - **Why and How:** Every major point should explain reasoning, not just state facts.
 
 ### 5. Plan the edits
+
 - Decide what to add, remove, or restructure.
 - Ensure design reasoning is explicit for each major choice.
 - Plan version evolution notes if behavior has changed.
 - Ensure the narrative flows logically for an advanced reader.
 
 ### 6. Apply updates
+
 - Correct inaccuracies and drift using the research hierarchy.
 - Add **design reasoning** for each major choice: why it exists, what it optimizes, what it sacrifices.
 - Add **version evolution notes**: state current version, note previous behavior where changed.
@@ -73,6 +79,7 @@ This skill produces research-driven, factually accurate content for senior/staff
 - **Code Blocks:** Keep them collapsed (`collapse={...}`) and minimal. Focus on the _diff_ or the _critical logic_.
 
 ### 7. Quality review
+
 - **Why/How Check:** Is design reasoning explicit for each major choice?
 - **Version Check:** Is current version stated? Previous behavior noted where changed?
 - **Conciseness Check:** Can this be said with fewer words without losing depth?

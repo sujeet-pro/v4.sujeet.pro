@@ -10,71 +10,33 @@ Explore libuv's event loop architecture, asynchronous I/O capabilities, thread p
 
 </figure>
 
-## TLDR
+## Abstract
 
-**Libuv** is a cross-platform asynchronous I/O library that provides Node.js with its event-driven, non-blocking architecture through a sophisticated event loop, thread pool, and platform abstraction layer.
+**libuv** (as of v1.51.0, April 2025) is a cross-platform asynchronous I/O library that provides Node.js with its event-driven, non-blocking architecture. The mental model centers on a **fundamental architectural dichotomy**:
 
-### Core Architecture Components
+| I/O Type     | Mechanism                          | Scalability                                             | Bottleneck            |
+| ------------ | ---------------------------------- | ------------------------------------------------------- | --------------------- |
+| **Network**  | Kernel polling (epoll/kqueue/IOCP) | Single thread handles thousands of connections          | Kernel limits, memory |
+| **File/DNS** | Thread pool emulation              | Limited by `UV_THREADPOOL_SIZE` (default: 4, max: 1024) | Pool saturation       |
 
-- **Event Loop**: Central orchestrator managing all I/O operations and event notifications in phases
-- **Handles**: Long-lived objects representing persistent resources (TCP sockets, timers, file watchers)
-- **Requests**: Short-lived operations for one-shot tasks (file I/O, DNS resolution, custom work)
-- **Thread Pool**: Worker threads for blocking operations that can't be made asynchronous
+**Core abstractions form a triad:**
 
-### Event Loop Phases
+- **Event Loop** (`uv_loop_t`): Single-threaded orchestrator executing callbacks in 6 phases (timers → pending → idle/prepare → poll → check → close)
+- **Handles** (`uv_handle_t`): Long-lived resources (sockets, timers, watchers) that keep the loop alive when active
+- **Requests** (`uv_req_t`): One-shot operations carrying context from initiation to completion callback
 
-- **Timers**: Execute expired setTimeout/setInterval callbacks
-- **Pending**: Handle deferred I/O callbacks from previous iteration
-- **Idle/Prepare**: Low-priority background tasks and pre-I/O preparation
-- **Poll**: Block for I/O events or timers (most critical phase)
-- **Check**: Execute setImmediate callbacks and post-I/O tasks
-- **Close**: Handle cleanup for closed resources
+**Platform abstraction unifies fundamentally different I/O models:**
 
-### Asynchronous I/O Strategies
+- **Readiness-based** (Linux epoll, BSD kqueue): "Socket X is ready" → application performs I/O
+- **Completion-based** (Windows IOCP): "Read complete, data in buffer" → application processes result
 
-- **Network I/O**: True kernel-level asynchronicity using epoll (Linux), kqueue (macOS), IOCP (Windows)
-- **File I/O**: Thread pool emulation for blocking filesystem operations
-- **DNS Resolution**: Thread pool for getaddrinfo/getnameinfo calls
-- **Custom Work**: User-defined CPU-intensive tasks via uv_queue_work
+libuv presents a completion-style API to users but must emulate completion semantics on readiness-based systems.
 
-### Platform Abstraction Layer
+**Recent evolution (v1.50.0+):** io_uring integration provides true completion-based file I/O on Linux 5.13+, with epoll batching always enabled and SQPOLL file operations opt-in via `UV_USE_IO_URING=1`. Network I/O remains single-threaded polling—io_uring network support is still RFC with no implementation timeline.
 
-- **Linux (epoll)**: Readiness-based model with efficient file descriptor polling
-- **macOS/BSD (kqueue)**: Expressive event notification for files, signals, timers
-- **Windows (IOCP)**: Completion-based model with native async file I/O support
-- **Unified API**: Consistent callback-based interface across all platforms
+## What is libuv
 
-### Thread Pool Architecture
-
-- **Global Shared Pool**: Single pool shared across all event loops in a process
-- **Configurable Size**: UV_THREADPOOL_SIZE environment variable (default: 4, max: 1024)
-- **Work Distribution**: Automatic load balancing across worker threads
-- **Performance Tuning**: Size optimization based on CPU cores and workload characteristics
-
-### Advanced Features
-
-- **Inter-thread Communication**: uv_async_send for thread-safe event loop wakeup
-- **Synchronization Primitives**: Mutexes, read-write locks, semaphores, condition variables
-- **Signal Handling**: Cross-platform signal abstraction with event loop integration
-- **Memory Management**: Reference counting with uv_ref/uv_unref for loop lifecycle control
-
-### Performance Characteristics
-
-- **Network Scalability**: Single thread can handle thousands of concurrent connections
-- **File I/O Bottlenecks**: Thread pool saturation can limit disk-bound applications
-- **Context Switching**: Minimal overhead for network operations, higher for file operations
-- **Memory Efficiency**: External buffer allocation to reduce V8 GC pressure
-
-### Recent Evolution
-
-- **io_uring Integration**: Merged support for Linux completion-based I/O for file operations (requires Linux v5.13+, ~8x throughput improvement)
-- **Dynamic Thread Pool**: Runtime resizing capabilities being developed for better resource management
-- **Performance Optimization**: Continued platform-specific enhancements and optimizations
-- **API Extensions**: New primitives for emerging use cases and requirements
-
-## What is Libuv
-
-`libuv` is a multi-platform support library with a focus on asynchronous I/O. It was primarily developed for use by Node.js, but it’s also used by Luvit, Julia, uvloop, and others.
+libuv is a multi-platform support library with a focus on asynchronous I/O. Originally developed for Node.js, it now powers Luvit, Julia, uvloop, Neovim, and others. As of v1.51.0 (April 2025), the library targets C11 and supports Linux, macOS, BSD variants, Windows 10+, and various Unix-like systems.
 
 ### Features
 
@@ -144,7 +106,9 @@ Some examples:
   - defaults to 4
   - can be increased to max. of 1024 (increased from 128 in v1.30.0)
   - threads have 8 MB stack as of v1.45.0
+  - threads named "libuv-worker" as of v1.50.0
 - Only file I/O, getaddrinfo(), getnameinfo(), custom work runs on thread pool
+- Pool is initialized lazily when first work is queued; cannot be resized at runtime
 
 #### Architecture of the Global Worker Thread Pool
 
@@ -154,7 +118,9 @@ As established previously, the thread pool is libuv's solution for emulating asy
 
 **Configuration and Sizing:** The number of threads in the pool is configurable via the UV_THREADPOOL_SIZE environment variable, which must be set at application startup ([libuv threadpool docs](https://docs.libuv.org/en/latest/threadpool.html)). The default size is 4, a number chosen as a reasonable default for typical multi-core systems. The maximum size was increased from 128 to 1024 in libuv version 1.30.0, allowing for greater concurrency on systems with heavy I/O workloads.
 
-**Performance Tuning:** Adjusting the thread pool size is a key performance tuning lever for applications that are heavily dependent on blocking operations. Increasing the number of threads can improve throughput by allowing more blocking tasks to execute in parallel. However, setting the size too high can be counterproductive, leading to excessive memory consumption (as each thread has its own stack, which [defaults to 8 MB as of v1.45.0](https://docs.libuv.org/en/latest/threadpool.html)) and increased CPU overhead from frequent context switching between a large number of threads. A common heuristic is to set the thread pool size to match the number of available CPU cores, which can be a good starting point for balancing concurrency and overhead. Recognizing the need for more flexible control, libuv maintainers are working on the ability to dynamically resize the thread pool at runtime.
+**Performance Tuning:** Adjusting the thread pool size is a key performance tuning lever for applications that are heavily dependent on blocking operations. Increasing the number of threads can improve throughput by allowing more blocking tasks to execute in parallel. However, setting the size too high can be counterproductive, leading to excessive memory consumption (as each thread has its own stack, which [defaults to 8 MB as of v1.45.0](https://docs.libuv.org/en/latest/threadpool.html)) and increased CPU overhead from frequent context switching between a large number of threads. A common heuristic is to set the thread pool size to match the number of available CPU cores, which can be a good starting point for balancing concurrency and overhead.
+
+> **Note on dynamic resizing:** A proposal for runtime thread pool resizing ([LEP-004](https://github.com/libuv/leps/blob/master/004-threadpool-handle.md)) was rejected in 2016. The libuv team determined that a pluggable API for threaded operations would better serve diverse use cases than exposing internal pool management. As of v1.51.0, the pool size remains fixed at startup.
 
 #### The uv_queue_work Lifecycle: Task Delegation and Result Passing
 
@@ -497,22 +463,70 @@ The library's dual-modality architecture—employing efficient kernel-level poll
 
 Despite its success, libuv is not without its limitations, and its continued evolution is shaped by the need to address them and adapt to new OS capabilities.
 
-**Thread Pool Bottlenecks:** The fixed-size, globally shared thread pool, while a pragmatic solution, can become a performance bottleneck in applications with high-throughput, blocking I/O or in complex scenarios with multiple, competing event loops. The work being done to allow for dynamic resizing of the thread pool at runtime is a significant and welcome enhancement that will provide applications with greater flexibility and performance tuning capabilities.
+**Thread Pool Bottlenecks:** The fixed-size, globally shared thread pool, while a pragmatic solution, can become a performance bottleneck in applications with high-throughput, blocking I/O or in complex scenarios with multiple, competing event loops. A proposal for dynamic resizing ([LEP-004](https://github.com/libuv/leps/blob/master/004-threadpool-handle.md)) was rejected; instead, the team favors a pluggable API for threaded operations that would allow custom implementations.
 
 **Context Switching Overhead:** In environments like Node.js, the bridge between the high-level language (JavaScript) and the C/C++ layer (libuv) necessarily incurs some context-switching overhead. While negligible for most applications, this can become a measurable factor in extremely I/O-intensive workloads where every microsecond counts.
 
-**The Rise of io_uring:** Perhaps the most significant development in libuv's recent history is the integration of io_uring on Linux ([merged PR #3952](https://github.com/libuv/libuv/pull/3952)). io_uring represents a paradigm shift, offering a true completion-based (Proactor) I/O interface that is designed for extremely high throughput and low overhead, often achieving zero-syscall operation for submitting and completing I/O requests. Crucially, io_uring supports both network and file I/O under the same unified, asynchronous interface.
+**The io_uring Evolution (Linux):** io_uring represents a paradigm shift, offering a true completion-based (Proactor) I/O interface designed for extremely high throughput and low overhead. libuv's io_uring integration operates in two distinct modes:
 
-libuv now supports io_uring for async file operations (read/write/fsync/fdatasync/stat/fstat/lstat), with benchmarks showing [~8x throughput improvement](https://www.phoronix.com/news/libuv-io-uring) for these operations. This requires Linux kernel v5.13 or newer; on older kernels, libuv automatically falls back to the thread pool. Work sponsored by ISC (Internet Systems Consortium) continues to expand io_uring support, including [network I/O integration](https://github.com/libuv/libuv/issues/4044), which faces challenges due to mismatches between io_uring's and libuv's I/O models for incoming connections and packets. The continued maturation of io_uring support represents a significant evolution in libuv's architecture, resolving the long-standing dichotomy between kernel-level async for networks and thread-pool emulation for files on modern Linux systems.
+1. **Epoll batching** (always enabled as of v1.50.0): Batches `epoll_ctl` calls through io_uring for improved polling efficiency. This requires no configuration and works transparently on supported kernels.
 
-## References
+2. **SQPOLL file operations** (opt-in): Provides true async file I/O (read/write/fsync/fdatasync/stat) with [~8x throughput improvement](https://www.phoronix.com/news/libuv-io-uring) in benchmarks. Requires explicit opt-in via `UV_USE_IO_URING=1` environment variable plus the `UV_LOOP_ENABLE_IO_URING_SQPOLL` loop flag.
 
-- [Libuv - Design overview](https://docs.libuv.org/en/v1.x/design.html)
-- [Libuv - Thread pool documentation](https://docs.libuv.org/en/latest/threadpool.html)
-- [Libuv - DNS utility functions](https://docs.libuv.org/en/v1.x/dns.html)
-- [Libuv - Event Loop](https://docs.libuv.org/en/v1.x/loop.html)
-- [Libuv - Timer Handle](https://docs.libuv.org/en/v1.x/timer.html)
-- [Node.js - Event Loop, Timers, and process.nextTick()](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick)
-- [libuv io_uring PR #3952](https://github.com/libuv/libuv/pull/3952)
-- [libuv Adds io_uring Support - Phoronix](https://www.phoronix.com/news/libuv-io-uring)
-- [Video: Introduction to libuv: What's a Unicorn Velociraptor? - Colin Ihrig, Joyent](https://youtu.be/_c51fcXRLGw?si=fd2PzWWoG53Cjaxo)
+**Platform requirements and exclusions:**
+
+- Minimum Linux kernel 5.13+ (with statx support detection)
+- Additional operations require newer kernels: link/mkdir/symlink (5.15+), ftruncate (6.9+)
+- Disabled on Android (seccomp blocks), 32-bit ARM (kernel bugs), PowerPC64 (signal handler crashes)
+- CVE-2024-22017 highlighted that `setuid()` doesn't affect pre-initialized io_uring operations, leading Node.js to make SQPOLL opt-in rather than default
+
+**Network I/O remains unchanged:** Despite io_uring's unified interface, libuv does not use io_uring for network I/O. An [RFC (Issue #4044)](https://github.com/libuv/libuv/issues/4044) explored integration but identified fundamental mismatches: io_uring's optimal pattern (batched requests with kernel-managed buffers) conflicts with libuv's "firehose" model (immediate single-request processing with user-managed memory). Network operations continue to use epoll/kqueue/IOCP directly, and the design docs explicitly state network I/O is "always performed in a single thread."
+
+## Appendix
+
+### Prerequisites
+
+- C programming fundamentals (pointers, memory management, callbacks)
+- Understanding of blocking vs non-blocking I/O concepts
+- Familiarity with one of: Node.js event loop, Python asyncio, or similar event-driven systems
+- Basic knowledge of operating system concepts (processes, threads, system calls)
+
+### Summary
+
+- **Dual I/O strategy**: libuv uses kernel polling (epoll/kqueue/IOCP) for network I/O achieving massive concurrency, while emulating async file I/O through a worker thread pool—a pragmatic response to inconsistent OS-level file I/O primitives
+- **Six-phase event loop**: Each iteration processes timers → pending callbacks → idle/prepare → I/O poll (blocking) → check → close, with the poll phase dynamically calculating timeout based on pending timers
+- **Platform abstraction**: Unifies readiness-based (Linux, BSD) and completion-based (Windows) I/O models behind a consistent completion-style callback API
+- **Thread pool constraints**: Global shared pool (default 4, max 1024 threads, 8MB stack each) cannot be resized at runtime; pool saturation is the primary bottleneck for file-heavy workloads
+- **io_uring (v1.50.0+)**: Epoll batching always enabled on Linux 5.13+; SQPOLL file operations opt-in via `UV_USE_IO_URING=1`; network I/O remains thread-pool-free single-threaded polling
+- **Reference counting**: `uv_ref`/`uv_unref` controls whether handles keep the loop alive—essential for background tasks that shouldn't prevent graceful shutdown
+
+### References
+
+**Official Documentation (Primary)**
+
+- [libuv Design Overview](https://docs.libuv.org/en/v1.x/design.html) - Architecture, handles, requests, I/O loop
+- [libuv Thread Pool](https://docs.libuv.org/en/latest/threadpool.html) - Pool sizing, stack size, workload types
+- [libuv Event Loop](https://docs.libuv.org/en/v1.x/loop.html) - Loop lifecycle, run modes, reference counting
+- [libuv DNS Utility Functions](https://docs.libuv.org/en/v1.x/dns.html) - getaddrinfo/getnameinfo async wrappers
+- [libuv Timer Handle](https://docs.libuv.org/en/v1.x/timer.html) - Timer lifecycle and precision
+
+**Source Code and Design Documents**
+
+- [libuv GitHub Repository](https://github.com/libuv/libuv) - Reference implementation
+- [libuv linux.c (io_uring implementation)](https://github.com/libuv/libuv/blob/v1.x/src/unix/linux.c) - Platform-specific Linux code
+- [LEP-004: Threadpool Handle (Rejected)](https://github.com/libuv/leps/blob/master/004-threadpool-handle.md) - Dynamic thread pool proposal
+
+**io_uring Integration**
+
+- [Issue #4044: io_uring Network I/O RFC](https://github.com/libuv/libuv/issues/4044) - Design challenges for network integration
+- [Issue #4616: io_uring Behavior Discussion](https://github.com/libuv/libuv/issues/4616) - v1.50.0 default behavior clarification
+- [Phoronix: libuv io_uring Support](https://www.phoronix.com/news/libuv-io-uring) - Performance benchmarks
+
+**Node.js Context**
+
+- [Node.js Event Loop Guide](https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick) - How Node.js uses libuv phases
+- [Node.js Issue #52156: io_uring Security](https://github.com/nodejs/node/issues/52156) - CVE-2024-22017 discussion
+
+**Presentations**
+
+- [Video: Introduction to libuv - Colin Ihrig, Joyent](https://youtu.be/_c51fcXRLGw) - Comprehensive libuv overview

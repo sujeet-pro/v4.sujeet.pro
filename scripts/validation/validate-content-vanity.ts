@@ -21,7 +21,7 @@ export interface ContentVanityValidationOptions {
 
 export async function runContentVanityValidation(options: ContentVanityValidationOptions = {}) {
   const logger = new Logger("validate-content-vanity", { humanReadable: true })
-  const vanityPath = path.join(process.cwd(), "content/vanity.jsonc")
+  const vanityPath = path.join(process.cwd(), "content/vanity.json5")
   const vanityRelative = path.relative(process.cwd(), vanityPath)
 
   logger.info("=".repeat(60))
@@ -33,7 +33,7 @@ export async function runContentVanityValidation(options: ContentVanityValidatio
   const hasVanityConfig = Object.prototype.hasOwnProperty.call(options, "vanityConfig")
   const vanityConfig = hasVanityConfig ? options.vanityConfig : loadJsonc<VanityEntry[]>(vanityPath)
   if (!vanityConfig) {
-    logger.error("vanity.jsonc not found")
+    logger.error("vanity.json5 not found")
     const summary = {
       schemaVersion: 1,
       tool: "validate-content-vanity",
@@ -46,7 +46,7 @@ export async function runContentVanityValidation(options: ContentVanityValidatio
       files: [
         {
           file: vanityRelative,
-          issues: [{ message: "vanity.jsonc not found" }],
+          issues: [{ message: "vanity.json5 not found" }],
         },
       ],
     }
@@ -95,7 +95,6 @@ export async function runContentVanityValidation(options: ContentVanityValidatio
   }
 
   validPaths.add("/articles")
-  validPaths.add("/topics")
   validPaths.add("/browse")
   validPaths.add("/")
 
@@ -115,7 +114,7 @@ export async function runContentVanityValidation(options: ContentVanityValidatio
       logger.error(issue.message)
     }
   } else {
-    logger.success("vanity.jsonc internal redirects are valid.")
+    logger.success("vanity.json5 internal redirects are valid.")
   }
 
   const summary = {

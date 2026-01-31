@@ -3,15 +3,16 @@ import { getEntry } from "astro:content"
 import { Icon } from "astro-icon/components"
 import Layout from "@/layout/layout.astro"
 import ArticleCard from "@/components/article-card.astro"
+import AccordionScript from "@/components/accordion-script.astro"
+import TopicAccordion from "@/components/topic-accordion.astro"
 import Link from "@/components/link.astro"
 import { getFeaturedArticlesCards, getFeaturedTopics } from "@/utils/content"
-import { formatCount } from "@/utils/format.utils"
 import sujeetImage from "@/assets/sujeet.jpg"
 
 // Get home page content
 const homeEntry = await getEntry("home", "home")
 if (!homeEntry) {
-  throw new Error("Home page content not found. Ensure content/home.jsonc exists.")
+  throw new Error("Home page content not found. Ensure content/home.json5 exists.")
 }
 const { pageTitle, pageDescription, profile, profileActions } = homeEntry.data
 
@@ -59,18 +60,13 @@ const featuredTopics = await getFeaturedTopics()
             <h2 class="text-2xl font-semibold">Featured Topics</h2>
             <p class="text-muted text-sm">Deep-dive into specific areas</p>
           </div>
-          <Link href="/topics" class="nav-link shrink-0 text-sm">
-            All topics &rarr;
+          <Link href="/browse" class="nav-link shrink-0 text-sm">
+            Browse all &rarr;
           </Link>
         </div>
-        <div class="category-list">
+        <div class="featured-topics">
           {featuredTopics.map((topic) => (
-            <Link href={topic.href} class="category-card">
-              <h3 class="category-card-title">{topic.name}</h3>
-              <p class="category-card-meta">
-                <span class="category-card-count">{formatCount(topic.articleCount, "article")}</span>
-              </p>
-            </Link>
+            <TopicAccordion topic={topic} showCategory={true} headingLevel="h3" defaultExpanded={true} />
           ))}
         </div>
       </section>
@@ -98,4 +94,14 @@ const featuredTopics = await getFeaturedTopics()
       </section>
     )
   }
+
+  <AccordionScript />
 </Layout>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  .featured-topics {
+    @apply flex flex-col;
+  }
+</style>

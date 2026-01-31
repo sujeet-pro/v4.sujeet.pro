@@ -69,7 +69,7 @@ const jsonConfigs = defineConfig([
     extends: ["json/recommended"],
   },
   {
-    files: ["**/*.jsonc"],
+    files: ["**/*.json5"],
     plugins: { json },
     language: "json/jsonc",
     languageOptions: {

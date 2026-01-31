@@ -1,422 +1,529 @@
 # Publish-Subscribe Pattern in JavaScript
 
-Learn the architectural principles, implementation strategies, and production-grade patterns for building scalable, resilient event-driven systems using the Pub/Sub pattern.
+Architectural principles, implementation trade-offs, and production patterns for event-driven systems. Covers the three decoupling dimensions, subscriber ordering guarantees, error isolation strategies, and when Pub/Sub is the wrong choice.
 
 <figure>
 
 ```mermaid
 flowchart LR
-    N1[Notifier 1] -->|publish| PS[PubSub Hub]
-    N2[Notifier 2] -->|publish| PS
-    PS -->|notify| S1[Subscriber 1]
-    PS -->|notify| S2[Subscriber 2]
+    N1[Publisher 1] -->|emit| PS[Event Bus / Broker]
+    N2[Publisher 2] -->|emit| PS
+    PS -->|dispatch| S1[Subscriber 1]
+    PS -->|dispatch| S2[Subscriber 2]
+    PS -->|dispatch| S3[Subscriber N]
 
     style N1 fill:#dae8fc,stroke:#6c8ebf
     style N2 fill:#dae8fc,stroke:#6c8ebf
     style PS fill:#e1d5e7,stroke:#9673a6
     style S1 fill:#d5e8d4,stroke:#82b366
     style S2 fill:#d5e8d4,stroke:#82b366
+    style S3 fill:#d5e8d4,stroke:#82b366
 ```
 
-<figcaption>Pub-Sub data flow: publishers emit events to a central hub that distributes to all subscribers</figcaption>
+<figcaption>Pub/Sub architecture: publishers emit to a broker that dispatches to all registered subscribers</figcaption>
 </figure>
 
-## TLDR
+## Abstract
 
-**Publish-Subscribe (Pub/Sub)** is an architectural pattern that decouples event producers from consumers through a central broker, enabling scalable, maintainable event-driven systems with loose coupling between components.
+**Mental Model:** Pub/Sub trades explicit control flow for decoupling. Publishers fire events into a broker without knowing who (if anyone) receives them. Subscribers register interest without knowing who produces events. The broker is the single point of coupling.
 
-### Three Dimensions of Decoupling
+<figure>
 
-- **Space Decoupling**: Publishers and subscribers don't know each other's identity or location
-- **Time Decoupling**: Parties don't need to be active simultaneously—subscribers can receive events after coming online
-- **Synchronization Decoupling**: Publishing is non-blocking; publishers continue without waiting for subscriber processing
+```mermaid
+flowchart TB
+    subgraph "Three Decoupling Dimensions"
+        SD[Space: Who?] --- TD[Time: When?]
+        TD --- SYD[Sync: Blocking?]
+    end
+
+    subgraph "Trade-off"
+        DC[Decoupling] <--> DF[Debuggability]
+    end
+```
+
+<figcaption>Pub/Sub provides space, time, and synchronization decoupling—at the cost of implicit control flow</figcaption>
+</figure>
+
+**Core Trade-off:** Loose coupling enables independent component evolution and many-to-many communication. The cost is implicit control flow—debugging requires tracing events across the system rather than following function calls.
+
+**Key Implementation Decisions:**
+
+| Decision | Recommendation | Why |
+|----------|---------------|-----|
+| Subscriber storage | `Map<string, Set<Function>>` | O(1) add/delete, prevents duplicates, preserves insertion order (ES6+ guarantee) |
+| Error isolation | try/catch per subscriber | One failing subscriber must not break others |
+| Async publish | Return `Promise.allSettled()` | Await completion without short-circuiting on errors |
+| Cleanup | Return unsubscribe function | Prevents memory leaks; ties to component lifecycle |
+
+**When NOT to Use:**
+- Request-response patterns (use direct calls)
+- Single known recipient (Observer pattern suffices)
+- When you need delivery guarantees (Pub/Sub doesn't guarantee delivery)
+- Simple systems unlikely to scale (unnecessary indirection)
+
+## The Three Dimensions of Decoupling
+
+Eugster et al.'s foundational paper ["The Many Faces of Publish/Subscribe"](https://dl.acm.org/doi/10.1145/857076.857078) defines pub/sub as providing "full decoupling of the communicating entities in time, space, and synchronization":
+
+1. **Space Decoupling**: Publishers emit events without knowledge of which subscribers (if any) will receive them. Subscribers register without knowing which publishers produce events. Neither knows the other's identity, location, or count.
+
+2. **Time Decoupling**: Publishers and subscribers need not be active simultaneously. In distributed systems (MQTT, AMQP), a subscriber can receive messages published while it was offline. In-process implementations typically lack this—events are lost if no subscriber exists at publish time.
+
+3. **Synchronization Decoupling**: Publishing is non-blocking. The publisher hands the event to the broker and continues immediately. This contrasts with RPC, which the paper notes has "synchronous nature... [which] introduces a strong time, synchronization, and also space coupling."
 
 ### Pub/Sub vs Observer Pattern
 
-- **Observer**: Direct Subject→Observer relationship, Subject maintains observer list, one-to-many coupling
-- **Pub/Sub**: Broker-mediated, publishers and subscribers are completely independent, many-to-many relationships
+| Aspect | Observer | Pub/Sub |
+|--------|----------|---------|
+| Coupling | Subject knows observers directly | Publishers and subscribers unknown to each other |
+| Intermediary | None—Subject IS the dispatcher | Broker/Event Bus required |
+| Cardinality | One-to-many | Many-to-many |
+| Typical scope | In-process, single component | Cross-component, potentially distributed |
+| Use case | UI state binding, reactive streams | Module communication, microservices |
 
-### Implementation Patterns
-
-- **Basic**: Single channel with Set-based subscriber storage, returns unsubscribe function
-- **Topic-Based**: Hierarchical topics (e.g., `user.created`, `user.*.login`) with wildcard matching
-- **Async Support**: `publishAsync()` returns Promise for awaiting subscriber completion
-
-### Memory Leak Prevention
-
-- **Always unsubscribe**: In React, return cleanup function from `useEffect`; in class components, unsubscribe in `componentWillUnmount`
-- **Subscription tokens**: Return disposable object with `unsubscribe()` method for deterministic cleanup
-- **Framework integration**: Tie subscription lifecycle to component lifecycle
-
-### Build vs Buy
-
-- **mitt (~200 bytes)**: Minimal footprint, functional API, actively maintained—recommended for most use cases
-- **PubSubJS (<1KB)**: Hierarchical topics, sync/async publish, but unmaintained (4+ years)
-- **Custom implementation**: ~16 lines for basic functionality, recommended for learning
-
-### Best Practices
-
-- **Resilience**: Wrap subscriber callbacks in try/catch to isolate failures
-- **Hierarchical topics**: Use `module.entity.action` naming convention (e.g., `cart.item.added`)
-- **Error channels**: Publish to global error topic for centralized error handling
-- **Dead-letter queues**: For distributed systems, implement retry and failure handling strategies
-
-## Core Philosophy
-
-At its heart, the Publish-Subscribe pattern is an architectural solution designed to manage and reduce coupling between software components. In any complex application, various modules or services often need to react to events or state changes occurring in other parts of the system.
-
-A naive approach would involve direct method calls, where one object explicitly invokes a method on another. This creates tight coupling; the calling object must have a direct reference to the called object, understand its API, and often, know its location and state. This tight coupling makes systems brittle, difficult to maintain, and nearly impossible to scale or modify without creating a cascade of ripple effects.
-
-The Pub/Sub pattern provides an elegant solution by introducing a layer of indirection. It is founded on the principle that components that are conceptually linked—a user action and a notification system, for example—should not be aware of each other's concrete implementation. Instead of direct communication, they communicate through a central, abstract channel.
-
-### The Three Dimensions of Decoupling
-
-The term "loose coupling" in Pub/Sub can be broken down into three distinct dimensions, as defined in the foundational paper ["The Many Faces of Publish/Subscribe"](https://dl.acm.org/doi/10.1145/857076.857078) by Eugster et al.:
-
-1. **Space Decoupling**: Publishers and subscribers do not need to know each other's identity, location, or existence. A component can publish an event without any knowledge of what other components, if any, will consume it.
-
-2. **Time Decoupling**: The interacting parties do not need to be active at the same time. A publisher can emit an event, and a subscriber that is currently offline or not yet instantiated can receive that message upon coming online.
-
-3. **Synchronization Decoupling**: The act of publishing a message is typically asynchronous and non-blocking. Once the publisher hands the message to the broker, it can immediately continue with its own processing without waiting for subscribers to receive or handle the message.
-
-### Pub/Sub vs. Observer Pattern
-
-One of the most common points of confusion is the difference between the Publish-Subscribe pattern and the closely related Observer pattern:
-
-- **Observer Pattern**: Involves a direct relationship between a "Subject" and its "Observers." The Subject maintains a list of its dependent Observers and notifies them directly. This creates a one-to-many relationship that is tighter than Pub/Sub.
-
-- **Pub/Sub Pattern**: Introduces a Broker as a mandatory intermediary. The Publisher and Subscriber are completely unaware of each other; their only connection is through the Broker and the shared topic name. This enables a many-to-many relationship and can scale to distributed systems.
+Observer is appropriate when a single subject owns the state and notifies dependents. Pub/Sub is appropriate when multiple independent components need to communicate without direct references.
 
 ## Basic Implementation
 
-Here's a minimal, functional implementation to understand the core concepts:
+A minimal implementation using ES6+ `Set` for O(1) subscriber management:
 
 ```ts title="basic-pub-sub.ts"
-type Task<T> = (data: T) => void
+type Callback<T> = (data: T) => void
 
 export class PubSub<T> {
-  #subscriber = new Set<Task<T>>()
-  constructor() {}
+  #subscribers = new Set<Callback<T>>()
 
-  subscribe(task: Task<T>) {
-    this.#subscriber.add(task)
-    return () => {
-      this.#subscriber.delete(task)
-    }
+  subscribe(callback: Callback<T>) {
+    this.#subscribers.add(callback)
+    return () => this.#subscribers.delete(callback)
   }
 
-  notify(data: T) {
-    for (const subscriber of this.#subscriber) {
+  publish(data: T) {
+    for (const subscriber of this.#subscribers) {
       subscriber(data)
     }
   }
 }
 ```
 
-**Usage Example:**
+**Why `Set` over `Array`:**
+- **O(1) add/delete** vs O(n) for array splice
+- **Automatic deduplication**—same callback added twice is stored once
+- **Insertion order guaranteed** per ECMA-262: "Set objects iterate through elements in insertion order"
+
+If you need the same callback to fire multiple times per event (rare), use an array instead.
+
+**Usage:**
 
 ```ts title="basic-usage.ts"
-const pubSub = new PubSub<string>()
+const events = new PubSub<{ userId: string; action: string }>()
 
-// Can have one or more subscriber
-const unsubscribe = pubSub.subscribe((data) => {
-  console.log(data)
-})
+const unsubscribe = events.subscribe((data) => console.log(data.action))
 
-// Event Emitted by some other part of the code
-pubSub.notify("message1")
-pubSub.notify("message2")
-pubSub.notify("message3")
+events.publish({ userId: "123", action: "login" })
+events.publish({ userId: "123", action: "logout" })
 
-// In future, on certain condition: all the subscribers will unsubscribe
-unsubscribe()
+unsubscribe() // Critical: prevents memory leaks
 ```
 
-**Comparison with DOM CustomEvent:**
+### DOM EventTarget Alternative
 
-We can achieve similar functionality using `CustomEvent` dispatched over any DOM Node. However, this approach has a significant limitation: DOM dependency makes the code non-usable outside the main thread in the browser environment (not even on workers).
+The browser's `EventTarget` provides native pub/sub via `CustomEvent`:
 
-```js
-// Publisher -> Similar to pubSub.notify
-const myEvent = new CustomEvent("myCustomEvent", { detail: { message: "Some data" } })
-document.dispatchEvent(myEvent)
+```ts title="dom-event-target.ts" collapse={1-2, 8-12}
+// Publisher
+const event = new CustomEvent("user:login", { detail: { userId: "123" } })
+document.dispatchEvent(event)
 
-// Consumer
-document.addEventListener("myCustomEvent", (event) => {
-  console.log(event.detail.message)
+// Subscriber
+document.addEventListener("user:login", (e: CustomEvent) => {
+  console.log(e.detail.userId)
 })
 ```
 
-As compared to PubSub, which has extra 16 lines of code for creating the abstraction, it makes your code work on all runtimes.
+**Limitations:**
+- **Main thread only**—doesn't work in Web Workers or Node.js
+- **No TypeScript generics**—`detail` is `any`
+- **Global namespace**—all events share `document`, risking collisions
+
+Custom implementation adds ~16 lines but works across all JavaScript runtimes.
 
 ## Production-Grade Implementation
 
-While the basic implementation demonstrates the core concept, a production system requires robust error handling, memory leak prevention, and advanced features. Here's a comprehensive implementation:
+Production systems require: topic-based routing, error isolation, async support, and proper typing. Key design decisions explained inline:
 
-```ts title="production-pub-sub.ts" collapse={1-5, 89-93}
-/**
- * A robust, environment-agnostic, and production-grade implementation of the
- * Publish-Subscribe design pattern. It supports topic-based communication,
- * ensuring loose coupling between different parts of an application.
- */
+```ts title="production-pub-sub.ts" collapse={1-8, 72-75}
+type Callback<T = unknown> = (data: T) => void | Promise<void>
+
+interface Subscription {
+  token: number
+  unsubscribe: () => void
+}
+
+// Using Map<string, Map<number, Callback>> for:
+// - O(1) topic lookup
+// - O(1) subscriber add/remove by token
+// - Stable iteration order (subscribers called in registration order)
 class PubSub {
-  private events: Record<string, Record<number, Function>> = {}
-  private subscriptionId = 0
+  private topics = new Map<string, Map<number, Callback>>()
+  private nextToken = 0
 
-  /**
-   * Subscribes a callback function to a specific topic. When the topic is published,
-   * the callback will be invoked.
-   */
-  subscribe(topic: string, callback: Function) {
-    if (typeof callback !== "function") {
-      throw new Error("Callback must be a function.")
+  subscribe<T>(topic: string, callback: Callback<T>): Subscription {
+    const token = this.nextToken++
+
+    if (!this.topics.has(topic)) {
+      this.topics.set(topic, new Map())
     }
-
-    const id = this.subscriptionId++
-
-    if (!this.events[topic]) {
-      this.events[topic] = {}
-    }
-
-    this.events[topic][id] = callback
+    this.topics.get(topic)!.set(token, callback as Callback)
 
     return {
-      token: id,
+      token,
       unsubscribe: () => {
-        delete this.events[topic][id]
-        if (Object.keys(this.events[topic]).length === 0) {
-          delete this.events[topic]
+        const subscribers = this.topics.get(topic)
+        if (subscribers) {
+          subscribers.delete(token)
+          // Clean up empty topics to prevent memory growth
+          if (subscribers.size === 0) this.topics.delete(topic)
         }
       },
     }
   }
 
-  /**
-   * Publishes an event to a specific topic, notifying all registered subscribers.
-   * Returns true if the topic has any subscribers, false otherwise.
-   */
-  publish(topic: string, ...data: any[]) {
-    if (!this.events[topic]) {
-      return false
+  // Synchronous publish with error isolation
+  // Returns: whether any subscribers existed
+  publish<T>(topic: string, data: T): boolean {
+    const subscribers = this.topics.get(topic)
+    if (!subscribers || subscribers.size === 0) return false
+
+    for (const callback of subscribers.values()) {
+      // Critical: try/catch per subscriber
+      // One failing subscriber must not break others
+      try {
+        callback(data)
+      } catch (error) {
+        console.error(`[PubSub] Error in subscriber for "${topic}":`, error)
+        // Optional: emit to error topic for centralized handling
+        // this.publish('pubsub:error', { topic, error, data })
+      }
     }
-
-    const subscribers = this.events[topic]
-    Object.values(subscribers).forEach((callback) => {
-      // Using setTimeout to make the publication asynchronous,
-      // preventing a slow subscriber from blocking the publisher.
-      setTimeout(() => {
-        try {
-          callback(...data)
-        } catch (error) {
-          console.error(`Error in subscriber for topic "${topic}":`, error)
-          // Optionally, publish to a global error topic
-          // this.publish('system:error', { topic, error, data });
-        }
-      }, 0)
-    })
-
     return true
   }
 
-  /**
-   * Publishes a topic and returns a Promise that resolves when all
-   * Promise-returning subscribers have completed.
-   */
-  async publishAsync(topic: string, ...data: any[]): Promise<any[]> {
-    if (!this.events[topic]) {
-      return Promise.resolve([])
-    }
+  // Async publish: waits for all subscribers, doesn't short-circuit on errors
+  async publishAsync<T>(topic: string, data: T): Promise<PromiseSettledResult<void>[]> {
+    const subscribers = this.topics.get(topic)
+    if (!subscribers || subscribers.size === 0) return []
 
-    const subscribers = Object.values(this.events[topic])
-    const promises = subscribers.map((callback) => {
-      try {
-        // We wrap the callback execution in a Promise to handle both sync and async subscribers uniformly.
-        return Promise.resolve(callback(...data))
-      } catch (error) {
-        // If a synchronous callback throws an error, we catch it and return a rejected Promise.
-        return Promise.reject(error)
-      }
+    // Promise.allSettled (ES2020) ensures all subscribers complete
+    // even if some reject—critical for reliable event handling
+    const promises = Array.from(subscribers.values()).map(async (callback) => {
+      await callback(data)
     })
 
-    return Promise.all(promises)
+    return Promise.allSettled(promises)
   }
 }
 
-// Example of creating a singleton instance for global use
-const globalPubSub = new PubSub()
-
-export default globalPubSub
+// Singleton for cross-module communication
+export const pubsub = new PubSub()
 ```
+
+**Design Decisions:**
+
+| Choice | Rationale |
+|--------|-----------|
+| `Map<string, Map<number, Callback>>` | Nested maps give O(1) operations at both topic and subscriber level |
+| Numeric tokens | Monotonic IDs avoid collision; simpler than UUID |
+| `Promise.allSettled` over `Promise.all` | Doesn't short-circuit on first rejection—all subscribers complete |
+| Empty topic cleanup | Prevents unbounded memory growth from stale topics |
+| Per-subscriber try/catch | Isolates failures; one bad subscriber doesn't break others |
 
 ### Memory Leak Prevention
 
-Memory leaks are one of the most insidious problems in long-running applications like Single-Page Applications (SPAs). The Pub/Sub pattern, if not handled with discipline, can be a major source of these leaks.
+Memory leaks in pub/sub arise when subscribers outlive their intended scope. Common patterns:
 
-**React Component Example:**
+1. **Anonymous functions can't be removed** — `removeEventListener` requires the same function reference
+2. **Closures capture component state** — subscriber holds references preventing garbage collection
+3. **Missing cleanup on unmount** — React components, Angular services, etc.
 
-```tsx title="react-usage.tsx" collapse={1-3}
-import React, { useEffect, useState } from "react"
-import pubSub from "./PubSubService"
+Node.js warns at 11+ listeners per event: `MaxListenersExceededWarning: Possible EventEmitter memory leak detected`.
 
-function UserStatusDisplay({ userId }: { userId: string }) {
+**React Pattern (useEffect cleanup):**
+
+```tsx title="react-usage.tsx" collapse={1-4}
+import { useEffect, useState } from "react"
+import { pubsub } from "./pubsub"
+
+interface StatusEvent { userId: string; isOnline: boolean }
+
+function UserStatus({ userId }: { userId: string }) {
   const [isOnline, setIsOnline] = useState(false)
 
   useEffect(() => {
-    // Define the handler for the event
-    const handleStatusChange = (data: any) => {
-      if (data.userId === userId) {
-        setIsOnline(data.isOnline)
+    const { unsubscribe } = pubsub.subscribe<StatusEvent>(
+      "user:status",
+      (data) => {
+        if (data.userId === userId) setIsOnline(data.isOnline)
       }
-    }
+    )
+    // Critical: cleanup on unmount or userId change
+    return unsubscribe
+  }, [userId])
 
-    // Subscribe when the component mounts
-    const subscription = pubSub.subscribe("user:status:change", handleStatusChange)
-
-    // Return a cleanup function to unsubscribe when the component unmounts
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [userId]) // Re-subscribe if the userId prop changes
-
-  return (
-    <div>
-      User {userId} is {isOnline ? "Online" : "Offline"}
-    </div>
-  )
+  return <span>{isOnline ? "Online" : "Offline"}</span>
 }
+```
+
+**Key points:**
+- Return `unsubscribe` directly from `useEffect` — it's already a cleanup function
+- Include `userId` in deps array — re-subscribes when prop changes
+- Named function isn't needed since we use the returned `unsubscribe`
+
+## Subscriber Ordering and Error Handling
+
+### Execution Order Guarantees
+
+**Are subscribers called in registration order?** It depends on the implementation.
+
+Per ECMA-262, `Map` and `Set` iterate in insertion order. Our implementation using `Map<number, Callback>` guarantees subscribers execute in registration order.
+
+Per [Node.js EventEmitter docs](https://nodejs.org/api/events.html): "All listeners attached to it at the time of emitting are called in order."
+
+Per [WHATWG DOM Standard](https://dom.spec.whatwg.org/): EventTarget listeners are called in registration order within each phase.
+
+**Caveat:** Not all libraries guarantee order. If order matters for your use case, either:
+1. Use a single subscriber that orchestrates the sequence
+2. Verify your library's implementation
+
+### Async Subscriber Pitfalls
+
+Node.js docs warn: "Using async functions with event handlers is problematic, because it can lead to an unhandled rejection in case of a thrown exception."
+
+```ts title="async-pitfall.ts"
+// Dangerous: unhandled rejection if async handler throws
+pubsub.subscribe("data", async (data) => {
+  await saveToDatabase(data) // If this throws, rejection is unhandled
+})
+```
+
+**Solutions:**
+
+1. **Use `publishAsync` with `Promise.allSettled`** (shown in production implementation)
+2. **Wrap async subscribers in try/catch:**
+
+```ts title="safe-async-subscriber.ts"
+pubsub.subscribe("data", async (data) => {
+  try {
+    await saveToDatabase(data)
+  } catch (error) {
+    // Handle locally or emit to error topic
+    pubsub.publish("error", { source: "data", error })
+  }
+})
 ```
 
 ## Advanced Capabilities
 
 ### Hierarchical Topics and Wildcard Subscriptions
 
-A flat list of topic names can quickly become unmanageable in a large application. A more sophisticated approach is to use structured, hierarchical topic names, often delimited by a character like a period (.) or a slash (/).
+Topic naming convention: `domain.entity.action` (e.g., `user.profile.updated`, `cart.item.added`).
 
-**Wildcard Matching Implementation:**
+Wildcard types (MQTT convention):
+- `*` — matches exactly one segment: `user.*.login` matches `user.123.login`
+- `#` — matches zero or more segments (must be last): `user.#` matches `user`, `user.123`, `user.123.login`
 
-```ts title="wildcard-matching.ts" collapse={1-7}
-/**
- * Checks if a published topic matches a subscription topic that may contain wildcards.
- * @param subscriptionTopic - The topic with potential wildcards (e.g., 'user.*.login').
- * @param publishedTopic - The concrete topic that was published (e.g., 'user.123.login').
- * @returns True if the topics match, false otherwise.
- */
-function topicMatches(subscriptionTopic: string, publishedTopic: string): boolean {
-  const subParts = subscriptionTopic.split(".")
-  const pubParts = publishedTopic.split(".")
+```ts title="wildcard-matching.ts" collapse={1-3}
+// Matches subscription patterns like "user.*.login" or "user.#"
+// against published topics like "user.123.login"
+function topicMatches(pattern: string, topic: string): boolean {
+  const patternParts = pattern.split(".")
+  const topicParts = topic.split(".")
 
-  if (subParts.length > pubParts.length && !subscriptionTopic.includes("#")) {
-    return false
+  for (let i = 0; i < patternParts.length; i++) {
+    const p = patternParts[i]
+    if (p === "#") return true // Multi-level: match rest
+    if (p !== "*" && p !== topicParts[i]) return false
   }
 
-  for (let i = 0; i < subParts.length; i++) {
-    const subPart = subParts[i]
-    const pubPart = pubParts[i]
-
-    if (subPart === "#") {
-      // Multi-level wildcard must be the last part of the subscription topic
-      return i === subParts.length - 1
-    }
-
-    if (subPart !== "*" && subPart !== pubPart) {
-      return false
-    }
-  }
-
-  return subParts.length === pubParts.length || subParts[subParts.length - 1] === "#"
+  return patternParts.length === topicParts.length
 }
 ```
 
-**Wildcard Types:**
+### Backpressure Considerations
 
-- **Single-Level Wildcard (\*)**: Matches exactly one token in the topic string
-- **Multi-Level Wildcard (#)**: Matches zero or more tokens and is typically only valid as the final character
+Standard pub/sub has **no built-in backpressure**. Publishers emit as fast as they can regardless of subscriber capacity.
 
-### Asynchronous Workflows
+**Strategies:**
+- **Debounce/throttle at publish** — lossy but prevents flooding
+- **Buffer with limits** — accumulate events, drop oldest when full
+- **Async iterator with highWater** — libraries like [event-iterator](https://github.com/rolftimmermans/event-iterator) provide backpressure signals
 
-The standard Pub/Sub model is "fire and forget," which falls short when a publisher needs to know if or when subscribers have completed their work. The `publishAsync` method transforms the system into a powerful tool for orchestrating complex, asynchronous workflows.
+For high-throughput systems, consider message queues (RabbitMQ, Redis Streams) with explicit acknowledgment.
+
+## When NOT to Use Pub/Sub (Antipatterns)
+
+Understanding when to avoid pub/sub is as important as knowing when to use it.
+
+### 1. Forcing Commands into Pub/Sub
+
+Per [CodeOpinion](https://codeopinion.com/beware-anti-patterns-in-event-driven-architecture/): "Commands do not use the publish-subscribe pattern. Trying to force everything into publish-subscribe when that's not the pattern you want will lead you to apply more patterns incorrectly."
+
+**Command vs Event:**
+- **Command**: "CreateOrder" — directed to a specific handler, expects execution
+- **Event**: "OrderCreated" — notification of something that happened, no expectation of specific handler
+
+### 2. Request-Reply Disguised as Events
+
+If your publisher expects a specific response event back, you've recreated synchronous RPC with extra complexity. Use direct function calls or actual RPC instead.
+
+### 3. CRUD Events Lacking Intent
+
+`CustomerChanged` doesn't indicate *why* something changed. Consumers must diff the data to infer intent. Prefer intent-revealing events: `CustomerAddressUpdated`, `CustomerDeactivated`.
+
+### 4. Simple Systems
+
+Pub/sub adds indirection. For a small app with straightforward component communication, direct function calls or context/props are simpler and more debuggable.
+
+### 5. When Delivery Guarantees Matter
+
+In-process pub/sub doesn't guarantee delivery. If no subscriber exists when an event fires, it's lost. For critical events, use message queues with persistence (Redis Streams, RabbitMQ, Kafka).
+
+### Debugging Challenges
+
+Martin Fowler: "It can become problematic if there really is a logical flow that runs over various event notifications. The problem is that it can be hard to see such a flow as it's not explicit in any program text."
+
+The implicit control flow that provides loose coupling also makes debugging harder. Distributed tracing and careful logging are essential for production pub/sub systems.
 
 ## Real-World Applications
 
-### Frontend: Decoupling Sibling Components
+### Frontend: Cross-Component Communication
 
-In modern component-based frameworks like React, communication between sibling components or deeply nested components can lead to "prop drilling." The Pub/Sub pattern offers an excellent solution by creating a global communication channel.
+Pub/sub solves "prop drilling" when unrelated components need to react to the same events.
 
-**E-commerce Example:**
+**E-commerce cart example:**
+- `ProductCard` publishes `cart.item.added` on button click
+- `CartIcon` subscribes → updates badge count
+- `Toast` subscribes → shows confirmation
+- `Analytics` subscribes → tracks conversion
 
-- `ProductListItem` publishes `cart:item:added` when "Add to Cart" is clicked
-- `CartIcon` subscribes to update the cart count
-- `Notification` subscribes to show success messages
-- `AnalyticsTracker` subscribes to log events
+Each subscriber is independent. Adding a new reaction requires no changes to `ProductCard`.
 
-### Backend: Microservice Communication
+### Backend: Event-Driven Microservices
 
-In a microservices architecture, the Pub/Sub pattern is a foundational principle for inter-service communication. Tools like Redis, RabbitMQ, or cloud services like Google Cloud Pub/Sub serve as external brokers.
+External brokers (Redis Pub/Sub, RabbitMQ, Google Cloud Pub/Sub, Kafka) provide distributed pub/sub with durability.
 
-**User Registration Flow:**
+**User registration flow:**
+- `UserService` publishes `user.created`
+- `EmailService` → sends welcome email
+- `AnalyticsService` → tracks signup metrics
+- `OnboardingService` → queues tutorial sequence
 
-- `UserService` publishes `user:created` after creating a user
-- `EmailService` subscribes to send welcome emails
-- `AnalyticsService` subscribes to track metrics
-- `OnboardingService` subscribes to initiate tutorials
+Services deploy independently. Adding a new reaction (e.g., CRM sync) requires no changes to `UserService`.
 
-## Build vs. Buy Decision
+## Build vs Buy Decision
 
-While building a Pub/Sub system from scratch is an invaluable learning experience, for most production projects, leveraging a battle-tested, open-source library is the more pragmatic choice.
+For production, prefer battle-tested libraries unless you need custom semantics.
 
-**Popular Libraries Comparison:**
-
-| Library      | Gzipped Size | Key Features                                            | API Style                                   | Wildcard Support                           | Maintained?   |
-| ------------ | ------------ | ------------------------------------------------------- | ------------------------------------------- | ------------------------------------------ | ------------- |
-| mitt         | ~200 bytes   | Extremely small, no dependencies, functional API        | `on()`, `off()`, `emit()`                   | No                                         | Yes           |
-| tiny-emitter | < 1 KB       | Very small, simple class-based API, `once()` method     | `on()`, `once()`, `off()`, `emit()`         | No                                         | No (7+ years) |
-| PubSubJS     | < 1 KB       | Hierarchical topics, sync/async publish, error handling | `subscribe()`, `publish()`, `unsubscribe()` | Hierarchical (e.g., 'a.b') but not \* or # | Inactive      |
+| Library | Size | Wildcards | TypeScript | API | Maintained |
+|---------|------|-----------|------------|-----|------------|
+| [mitt](https://github.com/developit/mitt) | 200B | `*` (all events) | Yes | `on()`, `off()`, `emit()` | Yes (11k+ stars) |
+| [nanoevents](https://github.com/ai/nanoevents) | 107B | No | Yes | Returns unbind from `on()` | Yes |
+| [EventEmitter3](https://github.com/primus/eventemitter3) | 1.5KB | No | Yes | Node.js-compatible | Yes |
+| [EventEmitter2](https://github.com/EventEmitter2/EventEmitter2) | Larger | Yes (`*`, `**`) | Yes | Extended EE API | Yes |
 
 **Recommendations:**
 
-- For minimal footprint: **mitt** (tiny size, active maintenance)
-- For advanced features: **PubSubJS** (inactive maintenance, but stable for specific needs)
-- For learning: Build your own (invaluable experience)
+- **Minimal footprint**: mitt or nanoevents (both under 200B)
+- **Node.js API compatibility**: EventEmitter3
+- **Wildcards needed**: EventEmitter2 (or MQTT/AMQP for distributed)
+- **Learning**: Build your own—the 20-line implementation teaches the core
 
-## Best Practices
+**mitt caveat:** The `*` handler receives all events but is a listener, not a wildcard pattern. Publishing to `*` directly causes double-triggering issues.
 
-### Key Principles
+## Best Practices Summary
 
-1. **Embrace Architectural Decoupling**: The primary value is enabling scalable, maintainable, and event-driven architectures by drastically reducing coupling between components.
+### Implementation Checklist
 
-2. **Always Unsubscribe**: In any environment with a component lifecycle (like SPAs), failing to unsubscribe from events is a guaranteed path to memory leaks.
-
-3. **Use Structured, Hierarchical Topics**: Adopt a consistent, hierarchical naming convention for topics (e.g., `module.entity.action`). This brings clarity, organization, and enables powerful features like wildcard subscriptions.
-
-4. **Build for Resilience**: Isolate subscriber errors using try...catch blocks within the publish method. A single failing subscriber should never bring down the entire messaging system.
-
-5. **Know Your Patterns**: Understand the fundamental architectural difference between the Pub/Sub and Observer patterns. Choose Observer for in-process state synchronization and Pub/Sub for systems requiring greater decoupling and potential distribution.
-
-6. **Don't Reinvent the Wheel (Necessarily)**: While building your own Pub/Sub is a great exercise, for production systems, consider using a well-vetted, lightweight library.
-
-7. **Avoid the "Golden Hammer"**: Pub/Sub is a powerful tool, but it's not always the right one. For simple systems or direct request/response interactions, it can be overkill.
+| Practice | Why |
+|----------|-----|
+| Return unsubscribe function | Enables cleanup; prevents memory leaks |
+| Use `Map/Set` not plain objects | O(1) operations, guaranteed iteration order |
+| try/catch per subscriber | Isolates failures; one bad handler doesn't break others |
+| `Promise.allSettled` for async | Waits for all handlers; doesn't short-circuit on rejection |
+| Clean up empty topics | Prevents unbounded memory growth |
+| Hierarchical topic names | `domain.entity.action` enables wildcards, organization |
 
 ### Error Handling Strategies
 
-- **Subscriber-Level Isolation**: Wrap each callback execution in try...catch blocks
-- **Global Error Handling**: Provide centralized error reporting mechanisms
-- **Development vs. Production Mode**: Allow exceptions to be thrown in development for debugging
-- **Dead-Letter Queues**: For large-scale systems, implement strategies for handling repeatedly failing messages
+1. **Per-subscriber isolation**: Wrap each callback in try/catch (shown in production implementation)
+2. **Error topic**: Emit to `pubsub:error` for centralized handling
+3. **Dead-letter queue**: For distributed systems, track repeatedly failing messages
+4. **Dev mode exceptions**: Optionally rethrow in development for stack traces
 
 ## Conclusion
 
-The Publish-Subscribe pattern is an exceptionally powerful tool in a developer's arsenal, capable of transforming a tangled, monolithic codebase into a clean, flexible, and scalable system. It promotes modularity and allows applications to evolve with grace.
+Pub/Sub trades explicit control flow for decoupling. Publishers emit without knowing receivers; subscribers react without knowing sources. This enables independent component evolution and many-to-many communication at the cost of implicit, harder-to-trace control flow.
 
-However, its greatest strength—extreme decoupling—can also be its greatest peril. When used without discipline, it can lead to systems where the flow of logic is difficult to trace and debug. Events are fired into the ether, and it can become challenging to understand what sequence of events led to a particular state.
+**Use pub/sub when:**
+- Multiple independent components need to react to the same events
+- Components should evolve independently (add/remove reactions without changing publishers)
+- You're building event-driven architecture (frontend cross-component communication, backend microservices)
 
-Embrace the Pub/Sub pattern not as a magic bullet, but as a sharp architectural tool. Use it with intention, document your topics clearly, and build in the necessary resilience and observability from the start. By doing so, developers can harness its full power while mitigating its inherent risks, leading to the creation of truly robust and sophisticated software.
+**Avoid pub/sub when:**
+- You need request-response semantics
+- There's a single known recipient (use Observer or direct calls)
+- Delivery guarantees are required (use message queues)
+- The system is simple and unlikely to need the decoupling
 
-## References
+Implementation is straightforward: `Map<string, Set<Function>>`, return unsubscribe, try/catch per subscriber. The challenge is architectural—knowing when the indirection is worth the debuggability cost.
 
-- [The Many Faces of Publish/Subscribe - Eugster et al.](https://dl.acm.org/doi/10.1145/857076.857078) - Foundational paper on Pub/Sub dimensions of decoupling
-- [mitt](https://github.com/developit/mitt) - Tiny (~200 bytes) functional event emitter/pubsub
-- [PubSubJS](https://github.com/mroderick/PubSubJS) - Dependency-free publish/subscribe library
-- [Enterprise Integration Patterns - Publish-Subscribe Channel](https://www.enterpriseintegrationpatterns.com/patterns/messaging/PublishSubscribeChannel.html) - Messaging patterns reference
-- [Observer Pattern - Refactoring Guru](https://refactoring.guru/design-patterns/observer) - Comparison with Observer pattern
-- [CustomEvent - MDN](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent) - Browser native event API
-- [EventTarget - MDN](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget) - DOM event target interface
+## Appendix
+
+### Prerequisites
+
+- JavaScript ES6+ (Map, Set, Promise, async/await)
+- Basic understanding of event-driven programming
+- Familiarity with React hooks (for framework examples)
+
+### Terminology
+
+| Term | Definition |
+|------|------------|
+| **Publisher** | Component that emits events; unaware of subscribers |
+| **Subscriber** | Component that registers callbacks for events; unaware of publishers |
+| **Broker / Event Bus** | Intermediary that routes events from publishers to subscribers |
+| **Topic / Channel** | Named category for events; subscribers register interest by topic |
+| **Backpressure** | Mechanism for consumers to signal producers to slow down |
+
+### Summary
+
+- Pub/Sub provides three-dimensional decoupling: space, time, synchronization
+- Use `Map<string, Set<Function>>` for O(1) operations and guaranteed order
+- Always return unsubscribe function; tie cleanup to component lifecycle
+- Isolate subscriber errors with per-callback try/catch
+- Use `Promise.allSettled` for async publish to avoid short-circuiting
+- Avoid for request-response, single recipients, or when delivery guarantees matter
+- Libraries: mitt (200B), nanoevents (107B) for minimal footprint
+
+### References
+
+**Specifications & Standards:**
+- [The Many Faces of Publish/Subscribe](https://dl.acm.org/doi/10.1145/857076.857078) - Eugster et al., ACM Computing Surveys 2003. Foundational paper defining the three dimensions of decoupling.
+- [ECMA-262: Map and Set Objects](https://tc39.es/ecma262/multipage/keyed-collections.html) - Guarantees insertion order for iteration.
+- [WHATWG DOM Standard: EventTarget](https://dom.spec.whatwg.org/#interface-eventtarget) - Browser's native pub/sub mechanism.
+- [OASIS MQTT 5.0 Specification](https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html) - Distributed pub/sub protocol.
+
+**Official Documentation:**
+- [Node.js Events Documentation](https://nodejs.org/api/events.html) - EventEmitter ordering guarantees, async handler pitfalls.
+- [MDN: CustomEvent](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent) - Browser native event API.
+- [MDN: WeakRef](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakRef) - Memory management considerations.
+
+**Libraries:**
+- [mitt](https://github.com/developit/mitt) - 200B functional event emitter.
+- [nanoevents](https://github.com/ai/nanoevents) - 107B with TypeScript support.
+- [EventEmitter3](https://github.com/primus/eventemitter3) - Node.js-compatible API.
+- [EventEmitter2](https://github.com/EventEmitter2/EventEmitter2) - Wildcard support.
+
+**Architectural Guidance:**
+- [Enterprise Integration Patterns: Publish-Subscribe Channel](https://www.enterpriseintegrationpatterns.com/patterns/messaging/PublishSubscribeChannel.html) - Messaging patterns reference.
+- [CodeOpinion: Antipatterns in Event-Driven Architecture](https://codeopinion.com/beware-anti-patterns-in-event-driven-architecture/) - When not to use pub/sub.

@@ -1,6 +1,6 @@
 # Node.js Event Loop: Phases, Queues, and Process Exit
 
-A mental-model-first explanation of how Node.js schedules input/output (I/O): libuv phases first, then V8 (the JavaScript engine) microtasks and `process.nextTick()`, and finally process exit conditions. Includes a spec-precise contrast to the Hypertext Markup Language (HTML) event loop and the ECMAScript job queue.
+As of Node.js 22 LTS (libuv 1.48.0), this article covers how Node schedules input/output (I/O): libuv phases first, then V8 (the JavaScript engine) microtasks and `process.nextTick()`, and finally process exit conditions. Includes a spec-precise contrast to the Hypertext Markup Language (HTML) event loop and the ECMAScript job queue.
 
 <figure>
 
@@ -10,30 +10,31 @@ A mental-model-first explanation of how Node.js schedules input/output (I/O): li
 
 </figure>
 
-## TLDR
+## Abstract
 
-### Mental model (first pass)
+### Mental model
 
-- The loop is a phased scheduler in libuv (Node's cross-platform async I/O library): timers -> pending callbacks -> idle/prepare -> poll -> check -> close callbacks.
+- The loop is a phased scheduler in libuv (Node's cross-platform async I/O library): timers → pending callbacks → idle/prepare → poll → check → close callbacks.
 - After each callback, Node drains `process.nextTick()` and then the microtask queue (Promises and `queueMicrotask()`).
-- The process exits when there is no pending I/O and no timers left to run.
+- The process exits when no ref'd handles or active requests remain.
 
 ### Operational consequences
 
-- The poll phase can block waiting for readiness; recursive `process.nextTick()` can starve I/O.
-- Network sockets are non-blocking; file system operations and `dns.lookup()` use the libuv thread pool (default 4 threads, shared process-wide).
-- Short scripts exit naturally; long-lived servers stay alive because they keep active I/O sources (for example, open sockets).
+- The poll phase can block waiting for I/O readiness; recursive `process.nextTick()` or microtask chains can starve I/O indefinitely.
+- Network I/O is non-blocking (epoll/kqueue/IOCP); file system operations, `dns.lookup()`, crypto, and zlib use the libuv thread pool (default 4 threads, max 1024, shared process-wide).
+- `setImmediate()` always fires before timers when called from an I/O callback; outside I/O callbacks, the order is non-deterministic.
+- Timers have millisecond resolution with ±0.5 ms jitter; they specify a minimum delay threshold, not a precise schedule.
 
-## Mental Model First: Two Layers of Scheduling
+## Mental Model: Two Layers of Scheduling
 
 Think of Node as two schedulers stacked together. The outer scheduler is libuv's phased loop; the inner scheduler is the microtask and `process.nextTick()` queues owned by V8 and Node. A single "tick" is one pass through the phases; after each JavaScript callback (and before the loop continues), Node drains `process.nextTick()` and then microtasks.
 
-Simplified flow (intentionally ignoring edge cases you will see later):
+Simplified flow (intentionally ignoring edge cases covered later):
 
 1. Pick the next phase in the fixed order and run its callbacks.
 2. After each callback, drain `process.nextTick()`.
 3. Drain microtasks (Promise reactions and `queueMicrotask()`).
-4. Repeat until there is no pending I/O or timers.
+4. Repeat until no ref'd handles or active requests remain.
 
 Example: A Hypertext Transfer Protocol (HTTP) server accepts a socket, runs the poll callback, schedules a Promise to update metrics, and calls `setImmediate()`. The callback runs, then `process.nextTick()`, then the Promise microtask, and the `setImmediate()` fires later in the check phase.
 
@@ -67,9 +68,11 @@ flowchart LR
 
 > "A timer specifies the threshold after which a provided callback may be executed." - Node.js Event Loop docs.
 
-Timers are best-effort; operating system scheduling and other callbacks can delay them.
+Timers are best-effort; operating system scheduling and other callbacks can delay them. libuv only supports millisecond resolution by rounding higher-precision clocks to integers—timers can be off by ±0.5 ms even in ideal conditions.
 
-Edge case: Since libuv 1.45.0 (Node 20), timers are checked only after poll; older releases could also check timers before poll. This can affect how timers interleave with `setImmediate()` in some scenarios.
+> **Breaking change in Node.js 20 (libuv 1.45.0):** Prior to this version, libuv executed timers both before and after the poll phase. As of libuv 1.45.0, timers run only after poll. This changes how timers interleave with `setImmediate()` in edge cases—code that relied on timers firing before I/O polling may behave differently. Node.js 22 LTS ships with libuv 1.48.0, which carries this behavior forward.
+
+Repeating timers (`setInterval`) do not adjust for callback execution time. A 50 ms repeating timer whose callback takes 17 ms will reschedule after 33 ms, not 50 ms, because libuv rearms relative to its current idea of "now."
 
 Example: Schedule a 100 ms timeout, then start an `fs.readFile()` that finishes in 95 ms and runs a 10 ms callback. The timer fires around 105 ms, not 100 ms, because the callback delays the timers phase.
 
@@ -109,21 +112,79 @@ nextTick(() => console.log("nextTick"))
 // nextTick
 ```
 
-Example: A logging middleware that schedules itself with `process.nextTick()` can starve I/O if it creates an unbounded chain; use `queueMicrotask()` or `setImmediate()` when fairness matters more than immediate priority.
+Example: A logging middleware that schedules itself with `process.nextTick()` can starve I/O if it creates an unbounded chain; use `queueMicrotask()` or `setImmediate()` when fairness matters more than immediate priority. Detection: Use `monitorEventLoopDelay()` from `perf_hooks`—consistent lag > 100 ms indicates starvation.
+
+## `setImmediate()` vs `setTimeout()` Determinism
+
+The ordering of `setImmediate()` and `setTimeout(..., 0)` depends on context:
+
+**Inside an I/O callback (deterministic):** `setImmediate()` always fires first because the loop is in the poll phase and proceeds directly to check before looping back to timers.
+
+```js title="deterministic.js" collapse={1-2}
+const fs = require("node:fs")
+fs.readFile(__filename, () => {
+  setTimeout(() => console.log("timeout"), 0)
+  setImmediate(() => console.log("immediate"))
+})
+// Output: "immediate" then "timeout" (100% deterministic)
+```
+
+**Outside I/O callbacks (non-deterministic):** Whether the timer or immediate fires first depends on process startup performance—if the loop enters the timers phase before the 1 ms minimum delay elapses, the timer fires first; otherwise, the immediate does.
+
+```js title="non-deterministic.js"
+setTimeout(() => console.log("timeout"), 0)
+setImmediate(() => console.log("immediate"))
+// Output order varies between runs
+```
+
+Design reasoning: `setImmediate()` exists specifically to schedule work immediately after I/O without waiting for timers. When predictability matters, prefer `setImmediate()` inside I/O callbacks or use explicit sequencing with Promises.
 
 ## I/O Boundaries: Kernel Readiness vs. libuv Thread Pool
 
-Network I/O is readiness-based and handled by the kernel with non-blocking sockets. libuv polls using platform mechanisms such as epoll, kqueue, and I/O Completion Ports (IOCP) and runs callbacks on the loop thread. By contrast, work that cannot be made non-blocking is pushed onto the libuv thread pool.
+Network I/O is readiness-based and handled by the kernel with non-blocking sockets. libuv polls using platform mechanisms such as epoll (Linux), kqueue (macOS/BSD), event ports (SunOS), and I/O Completion Ports (IOCP, Windows), then runs callbacks on the event loop thread. By contrast, work that cannot be made non-blocking is pushed onto the libuv thread pool.
 
-The thread pool is global to the process, defaults to 4 threads, and is configurable via `UV_THREADPOOL_SIZE` (maximum 1024). It services file system operations and certain Domain Name System (DNS) lookups (`getaddrinfo` / `getnameinfo`). In Node, `dns.lookup()` uses the thread pool, while `dns.resolve*()` performs network DNS queries and does not.
+| Property      | Value                | Notes                                                                                  |
+| ------------- | -------------------- | -------------------------------------------------------------------------------------- |
+| Default size  | 4 threads            | Set at process startup                                                                 |
+| Maximum size  | 1024 threads         | Increased from 128 in libuv 1.30.0                                                     |
+| Configuration | `UV_THREADPOOL_SIZE` | Environment variable; must be set before process starts                                |
+| Thread stack  | 8 MB                 | Changed in libuv 1.45.0; was platform default (often too small for deeply nested code) |
+| Thread naming | `libuv-worker`       | Added in libuv 1.50.0                                                                  |
 
-Example: A build tool that starts 1,000 parallel `fs.readFile()` calls will queue 996 tasks behind the 4-thread pool, inflating tail latency; increasing `UV_THREADPOOL_SIZE` helps but competes with central processing unit (CPU) time for the event loop.
+The thread pool services:
+
+- **File system operations**: All `fs.*` calls except those using `fs.watch()` (which uses kernel notifications)
+- **DNS lookups via `getaddrinfo`**: `dns.lookup()` and `dns.lookupService()` use the thread pool; `dns.resolve*()` performs network DNS queries and does not
+- **Crypto operations**: `crypto.pbkdf2()`, `crypto.scrypt()`, `crypto.randomBytes()` (async), `crypto.generateKeyPair()`
+- **Compression**: `zlib.gzip()`, `zlib.gunzip()`, `zlib.deflate()`, `zlib.inflate()` (async variants)
+- **Custom work**: `uv_queue_work()` for user-specified tasks
+
+> **Warning:** The thread pool is **not thread-safe for user data**. While the pool itself is global and shared across all event loops, accessing shared data from worker threads requires explicit synchronization.
+
+Example: A build tool that starts 1,000 parallel `fs.readFile()` calls will queue 996 tasks behind the 4-thread pool, inflating tail latency. Increasing `UV_THREADPOOL_SIZE` to 64 or 128 helps I/O throughput but increases memory usage and competes with central processing unit (CPU) time for the event loop.
 
 ## Process Exit and Liveness
 
-Node checks between iterations whether it is still waiting for asynchronous I/O or timers; if not, the process exits. This is why short scripts terminate as soon as their last callback completes.
+Node checks between iterations whether the loop is "alive." The loop is alive if any of these conditions hold:
 
-Example: A script with a single `setTimeout()` exits immediately after the timer fires; removing the timer makes the process exit with no delay.
+- Active and ref'd handles exist (timers, sockets, file watchers)
+- Active requests are pending (I/O operations in flight)
+- Closing handles are still in flight
+
+When none of these conditions hold, the process exits. This is why short scripts terminate as soon as their last callback completes.
+
+### `ref()` and `unref()`
+
+By default, all timers and immediates are **ref'd**—the process will not exit while they are active. Calling `timeout.unref()` allows the process to exit even if the timer is still pending; `timeout.ref()` reverses this. Both are idempotent. Use `timeout.hasRef()` to check current status.
+
+```js title="unref-example.js" collapse={1}
+const timeout = setTimeout(() => console.log("never runs"), 10000)
+timeout.unref() // Process exits immediately; timer does not keep it alive
+```
+
+Example: A background heartbeat timer that should not prevent graceful shutdown uses `unref()`. A critical timeout that must fire before exit uses `ref()` (the default).
+
+Design reasoning: `unref()` exists because long-running servers often have background tasks (health checks, metrics flushing) that should not block shutdown. Without `unref()`, you would need to manually clear every timer during shutdown.
 
 ## Browser Event Loop Contrast (Spec-precise)
 
@@ -147,7 +208,9 @@ Example: In a browser, a user input task can run before a timer task depending o
 
 ## Conclusion
 
-Node's event loop is a deliberate trade-off: fixed phases and a dedicated thread pool make I/O-heavy servers predictable and scalable, while the extra high-priority queues (`process.nextTick()` and microtasks) offer low-latency scheduling at the cost of potential starvation. Use the simplified model to reason quickly, then drop to the phase-level view when debugging ordering and latency.
+Node's event loop is a deliberate trade-off: fixed phases and a dedicated thread pool make I/O-heavy servers predictable and scalable, while the high-priority queues (`process.nextTick()` and microtasks) offer low-latency scheduling at the cost of potential starvation. The libuv 1.45.0 timer change (Node.js 20+) affects edge cases around timer/immediate ordering, and the CJS vs ESM microtask ordering difference can cause subtle bugs when porting code.
+
+Use the simplified two-scheduler mental model to reason quickly, then drop to the phase-level view when debugging ordering and latency. When in doubt, prefer `setImmediate()` inside I/O callbacks for deterministic scheduling and `queueMicrotask()` over `process.nextTick()` for portability.
 
 ## Appendix
 
@@ -159,26 +222,33 @@ Node's event loop is a deliberate trade-off: fixed phases and a dedicated thread
 
 - **Tick**: One pass through the libuv phases.
 - **Phase**: A libuv stage that owns a callback queue (timers, poll, check, etc.).
-- **Task**: A unit of work scheduled onto an HTML task queue.
+- **Handle**: A long-lived libuv resource (timer, socket, file watcher) that keeps the event loop alive while active and ref'd.
+- **Request**: A short-lived libuv operation (write, DNS lookup) that keeps the loop alive while pending.
+- **Task**: A unit of work scheduled onto an HTML task queue (browser concept).
 - **Task source**: A category of tasks in HTML (for example, timers, user interaction, networking).
 - **Microtask**: A high-priority job processed after tasks/phases (Promises, `queueMicrotask()`).
-- **Handle**: A long-lived resource that can keep the event loop active (for example, a listening socket).
 
 ### Summary
 
 - libuv executes callbacks in fixed phases; Node drains `process.nextTick()` then microtasks after each callback.
-- Timers are "minimum delay" thresholds, not precise scheduling guarantees, and can be delayed by other callbacks.
-- The libuv thread pool is small and shared; file system operations and `dns.lookup()` can bottleneck it.
-- The process exits when no timers or pending I/O remain.
+- Timers have millisecond resolution with ±0.5 ms jitter; they specify a minimum delay threshold, not a precise schedule.
+- Since Node.js 20 (libuv 1.45.0), timers execute only after the poll phase—a breaking change from prior versions.
+- The libuv thread pool (default 4, max 1024 threads) services fs, dns.lookup(), crypto, and zlib; it can bottleneck I/O-heavy workloads.
+- `setImmediate()` always fires before timers inside I/O callbacks; outside them, the order is non-deterministic.
+- The process exits when no ref'd handles or active requests remain; use `unref()` for background timers that should not block shutdown.
 - HTML and ECMAScript specs model tasks and microtasks differently from Node's phase-based loop.
 
 ### References
 
 - [HTML Standard - Event loop processing model](https://html.spec.whatwg.org/multipage/webappapis.html#event-loop-processing-model)
 - [ECMAScript 2015 Language Specification (ECMA-262 6th Edition) - Jobs and Job Queues](https://262.ecma-international.org/6.0/#sec-jobs-and-job-queues)
-- [Node.js - The Node.js Event Loop](https://nodejs.org/en/guides/event-loop-timers-and-nexttick)
-- [Node.js - `process.nextTick()`](https://nodejs.org/docs/latest/api/process.html#processnexttickcallback-args)
-- [Node.js - `process.nextTick()` vs `queueMicrotask()`](https://nodejs.org/docs/latest/api/process.html#when-to-use-queuemicrotask-vs-processnexttick)
-- [Node.js - DNS module](https://nodejs.org/api/dns.html)
-- [libuv - Design overview](https://docs.libuv.org/en/latest/design.html)
+- [libuv - Design overview](https://docs.libuv.org/en/v1.x/design.html)
 - [libuv - Thread pool work scheduling](https://docs.libuv.org/en/v1.x/threadpool.html)
+- [libuv - Timer handle](https://docs.libuv.org/en/v1.x/timer.html)
+- [Node.js - The Node.js Event Loop](https://nodejs.org/en/learn/asynchronous-work/event-loop-timers-and-nexttick)
+- [Node.js - Understanding `process.nextTick()`](https://nodejs.org/en/learn/asynchronous-work/understanding-processnexttick)
+- [Node.js - `process.nextTick()` API](https://nodejs.org/docs/latest/api/process.html#processnexttickcallback-args)
+- [Node.js - `process.nextTick()` vs `queueMicrotask()`](https://nodejs.org/docs/latest/api/process.html#when-to-use-queuemicrotask-vs-processnexttick)
+- [Node.js - Timers API](https://nodejs.org/api/timers.html)
+- [Node.js - DNS module](https://nodejs.org/api/dns.html)
+- [Node.js - Performance measurement APIs (`monitorEventLoopDelay`)](https://nodejs.org/api/perf_hooks.html#perf_hooks_monitoringeventloopdelay_options)

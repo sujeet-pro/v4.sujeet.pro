@@ -5,12 +5,22 @@ import { CONTENT_DIR, discoverContent, type ContentStructure } from "./lib/conte
 import { loadJsonc } from "./lib/jsonc"
 import { Logger } from "./lib/logger"
 
+// =============================================================================
+// Types for the simplified ordering structure
+// =============================================================================
+
+export interface TopicOrderEntry {
+  id: string
+  articles: string[]
+}
+
+export interface CategoryOrderEntry {
+  id: string
+  topics: TopicOrderEntry[]
+}
+
 export interface OrderingJsonc {
-  categoryOrder: string[]
-  topicsOrder: string[]
-  articlesOrder: string[]
-  categoryVsTopics: Record<string, string[]>
-  topicVsArticlesOrder: Record<string, string[]>
+  categories: CategoryOrderEntry[]
   featuredArticles: string[]
   featuredTopics: string[]
 }
@@ -19,74 +29,127 @@ interface OrderingIssue {
   message: string
 }
 
+// =============================================================================
+// Derive flat lists from hierarchical structure
+// =============================================================================
+
+function deriveFromHierarchy(orderingConfig: OrderingJsonc) {
+  const categoryOrder: string[] = []
+  const topicsOrder: string[] = []
+  const articlesOrder: string[] = []
+  const categoryVsTopics: Record<string, string[]> = {}
+  const topicVsArticlesOrder: Record<string, string[]> = {}
+
+  for (const category of orderingConfig.categories) {
+    categoryOrder.push(category.id)
+    const topicIds: string[] = []
+
+    for (const topic of category.topics) {
+      topicIds.push(topic.id)
+      topicsOrder.push(topic.id)
+      topicVsArticlesOrder[topic.id] = topic.articles
+      articlesOrder.push(...topic.articles)
+    }
+
+    categoryVsTopics[category.id] = topicIds
+  }
+
+  return {
+    categoryOrder,
+    topicsOrder,
+    articlesOrder,
+    categoryVsTopics,
+    topicVsArticlesOrder,
+  }
+}
+
+// =============================================================================
+// Validation
+// =============================================================================
+
 function validateOrdering(orderingConfig: OrderingJsonc, content: ReturnType<typeof discoverContent>): OrderingIssue[] {
   const issues: OrderingIssue[] = []
 
-  const orderingCategories = new Set(orderingConfig.categoryOrder)
+  // Derive flat lists from hierarchical structure
+  const derived = deriveFromHierarchy(orderingConfig)
+
+  const orderingCategories = new Set(derived.categoryOrder)
   const existingCategories = new Set(content.categories)
+
+  // Check for duplicate category IDs
+  const seenCategories = new Set<string>()
+  for (const categoryId of derived.categoryOrder) {
+    if (seenCategories.has(categoryId)) {
+      issues.push({ message: `Duplicate category in categories: ${categoryId}` })
+    }
+    seenCategories.add(categoryId)
+  }
 
   for (const categoryId of content.categories) {
     if (!orderingCategories.has(categoryId)) {
-      issues.push({ message: `Category missing from categoryOrder: ${categoryId}` })
+      issues.push({ message: `Category missing from ordering: ${categoryId}` })
     }
   }
 
-  for (const categoryId of orderingConfig.categoryOrder) {
+  for (const categoryId of derived.categoryOrder) {
     if (!existingCategories.has(categoryId)) {
-      issues.push({ message: `Orphan category in categoryOrder: ${categoryId}` })
+      issues.push({ message: `Orphan category in ordering: ${categoryId}` })
     }
   }
 
-  const orderingTopics = new Set(orderingConfig.topicsOrder)
+  const orderingTopics = new Set(derived.topicsOrder)
   const existingTopics = new Set(content.allTopicIds)
 
+  // Check for duplicate topic IDs
   const seenTopics = new Set<string>()
-  for (const topicId of orderingConfig.topicsOrder) {
+  for (const topicId of derived.topicsOrder) {
     if (seenTopics.has(topicId)) {
-      issues.push({ message: `Duplicate topic in topicsOrder: ${topicId}` })
+      issues.push({ message: `Duplicate topic in ordering: ${topicId}` })
     }
     seenTopics.add(topicId)
   }
 
   for (const topicId of content.allTopicIds) {
     if (!orderingTopics.has(topicId)) {
-      issues.push({ message: `Topic missing from topicsOrder: ${topicId}` })
+      issues.push({ message: `Topic missing from ordering: ${topicId}` })
     }
   }
 
-  for (const topicId of orderingConfig.topicsOrder) {
+  for (const topicId of derived.topicsOrder) {
     if (!existingTopics.has(topicId)) {
-      issues.push({ message: `Orphan topic in topicsOrder: ${topicId}` })
+      issues.push({ message: `Orphan topic in ordering: ${topicId}` })
     }
   }
 
-  const orderingArticles = new Set(orderingConfig.articlesOrder)
+  const orderingArticles = new Set(derived.articlesOrder)
   const existingArticles = new Set(content.allArticleSlugs)
 
+  // Check for duplicate article slugs
   const seenArticles = new Set<string>()
-  for (const slug of orderingConfig.articlesOrder) {
+  for (const slug of derived.articlesOrder) {
     if (seenArticles.has(slug)) {
-      issues.push({ message: `Duplicate article in articlesOrder: ${slug}` })
+      issues.push({ message: `Duplicate article in ordering: ${slug}` })
     }
     seenArticles.add(slug)
   }
 
   for (const slug of content.allArticleSlugs) {
     if (!orderingArticles.has(slug)) {
-      issues.push({ message: `Article missing from articlesOrder: ${slug}` })
+      issues.push({ message: `Article missing from ordering: ${slug}` })
     }
   }
 
-  for (const slug of orderingConfig.articlesOrder) {
+  for (const slug of derived.articlesOrder) {
     if (!existingArticles.has(slug)) {
-      issues.push({ message: `Orphan article in articlesOrder: ${slug}` })
+      issues.push({ message: `Orphan article in ordering: ${slug}` })
     }
   }
 
+  // Validate category -> topics mapping
   for (const categoryId of content.categories) {
-    const topicsInMapping = orderingConfig.categoryVsTopics[categoryId]
+    const topicsInMapping = derived.categoryVsTopics[categoryId]
     if (!topicsInMapping) {
-      issues.push({ message: `Category missing from categoryVsTopics: ${categoryId}` })
+      issues.push({ message: `Category missing topics in ordering: ${categoryId}` })
       continue
     }
 
@@ -96,27 +159,22 @@ function validateOrdering(orderingConfig: OrderingJsonc, content: ReturnType<typ
 
     for (const topicId of actualTopics) {
       if (!mappingTopicsSet.has(topicId)) {
-        issues.push({ message: `Topic "${topicId}" missing from categoryVsTopics["${categoryId}"]` })
+        issues.push({ message: `Topic "${topicId}" missing from category "${categoryId}" in ordering` })
       }
     }
 
     for (const topicId of topicsInMapping) {
       if (!actualTopicsSet.has(topicId)) {
-        issues.push({ message: `Orphan topic "${topicId}" in categoryVsTopics["${categoryId}"]` })
+        issues.push({ message: `Orphan topic "${topicId}" in category "${categoryId}" in ordering` })
       }
     }
   }
 
-  for (const categoryId of Object.keys(orderingConfig.categoryVsTopics)) {
-    if (!existingCategories.has(categoryId)) {
-      issues.push({ message: `Orphan category in categoryVsTopics: ${categoryId}` })
-    }
-  }
-
+  // Validate topic -> articles mapping
   for (const topicId of content.allTopicIds) {
-    const articlesInMapping = orderingConfig.topicVsArticlesOrder[topicId]
+    const articlesInMapping = derived.topicVsArticlesOrder[topicId]
     if (!articlesInMapping) {
-      issues.push({ message: `Topic missing from topicVsArticlesOrder: ${topicId}` })
+      issues.push({ message: `Topic missing articles in ordering: ${topicId}` })
       continue
     }
 
@@ -126,35 +184,32 @@ function validateOrdering(orderingConfig: OrderingJsonc, content: ReturnType<typ
 
     for (const slug of actualArticles) {
       if (!mappingArticlesSet.has(slug)) {
-        issues.push({ message: `Article "${slug}" missing from topicVsArticlesOrder["${topicId}"]` })
+        issues.push({ message: `Article "${slug}" missing from topic "${topicId}" in ordering` })
       }
     }
 
     for (const slug of articlesInMapping) {
       if (!actualArticlesSet.has(slug)) {
-        issues.push({ message: `Orphan article "${slug}" in topicVsArticlesOrder["${topicId}"]` })
+        issues.push({ message: `Orphan article "${slug}" in topic "${topicId}" in ordering` })
       }
     }
   }
 
-  for (const topicId of Object.keys(orderingConfig.topicVsArticlesOrder)) {
-    if (!existingTopics.has(topicId)) {
-      issues.push({ message: `Orphan topic in topicVsArticlesOrder: ${topicId}` })
-    }
-  }
-
+  // Validate featured articles
   for (const slug of orderingConfig.featuredArticles) {
     if (!existingArticles.has(slug)) {
       issues.push({ message: `Featured article not found: ${slug}` })
     }
   }
 
+  // Validate featured topics
   for (const topicId of orderingConfig.featuredTopics) {
     if (!existingTopics.has(topicId)) {
       issues.push({ message: `Featured topic not found: ${topicId}` })
     }
   }
 
+  // Check for slug uniqueness across categories, topics, and articles
   const allSlugs = new Set<string>()
 
   for (const categoryId of content.categories) {
@@ -188,7 +243,7 @@ export interface ContentOrderingValidationOptions {
 
 export async function runContentOrderingValidation(options: ContentOrderingValidationOptions = {}) {
   const logger = new Logger("validate-content-ordering", { humanReadable: true })
-  const orderingPath = path.join(process.cwd(), "content/ordering.jsonc")
+  const orderingPath = path.join(process.cwd(), "content/ordering.json5")
   const orderingRelative = path.relative(process.cwd(), orderingPath)
 
   logger.info("=".repeat(60))
@@ -200,7 +255,7 @@ export async function runContentOrderingValidation(options: ContentOrderingValid
   const hasOrderingConfig = Object.prototype.hasOwnProperty.call(options, "orderingConfig")
   const orderingConfig = hasOrderingConfig ? options.orderingConfig : loadJsonc<OrderingJsonc>(orderingPath)
   if (!orderingConfig) {
-    logger.error("ordering.jsonc not found")
+    logger.error("ordering.json5 not found")
     const summary = {
       schemaVersion: 1,
       tool: "validate-content-ordering",
@@ -213,7 +268,7 @@ export async function runContentOrderingValidation(options: ContentOrderingValid
       files: [
         {
           file: orderingRelative,
-          issues: [{ message: "ordering.jsonc not found" }],
+          issues: [{ message: "ordering.json5 not found" }],
         },
       ],
     }
@@ -253,7 +308,7 @@ export async function runContentOrderingValidation(options: ContentOrderingValid
       logger.error(issue.message)
     }
   } else {
-    logger.success("ordering.jsonc matches content structure.")
+    logger.success("ordering.json5 matches content structure.")
   }
 
   const summary = {

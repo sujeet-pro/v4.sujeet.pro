@@ -7,7 +7,7 @@
 import type { MarkdownHeading } from "astro"
 import { getCollection, render } from "astro:content"
 
-import { filterDrafts, getOrdering, getProcessedContent, sortByOrdering } from "./content.core"
+import { filterDrafts, getDerivedOrdering, getOrdering, getProcessedContent, sortByOrdering } from "./content.core"
 import type {
   ArticleCardCache,
   ArticleCardInfo,
@@ -55,6 +55,7 @@ async function buildCardCaches(): Promise<CardCaches> {
 
   const { articlesWithoutContent, categoryLookup, topicLookup } = await getProcessedContent()
   const ordering = await getOrdering()
+  const derived = await getDerivedOrdering()
   const filteredArticles = filterDrafts(articlesWithoutContent)
 
   const topicRefsById = new Map<string, TopicRef>()
@@ -89,14 +90,14 @@ async function buildCardCaches(): Promise<CardCaches> {
   }
 
   const topicCardCache: TopicCardCache = {}
-  for (const topicId of ordering.topicsOrder) {
+  for (const topicId of derived.topicsOrder) {
     const topicRef = topicRefsById.get(topicId)
     if (!topicRef) continue
     const categoryRef = categoryLookup.get(topicRef.categoryId)
     if (!categoryRef) continue
 
     const topicArticles = articlesByTopic.get(topicId) ?? []
-    const topicArticleOrder = ordering.topicVsArticlesOrder[topicId] ?? []
+    const topicArticleOrder = derived.topicVsArticlesOrder[topicId] ?? []
     const articleCards = sortByOrdering(
       topicArticles
         .map((article) => articleCardCache[article.postId])
@@ -119,18 +120,18 @@ async function buildCardCaches(): Promise<CardCaches> {
 
   const allTopicCards = sortByOrdering(
     Object.values(topicCardCache).filter((topic) => topic.articleCount > 0),
-    ordering.topicsOrder,
+    derived.topicsOrder,
     (topic) => topic.id,
   )
 
   const categoryCardCache: CategoryCardCache = {}
   const browseContent: CategoryCardInfo[] = []
 
-  for (const categoryId of ordering.categoryOrder) {
+  for (const categoryId of derived.categoryOrder) {
     const categoryRef = categoryLookup.get(categoryId)
     if (!categoryRef) continue
 
-    const topicIds = ordering.categoryVsTopics[categoryId] ?? []
+    const topicIds = derived.categoryVsTopics[categoryId] ?? []
     const topicCards = topicIds
       .map((topicId) => topicCardCache[topicId])
       .filter((topic): topic is TopicCardInfo => Boolean(topic && topic.articleCount > 0))
@@ -153,7 +154,7 @@ async function buildCardCaches(): Promise<CardCaches> {
     browseContent.push(categoryCard)
   }
 
-  const allArticleCards = sortByOrdering(Object.values(articleCardCache), ordering.articlesOrder, (card) => card.id)
+  const allArticleCards = sortByOrdering(Object.values(articleCardCache), derived.articlesOrder, (card) => card.id)
 
   const featuredArticleCards = ordering.featuredArticles
     .map((id) => articleCardCache[id])

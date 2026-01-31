@@ -1,25 +1,12 @@
 import { file, glob } from "astro/loaders"
 import { defineCollection, z } from "astro:content"
+import JSON5 from "json5"
 
 // =============================================================================
-// JSONC Parser (JSON with Comments)
+// JSON5 Parser Type
 // =============================================================================
 
-type JsoncResult = Record<string, Record<string, unknown>> | Record<string, unknown>[]
-
-function parseJsonc(content: string): JsoncResult {
-  // Remove comments while preserving strings containing //
-  // Match strings first to skip them, then match comments to remove
-  const cleaned = content.replace(/"(?:[^"\\]|\\.)*"|\/\/[^\n]*|\/\*[\s\S]*?\*/g, (match) => {
-    // If it's a string (starts with "), keep it
-    if (match.startsWith('"')) return match
-    // Otherwise it's a comment, remove it
-    return ""
-  })
-  // Remove trailing commas
-  const noTrailingCommas = cleaned.replace(/,(\s*[}\]])/g, "$1")
-  return JSON.parse(noTrailingCommas) as JsoncResult
-}
+type Json5Result = Record<string, Record<string, unknown>> | Record<string, unknown>[]
 
 // =============================================================================
 // JSONC Config Collections
@@ -27,8 +14,8 @@ function parseJsonc(content: string): JsoncResult {
 
 // Vanity URLs - supports both external URLs and internal redirects (starting with /)
 const vanity = defineCollection({
-  loader: file("./content/vanity.jsonc", {
-    parser: (fileContent) => parseJsonc(fileContent),
+  loader: file("./content/vanity.json5", {
+    parser: (fileContent) => JSON5.parse(fileContent) as Json5Result,
   }),
   schema: z.object({
     id: z.string(),
@@ -38,9 +25,9 @@ const vanity = defineCollection({
 
 // Home Page Configuration
 const home = defineCollection({
-  loader: file("./content/home.jsonc", {
+  loader: file("./content/home.json5", {
     parser: (fileContent) => {
-      const data = parseJsonc(fileContent) as Record<string, unknown>
+      const data = JSON5.parse(fileContent) as Record<string, unknown>
       // Wrap in array with id for Astro collection format
       return [{ id: "home", ...data }]
     },
@@ -64,9 +51,9 @@ const home = defineCollection({
 
 // Site Configuration
 const site = defineCollection({
-  loader: file("./content/site.jsonc", {
+  loader: file("./content/site.json5", {
     parser: (fileContent) => {
-      const data = parseJsonc(fileContent) as Record<string, unknown>
+      const data = JSON5.parse(fileContent) as Record<string, unknown>
       // Wrap in array with id for Astro collection format
       return [{ id: "site", ...data }]
     },
@@ -113,24 +100,30 @@ const site = defineCollection({
 })
 
 // Unified Ordering Configuration
-// References IDs from: category, topic, and article collections
+// Hierarchical structure: categories -> topics -> articles
+// Order is determined by array position at each level
 const ordering = defineCollection({
-  loader: file("./content/ordering.jsonc", {
+  loader: file("./content/ordering.json5", {
     parser: (fileContent) => {
-      const data = parseJsonc(fileContent) as Record<string, unknown>
+      const data = JSON5.parse(fileContent) as Record<string, unknown>
       // Wrap in array with id for Astro collection format
       return [{ id: "ordering", ...data }]
     },
   }),
   schema: z.object({
     id: z.string(),
-    // Complete lists - IDs must match entries in respective collections
-    categoryOrder: z.array(z.string()), // IDs from 'category' collection
-    topicsOrder: z.array(z.string()), // IDs from 'topic' collection
-    articlesOrder: z.array(z.string()), // IDs from 'article' collection
-    // Hierarchical mappings
-    categoryVsTopics: z.record(z.string(), z.array(z.string())), // category ID -> topic IDs
-    topicVsArticlesOrder: z.record(z.string(), z.array(z.string())), // topic ID -> article IDs
+    // Hierarchical structure
+    categories: z.array(
+      z.object({
+        id: z.string(),
+        topics: z.array(
+          z.object({
+            id: z.string(),
+            articles: z.array(z.string()),
+          }),
+        ),
+      }),
+    ),
     // Featured subsets (for homepage)
     featuredArticles: z.array(z.string()), // IDs from 'article' collection
     featuredTopics: z.array(z.string()), // IDs from 'topic' collection

@@ -26,11 +26,13 @@ If the prompt is about changing site functionality, read:
 ## Operating Rules
 
 ### Research & Sources
+
 - Use source priority: specs > official docs > core maintainer content > source code > industry experts.
 - Every technical claim must be backed by a source from the hierarchy.
 - Quote core maintainers for design rationale.
 
 ### Content Quality
+
 - Focus on **why and how**, not just what.
 - State current version explicitly; note previous behavior where it has changed.
 - Abstract = mental model for revision (NOT section-by-section summary).
@@ -39,6 +41,7 @@ If the prompt is about changing site functionality, read:
 - No filler—every paragraph earns its place.
 
 ### Formatting
+
 - Code blocks must collapse non-essential lines using `collapse={...}`.
 - Do not add legacy frontmatter fields (publishedOn/lastUpdatedOn/tags).
 - Maintain the principal-engineer persona.
