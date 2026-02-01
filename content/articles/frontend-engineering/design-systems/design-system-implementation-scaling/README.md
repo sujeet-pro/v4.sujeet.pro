@@ -1,16 +1,70 @@
 # Design System Implementation and Scaling
 
-A phase-by-phase guide to building, adopting, and evolving a design system once governance and strategy are in place.
+Technical implementation patterns for building, migrating, and operating design systems at enterprise scale. This article assumes governance and strategic alignment are in place (see [Design System Adoption: Foundations and Governance](../design-system-adoption-foundations/README.md)) and focuses on the engineering decisions that determine whether a design system thrives or becomes technical debt.
 
-## TLDR
+<figure>
 
-- **Architecture enables scale**: component APIs, tokens, and tooling must be designed for change.
-- **Adoption needs change management**: migration plans, champions, and measurable milestones matter.
-- **Operate the system** like a product with metrics, feedback loops, and versioning discipline.
+```mermaid
+flowchart TB
+    subgraph Architecture["Architecture Decisions"]
+        ARCH[Framework Strategy] --> TOKENS[Token Pipeline]
+        TOKENS --> COMPONENTS[Component Library]
+    end
 
-## Phase 3: Technical Architecture and Implementation
+    subgraph Distribution["Distribution & Migration"]
+        COMPONENTS --> BUNDLE[Bundling & Publishing]
+        BUNDLE --> MIGRATE[Migration Strategy]
+    end
 
-### 3.1 Making Architectural Decisions
+    subgraph Operations["Operational Excellence"]
+        MIGRATE --> ADOPTION[Adoption Enablement]
+        ADOPTION --> METRICS[Measurement & Feedback]
+        METRICS --> CODEMODS[Technical Enablement]
+    end
+
+    CODEMODS -.->|"Continuous improvement"| Architecture
+```
+
+<figcaption>Design system implementation lifecycle: architecture decisions flow into distribution, which feeds operational practices that inform architectural evolution.</figcaption>
+
+</figure>
+
+## Abstract
+
+Design system implementation succeeds when three forces align: **architecture that anticipates change**, **distribution that minimizes friction**, and **operations that treat the system as a product**.
+
+<figure>
+
+```mermaid
+flowchart LR
+    subgraph Core["Core Decisions"]
+        A[Hybrid Architecture] -->|"Tokens + Framework Wrappers"| B[Change Resilience]
+    end
+
+    subgraph Adoption["Adoption Multipliers"]
+        C[Codemods] -->|"Automated Migration"| D[Low Friction Upgrades]
+        E[Usage Analytics] -->|"Data-Driven"| F[Targeted Investment]
+    end
+
+    subgraph Scale["Scale Enablers"]
+        G[Shared CDN Assets] -->|"Cross-App Caching"| H[Performance]
+        I[Version Policies] -->|"Compatibility Windows"| J[Consistency]
+    end
+```
+
+<figcaption>The mental model: architecture enables change, automation reduces friction, data drives decisions.</figcaption>
+
+</figure>
+
+**Architecture**: The hybrid approach—platform-agnostic tokens with framework-specific component wrappers—survives technology shifts. React Server Components (RSC) compatibility, headless accessibility primitives (Radix, React Aria), and tree-shakeable bundles are table stakes for 2025+.
+
+**Distribution**: Codemods transform major version upgrades from multi-sprint projects to single-command operations. Repository scanning reveals adoption patterns that documentation alone cannot surface. Shared CDN hosting eliminates duplicate asset downloads across applications.
+
+**Operations**: Version compatibility windows (all apps within N minor versions) create upgrade pressure without breaking stability. Usage analytics—which components, which props, which overrides—drive prioritization better than feature requests.
+
+## Technical Architecture and Implementation
+
+### Making Architectural Decisions
 
 The architectural foundation determines the long-term viability of your design system. You must decide whether to build framework-specific or framework-agnostic components, how to handle multiple frontend technologies across the organization, what migration strategy applies to existing applications, and how to ensure backward compatibility as the system evolves.
 
@@ -32,193 +86,206 @@ The **Hybrid Approach** often provides the best balance for organizations with d
 
 Make architectural decisions before any component development begins—changing architecture later requires extensive rework. Prototype both framework-specific and framework-agnostic approaches with a small team to understand the real trade-offs in your context. Validate decisions with 2-3 pilot projects before committing; theoretical advantages often don't survive contact with production requirements.
 
-### 3.2 Design Token Strategy
+### Design Token Strategy
 
-Design tokens form the foundation of your design system's visual language. Before implementation, you must answer how to structure your tokens for scalability, what relationship exists between tokens and components, how to handle theme variations (dark mode, white-label, accessibility themes), and what build process will generate platform-specific outputs.
+Design tokens encode design decisions as platform-agnostic data. For comprehensive coverage of token taxonomy, naming conventions, theming architecture, and governance, see [Design Tokens and Theming Architecture](../design-tokens-and-theming/README.md). This section focuses on implementation decisions specific to scaling.
 
-**Industry Standard: DTCG Specification**
+**Industry Standard: DTCG Specification (v2025.10)**
 
-The W3C Design Tokens Community Group (DTCG) specification reached its first stable version (2025.10) in October 2025. Adopting this standard ensures interoperability between design tools (Figma, Tokens Studio, Sketch) and development tooling (Style Dictionary, Token Transformer). Organizations including Adobe, Google, Microsoft, Meta, Figma, and Shopify participate in this standardization effort, making DTCG the clear choice for future-proofing your token architecture.
+The W3C Design Tokens Community Group (DTCG) specification reached its first stable version in October 2025. Over 20 organizations—including Adobe, Amazon, Google, Microsoft, Meta, Figma, Salesforce, and Shopify—contributed to this standardization effort.
 
-**Token Transformation with Style Dictionary**
+**Why DTCG matters for implementation**: The specification standardizes the JSON format with `$value`, `$type`, and `$description` properties. Tools like Style Dictionary v4, Tokens Studio, and Terrazzo all support DTCG natively, enabling interoperability between design tools and development pipelines without custom transformation logic.
 
-[Style Dictionary](https://styledictionary.com/) is the industry-standard build system for design tokens. It reads token definitions in JSON format (including DTCG-compliant files) and transforms them into platform-specific outputs: CSS custom properties, SCSS variables, iOS Swift constants, Android XML resources, and more.
+**Token Transformation with Style Dictionary v4**
 
-```javascript title="style-dictionary.config.js"
-module.exports = {
+[Style Dictionary v4](https://styledictionary.com/) is the industry-standard build system for design tokens. Key changes from v3:
+
+| Change | v3 Behavior | v4 Behavior | Why It Matters |
+| ------ | ----------- | ----------- | -------------- |
+| **Format** | Custom `value`/`type` properties | DTCG `$value`/`$type` support | Tool interoperability |
+| **CTI Coupling** | Hard-coded Category-Type-Item structure | Uses `token.type` property | Flexible naming |
+| **Transforms** | Limited chaining | Transitive transforms resolve reference chains | Complex aliases work |
+
+```javascript title="style-dictionary.config.mjs" collapse={1-2, 22-35}
+// Style Dictionary v4 configuration with DTCG support
+import StyleDictionary from 'style-dictionary';
+
+export default {
   source: ["tokens/**/*.json"],
   platforms: {
     css: {
       transformGroup: "css",
       buildPath: "dist/css/",
-      files: [
-        {
-          destination: "variables.css",
-          format: "css/variables",
-          options: { outputReferences: true },
-        },
-      ],
+      files: [{
+        destination: "variables.css",
+        format: "css/variables",
+        options: { outputReferences: true }, // Preserve aliases: --color-action: var(--color-blue-500)
+      }],
     },
     js: {
       transformGroup: "js",
       buildPath: "dist/js/",
-      files: [
-        {
-          destination: "tokens.js",
-          format: "javascript/es6",
-        },
-      ],
+      files: [{ destination: "tokens.mjs", format: "javascript/esm" }],
     },
-    scss: {
-      transformGroup: "scss",
-      buildPath: "dist/scss/",
-      files: [
-        {
-          destination: "_variables.scss",
-          format: "scss/variables",
-        },
-      ],
+    // iOS and Android configurations
+    ios: {
+      transformGroup: "ios-swift",
+      buildPath: "dist/ios/",
+      files: [{ destination: "Tokens.swift", format: "ios-swift/class.swift" }],
+    },
+    android: {
+      transformGroup: "android",
+      buildPath: "dist/android/",
+      files: [{ destination: "tokens.xml", format: "android/resources" }],
     },
   },
-}
+};
 ```
-
-Style Dictionary's `outputReferences: true` option preserves token aliases in the output, enabling CSS like `--color-action-primary: var(--color-blue-500)` rather than resolved values. This maintains the semantic relationship and enables runtime theming.
 
 **Three-Tier Token Architecture:**
 
-Design tokens should be organized into three layers, each serving a distinct purpose:
+| Tier | Purpose | Example | When to Add |
+| ---- | ------- | ------- | ----------- |
+| **Primitives** | Raw values defining what styles exist | `color-blue-500: #0070f3` | Always (foundation) |
+| **Semantics** | Intent-based mappings | `color-action-primary: {color.blue.500}` | Always (enables theming) |
+| **Components** | Element-specific bindings | `button-background: {color.action.primary}` | Only for multi-brand/white-label |
 
-| Tier           | Also Known As               | Purpose                                         | Example                                     |
-| -------------- | --------------------------- | ----------------------------------------------- | ------------------------------------------- |
-| **Primitives** | Foundation, Core, Reference | Raw values defining what styles exist           | `color-blue-500: #0070f3`                   |
-| **Semantics**  | Decision, System, Alias     | Intent-based mappings defining how styles apply | `color-action-primary: {color-blue-500}`    |
-| **Components** | Element-specific            | Where tokens apply to specific elements         | `button-background: {color-action-primary}` |
-
-```json title="tokens.json (DTCG format)"
-{
-  "color": {
-    "blue": {
-      "500": {
-        "$value": "#0070f3",
-        "$type": "color"
-      }
-    }
-  },
-  "action": {
-    "primary": {
-      "$value": "{color.blue.500}",
-      "$type": "color"
-    }
-  },
-  "button": {
-    "background": {
-      "$value": "{action.primary}",
-      "$type": "color"
-    }
-  }
-}
-```
-
-**Token Naming Principles**
-
-Each tier answers a different question. **Primitives** answer "What values exist?"—the raw palette of colors, spacing values, and typography options available. **Semantics** answer "How should values be used?"—mapping primitives to intent like "primary action" or "error state." **Components** answer "Where do values apply?"—binding semantic tokens to specific UI elements like button backgrounds or input borders. This separation enables theme switching (changing semantic mappings) without touching component code.
+**Design reasoning**: Most systems operate well with primitives and semantic tokens alone. Component tokens multiply maintenance overhead—a 200-token semantic layer can balloon to 2000+ with component tokens. Only introduce the third tier when multi-brand theming or white-labeling requires granular per-component customization.
 
 **Measuring Token Effectiveness**
 
-**Token Coverage** tracks the percentage of UI elements using tokens rather than hardcoded values; anything below 90% indicates adoption gaps or missing tokens. **Consistency Score** from design audits measures visual consistency across products using the same tokens. **Theme Support** counts the number of functional themes (light, dark, high-contrast, brand variations) the token architecture enables. **Build Performance** measures the time to generate platform-specific outputs; slow builds discourage iteration.
+| Metric | Target | Why It Matters |
+| ------ | ------ | -------------- |
+| Token Coverage | >90% of UI | Below 90% indicates adoption gaps or missing tokens |
+| Theme Count | ≥2 functional themes | Validates the token architecture actually enables theming |
+| Build Time | <10s for full rebuild | Slow builds discourage iteration and CI feedback |
 
-**Token Implementation Timeline**
+### Component Library Implementation
 
-Start with foundation tokens before building any components—components without tokens become technical debt the moment theming requirements emerge. Validate the token structure with the design team through hands-on exercises; abstract discussions rarely surface real naming conflicts. Implement automated token generation within the first month to establish the pipeline early and catch tooling issues before they compound.
+Building the component library is where architectural decisions meet production reality. For comprehensive coverage of API design patterns, versioning, and governance workflows, see [Component Library Architecture and Governance](../component-library-architecture-and-governance/README.md). This section focuses on implementation decisions specific to scaling.
 
-### 3.3 Component Library Implementation
+#### React-Based Component Architecture (2025+)
 
-Building the component library is where architectural decisions meet production reality. This section covers the technical implementation choices that determine whether your design system is pleasant to use or a constant source of friction.
+React remains the dominant choice for design system component libraries, with TypeScript as the expected baseline. Three architectural decisions dominate the 2025+ landscape:
 
-#### React-Based Component Architecture
+**1. Headless Accessibility Primitives**
 
-React remains the dominant choice for design system component libraries in 2025-2026, with TypeScript as the expected baseline. When building React components for a design system, several architectural patterns have emerged as best practices.
+Building accessible components from scratch is expensive and error-prone. The pragmatic choice is standing on the shoulders of accessibility experts:
 
-**Component API Design**
+| Library | Approach | Weekly Downloads | Best For |
+| ------- | -------- | ---------------- | -------- |
+| **Radix UI** | Unstyled primitives + optional Radix Themes | 2M+ | Teams wanting maximum styling control |
+| **React Aria** | Hooks + optional components | 260K+ | Complex ARIA patterns, i18n |
+| **Headless UI** | Tailwind-focused components | 500K+ | Tailwind-native teams |
 
-Design components with composition in mind. Prefer compound components (like `<Select>`, `<Select.Option>`, `<Select.Group>`) over prop-drilling for complex state. This pattern provides flexibility while maintaining a coherent API. Export both the compound pattern and convenient presets for common use cases.
+**Design reasoning**: These libraries handle focus management, keyboard navigation, and ARIA attributes correctly. Radix now offers a unified `radix-ui` package with tree-shakeable exports. React Aria's `react-aria-components` layer provides simpler consumption than raw hooks.
 
-TypeScript serves a dual purpose: catching bugs at compile time and providing inline documentation through IDE autocomplete. Every public component should export its props interface, enabling consuming teams to extend or wrap components safely.
+**2. React Server Components Compatibility**
 
-```typescript title="Button.tsx" collapse={1-2}
-import React from "react"
+RSC is production-ready in Next.js 15+. Design systems must consider the server/client boundary:
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost"
-  size?: "sm" | "md" | "lg"
-  loading?: boolean
-  leftIcon?: React.ReactNode
-  rightIcon?: React.ReactNode
+```tsx title="RSC-compatible component pattern" collapse={1-4}
+// Server-safe: no useState, useEffect, event handlers
+// Client components need 'use client' directive
+'use client';
+
+import { useState } from 'react';
+import { Button as RadixButton } from '@radix-ui/react-button';
+
+export function InteractiveButton({ children, ...props }) {
+  const [loading, setLoading] = useState(false);
+  return <RadixButton {...props}>{loading ? 'Loading...' : children}</RadixButton>;
 }
-
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = "primary", size = "md", loading, children, ...props }, ref) => {
-    // Implementation using design tokens
-  },
-)
 ```
 
-**Accessibility as Architecture**
+**Why RSC matters**: RSC-compatible design systems can reduce client bundle size by 40-60% in content-heavy applications. The industry is shifting toward libraries that enable maximum tree-shaking with minimal runtime JavaScript.
 
-Accessibility cannot be bolted on after the fact—it must be architectural. Leverage headless component libraries like Radix UI or React Aria as the foundation. These libraries handle complex accessibility patterns (focus management, keyboard navigation, ARIA attributes) correctly, freeing your team to focus on styling and API design. Building accessible components from scratch is expensive and error-prone; standing on the shoulders of accessibility experts is the pragmatic choice.
+> **2025+ Trend**: The shadcn/ui model—where consumers own the source code—is gaining traction because it provides maximum tree-shaking, minimal bundle size, and true RSC control. Consider offering both npm-distributed components and copy-paste primitives.
 
-**React Server Components Compatibility**
+**3. Component API Design**
 
-With React Server Components (RSC) now production-ready in frameworks like Next.js 14+, design system components must consider the server/client boundary. Components requiring interactivity (useState, useEffect, event handlers) need the `'use client'` directive. Consider providing both server-safe and interactive variants where sensible, or clearly document which components require client-side rendering. RSC-compatible design systems can reduce client bundle size by 40-60% in content-heavy applications.
+Compound components solve the "prop explosion" problem. Export both the compound pattern and convenient presets:
 
-#### Storybook for Documentation and Development
+```typescript title="Dialog.tsx" collapse={1-3, 15-20}
+// Compound pattern for flexibility
+import { Dialog as RadixDialog } from '@radix-ui/react-dialog';
 
-Storybook has become the standard development environment and documentation platform for design systems. It provides component isolation for development, visual testing, and interactive documentation that serves both developers and designers.
+// Re-export with consistent naming
+export const Dialog = {
+  Root: RadixDialog.Root,
+  Trigger: RadixDialog.Trigger,
+  Portal: RadixDialog.Portal,
+  Overlay: styled(RadixDialog.Overlay, overlayStyles),
+  Content: styled(RadixDialog.Content, contentStyles),
+  Title: RadixDialog.Title,
+  Description: RadixDialog.Description,
+  Close: RadixDialog.Close,
+};
 
-**Storybook Configuration Strategy**
+// Convenient preset for simple use cases
+export function ConfirmDialog({ title, description, onConfirm, onCancel }) {
+  return (
+    <Dialog.Root>
+      {/* Pre-composed structure */}
+    </Dialog.Root>
+  );
+}
+```
 
-Configure Storybook to mirror your production build configuration as closely as possible. Use the same token imports, the same CSS processing, and the same TypeScript settings. Divergence between Storybook and production creates subtle bugs that erode trust.
+#### Storybook 8+ for Documentation and Development
+
+Storybook 8 (released March 2024, with 8.2+ updates through 2025) is the standard development environment for design systems. Key features for implementation:
+
+| Feature | Benefit | Configuration |
+| ------- | ------- | ------------- |
+| **Visual Tests Addon** | Chromatic integration built-in | `@chromatic-com/storybook` |
+| **RSC Support** | Experimental React Server Components | Next.js framework only |
+| **Autodocs** | 25-50% faster React docgen | `tags: ['autodocs']` |
+| **Test Builds** | 2-4x faster CI | SWC support for Webpack |
 
 ```typescript title=".storybook/main.ts" collapse={1-2}
-import type { StorybookConfig } from "@storybook/react-vite"
+import type { StorybookConfig } from "@storybook/react-vite";
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.@(ts|tsx)"],
   addons: [
     "@storybook/addon-essentials",
-    "@storybook/addon-a11y", // Automated accessibility checks
-    "@storybook/addon-interactions", // Interactive testing
+    "@storybook/addon-a11y",           // Automated accessibility checks
+    "@storybook/addon-interactions",    // Interactive testing
+    "@chromatic-com/storybook",         // Visual regression (Storybook 8+)
   ],
   framework: "@storybook/react-vite",
   docs: { autodocs: "tag" },
-}
+};
 
-export default config
+export default config;
 ```
 
-**Story Organization**
+**Story Organization for Scale**
 
-Organize stories to match how teams discover components. Group by function (Forms, Navigation, Feedback) rather than implementation detail. Each component should have at least four story types: a **Default** story showing typical usage, a **Variants** story demonstrating all visual variants, an **Interactive** story with controls for all props, and **Edge Cases** covering loading states, error states, and boundary conditions.
+Organize stories by function (Forms, Navigation, Feedback) rather than implementation detail. Each component needs four story types:
 
-**Automated Documentation**
+1. **Default**: Typical usage with sensible props
+2. **Variants**: All visual variants side-by-side
+3. **Interactive**: Controls for all props (auto-generated with autodocs)
+4. **Edge Cases**: Loading states, error states, boundary conditions
 
-Storybook's autodocs feature generates documentation from TypeScript types and JSDoc comments. This eliminates documentation drift—the docs are always current because they're generated from the source. Supplement autodocs with MDX pages for design guidelines, usage patterns, and migration guides that require human prose.
+**Visual Regression Testing (2025 Pricing)**
+
+| Tool | Cost | Key Differentiator |
+| ---- | ---- | ------------------ |
+| **Chromatic** | $0.006/snapshot | Git-based baselines, Storybook-native |
+| **Percy** | $0.036/screenshot | OCR-based detection, cross-browser |
+
+**Design reasoning**: Chromatic's Git-based baseline management means baselines persist through branches and merges like code changes. Percy's OCR detection eliminates false positives from minor text rendering differences. Choose Chromatic for Storybook-centric workflows; Percy for full-page cross-browser validation.
 
 > **Real-World Example: SWAN's Documentation Excellence**
 >
-> SWAN's documentation site goes beyond API references to include:
+> Vista's [SWAN](https://vista.design/swan/) documentation site demonstrates enterprise-grade practices:
 >
-> - **Accessibility considerations**: Each component documents keyboard interactions, ARIA attributes, and screen reader behavior
-> - **Design guidelines**: When and why to use each component, with visual examples of correct and incorrect usage
-> - **React-Live integration**: Renderable, editable code examples that users can modify and share—making it trivial to reproduce issues or demonstrate solutions
-> - **Versioned Storybook deployments**: Every release (major, minor, and patch) gets its own Storybook deployment, enabling teams to reference documentation matching their installed version
->
-> The React-Live playground is particularly valuable for support: when teams encounter issues, they can share a link to a live reproduction rather than describing the problem in words.
-
-**Visual Regression Testing**
-
-Integrate Chromatic or Percy for visual regression testing. Every pull request captures screenshots of all stories across configured viewports. Reviewers approve visual changes explicitly, preventing unintended regressions. This safety net enables confident iteration—teams can refactor internals knowing that visual output remains stable.
+> - **Versioned deployments**: Every release (major, minor, patch) gets its own Storybook deployment
+> - **React-Live integration**: Editable code examples that users can modify and share—enabling live reproductions for support
+> - **Accessibility documentation**: Keyboard interactions, ARIA attributes, and screen reader behavior per component
 
 #### Bundling and Package Distribution
 
@@ -308,7 +375,7 @@ For internal design systems, publish to a private npm registry (npm Enterprise, 
 
 Mark React and other framework dependencies as `peerDependencies` to avoid version conflicts and bundle duplication. Be explicit about version ranges—too loose allows incompatible versions, too strict creates unnecessary upgrade friction. Document the tested version matrix clearly.
 
-### 3.4 Migration Strategy
+### Migration Strategy
 
 Migration strategy determines how existing applications adopt the design system. You must answer which applications should migrate first, how to handle legacy code integration, what the rollback strategy looks like, and how to measure migration progress.
 
@@ -338,7 +405,7 @@ Track **Migration Progress** as the percentage of UI surface area using the desi
 
 Start migration with 1-2 pilot applications selected for their combination of representative complexity and willing teams. Plan for a 6-12 month migration timeline for substantial applications; shorter estimates typically prove optimistic. Monitor progress weekly and adjust strategy monthly based on actual velocity and discovered obstacles.
 
-### 3.5 Practical Challenges and Solutions
+### Practical Challenges and Solutions
 
 Enterprise design system adoption encounters recurring challenges that theoretical architecture discussions often overlook. This section addresses the real-world problems that emerge when multiple applications, teams, and deployment contexts consume a shared design system.
 
@@ -416,26 +483,28 @@ Checkout flows often serve double duty: web checkout and native app webview. Nat
 
 #### Microfrontend Integration Patterns
 
-Microfrontend architectures introduce unique design system challenges: multiple independently deployed applications must present a unified visual experience while maintaining deployment independence.
+Microfrontend architectures introduce unique design system challenges: multiple independently deployed applications must present a unified visual experience while maintaining deployment independence. For comprehensive coverage of microfrontend architecture, see [Micro-Frontends Architecture](../../frontend-architecture-patterns/micro-frontends-architecture/README.md).
 
-**The Shared Dependencies Challenge**
+**Module Federation (2025 State)**
 
-In microfrontend setups where the parent application (shell) injects major libraries, the design system becomes part of the shared dependency graph:
+Module Federation has evolved beyond Webpack-only implementation. Vite plugins (`@module-federation/vite`, `@originjs/vite-plugin-federation`) and Native Federation (ESM + import maps) are now production options.
 
-```javascript
-// Shell application webpack.config.js (Module Federation)
+**Design reasoning**: Microfrontends solve organizational problems, not technical ones. They're worth the complexity when independent team deployment and release cycles are the primary constraint—typically organizations with 200+ engineers.
+
+```javascript title="Shell application with Module Federation" collapse={1-3}
+// webpack.config.js or vite.config.ts
+// Shared dependencies avoid bundle duplication
 new ModuleFederationPlugin({
   name: "shell",
   shared: {
     react: { singleton: true, requiredVersion: "^18.0.0" },
     "react-dom": { singleton: true, requiredVersion: "^18.0.0" },
     "@company/design-system": { singleton: true, requiredVersion: "^3.0.0" },
-    "@company/state-management": { singleton: true, requiredVersion: "^2.0.0" },
   },
-})
+});
 ```
 
-This creates upgrade coupling: to upgrade the design system, all microfrontends must be compatible with the new version, and the shell must coordinate the rollout. If microfrontend A requires design system v4 for a new component, but microfrontend B hasn't been tested with v4, the upgrade blocks.
+This creates upgrade coupling: to upgrade the design system, all microfrontends must be compatible with the new version. If microfrontend A requires design system v4 but microfrontend B hasn't been tested with v4, the upgrade blocks.
 
 **The Interdependency Cascade**
 
@@ -509,9 +578,9 @@ The design system's documentation site should itself be a consumer of the design
 >
 > The Figma integration deserves emphasis: when designers use SWAN components in their designs, developers receive specs that map directly to available components. This eliminates the "designer handoff" problem where custom designs require new component development. Additional integrations (like product card data connections) were achieved through the champion model, with product teams building domain-specific extensions on the SWAN foundation.
 
-## Phase 4: Adoption and Change Management
+## Adoption and Change Management
 
-### 4.1 Building Adoption Momentum
+### Building Adoption Momentum
 
 A design system succeeds or fails based on adoption—technical excellence without usage is expensive shelf-ware. You must strategically create early adopters, design incentives that encourage system usage, prepare to handle resistance and pushback constructively, and establish support mechanisms teams actually use.
 
@@ -531,7 +600,7 @@ The **Pilot Program** validates the design system with real projects before broa
 
 Launch the champion program before component release so advocates are prepared to support their teams. Start the pilot program within 2 weeks of initial release to capture momentum and gather feedback while the team is focused on adoption. Review adoption metrics weekly; adjust strategy monthly based on observed patterns rather than assumptions.
 
-### 4.2 Training and Support
+### Training and Support
 
 Adoption requires enablement. Teams need to understand what skills are required to use the system effectively, how to access ongoing support, which documentation and resources are essential, and how to surface questions and feedback. The quality of your support infrastructure often determines adoption velocity more than the quality of the components themselves.
 
@@ -566,9 +635,9 @@ Effective support requires clear channels with appropriate response expectations
 
 Launch the documentation portal before component release—teams discovering components without documentation form negative first impressions. Schedule training sessions within the first month of adoption while teams are actively learning. Establish support channels before any team adoption begins; a team blocked without support becomes a vocal detractor.
 
-## Phase 5: Measurement and Continuous Improvement
+## Measurement and Continuous Improvement
 
-### 5.1 Key Performance Indicators
+### Key Performance Indicators
 
 Measurement transforms design system management from opinion-based to evidence-based. You must determine which metrics indicate design system success, how to track adoption and usage systematically, which quality metrics matter most for your context, and how to measure business impact in terms executives understand.
 
@@ -601,7 +670,7 @@ Different metrics require different review frequencies. **Real-time metrics** li
 
 Establish baseline metrics before launch—you cannot demonstrate improvement without a starting point. Review metrics weekly to catch issues early; adjust strategy monthly based on observed trends rather than assumptions. Present comprehensive reports quarterly to maintain executive engagement and secure continued investment.
 
-### 5.2 Feedback Loops and Iteration
+### Feedback Loops and Iteration
 
 Design systems that don't evolve become obstacles rather than enablers. Effective evolution requires systematic feedback collection, clear prioritization processes, mechanisms for handling conflicting requirements, and a release strategy that balances stability with progress.
 
@@ -623,7 +692,7 @@ Use an **Impact vs. Effort matrix** to visualize trade-offs—high-impact, low-e
 
 Collect feedback continuously through low-friction channels. Review and prioritize weekly to maintain responsiveness. Implement high-impact changes within 2 weeks to demonstrate that feedback matters. Communicate roadmap updates monthly so users understand what's coming and why.
 
-### 5.3 Technical Enablement for Adoption
+### Technical Enablement for Adoption
 
 Driving adoption at scale requires more than documentation and training—it requires automation. This section covers the technical tooling that enables data-driven decision making and reduces the friction of migration and upgrades.
 
@@ -978,9 +1047,9 @@ Usage analytics can feel like surveillance. Mitigate concerns by:
 - Framing as enablement—"How can we help you?" not "Why aren't you compliant?"
 - Using data to improve the system, not to criticize teams
 
-## Phase 6: Scaling and Evolution
+## Scaling and Evolution
 
-### 6.1 Managing Growth
+### Managing Growth
 
 Success creates its own challenges. As adoption grows, you must plan how the system will scale with organizational growth, what happens when new teams or products join, how to maintain consistency across increasingly diverse needs, and what the long-term vision looks like as the system matures.
 
@@ -1004,7 +1073,7 @@ Standardized onboarding for new teams reduces the cost of adoption and ensures c
 
 Plan for scaling before reaching capacity limits—reactive scaling creates crises. Review scaling needs quarterly as part of strategic planning. Implement scaling improvements incrementally, validating each change before adding complexity.
 
-### 6.2 Future-Proofing
+### Future-Proofing
 
 The frontend landscape evolves rapidly—frameworks rise and fall, design trends shift, and browser capabilities expand. Future-proofing requires strategies for handling technology changes, mechanisms for design evolution, approaches to maintaining backward compatibility, and clear sunset policies for deprecated components.
 
@@ -1028,86 +1097,83 @@ Semantic versioning for all changes communicates the impact of updates—major v
 
 Monitor technology trends continuously through industry news, conference talks, and community discussions. Plan for major changes 6-12 months in advance to allow adequate preparation. Communicate changes 3 months before implementation so teams can plan their migration work.
 
-## Conclusion: The Path to Sustained Success
+## Conclusion
 
-A design system program is not a one-time project but a continuous journey spanning business justification, technical implementation, organizational adoption, and long-term evolution. Success requires balancing technical excellence with cultural change, strategic vision with tactical execution, and centralized control with distributed autonomy.
+Design system implementation succeeds when architecture anticipates change, distribution minimizes friction, and operations treat the system as a product.
 
-The role of leading a design system program is to act as both architect and evangelist—proving the business case, building robust technical foundations, automating adoption friction away, and nurturing the collaborative culture that sustains long-term success. By following this structured approach, measuring progress systematically, and investing in technical enablement (codemods, usage analytics, repository scanning), you can transform your design system from a technical initiative into a strategic asset that delivers compounding value over time.
+**Architecture decisions that compound**: The hybrid approach—platform-agnostic tokens with framework-specific wrappers—survives technology shifts. RSC compatibility, headless accessibility primitives, and tree-shakeable bundles are table stakes. These decisions in year one constrain what's possible in year three.
 
-Remember: the goal is not just to build a design system, but to create an organization that thinks, designs, and builds with systematic consistency. When you achieve that, the design system becomes not just a tool, but a fundamental part of your organization's DNA.
+**Technical enablement as a multiplier**: Codemods transform major version upgrades from multi-sprint projects to single-command operations. Repository scanning reveals adoption patterns. Shared CDN hosting eliminates duplicate downloads. These investments pay dividends with every consuming application.
 
----
+**Operations that sustain momentum**: Version compatibility windows create upgrade pressure without breaking stability. Usage analytics drive prioritization better than feature requests. The design system team that measures what matters—which components, which props, which overrides—makes better decisions than the team that relies on intuition.
 
-**Key Takeaways for Design System Leaders:**
+## Appendix
 
-1. **Start with the problem, not the solution** - Build your case on concrete pain points and measurable business impact
-2. **People before technology** - Focus on cultural change and stakeholder alignment before technical implementation
-3. **Measure everything** - Establish clear metrics and track progress systematically
-4. **Automate adoption friction** - Invest in codemods, scanners, and analytics to make adoption and upgrades effortless
-5. **Use data for decisions** - Let usage analytics drive prioritization for features, deprecation, and codemod investment
-6. **Think long-term** - Design for evolution and scale from the beginning
-7. **Lead by example** - Demonstrate the value of systematic thinking in everything you do
+### Prerequisites
 
-The journey from business case to enterprise-wide adoption is challenging, but with the right approach, it becomes one of the most impactful initiatives any leader can drive. The key is to remember that you're not just building a component library—you're transforming how your organization approaches design and development at a fundamental level.
+- Familiarity with React component patterns (hooks, context, composition)
+- Understanding of npm package publishing and semantic versioning
+- Experience with CI/CD pipelines (GitHub Actions or similar)
+- Exposure to design systems as a consumer or contributor
+- Basic knowledge of AST (Abstract Syntax Tree) concepts for codemod understanding
 
-## References
+### Terminology
 
-### ROI & Business Case
+| Term | Definition |
+| ---- | ---------- |
+| **DTCG** | Design Tokens Community Group—W3C community group authoring the token specification (v2025.10 stable) |
+| **RSC** | React Server Components—React architecture where components render on the server, reducing client bundle size |
+| **Headless Components** | UI components providing behavior and accessibility without styling (Radix, React Aria, Headless UI) |
+| **Codemod** | Programmatic code transformation using AST manipulation, typically via jscodeshift |
+| **Strangler Fig Pattern** | Migration strategy where new functionality uses the new system while legacy is incrementally replaced |
+| **Module Federation** | Webpack/Vite feature enabling runtime sharing of JavaScript modules across separately deployed applications |
+| **Changesets** | Versioning tool for monorepos that tracks changes at PR time and automates version bumps and changelogs |
+| **Detachment Rate** | Percentage of component instances where teams override or disconnect from the design system version |
 
-- [One Formula To Rule Them All: The ROI Of A Design System](https://www.smashingmagazine.com/2022/09/formula-roi-design-system/) - Smashing Magazine's comprehensive ROI calculation framework
-- [Calculating the ROI of Your Design System](https://zeroheight.com/blog/calculating-the-roi-of-your-design-system/) - zeroheight's practical guide to measuring design system value
-- [Design System ROI Calculator](https://www.knapsack.cloud/calculator) - Interactive tool for estimating design system ROI
+### Summary
 
-### Team Models & Governance
+- **Architecture**: Hybrid approach (platform-agnostic tokens + framework wrappers) survives technology shifts; RSC compatibility and headless primitives are table stakes for 2025+
+- **Token pipeline**: DTCG v2025.10 is the stable standard; Style Dictionary v4 provides first-class support with transitive transforms
+- **Component implementation**: Build on Radix/React Aria for accessibility; support both RSC-safe and interactive variants; export compound patterns with convenient presets
+- **Distribution**: Changesets for semantic versioning; ESM + CJS dual output; `preserveModules` for tree-shaking; shared CDN for cross-app caching
+- **Migration**: Strangler Fig for gradual adoption; codemods automate breaking changes; version compatibility windows create upgrade pressure
+- **Technical enablement**: Repository scanning reveals adoption patterns; usage analytics (component, prop, override frequency) drive prioritization; codemods reduce upgrade friction to near-zero
 
-- [Team Models for Scaling a Design System](https://medium.com/eightshapes-llc/team-models-for-scaling-a-design-system-2cf9d03be6a0) - Nathan Curtis's foundational article on centralized, federated, and hybrid models
-- [Design System Governance Models](https://zeroheight.com/help/guides/design-system-governance-models-and-which-is-right-for-your-organization/) - zeroheight's guide to choosing the right governance model
-- [Design System Governance](https://www.uxpin.com/studio/blog/design-system-governance/) - UXPin's overview of governance frameworks
+### References
 
-### Design Tokens
+**Specifications**
 
-- [Design Tokens Community Group](https://www.designtokens.org/) - W3C community group stewarding the design tokens specification
-- [Design Tokens Specification v1](https://www.w3.org/community/design-tokens/2025/10/28/design-tokens-specification-reaches-first-stable-version/) - Official announcement of the first stable specification
-- [Style Dictionary](https://styledictionary.com/) - Industry-standard build system for transforming design tokens to platform-specific outputs
-- [Design Token-Based UI Architecture](https://martinfowler.com/articles/design-token-based-ui-architecture.html) - Martin Fowler's architectural perspective on token systems
+- [W3C Design Tokens Specification v2025.10](https://www.designtokens.org/) - First stable version of the DTCG specification
+- [Style Dictionary v4](https://styledictionary.com/) - Industry-standard token transformation with DTCG support
+- [Semantic Versioning](https://semver.org/) - MAJOR.MINOR.PATCH versioning standard
 
-### Migration Patterns
+**Tools and Libraries**
 
-- [Strangler Fig Pattern](https://martinfowler.com/bliki/StranglerFigApplication.html) - Martin Fowler's original description of the pattern
-- [Strangler Fig Pattern - AWS](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/strangler-fig.html) - AWS Prescriptive Guidance on implementing the pattern
-- [Strangler Fig Pattern - Azure](https://learn.microsoft.com/en-us/azure/architecture/patterns/strangler-fig) - Microsoft's architectural guidance
+- [Radix UI Primitives](https://www.radix-ui.com/) - Unstyled, accessible component primitives
+- [React Aria](https://react-spectrum.adobe.com/react-aria/) - Adobe's accessibility hooks library (40+ components)
+- [Storybook 8](https://storybook.js.org/) - Component development environment with visual testing
+- [Chromatic](https://www.chromatic.com/) - Visual regression testing with Git-based baselines
+- [jscodeshift](https://github.com/facebook/jscodeshift) - Facebook's codemod toolkit
+- [Changesets](https://github.com/changesets/changesets) - Monorepo versioning and changelog automation
 
-### Component Library Implementation
+**Core Maintainer Content**
 
-- [Storybook Documentation](https://storybook.js.org/docs) - Official Storybook documentation for component development and documentation
-- [4 Ways to Document Your Design System with Storybook](https://storybook.js.org/blog/4-ways-to-document-your-design-system-with-storybook/) - Storybook team's documentation strategies
-- [Create a Component Library with Vite's Library Mode](https://dev.to/receter/how-to-create-a-react-component-library-using-vites-library-mode-4lma) - Practical guide to Vite-based library bundling
-- [Managing Releases with Changesets](https://www.tonyward.dev/articles/managing-releases-with-changesets) - Comprehensive changesets workflow guide
-- [Radix UI](https://www.radix-ui.com/) - Unstyled, accessible component primitives for building design systems
-- [React Aria](https://react-spectrum.adobe.com/react-aria/) - Adobe's library of accessible React hooks for design systems
+- [Martin Fowler - Strangler Fig Application](https://martinfowler.com/bliki/StranglerFigApplication.html) - Original pattern description
+- [Martin Fowler - Codemods for API Refactoring](https://martinfowler.com/articles/codemods-api-refactoring.html) - Programmatic code transformation
+- [Nathan Curtis - Team Models for Scaling](https://medium.com/eightshapes-llc/team-models-for-scaling-a-design-system-2cf9d03be6a0) - Centralized, federated, and hybrid models
 
-### React & Accessibility
+**Migration Patterns**
 
-- [React Design Patterns and Best Practices for 2025](https://www.telerik.com/blogs/react-design-patterns-best-practices) - Modern React patterns including Server Components
-- [14 Best React UI Component Libraries in 2026](https://www.untitledui.com/blog/react-component-libraries) - Comprehensive comparison of React component libraries
+- [AWS Strangler Fig Pattern](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/strangler-fig.html) - Implementation guidance
+- [Azure Strangler Fig Pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/strangler-fig) - Microsoft's architectural perspective
 
-### Enterprise Design System Examples
+**Enterprise Examples**
 
-- [SWAN Design System (Vista)](https://vista.design/swan/) - Comprehensive enterprise design system with 80+ components, ESLint/Stylelint plugins, codemods, Figma UI kit, and interactive React-Live playground
-- [Top Storybook Documentation Examples](https://www.supernova.io/blog/top-storybook-documentation-examples-and-the-lessons-you-can-learn) - Best practices from BBC, Audi, and other enterprise design systems
-- [Design System Metrics - Figma Blog](https://www.figma.com/blog/design-systems-104-making-metrics-matter/) - Framework for measuring design system effectiveness
-- [Building a Design System Adoption Metric from Production Data](https://developers.mews.com/design-system-adoption-metric-building/) - Practical approach to measuring adoption
+- [Vista SWAN Design System](https://vista.design/swan/) - 80+ components with ESLint/Stylelint plugins, codemods, Figma UI kit
+- [Shopify Polaris](https://polaris.shopify.com/) - Governance at scale across 100+ teams
 
-### Microfrontend & Architecture Patterns
+**Related Articles in This Series**
 
-- [Micro-Frontends Architecture](../../frontend-architecture-patterns/micro-frontends-architecture/README.md) - Comprehensive guide to microfrontend composition strategies, Module Federation, and cross-cutting concerns
-
-### Technical Enablement & Codemods
-
-- [jscodeshift](https://github.com/facebook/jscodeshift) - Facebook's toolkit for running codemods over JavaScript/TypeScript codebases
-- [AST Explorer](https://astexplorer.net/) - Interactive tool for exploring JavaScript ASTs, invaluable for codemod development
-
-### Industry Trends
-
-- [The Future of Enterprise Design Systems: 2026 Trends](https://www.supernova.io/blog/the-future-of-enterprise-design-systems-2026-trends-and-tools-for-success) - Supernova's analysis of emerging design system trends
-- [Why Your Enterprise Needs a Design System](https://www.netguru.com/blog/enterprise-design-systems) - Netguru's enterprise adoption guide
+- [Design System Adoption: Foundations and Governance](../design-system-adoption-foundations/README.md) - ROI analysis, executive buy-in, team structures, governance models
+- [Design Tokens and Theming Architecture](../design-tokens-and-theming/README.md) - Token taxonomy, naming conventions, theming, Style Dictionary pipeline
+- [Component Library Architecture and Governance](../component-library-architecture-and-governance/README.md) - API design patterns, versioning, contribution workflows

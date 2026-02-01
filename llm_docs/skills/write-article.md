@@ -9,11 +9,28 @@ Write a **new** article from a prompt. This skill is agent-agnostic and must fol
 
 ## Required Reading (MUST read before starting)
 
+### Core Guidelines (Always Read)
+
 - `llm_docs/guidelines-content/content-structure.md`
 - `llm_docs/guidelines-content/content-guidelines.md`
 - `llm_docs/guidelines-content/research-and-fact-checking.md`
 - `llm_docs/guidelines-content/markdown-features.md`
 - `llm_docs/guidelines-content/persona.md`
+
+### Content-Type Specific Guidelines
+
+**For System Design Problem articles** (`content/articles/system-design/system-design-problems/*`):
+
+- `llm_docs/guidelines-content/system-design-problems.md` — **MUST read in addition to core guidelines**
+
+This guideline covers:
+
+- How to scope vague problem statements ("Design X")
+- Tradeoff-focused approach (no single correct answer)
+- Full-stack principal perspective (frontend performance + backend + infra)
+- Required sections: Scale estimation, API design, Data modeling, Low-level design for critical components
+- Frontend considerations: DOM performance, data structures for UI, API response optimization
+- Infrastructure: Cloud-agnostic concepts first, then AWS examples (managed + self-hosted)
 
 ## Core Principles
 

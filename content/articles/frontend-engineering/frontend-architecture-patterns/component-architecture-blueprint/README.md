@@ -49,101 +49,39 @@ flowchart TB
 
 </figure>
 
-## TLDR
+## Abstract
 
-**This architecture** provides a layered, framework-agnostic approach to building React applications where business logic is decoupled from UI primitives and meta-framework APIs are abstracted through injectable SDKs.
+<figure>
 
-### Core Layers
+```mermaid
+graph TB
+    subgraph "Mental Model"
+        direction TB
+        A["Inversion of Control"] --> B["Components declare WHAT they need<br/>(interfaces), not HOW to get it"]
+        B --> C["Application shell provides implementations"]
+        C --> D["Tests provide mocks"]
 
-- **Primitives**: Generic UI components (Button, Card, Modal) with no business logic, living in a separate design system package
-- **Blocks**: Business-aware components (ProductCard, AddToCartButton) that compose primitives and contain domain logic
-- **Widgets**: BFF-connected page sections that receive backend payloads and compose blocks
-- **SDKs**: Internal abstractions for cross-cutting concerns (analytics, routing, experiments, HTTP) with injectable implementations
+        E["Layered Boundaries"] --> F["Primitives → Blocks → Widgets"]
+        F --> G["Each layer imports only from below"]
+        G --> H["ESLint enforces at build time"]
 
-### Key Patterns
+        I["Framework Isolation"] --> J["SDK abstractions wrap Next.js/Remix APIs"]
+        J --> K["Business logic never imports framework code"]
+        K --> L["Migration = new SDK implementations"]
+    end
+```
 
-- **Dependency Injection via Context**: All external dependencies (analytics, HTTP, routing) are injected through React Context providers, enabling easy testing without complex mocking
-- **Barrel Exports for Public APIs**: Each module exposes its public interface through `index.ts` files, hiding internal implementation details and enabling refactoring without breaking consumers
-- **Boundary Enforcement**: ESLint rules using `eslint-plugin-boundaries` prevent architectural violations (e.g., Blocks importing Widgets)
-- **Lazy-Loaded Registries**: Widget registries map BFF widget types to components using `React.lazy()` for code splitting
+<figcaption>Core mental model: Inversion of Control enables testability, layered boundaries prevent coupling, and SDK abstractions enable framework migration.</figcaption>
 
-### Testing Strategy
+</figure>
 
-- **Mock SDK Provider**: A `TestSdkProvider` wraps components with mocked implementations of all SDK services
-- **No Framework Mocking**: Since components use SDK abstractions instead of framework APIs directly, tests don't need to mock Next.js/Remix internals
-- **Isolation**: Each layer can be tested independently with appropriate mocks for its dependencies
+The architecture answers three questions:
 
-### When to Use This Pattern
+1. **How do I test components without mocking framework internals?** → Inject all external dependencies via React Context. Tests provide mock implementations.
+2. **How do I prevent "spaghetti" imports across layers?** → Define architectural boundaries (Primitives → Blocks → Widgets) and enforce them with `eslint-plugin-boundaries`.
+3. **How do I migrate between frameworks (Next.js ↔ Remix)?** → Wrap framework APIs in SDK interfaces. Business logic uses SDKs, never framework code directly.
 
-- Multiple teams contributing to the same application
-- Components shared across applications using different meta-frameworks
-- Need for framework migration without rewriting business logic
-- Long-term maintainability prioritized over initial velocity
-
----
-
-## Assumptions & Prerequisites
-
-This guide assumes the following context. Adapt as needed for your specific situation.
-
-### Technical Stack
-
-| Aspect              | Assumption                               | Adaptable?                                            |
-| ------------------- | ---------------------------------------- | ----------------------------------------------------- |
-| **UI Library**      | React 18+                                | Core patterns apply to Vue, Svelte with modifications |
-| **Language**        | TypeScript (strict mode)                 | Strongly recommended, not optional                    |
-| **Meta-framework**  | Next.js, Remix, or similar SSR framework | Architecture is framework-agnostic                    |
-| **Build Tool**      | Vite, Webpack, or Turbopack              | Any modern bundler works                              |
-| **Package Manager** | npm, yarn, or pnpm                       | No specific requirement                               |
-
-### Architectural Patterns
-
-| Pattern                        | Description                                         | Required?   |
-| ------------------------------ | --------------------------------------------------- | ----------- |
-| **Design System**              | A separate library of generic UI components         | Yes         |
-| **Backend-for-Frontend (BFF)** | A backend layer that serves UI-specific data        | Recommended |
-| **Server-Driven UI**           | Backend defines page layout and widget composition  | Optional    |
-| **Widget-Based Architecture**  | UI composed of self-contained, configurable modules | Yes         |
-
-### Team Structure
-
-This architecture works best when:
-
-- Multiple teams contribute to the same application
-- Clear ownership boundaries are needed
-- Components are shared across multiple applications
-- Long-term maintainability is prioritized over short-term velocity
-
----
-
-## Glossary of Terms
-
-### Core Concepts
-
-| Term          | Definition                                                                                                                   |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Primitive** | A generic, reusable UI component with no business logic (e.g., Button, Card, Modal). Lives in the design system.             |
-| **Block**     | A business-aware component that composes Primitives and adds domain-specific behavior (e.g., ProductCard, AddToCartButton).  |
-| **Widget**    | A self-contained page section that receives configuration from the backend and composes Blocks to render a complete feature. |
-| **SDK**       | An internal abstraction layer that provides framework-agnostic access to cross-cutting concerns (routing, analytics, state). |
-
-### Backend Concepts
-
-| Term                           | Definition                                                                                                                                                              |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **BFF (Backend-for-Frontend)** | A backend service layer specifically designed to serve the needs of a particular frontend. It aggregates data from multiple services and formats it for UI consumption. |
-| **Layout**                     | A data structure from the BFF that defines the page structure, including SEO metadata, analytics configuration, and the list of widgets to render.                      |
-| **Widget Payload**             | The data contract between the BFF and a specific widget, containing all information needed to render that widget.                                                       |
-| **Widget Registry**            | A mapping of widget type identifiers to their corresponding React components.                                                                                           |
-
-### Architectural Concepts
-
-| Term                     | Definition                                                                                      |
-| ------------------------ | ----------------------------------------------------------------------------------------------- |
-| **Boundary**             | A defined interface between architectural layers that controls what can be imported from where. |
-| **Barrel Export**        | An `index.ts` file that explicitly defines the public API of a module.                          |
-| **Dependency Injection** | A pattern where dependencies are provided to a component rather than created within it.         |
-| **Provider Pattern**     | Using React Context to inject dependencies at runtime, enabling easy testing and configuration. |
+**When this pattern pays off:** Multi-team applications, component libraries shared across apps, or codebases expecting framework migration. For single-team apps with no migration plans, the indirection may not be worth the complexity.
 
 ---
 
@@ -153,11 +91,11 @@ This architecture works best when:
 
 Components should not directly depend on meta-framework APIs (Next.js, Remix, etc.). Instead, framework-specific functionality is accessed through SDK abstractions.
 
-**Why?**
+**Why this design choice?**
 
-- Enables migration between frameworks without rewriting components
-- Simplifies testing by removing framework mocking
-- Allows components to be shared across applications using different frameworks
+The constraint stems from framework churn—Next.js App Router (2023), Remix v2 (2023), and React Server Components changed routing and data-fetching APIs significantly. Direct coupling means rewriting business logic with each migration.
+
+The SDK abstraction trades initial velocity for portability: ~15% more boilerplate upfront, but framework migration becomes implementation swaps rather than component rewrites.
 
 **Example:**
 
@@ -177,22 +115,21 @@ router.push("/products")
 
 Each architectural layer has explicit rules about what it can import. These rules are enforced through tooling, not just documentation.
 
-**Why?**
+**Why this design choice?**
 
-- Prevents circular dependencies
-- Makes the codebase easier to understand
-- Enables independent deployment of layers
-- Reduces unintended coupling
+Documentation-only boundaries fail at scale. Without enforcement, developers under deadline pressure take shortcuts ("just import this one widget"). Over months, the architecture diagram diverges from reality.
+
+Using `eslint-plugin-boundaries` (5.x+) makes boundary violations CI failures, not code review debates. The cost: stricter lint rules and occasional refactoring to move shared code to the correct layer.
 
 ### 3. Testability First
 
 All external dependencies (HTTP clients, analytics, state management) are injected via providers, making components easy to test in isolation.
 
-**Why?**
+**Why this design choice?**
 
-- Unit tests don't require complex mocking
-- Test behavior, not implementation details
-- Fast, reliable test execution
+Framework mocking is brittle. Mocking `next/navigation` or `@remix-run/react` couples tests to framework internals that change between versions. When Next.js 13 changed from `useRouter` (pages) to `useRouter` (app router) with different APIs, tests using direct mocks broke.
+
+Injecting dependencies via Context inverts the control: tests provide mock implementations, components remain agnostic. The trade-off is an additional provider layer in the component tree.
 
 ### 4. Single Responsibility
 
@@ -207,13 +144,24 @@ Each layer has one clear purpose:
 
 Every module exposes its public API through a barrel file (`index.ts`). Internal implementation details are not importable from outside the module.
 
-**Why?**
+**Why this design choice?**
 
-- Enables refactoring without breaking consumers
-- Makes API surface area clear and intentional
-- Provides a single entry point for consumers
+Without explicit exports, any file can import any internal function. Over time, internal helpers get used externally, making refactoring break consumers. Barrel files create a contract: only exported symbols are public API.
 
-> **⚠️ Trade-off Note:** While barrel files define clean APIs, they can [negatively impact tree-shaking](https://tkdodo.eu/blog/please-stop-using-barrel-files) in application code because bundlers may import the entire barrel file. For library packages, use `package.json` exports with multiple entry points. For performance-critical application paths, consider direct imports bypassing barrels.
+> **⚠️ Trade-off: Barrel Files and Performance**
+>
+> Barrel files can negatively impact development performance. As of Vite 5.x (2024+) and Webpack 5.x:
+>
+> - **Development mode:** Vite does NOT tree-shake in dev mode. Large barrel files cause 5-10 second HMR (Hot Module Replacement) delays as the entire module graph reloads.
+> - **Production builds:** Tree-shaking works correctly with `"sideEffects": false` in `package.json`. Production bundles are unaffected.
+>
+> **Mitigations:**
+>
+> - For SDK/internal packages (loaded at app root): Barrel files are acceptable—dev performance hit is minimal since they're imported once.
+> - For component libraries: Use `package.json` `exports` field with multiple entry points instead of barrel files.
+> - For Next.js 14+: Enable `optimizePackageImports` in `next.config.js` to auto-optimize barrel imports.
+>
+> See [TkDodo's analysis](https://tkdodo.eu/blog/please-stop-using-barrel-files) for detailed benchmarks.
 
 ---
 
@@ -377,6 +325,10 @@ Primitives ← Blocks ← Widgets ← Registries ← Layout Engine ← Pages
 ## Internal SDKs
 
 SDKs are the key to framework agnosticism. They define **what** your components need, while the application shell provides **how** it's implemented.
+
+> **Version Context (React 18+):** This pattern uses React Context for dependency injection. As of React 18 and React 19 (December 2024), Context remains the recommended approach for injecting services (not state). React 19's Compiler can auto-memoize context values, but the `useMemo` pattern shown below remains compatible and is required for React 18.
+>
+> **Prior approach:** Before React 16.3 (2018), prop drilling or third-party DI containers (InversifyJS, tsyringe) were common. Context made DI a first-class React pattern.
 
 ### SDK Structure
 
@@ -1397,6 +1349,8 @@ export const ProductCarouselWidget: FC<ProductCarouselWidgetProps> = ({ payload 
 
 ### Registry Implementation
 
+> **Version Context (React 18+):** `React.lazy()` with dynamic imports remains the standard code-splitting pattern. React 19 introduces `use()` for suspending on promises, but `lazy()` continues to work and is preferred for component-level splitting.
+
 ```typescript title="src/registries/home.registry.ts" collapse={1-4}
 // src/registries/home.registry.ts
 
@@ -1469,6 +1423,8 @@ export const getRegistryByPageType = (pageType: string): WidgetRegistry => {
 ## Boundary Control & Enforcement
 
 ### ESLint Configuration
+
+> **Version Context:** This configuration uses ESLint's flat config format (`eslint.config.js`), the default since ESLint 9 (April 2024). The `eslint-plugin-boundaries` package (5.x+) fully supports flat config. Legacy `.eslintrc.*` files work but are deprecated.
 
 ```javascript title="eslint.config.js" collapse={1-5, 49-74, 95-120, 123-162}
 // eslint.config.js
@@ -1834,6 +1790,8 @@ describe('AddToCartButton', () => {
 
 ### TypeScript Configuration
 
+> **Version Context (TypeScript 5.x):** All strict flags shown are current as of TypeScript 5.6 (2024). TypeScript 6.0 (unreleased) will enable `--strict` by default, making this configuration the baseline.
+
 ```jsonc
 // tsconfig.json
 
@@ -1935,50 +1893,84 @@ describe('AddToCartButton', () => {
 
 ---
 
-## Summary
+## Conclusion
 
-### Quick Reference
+This architecture inverts control at every layer: components declare dependencies via interfaces, the application shell provides implementations, and tests inject mocks. The result is a codebase where business logic is portable across frameworks and testable without framework mocking.
 
-| Aspect            | Convention                                                 |
-| ----------------- | ---------------------------------------------------------- |
-| **Design System** | Import from `@company-name/design-system`                  |
-| **Routing**       | Use `@sdk/router` hooks                                    |
-| **Analytics**     | Use `@sdk/analytics` hooks                                 |
-| **HTTP Calls**    | Use `@sdk/http` hooks                                      |
-| **Feature Flags** | Use `@sdk/experiments` hooks                               |
-| **State**         | Use `@sdk/state` hooks                                     |
-| **File Naming**   | kebab-case with qualifiers (`.component.tsx`, `.hooks.ts`) |
-| **Exports**       | Barrel files (`index.ts`) only                             |
-| **Testing**       | Wrap with `TestSdkProvider`                                |
-| **TypeScript**    | Strict mode, no `any`                                      |
+The trade-offs are real: additional boilerplate (~15% more code), a steeper learning curve for developers unfamiliar with DI patterns, and slower initial development velocity. These costs pay off in long-lived codebases with multiple teams or expected framework migrations.
 
-### Layer Responsibilities
-
-| Layer          | Purpose                | Framework Dependency |
-| -------------- | ---------------------- | -------------------- |
-| **Primitives** | Generic UI             | None                 |
-| **SDKs**       | Cross-cutting concerns | Interfaces only      |
-| **Blocks**     | Business components    | None (uses SDKs)     |
-| **Widgets**    | BFF integration        | None (uses SDKs)     |
-| **Registries** | Widget mapping         | None                 |
-
-### Benefits
-
-- ✅ **Portability**: Migrate between frameworks without rewriting components
-- ✅ **Testability**: Test components in isolation with mocked dependencies
-- ✅ **Maintainability**: Clear boundaries prevent spaghetti dependencies
-- ✅ **Scalability**: Teams can work independently on different layers
-- ✅ **Consistency**: Enforced patterns through tooling, not just documentation
+**Start incrementally:** Begin with the SDK abstraction for your most-mocked dependency (usually routing or HTTP). Add boundary enforcement when you see cross-layer imports creeping in. The full architecture emerges from solving real problems, not upfront design.
 
 ---
 
-## References
+## Appendix
 
-- [eslint-plugin-boundaries](https://github.com/javierbrea/eslint-plugin-boundaries) - ESLint plugin for enforcing architectural boundaries between modules
-- [React Context for Dependency Injection](https://testdouble.com/insights/react-context-for-dependency-injection-not-state-management) - Using React Context for DI instead of state management
+### Prerequisites
+
+This guide assumes familiarity with:
+
+- React 18+ (hooks, Context API, Suspense)
+- TypeScript (strict mode, generics, module systems)
+- Modern bundlers (Vite or Webpack 5)
+- ESLint configuration (flat config format)
+
+Architectural context:
+
+| Pattern                        | Description                                         | Required?   |
+| ------------------------------ | --------------------------------------------------- | ----------- |
+| **Design System**              | A separate library of generic UI components         | Yes         |
+| **Backend-for-Frontend (BFF)** | A backend layer that serves UI-specific data        | Recommended |
+| **Server-Driven UI**           | Backend defines page layout and widget composition  | Optional    |
+| **Widget-Based Architecture**  | UI composed of self-contained, configurable modules | Yes         |
+
+### Terminology
+
+| Term                           | Definition                                                                                                                                                               |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Primitive**                  | A generic, reusable UI component with no business logic (e.g., Button, Card, Modal). Lives in the design system.                                                         |
+| **Block**                      | A business-aware component that composes Primitives and adds domain-specific behavior (e.g., ProductCard, AddToCartButton).                                              |
+| **Widget**                     | A self-contained page section that receives configuration from the backend and composes Blocks to render a complete feature.                                             |
+| **SDK**                        | An internal abstraction layer that provides framework-agnostic access to cross-cutting concerns (routing, analytics, state).                                             |
+| **BFF (Backend-for-Frontend)** | A backend service layer specifically designed to serve the needs of a particular frontend. It aggregates data from multiple services and formats it for UI consumption.  |
+| **Layout**                     | A data structure from the BFF that defines the page structure, including SEO metadata, analytics configuration, and the list of widgets to render.                       |
+| **Widget Payload**             | The data contract between the BFF and a specific widget, containing all information needed to render that widget.                                                        |
+| **Widget Registry**            | A mapping of widget type identifiers to their corresponding React components.                                                                                            |
+| **Boundary**                   | A defined interface between architectural layers that controls what can be imported from where.                                                                          |
+| **Barrel Export**              | An `index.ts` file that explicitly defines the public API of a module.                                                                                                   |
+| **Dependency Injection (DI)**  | A pattern where dependencies are provided to a component rather than created within it.                                                                                  |
+| **Provider Pattern**           | Using React Context to inject dependencies at runtime, enabling easy testing and configuration.                                                                          |
+| **HMR**                        | Hot Module Replacement—Vite/Webpack feature that updates modules in the browser without full page reload.                                                                |
+
+### Summary
+
+- **Inversion of Control** via React Context enables testability without framework mocking
+- **Layered boundaries** (Primitives → Blocks → Widgets) prevent coupling; `eslint-plugin-boundaries` enforces at build time
+- **SDK abstractions** wrap framework APIs, enabling migration by swapping implementations
+- **Barrel files** define public APIs but require `sideEffects: false` and awareness of dev-mode HMR performance
+- **TypeScript strict mode** is non-negotiable for large codebases; all flags shown become defaults in TS 6.0
+- This pattern trades initial velocity for long-term maintainability—best suited for multi-team apps or expected framework migrations
+
+### References
+
+**Specifications and Official Documentation:**
+
+- [React Context - Official Documentation](https://react.dev/reference/react/createContext) - API reference for Context, the foundation of this DI pattern
+- [TypeScript TSConfig Reference](https://www.typescriptlang.org/tsconfig/) - Official documentation on strict mode and compiler options
+- [Vite Performance Guide](https://vite.dev/guide/performance) - Official guidance on optimizing builds and dev server performance
+- [ESLint Flat Config](https://eslint.org/docs/latest/use/configure/configuration-files-new) - ESLint 9+ configuration format used in this article
+
+**Core Maintainer Content:**
+
+- [React Context for Dependency Injection](https://testdouble.com/insights/react-context-for-dependency-injection-not-state-management) - Test Double on using Context for DI instead of state management
+- [Please Stop Using Barrel Files](https://tkdodo.eu/blog/please-stop-using-barrel-files) - TkDodo (TanStack Query maintainer) on barrel file trade-offs and tree-shaking
+
+**Tools and Libraries:**
+
+- [eslint-plugin-boundaries](https://github.com/javierbrea/eslint-plugin-boundaries) - ESLint plugin (5.x+) for enforcing architectural boundaries
+- [Next.js optimizePackageImports](https://nextjs.org/docs/app/api-reference/config/next-config-js/optimizePackageImports) - Next.js 14+ configuration for barrel file optimization
+- [Vitest](https://vitest.dev/) - Testing framework compatible with Vite and React, used in examples
+
+**Industry Expert Blogs:**
+
 - [Dependency Injection in React](https://blog.logrocket.com/dependency-injection-react/) - LogRocket guide covering props, Context, and custom hooks patterns
-- [Please Stop Using Barrel Files](https://tkdodo.eu/blog/please-stop-using-barrel-files) - TkDodo on barrel file trade-offs and tree-shaking implications
 - [React Patterns](https://krasimir.gitbooks.io/react-in-patterns/content/) - Krasimir Tsonev's guide to React patterns including dependency injection
-- [TypeScript Strict Mode](https://www.typescriptlang.org/tsconfig#strict) - Official TypeScript documentation on strict type checking
-- [Next.js optimizePackageImports](https://nextjs.org/docs/app/api-reference/config/next-config-js/optimizePackageImports) - Next.js configuration for optimizing barrel file imports
-- [Vitest Testing Framework](https://vitest.dev/) - Modern testing framework compatible with Vite and React

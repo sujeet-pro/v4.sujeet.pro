@@ -37,6 +37,12 @@
       "lastChecked": "2026-01-26T19:58:22.019Z",
       "hint": "fetch-node"
     },
+    "https://about.gitlab.com/topics/version-control/what-is-innersource/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:11.388Z",
+      "hint": "fetch-node"
+    },
     "https://accessibility-manual.dwp.gov.uk/best-practice/automated-testing-using-axe-core-and-pa11y": {
       "status": 200,
       "ok": true,
@@ -71,6 +77,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:35:26.405Z",
+      "hint": "fetch-node"
+    },
+    "https://almanac.httparchive.org/en/2025/cdn": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:27:41.979Z",
       "hint": "fetch-node"
     },
     "https://andydavies.me/blog/2013/10/22/how-the-browser-pre-loader-makes-pages-load-faster/": {
@@ -125,6 +137,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:35:25.309Z",
+      "hint": "fetch-node"
+    },
+    "https://atlassian.design/contribution/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:10.628Z",
+      "hint": "fetch-node"
+    },
+    "https://atomicdesign.bradfrost.com/chapter-5/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:33.283Z",
       "hint": "fetch-node"
     },
     "https://auth0.com/docs/secure/tokens/token-best-practices": {
@@ -205,6 +229,12 @@
       "lastChecked": "2026-01-28T11:14:01.060Z",
       "hint": "fetch-node"
     },
+    "https://blog.cloudflare.com/eliminating-cold-starts-2-shard-and-conquer/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:27:42.453Z",
+      "hint": "fetch-node"
+    },
     "https://blog.cloudflare.com/http-3-vs-http-2/": {
       "status": 200,
       "ok": true,
@@ -227,6 +257,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T21:08:51.180Z",
+      "hint": "fetch-node"
+    },
+    "https://blog.cloudflare.com/radar-2025-year-in-review/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:27:43.538Z",
       "hint": "fetch-node"
     },
     "https://blog.cloudflare.com/rfc-8446-aka-tls-1-3/": {
@@ -289,6 +325,18 @@
       "lastChecked": "2026-01-28T11:14:00.152Z",
       "hint": "fetch-node"
     },
+    "https://bradfrost.com/blog/post/a-design-system-governance-process/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:31.615Z",
+      "hint": "fetch-node"
+    },
+    "https://bradfrost.com/blog/post/design-tokens-atomic-design/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:35.635Z",
+      "hint": "fetch-node"
+    },
     "https://brilliant.org/wiki/egg-dropping/": {
       "status": 200,
       "ok": true,
@@ -323,6 +371,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:35:26.761Z",
+      "hint": "fetch-node"
+    },
+    "https://caniuse.com/brotli": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:27:43.138Z",
       "hint": "fetch-node"
     },
     "https://caniuse.com/fetch": {
@@ -366,6 +420,14 @@
       "ok": true,
       "lastChecked": "2026-01-26T13:35:27.762Z",
       "hint": "fetch-node"
+    },
+    "https://carbondesignsystem.com/guidelines/themes/overview/": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:35.798Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
     },
     "https://cheatsheetseries.owasp.org/": {
       "status": 200,
@@ -685,6 +747,12 @@
       "lastChecked": "2026-01-26T13:35:28.795Z",
       "hint": "fetch-node"
     },
+    "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:38:03.920Z",
+      "hint": "fetch-node"
+    },
     "https://datatracker.ietf.org/doc/draft-ietf-httpbis-rfc6265bis/": {
       "status": 200,
       "ok": true,
@@ -767,6 +835,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T21:08:51.512Z",
+      "hint": "fetch-node"
+    },
+    "https://datatracker.ietf.org/doc/html/rfc5861": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:38:01.936Z",
       "hint": "fetch-node"
     },
     "https://datatracker.ietf.org/doc/html/rfc6066": {
@@ -935,6 +1009,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-01T03:53:35.963Z",
+      "hint": "fetch-node"
+    },
+    "https://datatracker.ietf.org/doc/html/rfc9110": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:38:02.722Z",
       "hint": "fetch-node"
     },
     "https://datatracker.ietf.org/doc/html/rfc9114": {
@@ -1141,6 +1221,12 @@
       "lastChecked": "2026-01-31T15:40:41.567Z",
       "hint": "fetch-node"
     },
+    "https://developer.chrome.com/blog/use-scheduler-yield": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:34.085Z",
+      "hint": "fetch-node"
+    },
     "https://developer.chrome.com/docs/capabilities/web-apis/fetch-streaming-requests": {
       "status": 200,
       "ok": true,
@@ -1181,6 +1267,24 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-28T16:35:22.246Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.chrome.com/docs/crux/api/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:27:53.191Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.chrome.com/docs/crux/bigquery/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:27:54.725Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.chrome.com/docs/crux/history-api/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:27:55.238Z",
       "hint": "fetch-node"
     },
     "https://developer.chrome.com/docs/devtools/coverage": {
@@ -1309,6 +1413,12 @@
       "lastChecked": "2026-01-26T13:35:46.032Z",
       "hint": "fetch-node"
     },
+    "https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decoding": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:37:16.526Z",
+      "hint": "fetch-node"
+    },
     "https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide": {
       "status": 200,
       "ok": true,
@@ -1399,6 +1509,12 @@
       "lastChecked": "2026-01-26T13:35:57.093Z",
       "hint": "fetch-node"
     },
+    "https://developer.mozilla.org/en-US/docs/Web/API/Scheduler/yield": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:32.997Z",
+      "hint": "fetch-node"
+    },
     "https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API": {
       "status": 200,
       "ok": true,
@@ -1471,6 +1587,12 @@
       "lastChecked": "2026-01-26T13:36:01.035Z",
       "hint": "fetch-node"
     },
+    "https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/ascent-override": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:32.589Z",
+      "hint": "fetch-node"
+    },
     "https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display": {
       "status": 200,
       "ok": true,
@@ -1525,6 +1647,12 @@
       "lastChecked": "2026-01-26T13:36:09.120Z",
       "hint": "fetch-node"
     },
+    "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:37:17.429Z",
+      "hint": "fetch-node"
+    },
     "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta": {
       "status": 200,
       "ok": true,
@@ -1553,6 +1681,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:36:13.089Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.mozilla.org/en-US/docs/Web/HTTP/Conditional_requests": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:38:02.088Z",
       "hint": "fetch-node"
     },
     "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS": {
@@ -1657,6 +1791,12 @@
       "lastChecked": "2026-01-26T13:36:24.055Z",
       "hint": "fetch-node"
     },
+    "https://developer.salesforce.com/docs/platform/lwc/guide/create-components-css-custom-properties.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:33.931Z",
+      "hint": "fetch-node"
+    },
     "https://developers.cloudflare.com/workers/": {
       "status": 200,
       "ok": true,
@@ -1681,6 +1821,12 @@
       "lastChecked": "2026-01-26T13:36:16.077Z",
       "hint": "fetch-node"
     },
+    "https://developers.google.com/speed/webp/docs/riff_container": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:37:16.999Z",
+      "hint": "fetch-node"
+    },
     "https://developers.mews.com/design-system-adoption-metric-building/": {
       "status": 200,
       "ok": true,
@@ -1690,7 +1836,7 @@
     "https://dl.acm.org/doi/10.1145/511399.511340": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:03.117Z",
+      "lastChecked": "2026-02-01T16:38:03.746Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -1959,6 +2105,12 @@
       "lastChecked": "2026-01-26T13:36:31.419Z",
       "hint": "fetch-node"
     },
+    "https://docs.tokens.studio/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:33.759Z",
+      "hint": "fetch-node"
+    },
     "https://docs.volta.sh/": {
       "status": 200,
       "ok": true,
@@ -2127,10 +2279,22 @@
       "lastChecked": "2026-01-31T17:12:45.383Z",
       "hint": "fetch-node"
     },
+    "https://eslint.org/docs/latest/use/configure/configuration-files-new": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:27:41.975Z",
+      "hint": "fetch-node"
+    },
     "https://evertpot.com/http-2-push-is-dead/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T21:48:00.193Z",
+      "hint": "fetch-node"
+    },
+    "https://evilmartians.com/chronicles/the-joy-of-variable-fonts-getting-started-on-the-frontend": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:32.897Z",
       "hint": "fetch-node"
     },
     "https://eza.rocks/": {
@@ -2211,6 +2375,18 @@
       "lastChecked": "2026-01-26T13:36:31.681Z",
       "hint": "fetch-node"
     },
+    "https://github.com/GoogleChrome/web-vitals": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:27:53.615Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/GoogleChromeLabs/css-paint-polyfill": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:32.960Z",
+      "hint": "fetch-node"
+    },
     "https://github.com/Netflix/Hystrix/wiki": {
       "status": 200,
       "ok": true,
@@ -2227,6 +2403,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:36:33.776Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/WICG/scheduling-apis/blob/main/explainers/yield-and-continuation.md": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:33.545Z",
       "hint": "fetch-node"
     },
     "https://github.com/acdlite/react-fiber-architecture": {
@@ -2275,6 +2457,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-01T05:16:07.959Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/carbon-design-system/rfcs": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:11.765Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/changesets/changesets": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:33.723Z",
       "hint": "fetch-node"
     },
     "https://github.com/dequelabs/axe-core": {
@@ -2436,7 +2630,7 @@
     "https://github.com/nicolo-ribaudo/proposal-error-iserror": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:03.578Z",
+      "lastChecked": "2026-02-01T16:38:03.276Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -2471,16 +2665,34 @@
       "lastChecked": "2026-01-31T17:22:28.966Z",
       "hint": "fetch-node"
     },
+    "https://github.com/radix-ui/primitives/blob/main/philosophy.md": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:10.484Z",
+      "hint": "fetch-node"
+    },
     "https://github.com/reactjs/rfcs/blob/main/text/0188-server-components.md": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:00.990Z",
       "hint": "fetch-node"
     },
+    "https://github.com/reactwg/react-18/discussions/37": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:34.737Z",
+      "hint": "fetch-node"
+    },
     "https://github.com/rolftimmermans/event-iterator": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T16:40:42.031Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/salesforce-ux/theo": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:34.886Z",
       "hint": "fetch-node"
     },
     "https://github.com/sujeet-pro": {
@@ -2636,10 +2848,16 @@
     "https://hashnode.com/@sujeetpro": {
       "status": 429,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:03.482Z",
+      "lastChecked": "2026-02-01T16:38:04.049Z",
       "error": "HTTP 429",
       "hint": "manual",
       "manual": "auto"
+    },
+    "https://headlessui.com/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:10.123Z",
+      "hint": "fetch-node"
     },
     "https://helmetjs.github.io/": {
       "status": 200,
@@ -2669,6 +2887,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-28T17:02:57.676Z",
+      "hint": "fetch-node"
+    },
+    "https://html.spec.whatwg.org/multipage/embedded-content.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:37:17.609Z",
       "hint": "fetch-node"
     },
     "https://html.spec.whatwg.org/multipage/imagebitmap-and-animations.html": {
@@ -2851,11 +3075,31 @@
       "lastChecked": "2026-01-31T21:39:34.387Z",
       "hint": "fetch-node"
     },
+    "https://m3.material.io/foundations/design-tokens": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:33.983Z",
+      "hint": "fetch-node"
+    },
     "https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:07.636Z",
       "hint": "fetch-node"
+    },
+    "https://martinfowler.com/articles/codemods-api-refactoring.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:14:17.402Z",
+      "hint": "fetch-node"
+    },
+    "https://martinfowler.com/articles/codemods-api-refactoring/": {
+      "status": 403,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:38:02.777Z",
+      "error": "HTTP 403",
+      "hint": "manual",
+      "manual": "auto"
     },
     "https://martinfowler.com/articles/design-token-based-ui-architecture.html": {
       "status": 200,
@@ -2896,7 +3140,7 @@
     "https://media.defense.gov/2021/Jan/14/2002564889/-1/-1/0/CSI_ADOPTING_ENCRYPTED_DNS_U_OO_102904_21.PDF": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:03.235Z",
+      "lastChecked": "2026-02-01T16:38:03.623Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -2913,10 +3157,40 @@
       "lastChecked": "2026-01-26T13:37:15.295Z",
       "hint": "fetch-browser-agent"
     },
+    "https://medium.com/eightshapes-llc/adopting-design-systems-71e599ff660a": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:13.759Z",
+      "hint": "fetch-browser-agent"
+    },
+    "https://medium.com/eightshapes-llc/designing-a-systems-team-d22f27a2d81d": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:33.429Z",
+      "hint": "fetch-browser-agent"
+    },
+    "https://medium.com/eightshapes-llc/naming-tokens-in-design-systems-9e86c7444676": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:36.561Z",
+      "hint": "fetch-browser-agent"
+    },
     "https://medium.com/eightshapes-llc/team-models-for-scaling-a-design-system-2cf9d03be6a0": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:16.102Z",
+      "hint": "fetch-browser-agent"
+    },
+    "https://medium.com/eightshapes-llc/tokens-in-design-systems-25dd82d58421": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:37.924Z",
+      "hint": "fetch-browser-agent"
+    },
+    "https://medium.com/eightshapes-llc/versioning-design-systems-48cceb5ace4d": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:11.805Z",
       "hint": "fetch-browser-agent"
     },
     "https://medium.com/sujeet-pro": {
@@ -2952,7 +3226,7 @@
     "https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:02.802Z",
+      "lastChecked": "2026-02-01T16:38:02.249Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -2960,10 +3234,16 @@
     "https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:02.803Z",
+      "lastChecked": "2026-02-01T16:38:02.332Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
+    },
+    "https://mui.com/material-ui/guides/api/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:11.390Z",
+      "hint": "fetch-node"
     },
     "https://netflixtechblog.com/announcing-evcache-distributed-in-memory-datastore-for-cloud-c26a698c27f7": {
       "status": 200,
@@ -2993,6 +3273,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:14.410Z",
+      "hint": "fetch-node"
+    },
+    "https://nextjs.org/docs/pages/api-reference/components/font": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:33.156Z",
       "hint": "fetch-node"
     },
     "https://nextjs.org/docs/pages/building-your-application/data-fetching/get-server-side-props": {
@@ -3241,6 +3527,12 @@
       "lastChecked": "2026-01-26T13:37:16.254Z",
       "hint": "fetch-node"
     },
+    "https://percy.io/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:11.413Z",
+      "hint": "fetch-node"
+    },
     "https://pkg.go.dev/container/heap": {
       "status": 200,
       "ok": true,
@@ -3251,6 +3543,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T17:28:39.211Z",
+      "hint": "fetch-node"
+    },
+    "https://polaris.shopify.com/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:14:17.134Z",
       "hint": "fetch-node"
     },
     "https://pomb.us/build-your-own-react/": {
@@ -3300,6 +3598,14 @@
       "ok": true,
       "lastChecked": "2026-01-26T13:37:16.565Z",
       "hint": "fetch-node"
+    },
+    "https://react-aria-components.adobe.com/": {
+      "status": null,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:38:01.952Z",
+      "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://react-aria-components.adobe.com/\nCall log:\n\u001b[2m  - navigating to \"https://react-aria-components.adobe.com/\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "hint": "manual",
+      "manual": "auto"
     },
     "https://react-spectrum.adobe.com/react-aria/": {
       "status": 200,
@@ -3371,6 +3677,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:20.734Z",
+      "hint": "fetch-node"
+    },
+    "https://react.dev/reference/react/createContext": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:27:41.752Z",
       "hint": "fetch-node"
     },
     "https://react.dev/reference/react/hooks": {
@@ -3511,6 +3823,12 @@
       "lastChecked": "2026-01-26T13:37:32.912Z",
       "hint": "fetch-node"
     },
+    "https://redux-toolkit.js.org/rtk-query/overview": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:38:01.730Z",
+      "hint": "fetch-node"
+    },
     "https://refactoring.guru/design-patterns/observer": {
       "status": 200,
       "ok": true,
@@ -3535,6 +3853,12 @@
       "lastChecked": "2026-01-26T13:37:31.791Z",
       "hint": "fetch-node"
     },
+    "https://semver.org/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:10.505Z",
+      "hint": "fetch-node"
+    },
     "https://sharp.pixelplumbing.com/": {
       "status": 200,
       "ok": true,
@@ -3551,6 +3875,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:32.065Z",
+      "hint": "fetch-node"
+    },
+    "https://spectrum.adobe.com/page/design-tokens/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:33.632Z",
       "hint": "fetch-node"
     },
     "https://spencermortensen.com/articles/egg-problem/": {
@@ -3617,6 +3947,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T17:48:23.201Z",
+      "hint": "fetch-node"
+    },
+    "https://storybook.js.org/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:14:16.941Z",
       "hint": "fetch-node"
     },
     "https://storybook.js.org/blog/4-ways-to-document-your-design-system-with-storybook/": {
@@ -3692,20 +4028,16 @@
       "hint": "playwright"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-commit.html": {
-      "status": 404,
+      "status": 200,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:02.311Z",
-      "error": "HTTP 404",
-      "hint": "manual",
-      "manual": "auto"
+      "lastChecked": "2026-02-01T14:53:32.686Z",
+      "hint": "playwright"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-composit.html": {
-      "status": 404,
+      "status": 200,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:02.310Z",
-      "error": "HTTP 404",
-      "hint": "manual",
-      "manual": "auto"
+      "lastChecked": "2026-02-01T14:53:32.688Z",
+      "hint": "playwright"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-compositing.html": {
       "status": 200,
@@ -3732,20 +4064,16 @@
       "hint": "playwright"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-draw.html": {
-      "status": 404,
+      "status": 200,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:02.412Z",
-      "error": "HTTP 404",
-      "hint": "manual",
-      "manual": "auto"
+      "lastChecked": "2026-02-01T14:53:33.054Z",
+      "hint": "playwright"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-layerize.html": {
-      "status": 404,
+      "status": 200,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:02.402Z",
-      "error": "HTTP 404",
-      "hint": "manual",
-      "manual": "auto"
+      "lastChecked": "2026-02-01T14:53:33.077Z",
+      "hint": "playwright"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-layout-stage.html": {
       "status": 200,
@@ -3754,12 +4082,10 @@
       "hint": "fetch-node"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-layout.html": {
-      "status": 404,
+      "status": 200,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:02.491Z",
-      "error": "HTTP 404",
-      "hint": "manual",
-      "manual": "auto"
+      "lastChecked": "2026-02-01T14:53:33.419Z",
+      "hint": "playwright"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-paint-stage.html": {
       "status": 200,
@@ -3768,12 +4094,10 @@
       "hint": "fetch-node"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-paint.html": {
-      "status": 404,
+      "status": 200,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:02.501Z",
-      "error": "HTTP 404",
-      "hint": "manual",
-      "manual": "auto"
+      "lastChecked": "2026-02-01T14:53:33.446Z",
+      "hint": "playwright"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-prepaint.html": {
       "status": 200,
@@ -3782,12 +4106,10 @@
       "hint": "playwright"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-raster.html": {
-      "status": 404,
+      "status": 200,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:02.574Z",
-      "error": "HTTP 404",
-      "hint": "manual",
-      "manual": "auto"
+      "lastChecked": "2026-02-01T14:53:33.784Z",
+      "hint": "playwright"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/critical-rendering-path/crp-rasterization.html": {
       "status": 200,
@@ -3826,12 +4148,10 @@
       "hint": "fetch-node"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/js-runtime-internals/browser-internals.html": {
-      "status": 404,
+      "status": 200,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:02.587Z",
-      "error": "HTTP 404",
-      "hint": "manual",
-      "manual": "auto"
+      "lastChecked": "2026-02-01T14:53:33.817Z",
+      "hint": "playwright"
     },
     "https://sujeet.pro/articles/browser-runtime-internals/js-runtime-internals/js-event-loop.html": {
       "status": 200,
@@ -3917,6 +4237,12 @@
       "lastChecked": "2026-01-26T13:37:34.477Z",
       "hint": "fetch-node"
     },
+    "https://sujeet.pro/articles/frontend-engineering/design-systems/component-library-architecture-and-governance.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:11.786Z",
+      "hint": "fetch-node"
+    },
     "https://sujeet.pro/articles/frontend-engineering/design-systems/design-system-adoption-foundations.html": {
       "status": 200,
       "ok": true,
@@ -3929,6 +4255,12 @@
       "lastChecked": "2026-01-26T13:37:34.517Z",
       "hint": "fetch-node"
     },
+    "https://sujeet.pro/articles/frontend-engineering/design-systems/design-tokens-and-theming.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:34.113Z",
+      "hint": "fetch-node"
+    },
     "https://sujeet.pro/articles/frontend-engineering/frontend-architecture-patterns.html": {
       "status": 200,
       "ok": true,
@@ -3939,6 +4271,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:34.760Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/frontend-engineering/frontend-architecture-patterns/data-fetching-patterns.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:38:02.344Z",
       "hint": "fetch-node"
     },
     "https://sujeet.pro/articles/frontend-engineering/frontend-architecture-patterns/micro-frontends-architecture.html": {
@@ -3981,6 +4319,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:34.605Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/frontend-engineering/web-performance-optimization/core-web-vitals-measurement.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:27:53.653Z",
       "hint": "fetch-node"
     },
     "https://sujeet.pro/articles/frontend-engineering/web-performance-optimization/web-performance-css-typography.html": {
@@ -4358,7 +4702,7 @@
     "https://sujeet.pro/articles/web-foundations/web-security-auth/owasp-top-10-guide.html": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-01T05:26:03.309Z",
+      "lastChecked": "2026-02-01T16:38:04.215Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -4399,6 +4743,18 @@
       "lastChecked": "2026-01-26T13:37:36.848Z",
       "hint": "fetch-node"
     },
+    "https://swr.vercel.app/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:38:02.089Z",
+      "hint": "fetch-node"
+    },
+    "https://tanstack.com/query/latest": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:38:02.508Z",
+      "hint": "fetch-node"
+    },
     "https://tc39.es/ecma262/": {
       "status": 200,
       "ok": true,
@@ -4427,6 +4783,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:35.320Z",
+      "hint": "fetch-node"
+    },
+    "https://terrazzo.app/docs/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:33.740Z",
       "hint": "fetch-node"
     },
     "https://testdouble.com/insights/react-context-for-dependency-injection-not-state-management": {
@@ -4507,6 +4869,12 @@
       "lastChecked": "2026-01-26T13:37:36.131Z",
       "hint": "fetch-node"
     },
+    "https://v10.carbondesignsystem.com/guidelines/themes/overview/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:11.867Z",
+      "hint": "fetch-node"
+    },
     "https://v8.dev/blog/array-sort": {
       "status": 200,
       "ok": true,
@@ -4579,6 +4947,12 @@
       "lastChecked": "2026-01-26T13:37:42.793Z",
       "hint": "fetch-node"
     },
+    "https://v8.dev/blog/spectre": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:32.927Z",
+      "hint": "fetch-node"
+    },
     "https://v8.dev/blog/static-roots": {
       "status": 200,
       "ok": true,
@@ -4633,10 +5007,22 @@
       "lastChecked": "2026-01-26T13:37:40.466Z",
       "hint": "fetch-node"
     },
+    "https://vercel.com/docs/functions/runtimes/edge": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:27:42.137Z",
+      "hint": "fetch-node"
+    },
     "https://vista.design/swan/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:40.396Z",
+      "hint": "fetch-node"
+    },
+    "https://vite.dev/guide/performance": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:27:42.361Z",
       "hint": "fetch-node"
     },
     "https://vitest.dev/": {
@@ -4675,6 +5061,12 @@
       "lastChecked": "2026-01-26T13:37:40.513Z",
       "hint": "fetch-node"
     },
+    "https://w3c.github.io/performance-timeline/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:27:52.961Z",
+      "hint": "fetch-node"
+    },
     "https://w3c.github.io/requestidlecallback/": {
       "status": 200,
       "ok": true,
@@ -4697,6 +5089,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:43.281Z",
+      "hint": "fetch-node"
+    },
+    "https://web.dev/articles/commonjs-larger-bundles": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:34.030Z",
       "hint": "fetch-node"
     },
     "https://web.dev/articles/constructable-stylesheets": {
@@ -4753,6 +5151,12 @@
       "lastChecked": "2026-01-26T13:37:52.967Z",
       "hint": "fetch-node"
     },
+    "https://web.dev/articles/fetch-priority": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:37:16.989Z",
+      "hint": "fetch-node"
+    },
     "https://web.dev/articles/http-cache": {
       "status": 200,
       "ok": true,
@@ -4763,6 +5167,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:53.909Z",
+      "hint": "fetch-node"
+    },
+    "https://web.dev/articles/lab-and-field-data-differences": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:27:53.719Z",
+      "hint": "fetch-node"
+    },
+    "https://web.dev/articles/lcp": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:14:18.120Z",
       "hint": "fetch-node"
     },
     "https://web.dev/articles/module-workers": {
@@ -4781,6 +5197,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T17:48:26.208Z",
+      "hint": "fetch-node"
+    },
+    "https://web.dev/articles/optimize-inp": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:27:55.395Z",
       "hint": "fetch-node"
     },
     "https://web.dev/articles/optimize-lcp": {
@@ -4867,6 +5289,12 @@
       "lastChecked": "2026-02-01T04:35:43.750Z",
       "hint": "fetch-node"
     },
+    "https://web.dev/articles/ttfb": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:14:21.215Z",
+      "hint": "fetch-node"
+    },
     "https://web.dev/articles/virtualize-long-lists-react-window": {
       "status": 200,
       "ok": true,
@@ -4877,6 +5305,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:38:00.048Z",
+      "hint": "fetch-node"
+    },
+    "https://web.dev/blog/css-content-visibility-baseline": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:33.252Z",
+      "hint": "fetch-node"
+    },
+    "https://web.dev/blog/inp-cwv-march-12": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:14:19.642Z",
       "hint": "fetch-node"
     },
     "https://web.dev/blog/intl-segmenter": {
@@ -4945,10 +5385,28 @@
       "lastChecked": "2026-01-26T13:37:53.149Z",
       "hint": "fetch-node"
     },
+    "https://webpack.js.org/guides/tree-shaking/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:32.840Z",
+      "hint": "fetch-node"
+    },
+    "https://wicg.github.io/layout-instability/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:27:52.956Z",
+      "hint": "fetch-node"
+    },
     "https://wicg.github.io/nav-speculation/speculation-rules.html": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-29T04:32:00.364Z",
+      "hint": "fetch-node"
+    },
+    "https://wicg.github.io/scheduling-apis/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:32.438Z",
       "hint": "fetch-node"
     },
     "https://www-cs-faculty.stanford.edu/~knuth/taocp.html": {
@@ -4987,6 +5445,12 @@
       "lastChecked": "2026-01-31T15:40:41.034Z",
       "hint": "fetch-node"
     },
+    "https://www.apollographql.com/docs/react/caching/cache-configuration": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:38:02.853Z",
+      "hint": "fetch-node"
+    },
     "https://www.baeldung.com/cs/dijkstra-decrease-key": {
       "status": 200,
       "ok": true,
@@ -5009,6 +5473,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:54.229Z",
+      "hint": "fetch-node"
+    },
+    "https://www.chromatic.com/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:12.315Z",
       "hint": "fetch-node"
     },
     "https://www.chromium.org/Home/chromium-security/site-isolation/": {
@@ -5141,6 +5611,12 @@
       "lastChecked": "2026-01-26T13:37:58.487Z",
       "hint": "fetch-node"
     },
+    "https://www.debugbear.com/blog/lcp-subparts": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:27:54.176Z",
+      "hint": "fetch-node"
+    },
     "https://www.deque.com/axe/devtools/": {
       "status": 200,
       "ok": true,
@@ -5157,6 +5633,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:57.190Z",
+      "hint": "fetch-node"
+    },
+    "https://www.designtokens.org/tr/drafts/format/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:33.317Z",
       "hint": "fetch-node"
     },
     "https://www.dolthub.com/blog/2023-12-01-why-are-go-heaps-confusing/": {
@@ -5205,6 +5687,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:58.466Z",
+      "hint": "fetch-node"
+    },
+    "https://www.figma.com/blog/how-pinterests-design-systems-team-measures-adoption/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:11.825Z",
       "hint": "fetch-node"
     },
     "https://www.freecodecamp.org/news/dom-manipulation-htmlcollection-vs-nodelist/": {
@@ -5279,6 +5767,12 @@
       "lastChecked": "2026-01-26T13:38:00.634Z",
       "hint": "fetch-node"
     },
+    "https://www.iso.org/standard/87633.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:37:18.479Z",
+      "hint": "fetch-node"
+    },
     "https://www.itu.int/rec/T-REC-H.264": {
       "status": 200,
       "ok": true,
@@ -5295,6 +5789,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:59.753Z",
+      "hint": "fetch-node"
+    },
+    "https://www.knapsack.cloud/reports/roi-report": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:32.971Z",
       "hint": "fetch-node"
     },
     "https://www.libvips.org/": {
@@ -5314,6 +5814,12 @@
       "ok": true,
       "lastChecked": "2026-01-26T13:38:00.072Z",
       "hint": "fetch-node"
+    },
+    "https://www.npmjs.com/package/jest-axe": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:13.672Z",
+      "hint": "playwright"
     },
     "https://www.npmjs.com/package/p-queue": {
       "status": 200,
@@ -5355,6 +5861,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:38:00.807Z",
+      "hint": "fetch-node"
+    },
+    "https://www.radix-ui.com/primitives/docs/guides/composition": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:10.041Z",
       "hint": "fetch-node"
     },
     "https://www.redblobgames.com/pathfinding/a-star/introduction.html": {
@@ -5459,6 +5971,12 @@
       "lastChecked": "2026-01-31T21:48:00.897Z",
       "hint": "fetch-node"
     },
+    "https://www.rfc-editor.org/rfc/rfc9111.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:38:01.972Z",
+      "hint": "fetch-node"
+    },
     "https://www.rfc-editor.org/rfc/rfc9112": {
       "status": 200,
       "ok": true,
@@ -5501,10 +6019,28 @@
       "lastChecked": "2026-01-26T13:38:02.409Z",
       "hint": "fetch-node"
     },
+    "https://www.shopify.com/partners/blog/design-system": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:00:11.389Z",
+      "hint": "fetch-node"
+    },
+    "https://www.smashingmagazine.com/2019/11/smashing-podcast-episode-3/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:35.083Z",
+      "hint": "fetch-node"
+    },
     "https://www.smashingmagazine.com/2022/09/formula-roi-design-system/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:38:01.265Z",
+      "hint": "fetch-node"
+    },
+    "https://www.ssllabs.com/ssl-pulse/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:27:42.582Z",
       "hint": "fetch-node"
     },
     "https://www.ssllabs.com/ssltest/": {
@@ -5537,10 +6073,22 @@
       "lastChecked": "2026-01-26T13:38:03.267Z",
       "hint": "playwright"
     },
+    "https://www.tunetheweb.com/blog/critical-resources-and-the-first-14kb/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:32.927Z",
+      "hint": "fetch-node"
+    },
     "https://www.typescriptlang.org/tsconfig": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:38:02.645Z",
+      "hint": "fetch-node"
+    },
+    "https://www.typescriptlang.org/tsconfig/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:27:41.676Z",
       "hint": "fetch-node"
     },
     "https://www.untitledui.com/blog/react-component-libraries": {
@@ -5663,6 +6211,12 @@
       "lastChecked": "2026-01-26T19:58:21.295Z",
       "hint": "fetch-node"
     },
+    "https://www.w3.org/TR/css-fonts-4/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T16:06:32.433Z",
+      "hint": "fetch-node"
+    },
     "https://www.w3.org/TR/css-masking-1/": {
       "status": 200,
       "ok": true,
@@ -5705,10 +6259,22 @@
       "lastChecked": "2026-01-26T19:58:19.300Z",
       "hint": "fetch-node"
     },
+    "https://www.w3.org/TR/event-timing/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:27:53.537Z",
+      "hint": "fetch-node"
+    },
     "https://www.w3.org/TR/filter-effects-1/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-28T16:24:51.906Z",
+      "hint": "fetch-node"
+    },
+    "https://www.w3.org/TR/largest-contentful-paint/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T15:27:52.736Z",
       "hint": "fetch-node"
     },
     "https://www.w3.org/TR/requestidlecallback/": {
@@ -5883,6 +6449,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:38:08.716Z",
+      "hint": "fetch-node"
+    },
+    "https://zeroheight.com/blog/design-systems-report-2025-an-overview/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-01T14:53:33.784Z",
       "hint": "fetch-node"
     },
     "https://zeroheight.com/help/guides/design-system-governance-models-and-which-is-right-for-your-organization/": {

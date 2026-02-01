@@ -1,6 +1,6 @@
 # JavaScript Performance Optimization for the Web
 
-Master advanced JavaScript optimization techniques including bundle splitting, long task management, React optimization, and Web Workers for building high-performance web applications.
+JavaScript execution is the primary source of main-thread blocking in modern web applications. This article covers the browser's script loading pipeline, task scheduling primitives, code splitting strategies, and Web Workers—with emphasis on design rationale and current API status as of 2025.
 
 <figure>
 
@@ -29,976 +29,799 @@ flowchart TB
     TASK --> TTI
 ```
 
-<figcaption>JavaScript performance optimization techniques and their impact on Core Web Vitals metrics</figcaption>
+<figcaption>JavaScript performance optimization techniques and their impact on Core Web Vitals metrics.</figcaption>
 
 </figure>
 
-## TLDR
+## Abstract
 
-**JavaScript performance optimization** reduces bundle size through code splitting, improves responsiveness via task scheduling, and leverages Web Workers for compute-intensive operations.
+JavaScript performance optimization addresses three distinct bottlenecks:
 
-### Script Loading Strategies
+1. **Parse-time blocking**: Scripts block DOM construction during fetch and execution. The `async`, `defer`, and `type="module"` attributes control when scripts execute relative to parsing—`defer` guarantees document order after parsing completes, `async` executes on arrival (no order guarantee), and modules are deferred by default with dependency resolution.
 
-- **async**: Downloads in parallel, executes immediately; unpredictable order; use for independent scripts
-- **defer**: Downloads in parallel, executes after DOM parsing; preserves order; use for application code
-- **type="module"**: Deferred by default, supports imports; enables tree shaking
-- **Combination**: Analytics (async), polyfills/app (defer), modern entry (module)
+2. **Run-time blocking**: Tasks exceeding 50ms (the RAIL-derived threshold for perceived responsiveness) block input handling. `scheduler.yield()` (Chrome 129+) yields to the browser while maintaining task priority through a continuation queue mechanism—unlike `setTimeout(0)` which sends work to the back of the queue.
 
-### Code Splitting
+3. **Bundle-size blocking**: Large initial bundles delay Time to Interactive (TTI). Code splitting via dynamic `import()` defers non-critical code; tree shaking eliminates dead exports statically. Both require ES modules—CommonJS is runtime-resolved and cannot be statically analyzed.
 
-- **Route-based**: Load only code needed for current route using `React.lazy()` + `Suspense`
-- **Component-level**: Lazy load heavy components (charts, tables) on demand
-- **Dynamic imports**: `import()` with webpack magic comments for chunk naming
-- **Preloading**: `webpackPrefetch` for likely next routes to improve perceived performance
+Web Workers move computation entirely off the main thread. Transferable objects enable zero-copy data transfer by detaching ownership from the sending context.
 
-### Task Management
+## Script Loading: Parser Interaction and Execution Order
 
-- **Long tasks**: >50ms blocks main thread causing jank; split into smaller chunks
-- **scheduler.yield()**: Yields control while maintaining task priority; resumes before new tasks
-- **Adaptive processing**: Yield based on time slice (5ms) not just iteration count
-- **Priority scheduling**: `scheduler.postTask()` with background/user-visible/user-blocking priorities
+The choice of script loading strategy determines when the browser's HTML parser yields control to JavaScript execution.
 
-### Web Workers
+### Why Parser Blocking Matters
 
-- **Use cases**: Heavy computation, data processing, encryption, image manipulation
-- **Worker pools**: Manage multiple workers for parallel processing; reuse for efficiency
-- **Shared Workers**: Cross-tab communication and shared state
-- **Transfer**: Use `Transferable` objects for zero-copy data transfer
+The HTML parser cannot construct DOM nodes while JavaScript executes—JavaScript may call `document.write()` or modify the DOM being built. This creates the fundamental tension: scripts need DOM access, but parsing must complete for DOM to exist.
 
-### React Optimization
+> **WHATWG HTML spec**: "The classic script will be fetched in parallel and evaluated when the page has finished parsing."
 
-- **React.memo**: Prevent re-renders for unchanged props
-- **useMemo/useCallback**: Memoize expensive calculations and callbacks
-- **Server Components**: Reduce client bundle; run data fetching on server
-- **Virtualization**: Render only visible items for large lists
+This quote describes `defer` behavior—the spec's solution to the tension. The parser continues unblocked while scripts download, then scripts execute in document order after parsing.
 
-## Script Loading Strategies and Execution Order
+### Execution Order Guarantees by Attribute
 
-The foundation of JavaScript performance optimization begins with understanding how scripts are loaded and executed by the browser. The choice between different loading strategies can dramatically impact your application's initial load performance and perceived responsiveness.
+| Attribute | Fetch | Execute | Order | Use Case |
+|-----------|-------|---------|-------|----------|
+| (none) | Blocking | Immediate | Document | Legacy scripts requiring `document.write()` |
+| `async` | Parallel | On arrival | **None** | Independent analytics, ads |
+| `defer` | Parallel | After parsing | Document | Application code with DOM dependencies |
+| `type="module"` | Parallel | After parsing | Dependency graph | Modern ESM applications |
 
-### Understanding Execution Order Preservation
+### Why `defer` Executes After Parsing
 
-**Normal Script Loading**: Traditional script tags block HTML parsing during both download and execution phases. This creates a synchronous bottleneck where the browser cannot continue processing the document until the script completes.
+The `defer` attribute was introduced in Internet Explorer 4 (1997) and standardized in HTML 4. The design rationale: hint to the browser that the script "does not create any content" via `document.write()`, so parsing can continue.
 
-```html
-<!-- Blocks HTML parsing during download AND execution -->
-<script src="heavy-library.js"></script>
-<div id="content">This won't render until script completes</div>
-```
+> **Prior to `defer`**: All scripts blocked parsing during both download and execution. Users saw nothing until scripts completed—a significant perceived performance problem on slow networks.
 
-**Async Scripts**: Scripts with the `async` attribute download in parallel with HTML parsing but execute immediately upon completion, potentially interrupting the parsing process. Critically, async scripts do not preserve execution order—they execute in the order they finish downloading, not the order they appear in the document.
+The parser maintains a "list of scripts that will execute when the document has finished parsing." Deferred scripts append to this list and execute sequentially, preserving document order.
 
-```html
-<!-- These may execute in any order based on download completion -->
-<script src="library-a.js" async></script>
-<script src="library-b.js" async></script>
-<!-- May run before library-a -->
-```
-
-**Defer Scripts**: Scripts marked with `defer` download in parallel but execute only after HTML parsing is complete, preserving their document order. This makes defer ideal for scripts that depend on the DOM or other scripts.
-
-```html
-<!-- These will execute in document order after DOM is ready -->
-<script src="dependency.js" defer></script>
-<script src="main-app.js" defer></script>
-<!-- Guaranteed to run after dependency.js -->
-```
-
-**ES Modules**: Scripts with `type="module"` are deferred by default and support modern import/export syntax. They enable better dependency management and tree shaking opportunities.
-
-```html
-<!-- Automatically deferred, supports imports -->
-<script type="module" src="app.js"></script>
-```
-
-### Advanced Loading Patterns
-
-For complex applications requiring specific loading behaviors, combining these strategies yields optimal results:
-
-```html
-<head>
-  <!-- Critical CSS and fonts -->
-  <link rel="preload" href="critical.css" as="style" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-
-  <!-- Analytics and tracking (independent) -->
-  <script src="analytics.js" async></script>
-
-  <!-- Application dependencies (order-dependent) -->
-  <script src="polyfills.js" defer></script>
-  <script src="framework.js" defer></script>
-  <script src="app.js" defer></script>
-
-  <!-- Modern module-based entry point -->
-  <script type="module" src="modern-app.js"></script>
-</head>
-```
-
-### Script Loading Timeline Comparison
+### `async` vs `defer` Decision Matrix
 
 ```mermaid
-gantt
-    title Script Loading Strategies Timeline
-    dateFormat X
-    axisFormat %s
+flowchart TD
+    A[Script to load] --> B{Depends on DOM?}
+    B -->|Yes| C{Depends on other scripts?}
+    B -->|No| D{Independent?}
 
-    section Normal Script
-    DOM Parsing           :active, normal, 0, 10
-    Download              :crit, normal, 10, 100
-    Execute               :crit, normal, 100, 160
-    DOM Parsing           :active, normal, 160, 300
+    C -->|Yes| E[defer]
+    C -->|No| F[defer or module]
 
-    section Async Script
-    DOM Parsing           :active, normal, 0, 100
-    Download              :active, normal, 10, 100
-    Execute               :crit, async, 100, 160
-    DOM Parsing           :active, normal, 160, 210
+    D -->|Yes| G[async]
+    D -->|No| H{Order matters?}
 
-    section Defer Script
-    DOM Parsing           :active, normal, 0, 150
-    Download              :active, normal, 10, 100
-    Execute               :exec, 150, 190
+    H -->|Yes| E
+    H -->|No| G
 
-    section Module Script
-    DOM Parsing           :active, normal, 0, 150
-    Download              :active, normal, 10, 100
-    Execute               :module, 150, 210
+    style E fill:#c8e6c9
+    style G fill:#bbdefb
 ```
 
-<figcaption>
+<figcaption>Decision tree for selecting script loading attributes based on dependency requirements.</figcaption>
 
-**Figure 1:** Script loading strategies timeline comparison showing how different script loading methods affect HTML parsing and execution timing. Normal, async, and module scripts execute before DOM Load Complete, while defer scripts execute after DOM Load Complete.
+### Module Scripts: Deferred by Default
 
-</figcaption>
+ES modules (`type="module"`) are deferred by default with additional semantics:
 
-### Standard `<script>`
+- **Strict mode**: Always enabled, `this` is `undefined` at top level
+- **Dependency resolution**: The module graph is fetched before any execution
+- **Top-level `await`**: Supported (blocks dependent modules, not the parser)
 
-- **Blocking behavior:** HTML parsing pauses on fetch+execute.
-- **Order:** Sequential; later scripts wait for earlier ones.
+```html collapse={1-3}
+<!-- Analytics: independent, no DOM dependency -->
+<script src="analytics.js" async></script>
 
-### `async`
+<!-- Polyfills → Framework → App: order-dependent -->
+<script src="polyfills.js" defer></script>
+<script src="framework.js" defer></script>
+<script src="app.js" defer></script>
 
-- **Blocking:** Does _not_ block parsing; execution occurs immediately upon download, pausing parsing only at execution time.
-- **Order:** Unpredictable—scripts execute as they arrive.
-- **Use Case:** Independent analytics or ads that don't depend on DOM or other scripts.
-- **Trade-off:** Lack of order can break inter-script dependencies; use only when order is irrelevant.
+<!-- Modern entry: ESM with automatic deferral -->
+<script type="module" src="main.js"></script>
+```
 
-### `defer`
+**Trade-off**: Module scripts require `nomodule` fallback for legacy browsers (IE11, older Safari), adding bundle complexity.
 
-- **Blocking:** Downloads in background without interrupting parsing; execution deferred until after HTML parsing, just before `DOMContentLoaded`.
-- **Order:** Preserves document order.
-- **Use Case:** Application initialization scripts that depend on DOM but not immediate rendering.
-- **Trade-off:** Slightly delayed execution.
+## Long Task Management: The 50ms Threshold
 
-### `<script type="module">`
+Tasks exceeding 50ms are classified as "long tasks" and directly impact Interaction to Next Paint (INP).
 
-- **Blocking:** Scripts download asynchronously. Execution deferred until parsing finishes; top-level `await` supported.
-- **Order:** Relative order preserved among modules; dependency graph dictates additional fetches.
-- **Use Case:** ES module workflows with tree-shaking and scope encapsulation.
-- **Trade-off:** Legacy-browser fallback requires `nomodule` or polyfills, increasing complexity.
+### Why 50ms?
 
-## Long-Running Task Optimization with scheduler.yield()
+The threshold derives from the RAIL performance model's responsiveness target:
 
-One of the most significant performance improvements in modern JavaScript comes from properly managing long-running tasks that can block the main thread and degrade user experience. Tasks exceeding 50ms are considered "long tasks" and can cause noticeable jank in animations and delayed responses to user interactions.
+> **W3C Long Tasks spec**: "Any of the following occurrences whose duration exceeds 50ms."
 
-### The scheduler.yield() API
+The reasoning:
+- Users perceive responses under 100ms as instantaneous
+- A 50ms task budget leaves 50ms for the browser to process input and render
+- This 50ms + 50ms = 100ms total maintains perceived responsiveness
 
-The `scheduler.yield()` API represents a paradigm shift in how we handle task scheduling. Unlike traditional approaches using `setTimeout()` or `requestIdleCallback()`, `scheduler.yield()` provides prioritized continuation of work, ensuring that yielded tasks resume before new tasks begin.
+> **W3C requestIdleCallback spec**: "The maximum deadline of 50ms is derived from studies which show that a response to user input within 100ms is generally perceived as instantaneous."
 
-```javascript
+### `scheduler.yield()`: Priority-Preserving Yielding
+
+As of Chrome 129 (September 2024), `scheduler.yield()` provides yielding with priority inheritance.
+
+```javascript collapse={1-2}
 async function processLargeDataset(items) {
-  const results = []
+  const results = [];
+  const BATCH_SIZE = 50;
 
   for (let i = 0; i < items.length; i++) {
-    // Process item
-    const result = await computeExpensiveOperation(items[i])
-    results.push(result)
+    results.push(await computeExpensiveOperation(items[i]));
 
-    // Yield control every 50 items or after 5ms of work
-    if (i % 50 === 0) {
-      await scheduler.yield()
+    // Yield every 50 items, maintaining task priority
+    if (i % BATCH_SIZE === 0 && i > 0) {
+      await scheduler.yield();
     }
   }
 
-  return results
+  return results;
 }
 ```
 
-### Advanced Yielding Strategies
+### Why Not `setTimeout(0)`?
 
-For more sophisticated control over task execution, implement adaptive yielding based on remaining time:
+`setTimeout(0)` has critical limitations that `scheduler.yield()` addresses:
+
+| Aspect | `setTimeout(0)` | `scheduler.yield()` |
+|--------|----------------|---------------------|
+| Queue position | Back of task queue | Continuation queue (higher priority) |
+| Minimum delay | ~4ms (spec-mandated after 5 nested calls) | None |
+| Background throttling | 1000ms+ in background tabs | Respects priority |
+| Priority awareness | None | Inherits from parent task |
+
+> **WICG Scheduling spec**: "Continuations have a higher effective priority than tasks with the same TaskPriority."
+
+The browser maintains separate continuation queues for each priority level. A `user-visible` continuation runs before `user-visible` regular tasks but after `user-blocking` tasks.
 
 ```javascript
+// Priority inheritance demonstration
+scheduler.postTask(async () => {
+  // This runs at background priority
+  await heavyComputation();
+
+  // After yield, still at background priority
+  // But ahead of OTHER background tasks
+  await scheduler.yield();
+
+  await moreComputation();
+}, { priority: 'background' });
+```
+
+### Adaptive Time-Slice Yielding
+
+For variable-cost work items, yield based on elapsed time rather than iteration count:
+
+```javascript collapse={1-3}
 async function adaptiveProcessing(workQueue) {
-  const startTime = performance.now()
-  const timeSlice = 5 // 5ms time slice
+  const TIME_SLICE_MS = 5;
 
   while (workQueue.length > 0) {
-    const currentTime = performance.now()
+    const sliceStart = performance.now();
 
-    // Process items until time slice is exhausted
-    while (workQueue.length > 0 && performance.now() - currentTime < timeSlice) {
-      processWorkItem(workQueue.shift())
+    // Process until time slice exhausted
+    while (
+      workQueue.length > 0 &&
+      performance.now() - sliceStart < TIME_SLICE_MS
+    ) {
+      processWorkItem(workQueue.shift());
     }
 
-    // Yield if we have more work
     if (workQueue.length > 0) {
-      await scheduler.yield()
+      await scheduler.yield();
     }
   }
 }
 ```
 
-### Integration with Prioritized Task Scheduling
+### Browser Support and Fallback
 
-The `scheduler.yield()` API integrates seamlessly with `scheduler.postTask()` for explicit priority control:
+| API | Chrome | Firefox | Safari |
+|-----|--------|---------|--------|
+| `scheduler.postTask()` | 94 (Sept 2021) | 142 (Aug 2025) | Not supported |
+| `scheduler.yield()` | 129 (Sept 2024) | Not supported | Not supported |
 
-```javascript
-async function backgroundDataSync() {
-  // Low priority background task
-  scheduler.postTask(
-    async () => {
-      const data = await fetchLargeDataset()
+For browsers without support, fall back to `setTimeout(0)` with the understanding that priority is lost:
 
-      for (const chunk of data.chunks) {
-        await processChunk(chunk)
-        // Maintains low priority after yielding
-        await scheduler.yield()
-      }
-    },
-    { priority: "background" },
-  )
-}
+```javascript collapse={1-5}
+const yieldToMain = () => {
+  if ('scheduler' in globalThis && 'yield' in scheduler) {
+    return scheduler.yield();
+  }
+  return new Promise(resolve => setTimeout(resolve, 0));
+};
 ```
 
-### Long Task Management Comparison
+## Code Splitting: Reducing Initial Bundle Size
 
-```mermaid
-graph TD
-    A[Long Task Detection] --> B{"Task Duration > 50ms?"}
-    B -->|Yes| C[Split into Chunks]
-    B -->|No| D[Execute Normally]
+Code splitting defers loading non-critical code until needed, reducing Time to Interactive (TTI).
 
-    C --> E[Process Chunk]
-    E --> F{"Yield Control?"}
-    F -->|Yes| G["scheduler.yield()"]
-    F -->|No| H[Continue Processing]
+### Route-Based Splitting
 
-    G --> I[Browser Processes Other Tasks]
-    I --> J[Resume Task]
-    J --> E
-
-    H --> K{"More Chunks?"}
-    K -->|Yes| E
-    K -->|No| L[Task Complete]
-```
-
-<figcaption>
-
-**Figure 2:** Long task management workflow showing how tasks exceeding 50ms are detected, split into chunks, and processed using scheduler.yield() to maintain responsive user experience.
-
-</figcaption>
-
-## Code Splitting and Dynamic Loading
-
-Code splitting is a technique that allows you to split your JavaScript bundle into smaller chunks that can be loaded on demand. This reduces the initial bundle size and improves the time to interactive.
-
-### Route-Based Code Splitting
-
-The most common form of code splitting is route-based, where each route loads only the code it needs:
+Route-based splitting is the highest-impact strategy—each route loads only its required code:
 
 ```javascript collapse={1-4}
-// React Router with lazy loading
-import { lazy, Suspense } from "react"
-import { Routes, Route } from "react-router-dom"
+import { lazy, Suspense } from 'react';
+import { Routes, Route } from 'react-router-dom';
 
-const Home = lazy(() => import("./pages/Home"))
-const About = lazy(() => import("./pages/About"))
-const Contact = lazy(() => import("./pages/Contact"))
+const Home = lazy(() => import('./pages/Home'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 function App() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<LoadingSpinner />}>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/settings" element={<Settings />} />
       </Routes>
     </Suspense>
-  )
+  );
 }
 ```
 
-### Component-Level Code Splitting
+### The Chunk Loading Waterfall Problem
 
-For more granular control, split individual components:
+Sequential chunk loading creates waterfalls:
 
-```javascript collapse={1-4}
-// Lazy load heavy components
-const HeavyChart = lazy(() => import("./components/HeavyChart"))
-const DataTable = lazy(() => import("./components/DataTable"))
+1. Download and parse `entry.js`
+2. Router determines current route
+3. Download route chunk
+4. Parse and hydrate
+
+**Solution**: Inject a preload script that runs before the main bundle:
+
+```html
+<script>
+  const routeChunks = { '/': 'home.js', '/dashboard': 'dashboard.js' };
+  const chunk = routeChunks[location.pathname];
+  if (chunk) {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'script';
+    link.href = `/chunks/${chunk}`;
+    document.head.appendChild(link);
+  }
+</script>
+```
+
+### `webpackPrefetch` vs `webpackPreload`
+
+| Directive | Timing | Priority | Use Case |
+|-----------|--------|----------|----------|
+| `webpackPreload` | Parallel with parent | Medium | Needed for current navigation |
+| `webpackPrefetch` | During browser idle | Low | Likely needed for future navigation |
+
+```javascript
+// Preload: needed NOW, loads in parallel
+import(/* webpackPreload: true */ 'ChartingLibrary');
+
+// Prefetch: needed LATER, loads during idle
+import(/* webpackPrefetch: true */ './SettingsPage');
+```
+
+**Trade-off**: Overusing `preload` competes for bandwidth with critical resources. Prefetch is safer—it uses idle time but may not complete before needed.
+
+### Component-Level Splitting
+
+Split individual heavy components (>30KB) that aren't needed immediately:
+
+```javascript collapse={1-2, 18-23}
+import { lazy, Suspense, useState, startTransition } from 'react';
+
+const HeavyChart = lazy(() => import('./HeavyChart'));
 
 function Dashboard() {
-  const [showChart, setShowChart] = useState(false)
-  const [showTable, setShowTable] = useState(false)
+  const [showChart, setShowChart] = useState(false);
+
+  const loadChart = () => {
+    // Use transition to avoid blocking UI
+    startTransition(() => setShowChart(true));
+  };
 
   return (
     <div>
-      <button onClick={() => setShowChart(true)}>Show Chart</button>
-      <button onClick={() => setShowTable(true)}>Show Table</button>
-
+      <button onClick={loadChart}>Show Analytics</button>
       {showChart && (
-        <Suspense fallback={<div>Loading chart...</div>}>
+        <Suspense fallback={<ChartSkeleton />}>
           <HeavyChart />
         </Suspense>
       )}
-
-      {showTable && (
-        <Suspense fallback={<div>Loading table...</div>}>
-          <DataTable />
-        </Suspense>
-      )}
     </div>
-  )
+  );
 }
 ```
 
-### Dynamic Imports with Webpack
+## Tree Shaking: Dead Code Elimination
 
-For more control over chunking, use dynamic imports:
+Tree shaking removes unused exports from the bundle at build time.
+
+### Why ES Modules Enable Tree Shaking
+
+ES modules are **statically analyzable**—imports and exports can be determined at compile time without executing code.
+
+> **ECMA-262 design**: Import/export declarations can only appear at module top level, and specifiers must be string literals.
 
 ```javascript
-// Dynamic import with custom chunk name
-const loadModule = async (moduleName) => {
-  switch (moduleName) {
-    case "chart":
-      return import(/* webpackChunkName: "chart" */ "./modules/chart")
-    case "table":
-      return import(/* webpackChunkName: "table" */ "./modules/table")
-    case "form":
-      return import(/* webpackChunkName: "form" */ "./modules/form")
-    default:
-      throw new Error(`Unknown module: ${moduleName}`)
-  }
-}
+// ✅ Static - bundler knows exactly what's used
+import { add, multiply } from './math.js';
 
-// Usage
-const { ChartComponent } = await loadModule("chart")
+// ❌ Dynamic - cannot analyze at build time
+const fn = condition ? 'add' : 'multiply';
+import('./math.js').then(mod => mod[fn]());
 ```
 
-### Preloading Critical Chunks
+CommonJS cannot be tree-shaken because `require()` is a runtime function that can be called conditionally with computed paths.
 
-Preload critical chunks to improve perceived performance:
+### When Tree Shaking Fails
 
-```javascript
-// Preload next likely route
-function preloadNextRoute() {
-  const nextRoute = getNextRoute()
-  if (nextRoute) {
-    import(/* webpackPrefetch: true */ `./pages/${nextRoute}`)
-  }
-}
-
-// Preload on hover
-function handleRouteHover(routeName) {
-  import(/* webpackPrefetch: true */ `./pages/${routeName}`)
-}
-```
-
-## Tree Shaking and Dead Code Elimination
-
-Tree shaking is a technique for eliminating dead code from your bundle. It works by analyzing the static structure of your code and removing exports that are not imported anywhere.
-
-### ES Module Tree Shaking
-
-Tree shaking works best with ES modules due to their static nature:
-
-```javascript
-// math.js - Only used exports will be included
-export function add(a, b) {
-  return a + b
-}
-
-export function subtract(a, b) {
-  return a - b
-}
-
-export function multiply(a, b) {
-  return a * b
-}
-
-export function divide(a, b) {
-  return a / b
-}
-
-// main.js - Only add and multiply will be included
-import { add, multiply } from "./math.js"
-
-console.log(add(2, 3))
-console.log(multiply(4, 5))
-```
-
-### Side Effect Management
-
-Mark files as side-effect free to enable better tree shaking:
+1. **Side effects present**: Code that runs on import (polyfills, CSS, prototype modifications)
+2. **Dynamic property access**: `utils[methodName]`
+3. **Dynamic imports**: The entire module is included
+4. **Missing `sideEffects` field**: Bundler assumes all files have side effects
 
 ```json
-// package.json
+// package.json - declare no side effects for aggressive tree shaking
 {
   "sideEffects": false
 }
 
-// Or specify files with side effects
+// Or whitelist files with side effects
 {
-  "sideEffects": [
-    "*.css",
-    "*.scss",
-    "polyfill.js"
-  ]
+  "sideEffects": ["*.css", "./src/polyfills.js"]
 }
 ```
 
-### CommonJS Tree Shaking
+**Critical pitfall**: `sideEffects: false` without whitelisting CSS files will remove all CSS imports.
 
-Tree shaking CommonJS modules requires specific patterns:
+### Bundler Differences
 
-```javascript
-// Avoid this - entire module is included
-const utils = require("./utils")
-console.log(utils.add(2, 3))
+| Bundler | Analysis Level | Trade-off |
+|---------|---------------|-----------|
+| Rollup | AST node level | Best optimization, slower |
+| webpack | Module/export level | Relies on Terser for final DCE |
+| esbuild | Top-level statement | Fastest, more conservative |
 
-// Use this - only add function is included
-const { add } = require("./utils")
-console.log(add(2, 3))
-```
+esbuild interprets `sideEffects: false` narrowly—it removes entire unused modules but doesn't tree-shake individual statements within modules.
 
-## Web Workers for Non-Splittable Tasks
+## Web Workers: Off-Main-Thread Computation
 
-Web Workers provide a way to run JavaScript in background threads, preventing long-running tasks from blocking the main thread.
+Web Workers run JavaScript in background threads, preventing long computations from blocking the main thread.
 
-### Basic Worker Implementation
+### When to Use Workers
+
+Workers have overhead: message serialization, thread creation, no DOM access. Use them for:
+
+- **CPU-intensive computation**: Image processing, encryption, compression
+- **Large data processing**: Sorting, filtering, aggregation
+- **Background sync**: Data transformation while UI remains responsive
+
+> **WHATWG Workers spec**: "Workers are relatively heavy-weight, and are not intended to be used in large numbers."
+
+### Basic Worker Pattern
 
 ```javascript title="main.js"
-const worker = new Worker("worker.js")
+const worker = new Worker('worker.js');
 
-worker.postMessage({ type: "PROCESS_DATA", data: largeDataset })
+worker.postMessage({ type: 'PROCESS', data: largeDataset });
 
 worker.onmessage = (event) => {
-  const { type, result } = event.data
-  if (type === "PROCESS_COMPLETE") {
-    updateUI(result)
+  if (event.data.type === 'COMPLETE') {
+    updateUI(event.data.result);
   }
-}
+};
+
+worker.onerror = (error) => {
+  console.error('Worker error:', error.message);
+};
 ```
 
 ```javascript title="worker.js"
 self.onmessage = (event) => {
-  const { type, data } = event.data
+  const { type, data } = event.data;
 
-  if (type === "PROCESS_DATA") {
-    const result = processLargeDataset(data)
-    self.postMessage({ type: "PROCESS_COMPLETE", result })
+  if (type === 'PROCESS') {
+    try {
+      const result = expensiveComputation(data);
+      self.postMessage({ type: 'COMPLETE', result });
+    } catch (error) {
+      self.postMessage({ type: 'ERROR', message: error.message });
+    }
   }
-}
-
-function processLargeDataset(data) {
-  // Heavy computation that would block main thread
-  return data.map((item) => expensiveOperation(item))
-}
+};
 ```
 
-### Shared Workers for Multiple Tabs
+### Transferable Objects: Zero-Copy Transfer
 
-Use Shared Workers for communication across multiple tabs:
+By default, `postMessage` uses the structured clone algorithm—deep copying data. For large `ArrayBuffer`s, use transfer instead:
 
-```javascript title="shared-worker.js"
-const connections = []
+```javascript
+const buffer = new ArrayBuffer(1024 * 1024 * 100); // 100MB
+console.log(buffer.byteLength); // 104857600
 
-self.onconnect = (event) => {
-  const port = event.ports[0]
-  connections.push(port)
+// Transfer ownership - zero copy
+worker.postMessage({ buffer }, [buffer]);
 
-  port.onmessage = (event) => {
-    // Broadcast to all connected tabs
-    connections.forEach((conn) => {
-      if (conn !== port) {
-        conn.postMessage(event.data)
-      }
-    })
-  }
-}
+console.log(buffer.byteLength); // 0 (detached)
 ```
 
-```javascript title="main.js"
-const worker = new SharedWorker("shared-worker.js")
-const port = worker.port
+> **WHATWG spec**: "Transferring is an irreversible and non-idempotent operation. Once transferred, an object cannot be transferred or used again."
 
-port.onmessage = (event) => {
-  console.log("Message from other tab:", event.data)
-}
+**Transferable types**: `ArrayBuffer`, `MessagePort`, `ImageBitmap`, `OffscreenCanvas`, `ReadableStream`, `WritableStream`, `TransformStream`, `VideoFrame`, `AudioData`.
 
-port.postMessage({ type: "BROADCAST", data: "Hello from this tab!" })
+**Common mistake**: `TypedArray`s (e.g., `Uint8Array`) are **not** transferable—only their underlying `ArrayBuffer` is.
+
+### Error Handling Edge Cases
+
+**Synchronous exceptions** propagate to the parent via `worker.onerror`:
+
+```javascript
+worker.onerror = (event) => {
+  console.error(`Worker error: ${event.message} at ${event.filename}:${event.lineno}`);
+  event.preventDefault(); // Prevents default error logging
+};
 ```
 
-### Worker Pool Pattern
+**Unhandled promise rejections do NOT propagate** to the parent—they only log to the worker's console. Implement explicit error messaging:
 
-For managing multiple workers efficiently:
+```javascript title="worker.js"
+self.addEventListener('unhandledrejection', (event) => {
+  self.postMessage({
+    type: 'ERROR',
+    message: event.reason?.message || 'Unhandled rejection'
+  });
+});
+```
 
-```javascript title="worker-pool.js" collapse={1-14, 24-41}
+### Worker Pool for Parallel Processing
+
+```javascript collapse={1-14, 29-50}
 class WorkerPool {
   constructor(workerScript, poolSize = navigator.hardwareConcurrency) {
-    this.workers = []
-    this.queue = []
-    this.availableWorkers = []
+    this.workers = [];
+    this.queue = [];
+    this.available = [];
 
     for (let i = 0; i < poolSize; i++) {
-      const worker = new Worker(workerScript)
-      worker.onmessage = (event) => this.handleWorkerMessage(worker, event)
-      this.workers.push(worker)
-      this.availableWorkers.push(worker)
+      const worker = new Worker(workerScript);
+      worker.onmessage = (e) => this.handleMessage(worker, e);
+      worker.onerror = (e) => this.handleError(worker, e);
+      this.workers.push(worker);
+      this.available.push(worker);
     }
   }
 
-  // Key method: Execute task using available worker or queue
-  executeTask(task) {
+  execute(task) {
     return new Promise((resolve, reject) => {
-      const taskWrapper = { task, resolve, reject }
+      const wrapper = { task, resolve, reject };
 
-      if (this.availableWorkers.length > 0) {
-        this.executeTaskWithWorker(this.availableWorkers.pop(), taskWrapper)
+      if (this.available.length > 0) {
+        this.dispatch(this.available.pop(), wrapper);
       } else {
-        this.queue.push(taskWrapper)
+        this.queue.push(wrapper);
       }
-    })
+    });
   }
 
-  executeTaskWithWorker(worker, taskWrapper) {
-    worker.postMessage(taskWrapper.task)
-    worker.currentTask = taskWrapper
+  dispatch(worker, wrapper) {
+    worker.currentTask = wrapper;
+    worker.postMessage(wrapper.task);
   }
 
-  handleWorkerMessage(worker, event) {
-    const { resolve, reject } = worker.currentTask
+  handleMessage(worker, event) {
+    const { resolve, reject } = worker.currentTask;
 
     if (event.data.error) {
-      reject(event.data.error)
+      reject(new Error(event.data.error));
     } else {
-      resolve(event.data.result)
+      resolve(event.data.result);
     }
 
-    // Return worker to pool or process next queued task
+    // Return to pool or process queue
     if (this.queue.length > 0) {
-      const nextTask = this.queue.shift()
-      this.executeTaskWithWorker(worker, nextTask)
+      this.dispatch(worker, this.queue.shift());
     } else {
-      this.availableWorkers.push(worker)
+      this.available.push(worker);
     }
+  }
+
+  handleError(worker, event) {
+    worker.currentTask?.reject(new Error(event.message));
+    // Worker may be unusable - consider recreating
+  }
+
+  terminate() {
+    this.workers.forEach(w => w.terminate());
   }
 }
 ```
 
-```javascript title="Usage"
-const pool = new WorkerPool("worker.js", 4)
+### SharedArrayBuffer and Cross-Origin Isolation
 
-const results = await Promise.all([
-  pool.executeTask({ type: "PROCESS", data: dataset1 }),
-  pool.executeTask({ type: "PROCESS", data: dataset2 }),
-  pool.executeTask({ type: "PROCESS", data: dataset3 }),
-  pool.executeTask({ type: "PROCESS", data: dataset4 }),
-])
+`SharedArrayBuffer` enables shared memory between workers but requires cross-origin isolation due to Spectre/Meltdown mitigations:
+
+```http
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
 ```
 
-## React and Next.js Optimization Strategies
+**Why the restriction**: `SharedArrayBuffer` enables construction of nanosecond-resolution timers that can be used for cache timing attacks to extract cross-origin data.
 
-React applications require specific optimization techniques to maintain high performance as they scale.
-
-### React.memo for Component Memoization
-
-Prevent unnecessary re-renders with React.memo:
-
-```javascript collapse={15-25}
-const ExpensiveComponent = React.memo(({ data, onUpdate }) => {
-  const processedData = useMemo(() => {
-    return expensiveProcessing(data)
-  }, [data])
-
-  return (
-    <div>
-      {processedData.map((item) => (
-        <DataItem key={item.id} item={item} onUpdate={onUpdate} />
-      ))}
-    </div>
-  )
-})
-
-// Custom comparison function for fine-grained control
-const CustomComponent = React.memo(
-  ({ items, config }) => {
-    return <div>{/* component logic */}</div>
-  },
-  (prevProps, nextProps) => {
-    // Return true if props are equal (no re-render needed)
-    return prevProps.items.length === nextProps.items.length && prevProps.config.id === nextProps.config.id
-  },
-)
-```
-
-### useCallback and useMemo Optimization
-
-Optimize function and value creation:
-
-```javascript collapse={24-29}
-function ParentComponent({ items, config }) {
-  const [selectedId, setSelectedId] = useState(null)
-
-  // Memoize expensive calculation
-  const processedItems = useMemo(() => {
-    return items.filter((item) => expensiveFilter(item, config)).map((item) => expensiveTransform(item))
-  }, [items, config])
-
-  // Memoize callback to prevent child re-renders
-  const handleItemSelect = useCallback((id) => {
-    setSelectedId(id)
-    analytics.track("item_selected", { id })
-  }, [])
-
-  // Memoize complex object for context
-  const contextValue = useMemo(
-    () => ({
-      items: processedItems,
-      selectedId,
-      onSelect: handleItemSelect,
-    }),
-    [processedItems, selectedId, handleItemSelect],
-  )
-
-  return (
-    <ItemContext.Provider value={contextValue}>
-      <ItemList />
-    </ItemContext.Provider>
-  )
+```javascript
+// Verify cross-origin isolation
+if (crossOriginIsolated) {
+  const shared = new SharedArrayBuffer(1024);
+  // Can use Atomics for synchronization
+} else {
+  console.warn('SharedArrayBuffer unavailable - not cross-origin isolated');
 }
 ```
 
-### Next.js Server Components
+**Safari limitation**: Safari does not support `COEP: credentialless`, requiring the stricter `require-corp` mode where all cross-origin resources must explicitly opt-in with CORS or CORP headers.
 
-Leverage React Server Components for improved performance:
+## React Optimization Patterns
+
+React applications have framework-specific optimization opportunities.
+
+### React.memo: Preventing Unnecessary Re-renders
+
+`React.memo` creates a higher-order component that skips re-rendering when props are shallowly equal:
+
+```javascript collapse={12-18}
+const ExpensiveList = React.memo(function ExpensiveList({ items, onSelect }) {
+  return (
+    <ul>
+      {items.map(item => (
+        <li key={item.id} onClick={() => onSelect(item.id)}>
+          {item.name}
+        </li>
+      ))}
+    </ul>
+  );
+});
+
+// Custom comparison for complex props
+const MemoizedChart = React.memo(
+  function Chart({ data, config }) {
+    return <ChartImpl data={data} config={config} />;
+  },
+  (prev, next) => {
+    return prev.data.length === next.data.length &&
+           prev.config.type === next.config.type;
+  }
+);
+```
+
+**When to use**: Components that receive the same props frequently, expensive render logic, components deep in the tree that re-render due to parent updates.
+
+**When NOT to use**: Components that always receive new props (breaks memoization), simple components (memo overhead exceeds render cost).
+
+### useMemo and useCallback: Stabilizing References
+
+```javascript collapse={1-2, 16-20}
+function DataGrid({ data, filters, onRowClick }) {
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' });
+
+  // Memoize expensive computation
+  const filteredData = useMemo(() => {
+    return data
+      .filter(item => matchesFilters(item, filters))
+      .sort((a, b) => compareBy(a, b, sortConfig));
+  }, [data, filters, sortConfig]);
+
+  // Stabilize callback reference for memoized children
+  const handleRowClick = useCallback((rowId) => {
+    onRowClick(rowId);
+  }, [onRowClick]);
+
+  return (
+    <MemoizedTable
+      data={filteredData}
+      onRowClick={handleRowClick}
+    />
+  );
+}
+```
+
+### React Server Components
+
+As of React 18, Server Components run on the server with zero client bundle impact:
 
 ```javascript title="ServerComponent.jsx"
-// Server Component - runs on server, no client bundle impact
-async function ServerComponent({ userId }) {
-  const userData = await fetchUserData(userId)
+// No 'use client' - runs on server only
+import { db } from './database'; // Server-only module
+import ClientChart from './ClientChart';
+
+export default async function Dashboard({ userId }) {
+  // Direct database access - no API needed
+  const metrics = await db.query('SELECT * FROM metrics WHERE user_id = ?', [userId]);
 
   return (
     <div>
-      <h1>{userData.name}</h1>
-      <ClientComponent userData={userData} />
+      <h1>Dashboard</h1>
+      {/* ClientChart creates a split point */}
+      <ClientChart data={metrics} />
     </div>
-  )
+  );
 }
 ```
 
-```javascript title="ClientComponent.jsx"
-"use client"
+```javascript title="ClientChart.jsx"
+'use client'
 
-function ClientComponent({ userData }) {
-  const [isEditing, setIsEditing] = useState(false)
+import { useState } from 'react';
 
-  return <div>{isEditing ? <EditForm userData={userData} /> : <UserProfile userData={userData} />}</div>
+export default function ClientChart({ data }) {
+  const [zoom, setZoom] = useState(1);
+  return <canvas data-zoom={zoom} />;
 }
 ```
 
-### Next.js Image Optimization
+**Key insight**: The `'use client'` directive creates an automatic code split point. Server-side dependencies (database clients, large processing libraries) never ship to the client.
 
-Use Next.js Image component for automatic optimization:
+### Virtualization for Large Lists
 
-```javascript collapse={1-2}
-import Image from "next/image"
+For lists with thousands of items, render only visible items:
 
-function OptimizedImage({ src, alt, width, height }) {
+```javascript collapse={1-3}
+import { useVirtualizer } from '@tanstack/react-virtual';
+
+function VirtualList({ items }) {
+  const parentRef = useRef(null);
+
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 50, // Estimated row height
+    overscan: 5, // Render 5 extra items above/below viewport
+  });
+
   return (
-    <Image
-      src={src}
-      alt={alt}
-      width={width}
-      height={height}
-      placeholder="blur"
-      blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQ..."
-      priority={true} // For above-the-fold images
-    />
-  )
+    <div ref={parentRef} style={{ height: '400px', overflow: 'auto' }}>
+      <div style={{ height: virtualizer.getTotalSize() }}>
+        {virtualizer.getVirtualItems().map((virtualRow) => (
+          <div
+            key={virtualRow.key}
+            style={{
+              position: 'absolute',
+              top: virtualRow.start,
+              height: virtualRow.size,
+            }}
+          >
+            {items[virtualRow.index].name}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 ```
 
-## Modern Browser APIs for Performance Enhancement
+## Performance Measurement
 
-Modern browsers provide powerful APIs for performance optimization.
+Effective optimization requires continuous measurement.
 
-### Intersection Observer for Lazy Loading
+### Core Web Vitals Monitoring
 
-```javascript
-const lazyLoadObserver = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const element = entry.target
-
-        if (element.dataset.src) {
-          element.src = element.dataset.src
-          element.removeAttribute("data-src")
-          lazyLoadObserver.unobserve(element)
-        }
-      }
-    })
-  },
-  {
-    rootMargin: "50px", // Start loading 50px before element enters viewport
-  },
-)
-
-// Observe all lazy-loaded images
-document.querySelectorAll("img[data-src]").forEach((img) => {
-  lazyLoadObserver.observe(img)
-})
-```
-
-### Resize Observer for Responsive Components
-
-```javascript
-const resizeObserver = new ResizeObserver((entries) => {
-  entries.forEach((entry) => {
-    const { width, height } = entry.contentRect
-
-    if (width < 768) {
-      entry.target.classList.add("mobile-layout")
-    } else {
-      entry.target.classList.remove("mobile-layout")
-    }
-  })
-})
-
-resizeObserver.observe(document.querySelector(".responsive-container"))
-```
-
-### Performance Observer for Monitoring
-
-```javascript
-// Monitor long tasks
-const longTaskObserver = new PerformanceObserver((list) => {
-  list.getEntries().forEach((entry) => {
-    console.warn(`Long task detected: ${entry.duration}ms`)
-    // Send to analytics
-    analytics.track("long_task", {
-      duration: entry.duration,
-      startTime: entry.startTime,
-    })
-  })
-})
-
-longTaskObserver.observe({ type: "longtask" })
-
-// Monitor layout shifts
-const layoutShiftObserver = new PerformanceObserver((list) => {
-  list.getEntries().forEach((entry) => {
-    if (!entry.hadRecentInput) {
-      console.warn(`Layout shift: ${entry.value}`)
-    }
-  })
-})
-
-layoutShiftObserver.observe({ type: "layout-shift" })
-```
-
-## Performance Measurement and Monitoring
-
-Effective performance optimization requires continuous measurement and monitoring.
-
-### Core Web Vitals Measurement
-
-```javascript title="performance-monitor.js" collapse={1-7, 38-53}
+```javascript collapse={1-7, 35-45}
 class PerformanceMonitor {
   constructor() {
-    this.metrics = {}
-    this.observers = []
-    this.setupObservers()
+    this.metrics = {};
+    this.setupObservers();
   }
 
   setupObservers() {
-    // LCP measurement
-    const lcpObserver = new PerformanceObserver((list) => {
-      const entries = list.getEntries()
-      const lastEntry = entries[entries.length - 1]
-      this.metrics.lcp = lastEntry.startTime
-    })
-    lcpObserver.observe({ type: "largest-contentful-paint" })
+    // Largest Contentful Paint
+    new PerformanceObserver((list) => {
+      const entries = list.getEntries();
+      this.metrics.lcp = entries[entries.length - 1].startTime;
+    }).observe({ type: 'largest-contentful-paint' });
 
-    // INP measurement (replaced FID as of March 2024)
-    const inpObserver = new PerformanceObserver((list) => {
-      list.getEntries().forEach((entry) => {
-        // Track worst interaction latency
-        const duration = entry.duration
-        if (!this.metrics.inp || duration > this.metrics.inp) {
-          this.metrics.inp = duration
+    // Interaction to Next Paint (replaced FID March 2024)
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (!this.metrics.inp || entry.duration > this.metrics.inp) {
+          this.metrics.inp = entry.duration;
         }
-      })
-    })
-    inpObserver.observe({ type: "event", buffered: true, durationThreshold: 16 })
-
-    // CLS measurement
-    let clsValue = 0
-    const clsObserver = new PerformanceObserver((list) => {
-      list.getEntries().forEach((entry) => {
-        if (!entry.hadRecentInput) {
-          clsValue += entry.value
-          this.metrics.cls = clsValue
-        }
-      })
-    })
-    clsObserver.observe({ type: "layout-shift" })
-
-    this.observers.push(lcpObserver, inpObserver, clsObserver)
-  }
-
-  getMetrics() {
-    return { ...this.metrics }
-  }
-
-  reportMetrics() {
-    const metrics = this.getMetrics()
-
-    fetch("/api/metrics", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(metrics),
-    })
-  }
-}
-```
-
-### Custom Performance Marks
-
-```javascript
-// Mark important performance points
-performance.mark("app-init-start")
-// ... initialization code
-performance.mark("app-init-end")
-
-performance.measure("app-initialization", "app-init-start", "app-init-end")
-
-// Get measurement
-const initTime = performance.getEntriesByName("app-initialization")[0]
-console.log(`App initialization took: ${initTime.duration}ms`)
-```
-
-### Memory Usage Monitoring
-
-```javascript
-function monitorMemoryUsage() {
-  if ("memory" in performance) {
-    setInterval(() => {
-      const memory = performance.memory
-      console.log(`Memory usage: ${memory.usedJSHeapSize / 1024 / 1024}MB`)
-
-      if (memory.usedJSHeapSize > memory.jsHeapSizeLimit * 0.8) {
-        console.warn("High memory usage detected")
-        // Trigger garbage collection or cleanup
       }
-    }, 5000)
+    }).observe({ type: 'event', buffered: true, durationThreshold: 16 });
+
+    // Cumulative Layout Shift
+    let clsValue = 0;
+    new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (!entry.hadRecentInput) {
+          clsValue += entry.value;
+          this.metrics.cls = clsValue;
+        }
+      }
+    }).observe({ type: 'layout-shift' });
+  }
+
+  report() {
+    navigator.sendBeacon('/api/metrics', JSON.stringify(this.metrics));
   }
 }
 ```
 
-## Optimization Technique Selection Matrix
+### Long Task Detection
 
-Choosing the right optimization techniques depends on your specific performance bottlenecks and use case requirements. Different scenarios benefit from different approaches, and understanding when to apply each technique is crucial for effective optimization.
+```javascript
+const longTaskObserver = new PerformanceObserver((list) => {
+  for (const entry of list.getEntries()) {
+    if (entry.duration > 100) {
+      console.warn(`Long task: ${entry.duration.toFixed(0)}ms`, {
+        attribution: entry.attribution,
+      });
+    }
+  }
+});
 
-| Performance Issue                   | Primary Techniques                        | Secondary Techniques                   | Measurement                            |
-| ----------------------------------- | ----------------------------------------- | -------------------------------------- | -------------------------------------- |
-| **Large Bundle Size**               | Code Splitting, Tree Shaking              | Lazy Loading, Compression              | Bundle Analyzer, Webpack Stats         |
-| **Slow Initial Load**               | Script Loading Optimization, Critical CSS | Preloading, Resource Hints             | FCP, LCP, Navigation Timing            |
-| **Poor Interaction Responsiveness** | Web Workers, scheduler.yield()            | Task Batching, Memoization             | INP, Long Tasks                        |
-| **Memory Leaks**                    | Memory Profiling, Cleanup                 | Weak References, Event Cleanup         | Memory Timeline, Heap Snapshots        |
-| **React Re-renders**                | React.memo, useCallback                   | Context Splitting, State Normalization | React Profiler, Render Counts          |
-| **Mobile Performance**              | Bundle Splitting, Image Optimization      | Service Workers, Caching               | Mobile Lighthouse, Real Device Testing |
-
-### Performance Optimization Decision Tree
-
-```mermaid
-graph TD
-    A[Performance Issue Identified] --> B{Type of Issue?}
-
-    B -->|Bundle Size| C[Code Splitting]
-    B -->|Load Time| D[Script Loading]
-    B -->|Responsiveness| E[Task Management]
-    B -->|Memory| F[Memory Optimization]
-
-    C --> G[Route-based Splitting]
-    C --> H[Feature-based Splitting]
-    C --> I[Tree Shaking]
-
-    D --> J[Async/Defer Scripts]
-    D --> K[Resource Hints]
-    D --> L[Critical CSS]
-
-    E --> M[Web Workers]
-    E --> N[scheduler.yield]
-    E --> O[Task Batching]
-
-    F --> P[Memory Profiling]
-    F --> Q[Cleanup Functions]
-    F --> R[Weak References]
-
-    G --> S[Measure Impact]
-    H --> S
-    I --> S
-    J --> S
-    K --> S
-    L --> S
-    M --> S
-    N --> S
-    O --> S
-    P --> S
-    Q --> S
-    R --> S
-
-    S --> T{Performance Improved?}
-    T -->|Yes| U[Optimization Complete]
-    T -->|No| V[Try Alternative Technique]
-    V --> B
-
-    style A fill:#e3f2fd
-    style U fill:#c8e6c9
-    style V fill:#ffcdd2
+longTaskObserver.observe({ type: 'longtask' });
 ```
-
-<figcaption>
-
-**Figure 3:** Performance optimization decision tree providing a systematic approach to selecting the most appropriate optimization techniques based on the type of performance issue encountered.
-
-</figcaption>
 
 ## Conclusion
 
-JavaScript optimization for web performance is a multifaceted discipline that requires understanding both fundamental browser mechanics and modern API capabilities. The techniques outlined in this guide—from strategic script loading and task scheduling to advanced code splitting and modern browser APIs—work synergistically to create high-performance web applications.
+JavaScript performance optimization requires understanding browser internals:
 
-The key to successful optimization lies in measurement-driven decision making. Use performance profiling tools to identify bottlenecks, implement targeted optimizations, and continuously monitor the impact of changes. Modern browsers provide unprecedented visibility into performance characteristics through APIs like Performance Observer, scheduler.yield(), and Web Workers.
+- **Script loading** trades off parser blocking against execution timing—use `defer` for order-dependent application code, `async` for independent scripts
+- **Task scheduling** with `scheduler.yield()` maintains priority while yielding, unlike `setTimeout` which loses queue position
+- **Code splitting** reduces initial load but creates chunk waterfalls—mitigate with preload hints
+- **Tree shaking** requires ES modules and explicit side-effect declarations
+- **Web Workers** move computation off-thread but add message serialization overhead—use transfer for large buffers
 
-For React and Next.js applications, leverage framework-specific optimizations while applying general JavaScript performance principles. The combination of intelligent memoization, dynamic imports, and modern bundling strategies can yield dramatic performance improvements.
+Measure before optimizing. INP, LCP, and Long Task observers provide visibility into actual user experience, not just synthetic benchmarks.
 
-As web applications continue to grow in complexity, staying current with emerging browser APIs and optimization techniques becomes increasingly important. The techniques and patterns presented here provide a solid foundation for building performant web applications that deliver exceptional user experiences across all devices and network conditions.
+## Appendix
 
-Remember that optimization is an iterative process. Start with measurement, identify the biggest bottlenecks, apply targeted optimizations, and measure again. The comprehensive checklist provided offers a systematic approach to ensuring your applications leverage all available optimization opportunities for maximum performance impact.
+### Prerequisites
 
-## References
+- Familiarity with JavaScript event loop and task queue model
+- Understanding of browser rendering pipeline (parse, style, layout, paint)
+- Basic React knowledge for framework-specific sections
 
-- [Script Loading - MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script) - async, defer, and module attributes
-- [Prioritized Task Scheduling API - MDN](https://developer.mozilla.org/en-US/docs/Web/API/Prioritized_Task_Scheduling_API) - scheduler.yield() and scheduler.postTask()
-- [WICG Scheduling APIs](https://github.com/WICG/scheduling-apis) - Specification and explainers for scheduler.yield()
-- [Web Workers API - MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) - Background thread processing
-- [Code Splitting - webpack](https://webpack.js.org/guides/code-splitting/) - Dynamic imports and chunk splitting
-- [React.lazy](https://react.dev/reference/react/lazy) - Component-level code splitting
-- [Performance Observer API - MDN](https://developer.mozilla.org/en-US/docs/Web/API/PerformanceObserver) - Performance monitoring
-- [Long Tasks API - W3C](https://w3c.github.io/longtasks/) - Detecting long-running tasks (50ms threshold)
-- [React Server Components](https://react.dev/reference/rsc/server-components) - Server-side rendering patterns
-- [Interaction to Next Paint - web.dev](https://web.dev/articles/inp) - INP metric (replaced FID in March 2024)
-- [Optimize Long Tasks - web.dev](https://web.dev/articles/optimize-long-tasks) - Long task optimization strategies
+### Summary
+
+- **Script loading**: `defer` = order-preserved after parsing; `async` = executes on arrival (no order); `module` = deferred with dependency resolution
+- **50ms threshold**: RAIL model target—100ms perceived instant, 50ms task budget leaves room for input handling
+- **`scheduler.yield()`**: Chrome 129+, maintains priority via continuation queues; falls back to `setTimeout(0)` elsewhere
+- **Tree shaking**: Requires ES modules (static structure); fails with side effects, dynamic imports, missing `sideEffects` field
+- **Web Workers**: Off-thread computation; use transfer for large `ArrayBuffer`s; promise rejections don't propagate
+- **INP replaced FID**: March 2024, measures full interaction latency not just input delay
+
+### References
+
+#### Specifications
+
+- [WHATWG HTML - Scripting](https://html.spec.whatwg.org/multipage/scripting.html) - Script loading attributes and execution order
+- [W3C Long Tasks API](https://w3c.github.io/longtasks/) - 50ms threshold definition
+- [WICG Prioritized Task Scheduling](https://wicg.github.io/scheduling-apis/) - scheduler.yield() and scheduler.postTask()
+- [W3C requestIdleCallback](https://w3c.github.io/requestidlecallback/) - 50ms deadline rationale
+- [WHATWG HTML - Web Workers](https://html.spec.whatwg.org/multipage/workers.html) - Worker lifecycle and messaging
+- [WHATWG - Structured Clone](https://html.spec.whatwg.org/multipage/structured-data.html) - Serialization algorithm and transferables
+- [ECMA-262](https://262.ecma-international.org/) - ES module static structure
+
+#### Official Documentation
+
+- [MDN - Script Element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script) - async, defer, module
+- [MDN - scheduler.yield()](https://developer.mozilla.org/en-US/docs/Web/API/Scheduler/yield) - API reference and browser support
+- [MDN - Web Workers API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) - Worker patterns
+- [MDN - Transferable Objects](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects) - Zero-copy transfer
+- [webpack - Code Splitting](https://webpack.js.org/guides/code-splitting/) - Dynamic imports and chunk configuration
+- [webpack - Tree Shaking](https://webpack.js.org/guides/tree-shaking/) - sideEffects field
+- [React - lazy](https://react.dev/reference/react/lazy) - Component-level code splitting
+- [React - Server Components](https://react.dev/reference/rsc/server-components) - Server/client boundary
+
+#### Core Maintainer Content
+
+- [WICG Yield Explainer](https://github.com/WICG/scheduling-apis/blob/main/explainers/yield-and-continuation.md) - Priority inheritance mechanism
+- [Chrome Developers - scheduler.yield()](https://developer.chrome.com/blog/use-scheduler-yield) - setTimeout limitations
+- [V8 Blog - Spectre](https://v8.dev/blog/spectre) - SharedArrayBuffer security restrictions
+- [React 18 Suspense SSR Architecture](https://github.com/reactwg/react-18/discussions/37) - Streaming and selective hydration
+
+#### Industry Expert Content
+
+- [web.dev - Optimize Long Tasks](https://web.dev/articles/optimize-long-tasks) - Task scheduling strategies
+- [web.dev - INP](https://web.dev/articles/inp) - Interaction to Next Paint metric
+- [web.dev - CommonJS Bundles](https://web.dev/articles/commonjs-larger-bundles) - Why CommonJS prevents tree shaking

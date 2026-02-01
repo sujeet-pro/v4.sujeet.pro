@@ -2,43 +2,6 @@
 
 Overview of web performance optimization covering infrastructure, JavaScript, CSS, images, and fonts. Provides quick reference tables and links to detailed articles in the series.
 
-## TLDR
-
-**Web Performance Optimization (WPO)** maximizes user experience by reducing load times, improving responsiveness, and ensuring visual stability across four optimization layers.
-
-### Core Web Vitals Targets
-
-- **LCP (Largest Contentful Paint)**: ≤2.5s for good, measures perceived load speed
-- **INP (Interaction to Next Paint)**: ≤200ms for good, measures interaction responsiveness
-- **CLS (Cumulative Layout Shift)**: ≤0.1 for good, measures visual stability
-- **TTFB**: ≤200ms for good server response (not a Core Web Vital but critical)
-
-### Infrastructure Optimization
-
-- **Protocol stack**: HTTP/3 + QUIC eliminates TCP head-of-line blocking, TLS 1.3 with 0-RTT
-- **Edge computing**: CDN with edge functions for personalization, A/B testing, auth
-- **Caching layers**: Service Worker + CDN + Redis for >80% origin offload
-- **Architecture patterns**: BFF for 30-50% payload reduction, Islands for selective hydration
-
-### JavaScript Optimization
-
-- **Code splitting**: Route-based with `React.lazy()` + `Suspense` for 50-80% initial reduction
-- **Task scheduling**: `scheduler.yield()` every 50ms to maintain INP <200ms
-- **Offloading**: Web Workers for heavy computation, worker pools for parallelism
-- **Tree shaking**: ES modules + `sideEffects: false` for dead code elimination
-
-### CSS & Typography
-
-- **Critical CSS**: Inline ≤14KB above-the-fold, defer rest with media query swap
-- **Font loading**: WOFF2 + subsetting for 65-90% size reduction, metric overrides for zero-CLS
-- **Compositor animations**: Only `transform` and `opacity` for 60fps rendering
-
-### Image Optimization
-
-- **Modern formats**: AVIF (30-50% smaller than JPEG), WebP as fallback, both have 93%+ support
-- **Loading strategy**: `fetchpriority="high"` for LCP images, `loading="lazy"` for below-fold
-- **Responsive delivery**: `srcset` with width descriptors, `sizes` for layout hints
-
 <figure>
 
 ```mermaid
@@ -55,10 +18,10 @@ flowchart TB
     JS --> CSS
     CSS --> IMG
 
-    subgraph "Core Web Vitals Targets"
-        LCP["LCP <2.5s"]
-        INP["INP <200ms"]
-        CLS["CLS <0.1"]
+    subgraph "Core Web Vitals (75th percentile)"
+        LCP["LCP ≤2.5s<br/>Perceived Load"]
+        INP["INP ≤200ms<br/>Responsiveness"]
+        CLS["CLS ≤0.1<br/>Visual Stability"]
     end
 
     INFRA --> LCP
@@ -71,20 +34,46 @@ flowchart TB
 
 </figure>
 
-## Core Web Vitals Targets
+## Abstract
 
-| Metric                              | Good   | Needs Improvement | Poor   |
-| ----------------------------------- | ------ | ----------------- | ------ |
-| **LCP** (Largest Contentful Paint)  | ≤2.5s  | 2.5s–4.0s         | >4.0s  |
-| **INP** (Interaction to Next Paint) | ≤200ms | 200ms–500ms       | >500ms |
-| **CLS** (Cumulative Layout Shift)   | ≤0.1   | 0.1–0.25          | >0.25  |
-| **TTFB** (Time to First Byte)       | ≤200ms | 200ms–500ms       | >500ms |
+Web performance optimization reduces to three user-centric questions: **How fast does content appear?** (Largest Contentful Paint, or LCP), **How quickly does the page respond?** (Interaction to Next Paint, or INP), and **Does the layout stay stable?** (Cumulative Layout Shift, or CLS). These Core Web Vitals (CWV) are Google's ranking signals measured at the 75th percentile—a page passes only when 75% of real user visits meet the "good" threshold for all three metrics.
 
-Google evaluates Core Web Vitals at the 75th percentile of page views—a site passes only when all three metrics (LCP, INP, CLS) are "good" ([web.dev Core Web Vitals](https://web.dev/articles/vitals)).
+The optimization stack follows a dependency chain:
+
+1. **Infrastructure** (DNS, HTTP/3, CDN, caching) determines the floor for all metrics—you cannot optimize your way out of a slow origin or missing edge cache
+2. **JavaScript** (bundle size, long tasks, workers) directly gates INP—a 200ms task budget means breaking work into chunks and offloading computation
+3. **CSS & Typography** (critical path, containment, font loading) affects both CLS and LCP—inlined critical CSS and font metric overrides eliminate layout shifts
+4. **Images** (formats, responsive sizing, loading priority) dominate LCP on media-heavy pages—AVIF/WebP and `fetchpriority` target the largest element
+
+Each layer has diminishing returns without the previous layer being sound. A perfectly code-split bundle won't help if TTFB is 2 seconds. Zero-CLS font loading won't matter if JavaScript blocks the main thread for 500ms.
+
+## Core Web Vitals Thresholds
+
+As of March 2024, Core Web Vitals consist of three metrics that capture the user experience dimensions Google considers most critical: loading, interactivity, and visual stability.
+
+| Metric                              | Good   | Needs Improvement | Poor   | What It Measures                     |
+| ----------------------------------- | ------ | ----------------- | ------ | ------------------------------------ |
+| **LCP** (Largest Contentful Paint)  | ≤2.5s  | 2.5s–4.0s         | >4.0s  | When the main content becomes visible |
+| **INP** (Interaction to Next Paint) | ≤200ms | 200ms–500ms       | >500ms | Responsiveness to all user interactions |
+| **CLS** (Cumulative Layout Shift)   | ≤0.1   | 0.1–0.25          | >0.25  | Unexpected layout movement during session |
+
+**Supporting metric (not a Core Web Vital):**
+
+| Metric                        | Good   | Needs Improvement | Poor   | Why It Matters                    |
+| ----------------------------- | ------ | ----------------- | ------ | --------------------------------- |
+| **TTFB** (Time to First Byte) | ≤200ms | 200ms–500ms       | >500ms | Sets the floor for all downstream metrics |
+
+TTFB is excluded from CWV because fast server response doesn't guarantee good user experience—a page can have 100ms TTFB but 5 seconds of JavaScript blocking LCP. However, slow TTFB makes good LCP nearly impossible.
+
+### Why These Metrics?
+
+Google's threshold methodology targets the 75th percentile with a balance between achievability (most sites can reach "good") and meaningfulness (users perceive the difference). The 2.5s LCP threshold corresponds to research showing users begin abandoning pages after 3 seconds; 200ms INP aligns with the 100-200ms window where interactions feel instant; 0.1 CLS represents shifts users barely notice.
+
+> **INP replaced FID in March 2024:** First Input Delay (FID) measured only the *first* interaction's input delay. INP measures *every* interaction throughout the session, including input delay + processing time + presentation delay. Most sites that passed FID failed INP initially because FID ignored subsequent interactions and processing time entirely.
 
 ## 1. Infrastructure & Architecture
 
-Infrastructure optimization addresses the foundation of web performance: network protocols, edge computing, and server architecture. Proper infrastructure can reduce TTFB by 85-95% and offload 80%+ of traffic to the edge.
+Infrastructure determines the performance floor. Network round trips, server processing, and cache misses create latency that no amount of frontend optimization can overcome. A 2-second TTFB leaves only 500ms for everything else if targeting 2.5s LCP.
 
 **Detailed coverage**: [Infrastructure Optimization for Web Performance](../web-performance-infrastructure-stack/README.md)
 
@@ -108,7 +97,7 @@ Infrastructure optimization addresses the foundation of web performance: network
 
 ## 2. JavaScript Optimization
 
-JavaScript optimization focuses on reducing bundle size, managing long tasks, and offloading computation. Proper optimization can reduce bundles by 50-80% and keep INP under 200ms.
+JavaScript directly gates INP. Every millisecond of main thread blocking is a millisecond added to interaction latency. The 200ms INP budget means: receive input, run handlers, let browser paint—all within 200ms. Long tasks (>50ms) risk exceeding this budget on slower devices.
 
 **Detailed coverage**: [JavaScript Performance Optimization](../web-performance-javascript-optimization/README.md)
 
@@ -132,7 +121,7 @@ JavaScript optimization focuses on reducing bundle size, managing long tasks, an
 
 ## 3. CSS & Typography
 
-CSS and typography optimization targets render-blocking resources, layout stability, and font loading. Proper optimization can achieve sub-14KB critical CSS and zero-CLS font swaps.
+CSS blocks rendering until parsed; fonts cause layout shifts when they swap. The critical rendering path requires CSS before first paint, but only the CSS needed for above-the-fold content. Font loading is a common CLS culprit—fallback fonts have different metrics than web fonts, causing text to reflow on swap.
 
 **Detailed coverage**: [CSS and Typography Optimization](../web-performance-css-typography/README.md)
 
@@ -157,7 +146,7 @@ CSS and typography optimization targets render-blocking resources, layout stabil
 
 ## 4. Image Optimization
 
-Image optimization delivers the largest bandwidth savings through modern formats, responsive sizing, and strategic loading. Proper optimization achieves 50-80% bandwidth reduction and 40-60% faster LCP.
+Images are typically the LCP element on content-heavy pages. A hero image that's 2MB and served in JPEG when AVIF would be 400KB directly delays LCP. Beyond format, loading strategy matters: the browser must discover, request, download, and decode the image before it can paint.
 
 **Detailed coverage**: [Image Optimization for Web Performance](../web-performance-image-optimization/README.md)
 
@@ -279,12 +268,51 @@ Continuous monitoring ensures optimizations remain effective and regressions are
 | [CSS & Typography](../web-performance-css-typography/README.md)                  | Rendering & Fonts       | Critical CSS, Containment, Font loading    |
 | [Image Optimization](../web-performance-image-optimization/README.md)            | Media Delivery          | Formats, Responsive, Lazy loading          |
 
-## References
+## Conclusion
 
-- [Core Web Vitals](https://web.dev/articles/vitals) - Google's essential metrics for user experience
-- [HTTP/3 Explained](https://http3-explained.haxx.se/) - QUIC and HTTP/3 guide
+Web performance optimization follows a layered dependency model where each layer sets constraints for the next. Infrastructure determines the floor (TTFB), JavaScript controls interactivity (INP), CSS/fonts affect stability and render timing (CLS, LCP), and images often dominate the critical path for LCP.
+
+The Core Web Vitals framework—LCP, INP, CLS measured at the 75th percentile—provides a user-centric success criterion. Optimization work should be prioritized by which metric is failing and which layer is the bottleneck. A site with good infrastructure but poor INP needs JavaScript work, not more CDN tuning.
+
+Start with measurement (RUM and synthetic), identify the weakest metric, trace it to the responsible layer, and apply targeted fixes. The detailed articles in this series cover each layer's implementation specifics.
+
+## Appendix
+
+### Prerequisites
+
+- Understanding of browser rendering pipeline (parsing, layout, paint, composite)
+- Familiarity with HTTP protocol basics
+- Basic knowledge of JavaScript execution model and event loop
+
+### Summary
+
+- **Core Web Vitals** (as of March 2024): LCP ≤2.5s, INP ≤200ms, CLS ≤0.1—measured at the 75th percentile
+- **Optimization layers**: Infrastructure → JavaScript → CSS/Typography → Images, each constraining the next
+- **Infrastructure**: HTTP/3, CDN edge computing, multi-layer caching target TTFB <200ms
+- **JavaScript**: Code splitting, task scheduling with `scheduler.yield()`, Web Workers maintain INP <200ms
+- **CSS & Fonts**: Critical CSS inlining, font metric overrides eliminate CLS from font loading
+- **Images**: AVIF/WebP formats, responsive delivery, `fetchpriority` for LCP images
+
+### References
+
+**Specifications and Standards**
+
+- [Web Vitals](https://web.dev/articles/vitals) - Google's Core Web Vitals specification and thresholds
+- [Interaction to Next Paint (INP)](https://web.dev/articles/inp) - INP metric definition and measurement
+- [Largest Contentful Paint (LCP)](https://web.dev/articles/lcp) - LCP specification
+- [Cumulative Layout Shift (CLS)](https://web.dev/articles/cls) - CLS calculation methodology
+- [Defining Core Web Vitals Thresholds](https://web.dev/articles/defining-core-web-vitals-thresholds) - Rationale behind threshold values
+
+**Official Documentation**
+
+- [INP Becomes a Core Web Vital (March 2024)](https://web.dev/blog/inp-cwv-march-12) - INP replacing FID announcement
+- [HTTP/3 Explained](https://http3-explained.haxx.se/) - QUIC and HTTP/3 protocol guide
+- [Time to First Byte (TTFB)](https://web.dev/articles/ttfb) - Why TTFB is not a Core Web Vital
+- [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci) - Synthetic performance testing
+
+**Implementation References**
+
 - [Web Workers API - MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API) - Background thread processing
-- [CSS Containment - MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment) - Layout optimization
-- [Responsive Images - MDN](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) - Image optimization guide
+- [CSS Containment - MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment) - Layout isolation
+- [Responsive Images - MDN](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) - srcset and sizes
 - [Variable Fonts - MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide) - Font optimization
-- [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci) - Performance testing in CI/CD

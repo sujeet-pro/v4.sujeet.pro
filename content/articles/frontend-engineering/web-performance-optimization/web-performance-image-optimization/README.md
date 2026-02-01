@@ -1,6 +1,6 @@
 # Image Performance Optimization for the Web
 
-Master responsive image techniques, modern formats like AVIF and WebP, lazy loading strategies, and compression algorithms to reduce bandwidth by 50-80% and dramatically improve Core Web Vitals.
+Comprehensive guide to image optimization covering modern formats (AVIF, WebP, JPEG XL), responsive image implementation with `srcset` and `sizes`, loading strategies with `fetchpriority` and `decoding` attributes, and network-aware delivery. Targets 50-80% bandwidth reduction and significant Largest Contentful Paint (LCP) improvements.
 
 <figure>
 
@@ -11,7 +11,7 @@ flowchart TB
         FORMAT["Format Selection<br/>AVIF > WebP > JPEG"]
         RESPONSIVE["Responsive Images<br/>srcset + sizes"]
         LOADING["Loading Strategy<br/>lazy/eager + priority"]
-        DECODE["Decoding Control<br/>async decoding"]
+        DECODE["Decoding Control<br/>async/sync"]
     end
 
     FORMAT --> RESPONSIVE
@@ -31,757 +31,632 @@ flowchart TB
 
 </figure>
 
-## TLDR
+## Abstract
 
-**Image optimization** delivers 50-80% bandwidth reduction through modern formats (AVIF, WebP), responsive sizing, and strategic loading patterns while significantly improving LCP.
+Image optimization for the web follows a four-stage pipeline where each stage compounds savings:
 
-### Format Selection
+1. **Format selection**: AVIF achieves 30-50% smaller files than JPEG; WebP achieves 25-34%—use `<picture>` for progressive enhancement with JPEG fallback
+2. **Responsive sizing**: Serve images matching device viewport and Device Pixel Ratio (DPR) via `srcset` (width descriptors) and `sizes` (slot size hints)—prevents oversized images on mobile
+3. **Loading strategy**: `loading="lazy"` defers off-screen images; `fetchpriority="high"` prioritizes LCP images in the HTTP/2 queue
+4. **Decoding control**: `decoding="async"` keeps main thread free for non-critical images; `decoding="sync"` ensures LCP images decode immediately
 
-- **AVIF**: 1.5-2× smaller than JPEG, supports HDR and alpha; [~94% browser support](https://caniuse.com/avif)
-- **WebP**: 1.25-1.34× smaller than JPEG; [~97% browser support](https://caniuse.com/webp)
-- **JPEG/PNG**: Universal fallback for older browsers
-- **Progressive enhancement**: Use `<picture>` element for format negotiation
+The key insight: **LCP images require the opposite treatment from everything else**. Above-the-fold LCP images need `loading="eager"`, `fetchpriority="high"`, and `decoding="sync"`. Below-the-fold images need `loading="lazy"`, `fetchpriority="auto"`, and `decoding="async"`.
 
-### Responsive Images
+Always set explicit `width` and `height` attributes—without them, lazy-loaded images cause Cumulative Layout Shift (CLS) when they pop in.
 
-- **srcset with width descriptors**: Provide multiple image sizes for browser selection
-- **sizes attribute**: Tell browser the rendered size at different viewports
-- **Art direction**: Different crops for mobile vs desktop using `<source media="...">`
-- **DPR handling**: Browser automatically selects appropriate image for device pixel ratio
+## Image Formats
 
-### Loading Strategies
+### Format Comparison
 
-- **loading="lazy"**: Defer offscreen images; saves ~50-100KB initial payload
-- **loading="eager"**: Load immediately for above-the-fold images
-- **fetchpriority="high"**: Prioritize LCP images; [improves LCP by 5-30%](https://web.dev/articles/optimize-lcp)
-- **decoding="async"**: Offload decode work for non-LCP images; use `sync` for LCP images
+| Format | Compression vs JPEG | Lossy/Lossless | Color Depth | HDR Support | Alpha | Browser Support | Best Use Case |
+|--------|---------------------|----------------|-------------|-------------|-------|-----------------|---------------|
+| **AVIF** | 30-50% smaller | Both | 8/10/12-bit | PQ/HLG BT.2100 | Yes | ~95% | HDR photos, rich media |
+| **WebP** | 25-34% smaller | Both | 8-bit | No | Yes | ~96% | General web delivery |
+| **JPEG XL** | 20-50% smaller | Both | up to 32-bit | Full Rec.2100 | Yes | Safari 17+, Chrome (returning) | Future-proof archival |
+| **JPEG** | Baseline | Lossy | 8-bit | No | No | 100% | Universal fallback |
+| **PNG** | Lossless | Lossless | 1-16-bit | No | Yes | 100% | Graphics, logos |
 
-### Best Practices
+### AVIF (AV1 Image File Format)
 
-- **Above-the-fold LCP**: Use `loading="eager"`, `fetchpriority="high"`, `decoding="sync"` ([MDN](https://developer.mozilla.org/en-US/blog/fix-image-lcp/))
-- **Below-the-fold**: Use `loading="lazy"`, `decoding="async"`, `fetchpriority="auto"`
-- **Preload LCP images**: `<link rel="preload" as="image" href="..." fetchpriority="high">`
-- **Always set dimensions**: Prevent CLS with explicit width/height attributes
+AVIF leverages the AV1 video codec for still images, achieving the highest compression efficiency available today.
 
-## Part 1: Image Formats Deep-Dive
+**Technical architecture:**
+- Container: ISOBMFF HEIF container (ISO/IEC 14496-12)
+- Codec: AV1 intra-frame encoding with tiles, transforms, CDEF (Constrained Directional Enhancement Filter), loop restoration
+- Entropy coding: CABAC (Context-Adaptive Binary Arithmetic Coding)
 
-### 1.1 Format Comparison Table
-
-| Format        | Compression vs JPEG | Lossy/Lossless | Color Depth (bits/chan) | HDR & Wide Gamut | Alpha Support | Progressive/Interlace | Best Use Case                | Fallback     |
-| ------------- | ------------------- | -------------- | ----------------------- | ---------------- | ------------- | --------------------- | ---------------------------- | ------------ |
-| **JPEG**      | 1×                  | Lossy          | 8                       | No               | No            | Progressive JPEG      | Photographs, ubiquity        | JPEG         |
-| **PNG-1.3**   | n/a (lossless)      | Lossless       | 1,2,4,8,16              | No               | Yes           | Adam7 interlace       | Graphics, logos, screenshots | PNG          |
-| **WebP**      | 1.25–1.34× smaller  | Both           | 8, (10 via ICC)         | No               | Yes           | None (in-band frames) | Web delivery of photos & UI  | JPEG/PNG     |
-| **AVIF**      | 1.3–1.5× smaller    | Both           | 8,10,12                 | PQ/HLG BT.2100   | Yes           | AV1 tile‐based        | HDR photography, rich media  | WebP → JPEG  |
-| **JPEG XL**   | 1.2–1.5× smaller    | Both           | up to 32                | Full Rec.2100    | Yes           | Saliency‐based prog.  | Web migration, archiving     | JPEG/WebP    |
-| **HEIF/HEIC** | ~2× smaller vs JPEG | Lossy/Lossless | up to 16                | Yes              | Yes           | None                  | iOS/macOS photos, bursts     | JPEG/PNG     |
-| **GIF**       | Limited             | Lossless       | 8-color palette         | No               | 1-bit         | 4-pass interlace      | Simple animations            | Animated PNG |
-
-### 1.2 JPEG (ISO/IEC 10918-1)
-
-JPEG remains the most widely supported image format, making it the universal fallback for web delivery.
-
-**Compression Pipeline:**
-
-1. **Color Space Conversion**: RGB → YCbCr with 4:2:0 chroma subsampling
-2. **Block Division**: 8×8 pixel blocks
-3. **DCT Transform**: Discrete Cosine Transform on each block
-4. **Quantization**: Quality factor (0-100) scales quantization matrices
-5. **Entropy Coding**: Zig-zag scan → Huffman coding
-
-**Progressive JPEG:** Uses spectral selection and successive approximation for incremental rendering. First pass shows blurry full image, subsequent passes add detail.
+**Why AVIF achieves better compression:**
+- Variable block sizes (4×4 to 128×128 SuperBlocks) adapt to image content
+- Advanced prediction modes (65 intra-prediction angles vs JPEG's 9 DCT modes)
+- Film grain synthesis preserves texture at lower bitrates without encoding grain detail
 
 **Trade-offs:**
+- Encoding is 8-10× slower than JPEG (acceptable for build-time optimization, not real-time)
+- Decoding is multi-threaded but still slower than JPEG on low-end devices
+- ~95% browser support as of 2025 (Chrome 85+, Firefox 93+, Safari 16.4+, Edge 121+)
 
-- Blocking artifacts at high compression ratios
-- No alpha channel support
-- Limited to 8-bit color depth
-- Universal browser support (100%)
+> **AVIF 1.2.0 (2025)**: Added sample transforms, refined conformance testing, updated alignment with latest HEIF specifications.
 
-**Use Case:** Photographic images requiring maximum compatibility.
+### WebP
 
-### 1.3 PNG 1.3 (ISO/IEC 15948)
+WebP provides excellent compression with near-universal support, making it the primary modern format for general web delivery.
 
-PNG provides lossless compression with transparency support, making it ideal for graphics, logos, and screenshots.
+**Technical architecture:**
+- Lossy mode: VP8 codec with 16×16 macroblocks, intra-frame prediction, residual DCT (Discrete Cosine Transform)
+- Lossless mode: VP8L with predictive coding, local palettes, Huffman entropy coding
 
-**Compression Pipeline:**
-
-1. **Filtering**: One of five prediction filters per scanline
-2. **DEFLATE**: LZ77 + Huffman coding
-
-**Key Features:**
-
-- **Bit Depth**: 1, 2, 4, 8, or 16 bits per channel
-- **Color Types**: Grayscale, truecolor, indexed, grayscale+alpha, truecolor+alpha
-- **Adam7 Interlacing**: Seven-pass progressive display
-- **Full Alpha**: 8 or 16-bit transparency channel
+**Why WebP works well:**
+- 25-34% smaller than JPEG at equivalent SSIM (Structural Similarity Index)
+- Full 8-bit alpha channel in lossy mode (unlike JPEG)
+- Animation support via frame differencing (smaller than GIF)
 
 **Trade-offs:**
+- No HDR or wide color gamut support
+- No progressive loading (renders frame-by-frame)
+- ~96% browser support (missing only Internet Explorer)
 
-- Larger files than lossy formats for photographs
-- No HDR support
-- No animation support (use APNG for animation)
+### JPEG XL
 
-**Use Case:** Graphics with transparency, text overlays, screenshots, logos.
+JPEG XL is designed as the successor to JPEG with unique features for web migration.
 
-### 1.4 WebP (IETF RFC 6386/6387)
+**Technical architecture:**
+- VarDCT mode: Variable block-size DCT (2-256 pixels) with XYB color quantization
+- Modular mode: FLIF-inspired lossless with adaptive quantization
 
-WebP offers both lossy and lossless modes with excellent compression, making it the primary modern format for web delivery.
+**Why JPEG XL matters:**
+- Lossless JPEG transcoding: Re-encode existing JPEG files with 20% size reduction, fully reversible
+- Progressive decoding with saliency-based priority (important regions first)
+- Up to 32-bit color depth, full Rec.2100 HDR support
 
-**Architecture:**
+**Browser status (as of late 2025):**
+- Safari 17+: Native support
+- Chrome/Chromium: Re-adding support (reversed 2022 removal), Rust decoder complete with animation support
+- Firefox: Behind flag, interest growing
 
-**Lossy Mode (VP8):**
+> **Design rationale for Chrome reversal**: Developer demand (top pain point in State of HTML survey), Safari adoption, PDF specification adding JPEG XL support, and availability of a complete Rust decoder with animation support.
 
-- 16×16 macroblocks with intra-frame prediction
-- Residual DCT transformation
-- VP8-style entropy coding
-- 25-34% smaller than JPEG at equivalent SSIM
+### Format Selection Strategy
 
-**Lossless Mode (VP8L):**
+```html
+<picture>
+  <!-- Format negotiation: browser takes first supported source -->
+  <source srcset="image.avif" type="image/avif" />
+  <source srcset="image.webp" type="image/webp" />
+  <img src="image.jpg" alt="Description" width="800" height="600" />
+</picture>
+```
 
-- Predictive coding with local palettes
-- Huffman entropy coding
-- Superior to PNG for most use cases
+**Selection order rationale:**
+1. **AVIF first**: Highest compression, 30-50% savings
+2. **WebP fallback**: Wide support, 25-34% savings
+3. **JPEG/PNG baseline**: Universal compatibility
 
-**Key Features:**
+The browser evaluates sources top-to-bottom, taking the first it supports. This is a **hint, not negotiation**—the browser doesn't compare file sizes, it takes the first supported format.
 
-- Full 8-bit alpha channel support
-- Animation support via frame differencing
-- Both lossy and lossless in single format
+## Responsive Images
 
-**Trade-offs:**
+### Width Descriptors and sizes
 
-- No HDR support
-- No progressive loading (loads frame-by-frame)
-- [~97% browser support](https://caniuse.com/webp)
-
-**Use Case:** General web delivery for photos and UI elements.
-
-### 1.5 AVIF (AV1 in HEIF)
-
-AVIF leverages AV1 video codec technology to achieve the highest compression efficiency currently available for web images.
-
-**Architecture:**
-
-- **Container**: ISOBMFF HEIF container
-- **Codec**: AV1 intra-frame encoding
-- **Features**: Tiles, transforms, CDEF, loop restoration, CABAC entropy coding
-
-**Key Features:**
-
-- **Color Depth**: 8, 10, or 12 bits per channel
-- **HDR Support**: PQ/HLG transfer functions, BT.2100 wide gamut
-- **Film Grain Synthesis**: Preserve film-like texture at lower bitrates
-- **30-50% smaller** than JPEG at equivalent quality
-
-**Trade-offs:**
-
-- Encoding is 8-10× slower than JPEG
-- Multi-threaded decoding available
-- [~94% browser support](https://caniuse.com/avif) (Baseline 2024)
-
-**Use Case:** HDR photography, immersive media, highest quality web delivery.
-
-### 1.6 JPEG XL (ISO/IEC 18181)
-
-JPEG XL is designed as the next-generation format with unique features like lossless JPEG transcoding.
-
-**Modes:**
-
-- **VarDCT**: Variable block-size DCT (2-256 pixels), XYB color quantization
-- **Modular**: FLIF-inspired lossless with adaptive quantization
-
-**Key Features:**
-
-- Lossless JPEG transcoding with 20% size reduction
-- Up to 32 bits per channel
-- Full Rec.2100 HDR support
-- Saliency-based progressive decoding
-
-**Performance:**
-
-- Decode: >132 MP/s
-- Encode: ~50 MP/s (libjxl reference)
-
-**Trade-offs:**
-
-- Browser support expanding: Safari 17+ native, [Chrome re-adding support](https://devclass.com/2025/11/24/googles-chromium-team-decides-it-will-add-jpeg-xl-support-reverses-obsolete-declaration/), Firefox behind flag
-- Licensing fully open (royalty-free)
-
-**Use Case:** Future-proof archival, web migration from JPEG legacy.
-
-### 1.7 Other Formats
-
-**HEIF/HEIC:**
-
-- iOS/macOS default format
-- ~50% smaller than JPEG
-- HEVC-based (licensing concerns)
-- Limited non-Apple browser support
-
-**JPEG 2000:**
-
-- DWT-based compression
-- Resolution and quality progressive
-- High computational complexity
-- Used in digital cinema, medical imaging
-
-**GIF:**
-
-- LZW compression, 256-color palette
-- Frame animation support
-- Largely superseded by WebP/MP4 for animation
-
-### 1.8 Compression Algorithm Comparison
-
-| Algorithm       | Typical Compression | Encoding Speed | Decoding Speed | Progressive Support |
-| --------------- | ------------------- | -------------- | -------------- | ------------------- |
-| **JPEG DCT**    | Moderate            | Fast           | Fast           | Spectral selection  |
-| **PNG DEFLATE** | Good (lossless)     | Moderate       | Fast           | Adam7 interlace     |
-| **WebP VP8**    | Good                | 2-3× JPEG      | Fast           | None                |
-| **AVIF AV1**    | Excellent           | 8-10× JPEG     | Moderate       | Tile-based          |
-| **JPEG XL**     | Excellent           | Moderate       | Fast           | Saliency-based      |
-
-## Part 2: Responsive Image Implementation
-
-### 2.1 srcset and Width Descriptors
-
-The `srcset` attribute provides the browser with multiple image candidates for selection based on viewport and device characteristics.
-
-**Width descriptors (`w`)** specify intrinsic pixel widths:
+The `srcset` attribute with width descriptors (`w`) provides multiple image candidates. The `sizes` attribute tells the browser what slot size the image will occupy at different viewports.
 
 ```html
 <img
-  src="small.jpg"
-  srcset="small.jpg 400w, medium.jpg 800w, large.jpg 1200w"
-  sizes="(max-width:600px) 100vw, 50vw"
-  alt="Example"
+  src="image-800.jpg"
+  srcset="
+    image-400.jpg 400w,
+    image-800.jpg 800w,
+    image-1200.jpg 1200w,
+    image-1600.jpg 1600w
+  "
+  sizes="
+    (max-width: 600px) 100vw,
+    (max-width: 1200px) 50vw,
+    800px
+  "
+  alt="Product image"
+  width="800"
+  height="600"
 />
 ```
 
 **How the browser selects:**
 
-1. Calculate display size: CSS size × device pixel ratio (DPR)
-2. Find candidates in srcset ≥ calculated size
-3. Select smallest candidate that meets requirement
+1. Parse `sizes` to determine slot size: first matching media condition wins
+2. Calculate required pixels: slot size × DPR
+3. Select smallest `srcset` candidate ≥ required pixels
 
 **Example calculation:**
-
-- CSS width: 400px, DPR: 2x
+- Viewport: 400px, DPR: 2
+- `sizes` matches `(max-width: 600px) 100vw` → slot = 400px
 - Required: 400px × 2 = 800px
-- Selected: `medium.jpg` (800w)
+- Selected: `image-800.jpg 800w`
 
-### 2.2 sizes Media Conditions
+**Critical rules:**
+- `sizes` uses fixed units (pixels, viewport units)—NOT percentages
+- Last `sizes` entry must have no media condition (default)
+- Always include `src` as fallback for older browsers
+- Order `sizes` media conditions carefully—browser uses first match
 
-The `sizes` attribute tells the browser what size the image will be displayed at different viewport widths:
+### Density Descriptors
+
+For images that don't change dimensions across viewports (icons, logos), use density descriptors:
 
 ```html
 <img
-  src="hero.jpg"
-  srcset="hero-400.jpg 400w, hero-800.jpg 800w, hero-1200.jpg 1200w, hero-1600.jpg 1600w"
-  sizes="
-    (max-width: 600px) 100vw,
-    (max-width: 1200px) 50vw,
-    33vw
+  src="logo.png"
+  srcset="
+    logo.png 1x,
+    logo@2x.png 2x,
+    logo@3x.png 3x
   "
-  alt="Hero image"
+  alt="Logo"
+  width="200"
+  height="50"
 />
 ```
 
-**Selection examples:**
+Simpler than width descriptors but only targets DPR, not viewport-based sizing.
 
-- Viewport 400px → 100vw = 400px → `hero-400.jpg`
-- Viewport 800px → 50vw = 400px → `hero-400.jpg`
-- Viewport 1400px → 33vw = 467px → `hero-800.jpg`
+### Art Direction with picture
 
-### 2.3 picture Element and Source Selection
-
-The `<picture>` element enables format negotiation and art direction:
+When different viewports need different image crops (not just sizes), use `<picture>` with media queries:
 
 ```html
 <picture>
-  <!-- Art direction: different crop for mobile -->
-  <source media="(max-width: 768px)" srcset="hero-mobile-400.jpg 400w, hero-mobile-600.jpg 600w" type="image/jpeg" />
+  <!-- Mobile: portrait crop, full width -->
+  <source
+    media="(max-width: 768px)"
+    srcset="hero-mobile-400.jpg 400w, hero-mobile-600.jpg 600w"
+    sizes="100vw"
+  />
 
-  <!-- Format negotiation: AVIF for supported browsers -->
-  <source srcset="hero-800.avif 800w, hero-1200.avif 1200w" type="image/avif" />
+  <!-- Desktop: landscape crop, half width -->
+  <source
+    media="(min-width: 769px)"
+    srcset="hero-desktop-800.jpg 800w, hero-desktop-1200.jpg 1200w"
+    sizes="50vw"
+  />
 
-  <!-- Format negotiation: WebP fallback -->
-  <source srcset="hero-800.webp 800w, hero-1200.webp 1200w" type="image/webp" />
+  <img src="hero-desktop-800.jpg" alt="Hero" width="800" height="450" />
+</picture>
+```
 
-  <!-- Final fallback -->
+**Art direction vs resolution switching:**
+- **Resolution switching** (`srcset` alone): Same image, different sizes for bandwidth optimization
+- **Art direction** (`<picture>` with `media`): Different images/crops for design purposes
+
+### Combined Format and Responsive
+
+Full implementation combining format negotiation with responsive sizing:
+
+```html
+<picture>
+  <!-- Mobile art direction + AVIF -->
+  <source
+    media="(max-width: 768px)"
+    srcset="hero-mobile-400.avif 400w, hero-mobile-600.avif 600w"
+    sizes="100vw"
+    type="image/avif"
+  />
+
+  <!-- Mobile art direction + WebP fallback -->
+  <source
+    media="(max-width: 768px)"
+    srcset="hero-mobile-400.webp 400w, hero-mobile-600.webp 600w"
+    sizes="100vw"
+    type="image/webp"
+  />
+
+  <!-- Desktop + AVIF -->
+  <source
+    srcset="hero-800.avif 800w, hero-1200.avif 1200w"
+    sizes="(max-width: 1200px) 50vw, 600px"
+    type="image/avif"
+  />
+
+  <!-- Desktop + WebP fallback -->
+  <source
+    srcset="hero-800.webp 800w, hero-1200.webp 1200w"
+    sizes="(max-width: 1200px) 50vw, 600px"
+    type="image/webp"
+  />
+
+  <!-- Final fallback: JPEG -->
   <img
     src="hero-800.jpg"
     srcset="hero-800.jpg 800w, hero-1200.jpg 1200w"
-    sizes="(max-width: 768px) 100vw, 50vw"
+    sizes="(max-width: 1200px) 50vw, 600px"
     alt="Hero image"
+    width="800"
+    height="450"
   />
 </picture>
 ```
 
-**Selection algorithm:**
+## Loading Strategies
 
-1. Evaluate each `<source>`'s `media` attribute
-2. Check each `<source>`'s `type` for format support
-3. First matching source wins
-4. Use srcset to select appropriate size
-5. Fall back to `<img>` if no sources match
+### The LCP Image Pattern
 
-**Selection matrix:**
-
-| Viewport | AVIF Support | WebP Support | Selected Format |
-| -------- | ------------ | ------------ | --------------- |
-| Mobile   | Yes          | -            | AVIF            |
-| Mobile   | No           | Yes          | WebP            |
-| Mobile   | No           | No           | JPEG            |
-| Desktop  | Yes          | -            | AVIF            |
-| Desktop  | No           | Yes          | WebP            |
-| Desktop  | No           | No           | JPEG            |
-
-## Part 3: Loading Strategies
-
-### 3.1 Browser Hints (loading, decoding, fetchpriority)
-
-| Attribute                 | Purpose                                | Typical Benefit                                         |
-| ------------------------- | -------------------------------------- | ------------------------------------------------------- |
-| `loading="lazy"/"eager"`  | Defer offscreen fetch vs immediate     | ↓ Initial bytes ~50-100KB                               |
-| `decoding="async"/"sync"` | Offload decode vs main-thread blocking | Use `sync` for LCP, `async` for others                  |
-| `fetchpriority="high"`    | Signal importance to fetch scheduler   | [↑ LCP by 5-30%](https://web.dev/articles/optimize-lcp) |
+LCP images require aggressive loading; all other images should defer:
 
 ```html
-<!-- Critical LCP image: use decoding="sync" to prioritize -->
-<img src="hero.jpg" loading="eager" decoding="sync" fetchpriority="high" alt="Hero" />
+<!-- LCP image: maximize priority -->
+<img
+  src="hero.jpg"
+  srcset="hero-800.jpg 800w, hero-1200.jpg 1200w"
+  sizes="100vw"
+  alt="Hero"
+  width="1200"
+  height="600"
+  loading="eager"
+  fetchpriority="high"
+  decoding="sync"
+/>
 
-<!-- Below-the-fold image -->
-<img src="gallery.jpg" loading="lazy" decoding="async" fetchpriority="auto" alt="Gallery" />
+<!-- Below-the-fold image: minimize impact -->
+<img
+  src="gallery-item.jpg"
+  alt="Gallery"
+  width="400"
+  height="300"
+  loading="lazy"
+  fetchpriority="auto"
+  decoding="async"
+/>
 ```
 
-> **Note:** For LCP images, `decoding="sync"` ensures the image is decoded on the main thread immediately, preventing render delays. Use `decoding="async"` for non-critical images to avoid blocking other content ([MDN](https://developer.mozilla.org/en-US/blog/fix-image-lcp/)).
+| Attribute | LCP Image | Below-the-fold |
+|-----------|-----------|----------------|
+| `loading` | `eager` (default, immediate) | `lazy` (defer until near viewport) |
+| `fetchpriority` | `high` (prioritize in HTTP/2 queue) | `auto` (browser decides) |
+| `decoding` | `sync` (decode immediately on main thread) | `async` (decode off main thread) |
 
-### 3.2 Lazy Loading with Intersection Observer
+### fetchpriority Explained
 
-For enhanced control over lazy loading behavior:
+`fetchpriority` signals importance to the browser's resource scheduler:
 
-```javascript title="lazy-loading.js" {3-14}
-const io = new IntersectionObserver(
-  (entries, obs) => {
-    entries.forEach(({ isIntersecting, target }) => {
-      if (!isIntersecting) return
+- **`high`**: Fetch early, ahead of other resources at same priority level
+- **`low`**: Deprioritize, fetch after higher-priority resources
+- **`auto`** (default): Browser decides based on heuristics
 
-      const img = target
-      img.src = img.dataset.src
+**Why it matters for LCP:**
+- HTTP/2 multiplexes requests but still has bandwidth constraints
+- Without hints, browser may prioritize wrong images (e.g., a carousel image before the hero)
+- Google Flights achieved LCP improvement from 2.6s to 1.9s with `fetchpriority="high"` on hero images
 
-      // Decode image asynchronously
-      img
-        .decode()
-        .then(() => img.classList.add("loaded"))
-        .catch((err) => console.error("Image decode failed:", err))
+**Important limitation**: `fetchpriority` is a hint, not a directive. Browsers apply their own heuristics and may override.
 
-      obs.unobserve(img)
-    })
+### decoding Explained
+
+The `decoding` attribute controls how the browser schedules image decoding relative to other content:
+
+| Value | Behavior | Default In |
+|-------|----------|------------|
+| `sync` | Block other content updates until decode completes | Chrome, Safari |
+| `async` | Allow other content to render while decoding | Firefox |
+| `auto` | Browser decides | — |
+
+**Trade-off:**
+- `decoding="async"` keeps the main thread free but can cause visible "pop-in" if the image decodes after surrounding content renders
+- `decoding="sync"` ensures the image appears with surrounding content but blocks rendering
+
+**Design rationale:** For LCP images, the blocking behavior of `sync` is acceptable because you want the largest visible element to render as soon as possible. For gallery images below the fold, `async` prevents decode work from blocking other interactions.
+
+### Native Lazy Loading
+
+`loading="lazy"` defers fetching until the image is near the viewport:
+
+```html
+<img
+  src="gallery.jpg"
+  alt="Gallery item"
+  width="400"
+  height="300"
+  loading="lazy"
+/>
+```
+
+**Browser behavior:**
+- Chrome: Starts loading when image is ~1250px from viewport (varies by connection speed)
+- Images with no `width`/`height` may cause CLS when they pop in
+- Only works when JavaScript is enabled (anti-tracking measure)
+
+**Critical rule**: Never use `loading="lazy"` on LCP candidates. The browser doesn't know which image will be LCP until it's too late.
+
+### Preloading LCP Images
+
+For images discovered late (CSS backgrounds, JavaScript-loaded), use preload:
+
+```html
+<head>
+  <!-- Preload LCP image with format negotiation -->
+  <link
+    rel="preload"
+    as="image"
+    href="hero.avif"
+    type="image/avif"
+    fetchpriority="high"
+  />
+  <link
+    rel="preload"
+    as="image"
+    href="hero.webp"
+    type="image/webp"
+    fetchpriority="high"
+  />
+</head>
+```
+
+**When to preload:**
+- CSS `background-image` (not in HTML, discovered after CSS parses)
+- JavaScript-loaded images
+- Images behind lazy-loaded components
+
+**When NOT to preload:**
+- Images in HTML `<img>` tags above the fold—browser already discovers them early
+
+## Programmatic Control
+
+### Intersection Observer for Lazy Loading
+
+For finer control than native `loading="lazy"`:
+
+```ts title="intersection-observer-lazy.ts" collapse={1-3, 20-25}
+const lazyImages = document.querySelectorAll<HTMLImageElement>('img[data-src]');
+
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+
+      const img = entry.target as HTMLImageElement;
+      img.src = img.dataset.src!;
+
+      // Use decode() to avoid flash of unloaded image
+      img.decode()
+        .then(() => img.classList.add('loaded'))
+        .catch(() => console.error('Decode failed:', img.src));
+
+      observer.unobserve(img);
+    });
   },
   {
-    rootMargin: "200px", // Start loading 200px before entering viewport
-    threshold: 0.1,
-  },
-)
-
-document.querySelectorAll("img.lazy").forEach((img) => io.observe(img))
-```
-
-**Performance gains:**
-
-- Initial payload ↓ ~75KB
-- LCP on long pages ↓ 15%
-
-### 3.3 Decoding Control
-
-**HTML hint for non-LCP images:**
-
-```html
-<img src="gallery.webp" decoding="async" alt="Gallery item" />
-```
-
-**For LCP images, use `sync` to prioritize decoding:**
-
-```html
-<img src="hero.webp" decoding="sync" fetchpriority="high" alt="Hero" />
-```
-
-**Programmatic decode for dynamically loaded images:**
-
-```javascript
-async function loadDecoded(url) {
-  const img = new Image()
-  img.src = url
-
-  try {
-    await img.decode()
-    document.body.append(img)
-  } catch (error) {
-    console.error("Failed to decode image:", error)
+    rootMargin: '200px', // Start loading 200px before entering viewport
+    threshold: 0.1
   }
+);
+
+lazyImages.forEach((img) => observer.observe(img));
+```
+
+**Why use `decode()`?** The `img.decode()` method returns a Promise that resolves when the image is fully decoded and ready to render. This prevents the "flash" where the image element appears but the pixels haven't loaded yet.
+
+### Network-Aware Loading
+
+Adapt image quality based on connection:
+
+```ts title="network-aware-loading.ts" collapse={1-5, 25-35}
+interface ConnectionInfo {
+  effectiveType: 'slow-2g' | '2g' | '3g' | '4g';
+  downlink: number; // Mbps
+  saveData: boolean;
+}
+
+function getImageQuality(): number {
+  const connection = (navigator as Navigator & { connection?: ConnectionInfo }).connection;
+
+  if (!connection) return 80; // Default for unsupported browsers
+
+  if (connection.saveData) return 50; // User explicitly requested data saving
+  if (connection.effectiveType === 'slow-2g') return 40;
+  if (connection.effectiveType === '2g') return 50;
+  if (connection.effectiveType === '3g') return 70;
+  return 85; // 4G or better
+}
+
+function buildImageUrl(basePath: string, width: number): string {
+  const quality = getImageQuality();
+  return `${basePath}?w=${width}&q=${quality}&f=auto`;
 }
 ```
 
-**When to use each:**
+**Effective connection types:**
+- `slow-2g`: ~50 Kbps, RTT > 2000ms
+- `2g`: ~70 Kbps, RTT ~1400ms
+- `3g`: ~700 Kbps, RTT ~270ms
+- `4g`: ≥700 Kbps, RTT < 100ms
 
-- `decoding="sync"`: LCP images—decode immediately on main thread
-- `decoding="async"`: Non-critical images—allow browser to parallelize decoding
-- Programmatic `decode()`: Dynamic images where you need to ensure decoding before display
+The Network Information API has ~75% browser support. Always provide a sensible default for unsupported browsers.
 
-### 3.4 Fetch Priority for LCP
+## Server-Side Generation
 
-```html
-<img src="lcp.jpg" fetchpriority="high" loading="eager" decoding="sync" alt="LCP Image" />
-```
+### Build-Time Optimization with Sharp
 
-**Benefit:** Pushes LCP image ahead in HTTP/2 queues—[LCP improvement of 5-30%](https://web.dev/articles/optimize-lcp), with some sites seeing [up to 50%+ improvement](https://www.debugbear.com/blog/fetchpriority-attribute).
+```ts title="generate-responsive-images.ts" collapse={1-5, 35-45}
+import sharp from 'sharp';
+import path from 'path';
 
-## Part 4: Advanced Optimization
+const WIDTHS = [400, 800, 1200, 1600];
+const FORMATS = ['avif', 'webp'] as const;
 
-### 4.1 Server-Side Image Generation
+interface OutputFile {
+  path: string;
+  width: number;
+  format: string;
+  size: number;
+}
 
-```javascript
-// Node.js with Sharp
-const sharp = require("sharp")
+async function generateResponsiveImages(
+  inputPath: string,
+  outputDir: string
+): Promise<OutputFile[]> {
+  const outputs: OutputFile[] = [];
+  const baseName = path.basename(inputPath, path.extname(inputPath));
 
-async function generateResponsiveImages(inputPath, outputDir) {
-  const sizes = [400, 800, 1200, 1600]
-  const formats = ["webp", "avif"]
+  for (const width of WIDTHS) {
+    for (const format of FORMATS) {
+      const outputPath = path.join(outputDir, `${baseName}-${width}.${format}`);
 
-  for (const size of sizes) {
-    for (const format of formats) {
-      await sharp(inputPath).resize(size).toFormat(format).toFile(`${outputDir}/image-${size}.${format}`)
+      const info = await sharp(inputPath)
+        .resize(width, null, { withoutEnlargement: true })
+        .toFormat(format, {
+          quality: format === 'avif' ? 65 : 80, // AVIF needs lower quality number for equivalent visual quality
+          effort: format === 'avif' ? 4 : 6,    // Encoding effort (higher = slower, better compression)
+        })
+        .toFile(outputPath);
+
+      outputs.push({ path: outputPath, width, format, size: info.size });
     }
   }
+
+  return outputs;
 }
 ```
 
-### 4.2 Client-Side Resizing
+**AVIF quality settings:**
+- Quality 60-70 for photos typically matches JPEG quality 80-85
+- `effort` 4-6 balances encoding time and compression (9 is maximum, very slow)
 
-```javascript
-function resizeImage(file, maxWidth, maxHeight) {
-  return new Promise((resolve) => {
-    const canvas = document.createElement("canvas")
-    const ctx = canvas.getContext("2d")
-    const img = new Image()
+### Image CDN Integration
 
-    img.onload = () => {
-      const { width, height } = calculateDimensions(img.width, img.height, maxWidth, maxHeight)
-
-      canvas.width = width
-      canvas.height = height
-      ctx.drawImage(img, 0, 0, width, height)
-
-      canvas.toBlob(resolve, "image/webp", 0.8)
-    }
-
-    img.src = URL.createObjectURL(file)
-  })
-}
-```
-
-### 4.3 Progressive Enhancement for HDR
+Modern image CDNs (Cloudinary, imgix, Cloudflare Images) handle format negotiation and resizing at the edge:
 
 ```html
-<picture>
-  <!-- High-end devices: AVIF with HDR -->
-  <source media="(min-width: 1200px) and (color-gamut: p3)" srcset="hero-hdr.avif" type="image/avif" />
-
-  <!-- Standard devices: WebP -->
-  <source srcset="hero.webp" type="image/webp" />
-
-  <!-- Fallback: JPEG -->
-  <img src="hero.jpg" alt="Hero image" />
-</picture>
+<!-- Cloudflare Images: automatic format via Accept header -->
+<img
+  src="https://example.com/cdn-cgi/image/width=800,quality=80,format=auto/images/hero.jpg"
+  srcset="
+    https://example.com/cdn-cgi/image/width=400,quality=80,format=auto/images/hero.jpg 400w,
+    https://example.com/cdn-cgi/image/width=800,quality=80,format=auto/images/hero.jpg 800w,
+    https://example.com/cdn-cgi/image/width=1200,quality=80,format=auto/images/hero.jpg 1200w
+  "
+  sizes="(max-width: 600px) 100vw, 50vw"
+  alt="Hero"
+  width="800"
+  height="450"
+/>
 ```
 
-### 4.4 Network-Aware Loading
+**Why use an image CDN?**
+- Format negotiation based on `Accept` header (serves AVIF to supported browsers automatically)
+- On-demand resizing without build-time generation
+- Edge caching for global delivery
+- Automatic quality optimization
 
-```javascript title="network-aware-loader.js" collapse={1-6, 29-42} {7-17}
-class NetworkAwareImageLoader {
-  constructor() {
-    this.connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
-    this.setupOptimization()
-  }
+**Trade-off:** Adds external dependency and per-request cost. Build-time optimization is free at runtime.
 
-  // Key method: determine quality based on connection
-  getOptimalQuality() {
-    if (!this.connection) return 80
+## Performance Monitoring
 
-    const { effectiveType, downlink } = this.connection
+### Tracking Image Impact on LCP
 
-    if (effectiveType === "slow-2g" || downlink < 1) return 60
-    if (effectiveType === "2g" || downlink < 2) return 70
-    if (effectiveType === "3g" || downlink < 5) return 80
-    return 90
-  }
-
-  getOptimalFormat() {
-    if (!this.connection) return "webp"
-
-    const { effectiveType } = this.connection
-
-    if (effectiveType === "slow-2g" || effectiveType === "2g") return "jpeg"
-    return "webp"
-  }
-
-  // Setup and utility methods
-  setupOptimization() {
-    const images = document.querySelectorAll("img[data-network-aware]")
-
-    images.forEach((img) => {
-      const quality = this.getOptimalQuality()
-      const format = this.getOptimalFormat()
-      img.src = this.updateImageUrl(img.dataset.src, quality, format)
-    })
-  }
-
-  updateImageUrl(url, quality, format) {
-    const urlObj = new URL(url)
-    urlObj.searchParams.set("q", quality.toString())
-    urlObj.searchParams.set("f", format)
-    return urlObj.toString()
-  }
-}
-```
-
-### 4.5 Preloading Strategies
-
-```html
-<!-- Critical above-the-fold images -->
-<link rel="preload" as="image" href="hero.avif" type="image/avif" />
-<link rel="preload" as="image" href="hero.webp" type="image/webp" />
-
-<!-- LCP image with high priority -->
-<link rel="preload" as="image" href="lcp-image.avif" fetchpriority="high" />
-```
-
-## Part 5: Performance Monitoring
-
-### 5.1 Image Loading Metrics
-
-```javascript
-const imageObserver = new PerformanceObserver((list) => {
-  for (const entry of list.getEntries()) {
-    if (entry.initiatorType === "img") {
-      console.log(`Image loaded: ${entry.name}`)
-      console.log(`Load time: ${entry.responseEnd - entry.startTime}ms`)
-      console.log(`Size: ${entry.transferSize} bytes`)
-    }
-  }
-})
-
-imageObserver.observe({ type: "resource" })
-```
-
-### 5.2 LCP Tracking for Images
-
-```javascript
+```ts title="lcp-image-tracking.ts" collapse={1-3, 20-25}
 const lcpObserver = new PerformanceObserver((list) => {
-  const entries = list.getEntries()
-  const lastEntry = entries[entries.length - 1]
+  const entries = list.getEntries();
+  const lastEntry = entries[entries.length - 1] as PerformanceEntry & {
+    element?: Element;
+    url?: string;
+    size?: number;
+    renderTime?: number;
+    loadTime?: number;
+  };
 
-  if (lastEntry.element && lastEntry.element.tagName === "IMG") {
-    console.log(`LCP image: ${lastEntry.element.src}`)
-    console.log(`LCP time: ${lastEntry.startTime}ms`)
+  if (lastEntry.element?.tagName === 'IMG') {
+    console.log('LCP element:', lastEntry.element);
+    console.log('LCP time:', lastEntry.renderTime || lastEntry.loadTime);
+    console.log('Image URL:', lastEntry.url);
+    console.log('Image size (px²):', lastEntry.size);
   }
-})
+});
 
-lcpObserver.observe({ type: "largest-contentful-paint" })
+lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true });
 ```
 
-## Part 6: Smart Image Optimizer Implementation
+### Tracking Image Resource Performance
 
-```javascript title="smart-image-optimizer.js" collapse={1-15, 17-33, 41-58, 79-104} {59-78}
-class SmartImageOptimizer {
-  constructor(options = {}) {
-    this.options = {
-      defaultQuality: 80,
-      enableAVIF: true,
-      enableWebP: true,
-      lazyLoadThreshold: 200,
-      ...options,
-    }
+```ts title="image-resource-tracking.ts" collapse={1-2, 18-22}
+const resourceObserver = new PerformanceObserver((list) => {
+  for (const entry of list.getEntries()) {
+    const resource = entry as PerformanceResourceTiming;
 
-    this.networkQuality = this.getNetworkQuality()
-    this.userPreference = this.getUserPreference()
-    this.setupOptimization()
+    if (resource.initiatorType !== 'img') continue;
+
+    const metrics = {
+      url: resource.name,
+      transferSize: resource.transferSize,
+      encodedBodySize: resource.encodedBodySize,
+      decodedBodySize: resource.decodedBodySize,
+      duration: resource.responseEnd - resource.startTime,
+      ttfb: resource.responseStart - resource.startTime,
+    };
+
+    console.log('Image loaded:', metrics);
   }
+});
 
-  // Network and preference detection
-  getNetworkQuality() {
-    if (!navigator.connection) return "unknown"
-
-    const { effectiveType, downlink } = navigator.connection
-
-    if (effectiveType === "slow-2g" || downlink < 1) return "low"
-    if (effectiveType === "2g" || downlink < 2) return "medium"
-    if (effectiveType === "3g" || downlink < 5) return "medium-high"
-    return "high"
-  }
-
-  getUserPreference() {
-    if (window.matchMedia("(prefers-reduced-data: reduce)").matches) {
-      return "data-saver"
-    }
-    return "normal"
-  }
-
-  setupOptimization() {
-    this.optimizeExistingImages()
-    this.setupLazyLoading()
-    this.setupMediaQueryListeners()
-  }
-
-  // Image optimization logic
-  optimizeExistingImages() {
-    const images = document.querySelectorAll("img:not([data-optimized])")
-
-    images.forEach((img) => {
-      this.optimizeImage(img)
-      img.setAttribute("data-optimized", "true")
-    })
-  }
-
-  optimizeImage(img) {
-    const strategy = this.getOptimizationStrategy(img)
-    this.applyLoadingAttributes(img, strategy)
-  }
-
-  getOptimizationStrategy(img) {
-    // ... strategy selection
-  }
-
-  // Key method: apply correct loading attributes based on strategy
-  applyLoadingAttributes(img, strategy) {
-    if (strategy === "above-fold") {
-      img.loading = "eager"
-      img.decoding = "sync" // Use sync for LCP images
-      img.fetchPriority = "high"
-    } else {
-      img.loading = "lazy"
-      img.decoding = "async"
-      img.fetchPriority = "auto"
-    }
-  }
-
-  isAboveFold(element) {
-    const rect = element.getBoundingClientRect()
-    return rect.top < window.innerHeight && rect.bottom > 0
-  }
-
-  // Lazy loading and event listeners
-  setupLazyLoading() {
-    const lazyImages = document.querySelectorAll('img[loading="lazy"]')
-
-    if ("IntersectionObserver" in window) {
-      const imageObserver = new IntersectionObserver(
-        (entries, observer) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              const img = entry.target
-              if (img.dataset.src) {
-                img.src = img.dataset.src
-                img.removeAttribute("data-src")
-              }
-              observer.unobserve(img)
-            }
-          })
-        },
-        { rootMargin: `${this.options.lazyLoadThreshold}px` },
-      )
-
-      lazyImages.forEach((img) => imageObserver.observe(img))
-    }
-  }
-
-  setupMediaQueryListeners() {
-    // Listen for data saver preference changes
-    const dataSaverQuery = window.matchMedia("(prefers-reduced-data: reduce)")
-    dataSaverQuery.addEventListener("change", (e) => {
-      this.userPreference = e.matches ? "data-saver" : "normal"
-      this.setupOptimization()
-    })
-
-    // Listen for connection changes
-    if (navigator.connection) {
-      navigator.connection.addEventListener("change", () => {
-        this.networkQuality = this.getNetworkQuality()
-        this.setupOptimization()
-      })
-    }
-  }
-}
+resourceObserver.observe({ type: 'resource', buffered: true });
 ```
 
-## Implementation Checklist
+## Conclusion
 
-### Format Optimization
+Image optimization requires treating LCP images differently from everything else. LCP images need aggressive loading (`eager`, `fetchpriority="high"`, `decoding="sync"`), while below-the-fold images should defer (`lazy`, `async`).
 
-- [ ] Convert all images to WebP/AVIF with JPEG/PNG fallbacks
-- [ ] Use `<picture>` element for format negotiation
-- [ ] Implement progressive enhancement for HDR displays
-- [ ] Optimize quality settings based on content type
+Format selection follows a clear priority: AVIF (30-50% smaller than JPEG, ~95% support) → WebP (25-34% smaller, ~96% support) → JPEG fallback. Use `<picture>` for format negotiation and art direction.
 
-### Responsive Images
+Responsive images prevent oversized downloads: `srcset` provides candidates, `sizes` tells the browser the slot size, and the browser calculates required pixels based on DPR. Always set explicit `width` and `height` to prevent CLS.
 
-- [ ] Generate multiple sizes for each image
-- [ ] Use `srcset` with width descriptors
-- [ ] Implement `sizes` attribute for accurate selection
-- [ ] Test across different viewport sizes and DPRs
+For production systems, build-time optimization (Sharp) works for static sites; image CDNs provide runtime flexibility with edge delivery. Monitor LCP element identification and image resource timing to verify optimizations are effective.
 
-### Loading Optimization
+## Appendix
 
-- [ ] Use `loading="lazy"` for below-the-fold images
-- [ ] Use `decoding="sync"` for LCP images, `decoding="async"` for others
-- [ ] Use `fetchpriority="high"` for LCP images
-- [ ] Preload critical above-the-fold images
+### Prerequisites
 
-### Performance Monitoring
+- Understanding of HTTP/2 resource prioritization
+- Familiarity with browser rendering pipeline (when images block paint)
+- Basic knowledge of Core Web Vitals (LCP, CLS)
 
-- [ ] Track image loading times
-- [ ] Monitor LCP impact
-- [ ] Measure bandwidth savings
-- [ ] Test across different network conditions
+### Terminology
 
-## Deployment Strategy
+- **AVIF**: AV1 Image File Format—image format based on AV1 video codec
+- **CLS**: Cumulative Layout Shift—Core Web Vital measuring visual stability
+- **DCT**: Discrete Cosine Transform—mathematical transformation used in JPEG compression
+- **DPR**: Device Pixel Ratio—ratio of physical to CSS pixels (e.g., 2x for Retina)
+- **LCP**: Largest Contentful Paint—Core Web Vital measuring perceived load time
+- **SSIM**: Structural Similarity Index—metric comparing perceived image quality
+- **WebP**: Image format developed by Google based on VP8 video codec
 
-**Format Stack:**
+### Summary
 
-1. **Photography**: AVIF → WebP → JPEG
-2. **Graphics/Logos**: WebP lossless → PNG
-3. **Animation**: WebP animation → MP4 fallback
-4. **Archival**: JPEG XL lossless
+- **Format priority**: AVIF (30-50% smaller) → WebP (25-34% smaller) → JPEG fallback; use `<picture>` for negotiation
+- **Responsive images**: `srcset` with width descriptors + `sizes` for slot hints; browser calculates required pixels from slot × DPR
+- **LCP images**: `loading="eager"`, `fetchpriority="high"`, `decoding="sync"`—opposite of below-fold images
+- **Below-fold images**: `loading="lazy"`, `fetchpriority="auto"`, `decoding="async"` to minimize initial load impact
+- **Always set dimensions**: `width` and `height` attributes prevent CLS on lazy-loaded images
+- **JPEG XL**: Chrome re-adding support (2025); Safari 17+ native; potential future default format
 
-**Implementation:** Use `<picture>` and `srcset` for responsive, progressive enhancement with fallbacks.
+### References
 
-## Performance Summary
+**Specifications**
 
-| Optimization Feature    | Performance Impact          | Complexity | Support |
-| ----------------------- | --------------------------- | ---------- | ------- |
-| **Responsive Sizing**   | 30-60% bandwidth savings    | Medium     | 95%+    |
-| **Format Optimization** | 25-70% file size reduction  | Medium     | 72-96%  |
-| **Lazy Loading**        | 50-100KB initial savings    | Low        | 95%+    |
-| **Network Awareness**   | 20-40% adaptive improvement | High       | 75%+    |
-| **Priority Hints**      | 10-25% LCP improvement      | Low        | 90%+    |
+- [AVIF Specification (AOM)](https://aomediacodec.github.io/av1-avif/) - AV1 Image File Format specification
+- [JPEG XL (ISO/IEC 18181)](https://www.iso.org/standard/87633.html) - JPEG XL codec specification
+- [WebP Container Specification (Google)](https://developers.google.com/speed/webp/docs/riff_container) - WebP RIFF container format
+- [WHATWG HTML - img element](https://html.spec.whatwg.org/multipage/embedded-content.html#the-img-element) - Responsive images specification
 
-**Total Performance Improvement:**
+**Official Documentation**
 
-- **LCP**: 40-60% faster
-- **Bandwidth**: 50-80% reduction
-- **User Experience**: Context-aware optimization
+- [MDN - Responsive Images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) - srcset, sizes, and picture element guide
+- [MDN - HTMLImageElement.decoding](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decoding) - decoding attribute behavior
+- [MDN - img element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img) - loading, fetchpriority attributes
+- [web.dev - Optimize LCP](https://web.dev/articles/optimize-lcp) - LCP image optimization strategies
+- [web.dev - Fetch Priority](https://web.dev/articles/fetch-priority) - fetchpriority attribute usage
 
-## References
+**Browser Support**
 
-- [Responsive Images - MDN](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) - Comprehensive guide to srcset and sizes
-- [Image Optimization - web.dev](https://web.dev/articles/fast#optimize_your_images) - Google's image optimization guidance
-- [AVIF Format](https://web.dev/learn/images/avif) - AVIF format benefits and implementation
-- [WebP Format](https://developers.google.com/speed/webp) - WebP compression and features
-- [AVIF Specification](https://aomediacodec.github.io/av1-avif/) - Alliance for Open Media
-- [JPEG XL Reference (libjxl)](https://github.com/libjxl/libjxl) - Official codec with benchmarks
-- [Intersection Observer API](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) - For implementing lazy loading
-- [Image decode() method](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/decode) - Programmatic image decoding
-- [Network Information API](https://developer.mozilla.org/en-US/docs/Web/API/Network_Information_API) - For network-aware loading
-- [Squoosh](https://squoosh.app/) - Google's image compression comparison tool
+- [Can I Use - AVIF](https://caniuse.com/avif) - ~95% global support
+- [Can I Use - WebP](https://caniuse.com/webp) - ~96% global support
+- [Chrome JPEG XL Support (DevClass)](https://devclass.com/2025/11/24/googles-chromium-team-decides-it-will-add-jpeg-xl-support-reverses-obsolete-declaration/) - Chrome re-adding JPEG XL
+
+**Tools**
+
+- [Sharp (Node.js)](https://sharp.pixelplumbing.com/) - High-performance image processing library
+- [Squoosh (Google)](https://squoosh.app/) - Browser-based image compression comparison

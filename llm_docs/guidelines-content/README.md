@@ -4,13 +4,21 @@ This folder is the single source of truth for **content** guidance (writing, res
 
 ## Reading Order
 
-Read these documents in order:
+### Core Guidelines (Always Read)
 
 1. `content-structure.md` - Article hierarchy and metadata derivation
 2. `content-guidelines.md` - Writing rules, article structure, quality checklist
 3. `research-and-fact-checking.md` - Source priority, verification, version evolution
 4. `markdown-features.md` - Expressive Code, Mermaid, KaTeX, tables
 5. `persona.md` - Principal engineer voice and audience
+
+### Content-Type Specific Guidelines
+
+These are **in addition to** core guidelines for specific article types:
+
+| Content Type | Guideline | When to Use |
+|--------------|-----------|-------------|
+| System Design Problems | `system-design-problems.md` | Articles in `system-design/system-design-problems/` |
 
 If any older docs conflict with this folder, the guidance here wins.
 

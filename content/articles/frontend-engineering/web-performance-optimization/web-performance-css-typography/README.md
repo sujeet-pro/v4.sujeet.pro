@@ -34,42 +34,57 @@ flowchart TB
 
 </figure>
 
-## TLDR
+## Abstract
 
-**CSS and typography optimization** targets render-blocking resources, layout stability, and font loading. Proper optimization achieves sub-14KB critical CSS, zero-CLS font swaps, and 60fps animations.
+CSS and typography performance follows a layered optimization model:
 
-### CSS Delivery
+<figure>
 
-- **Critical CSS**: Inline above-the-fold styles (≤14KB compressed) to eliminate render-blocking request
-- **Preload patterns**: `<link rel="preload" as="style">` with onload swap for non-critical CSS
-- **Bundling strategy**: Global CSS + route-level chunks balances cache hits and payload size
-- **Compression**: Gzip/Brotli achieves 70-95% reduction on CSS files
+```mermaid
+flowchart LR
+    subgraph "Delivery Layer"
+        direction TB
+        CRIT["Critical CSS<br/>≤14KB inline"]
+        DEFER["Non-critical<br/>Deferred load"]
+    end
 
-### CSS Runtime
+    subgraph "Runtime Layer"
+        direction TB
+        CONTAIN["Containment<br/>Isolate subtrees"]
+        COMPOSITE["Compositor<br/>transform/opacity"]
+    end
 
-- **CSS Containment**: `contain: layout paint style` isolates reflows to subtrees (20-40% savings)
-- **content-visibility**: Skip rendering for off-screen content (up to 7× faster initial render)
-- **will-change**: Hint browser to create compositor layer; use sparingly
-- **Composite-only**: Only animate `transform` and `opacity` for GPU-accelerated 60fps
+    subgraph "Font Layer"
+        direction TB
+        FORMAT["WOFF2 + Subset"]
+        METRIC["Metric Overrides<br/>Zero-CLS swap"]
+    end
 
-### Font Optimization
+    CRIT --> CONTAIN
+    DEFER --> CONTAIN
+    CONTAIN --> COMPOSITE
+    FORMAT --> METRIC
+```
 
-- **WOFF2 format**: 30% smaller than WOFF, 50% smaller than TTF; use for all modern browsers
-- **Subsetting**: Remove unused glyphs with `pyftsubset`; typical 65-90% reduction
-- **Variable fonts**: Single file with multiple weights; smaller than 3+ separate files
-- **font-display**: `swap` for immediate text, `optional` for performance-first
+<figcaption>Three optimization layers: delivery eliminates round-trips, runtime isolates layout work, fonts prevent layout shifts</figcaption>
 
-### CLS Prevention
+</figure>
 
-- **size-adjust**: Scale fallback font metrics to match custom font dimensions
-- **ascent-override / descent-override**: Fine-tune vertical metrics alignment
-- **Tools**: Fontaine, Capsize calculate override values automatically
+**Core mental model**: CSS is render-blocking by design—browsers must build the CSSOM before first paint. Every optimization either reduces blocking time (critical CSS, compression), reduces layout scope (containment), or prevents reflows (compositor animations, font metrics).
+
+**The 14KB threshold** persists even with HTTP/2 and HTTP/3 because TCP slow start's initial congestion window remains ~10 packets (14,600 bytes). Critical CSS fitting this budget renders in the first round-trip.
+
+**Font-induced CLS** occurs because fallback and custom fonts have different metrics. The solution isn't avoiding `font-display: swap`, but making the swap dimensionally identical through metric overrides (`size-adjust`, `ascent-override`).
+
+**Browser support context (as of 2026)**: `content-visibility` is Baseline available (September 2025). Font metric overrides (`ascent-override`, `descent-override`, `line-gap-override`) are NOT Baseline—Safari lacks support. CSS Paint API (Houdini) remains experimental—Firefox has no native support.
 
 ## Part 1: CSS Delivery Optimization
 
 ### 1.1 Render-Blocking Fundamentals
 
-Browsers block painting until all blocking stylesheets are fetched, parsed, and the CSSOM is built. This prevents flashes of unstyled content (FOUC) but adds to the critical rendering path.
+Browsers block painting until all blocking stylesheets are fetched, parsed, and the CSS Object Model (CSSOM) is built. This prevents flashes of unstyled content (FOUC) but adds to the critical rendering path.
+
+**Design rationale**: The browser intentionally blocks rendering rather than showing unstyled content because partial styling creates worse UX than a brief delay. This blocking behavior is the reason CSS delivery optimization matters—unlike scripts which can be `async`/`defer`, stylesheets are blocking by default.
 
 | Technique               | Core Idea                     | Typical Win                      | Gotchas                             |
 | ----------------------- | ----------------------------- | -------------------------------- | ----------------------------------- |
@@ -93,7 +108,9 @@ Bundling every style into one mega-file simplifies caching but couples cache bus
 
 Inlining just the above-the-fold rules eliminates a full round-trip, shrinking First Contentful Paint (FCP) by hundreds of milliseconds on 4G.
 
-**Target**: ≤14KB compressed critical CSS
+**Target**: ≤14KB compressed critical CSS (fits within TCP slow start's initial congestion window of ~10 packets)
+
+**Why 14KB persists with HTTP/2 and HTTP/3**: Despite multiplexing improvements, TCP slow start still limits the initial congestion window. HTTP/3's QUIC uses the same 14KB recommendation. The first round-trip can only carry ~14,600 bytes, making this threshold transport-protocol agnostic.
 
 **Tooling Workflow:**
 
@@ -150,18 +167,24 @@ The `contain` property instructs the engine to scope layout, paint, style, and s
 
 ### 2.2 content-visibility
 
-Extends containment with lazy rendering; `content-visibility: auto` skips layout/paint until the element nears viewport.
+Extends containment with lazy rendering; `content-visibility: auto` skips layout and paint until the element approaches the viewport.
 
 ```css
 .section {
   content-visibility: auto;
-  contain-intrinsic-size: 0 1000px; /* reserve space */
+  contain-intrinsic-size: auto 1000px; /* reserve space, remember actual size */
 }
 ```
 
-- Gains up to 7× faster initial render on long documents
-- Must specify `contain-intrinsic-size` to avoid layout shifts
-- Now Baseline available (September 2025) across all major browsers
+- Gains up to 7× faster initial render on long documents (tested: 232ms → 30ms)
+- Must specify `contain-intrinsic-size` to reserve space and avoid layout shifts during scroll
+- **Baseline available** (September 2025): Chrome 85+, Firefox 125+, Safari 18+
+
+**The `auto` keyword in `contain-intrinsic-size`**: Using `auto 1000px` tells the browser to use the last-rendered size once known, falling back to 1000px initially. This provides better scroll behavior than a fixed placeholder.
+
+**Design rationale**: The browser skips rendering for off-screen elements entirely—no layout calculation, no paint, no compositor layers. When the user scrolls near the element, rendering happens just-in-time. This trades scroll-time computation for faster initial paint.
+
+> **Prior to September 2025**: Firefox had `content-visibility` disabled by default (versions 109-124). Safari lacked support entirely. Cross-browser use required feature detection or polyfills.
 
 ### 2.3 will-change
 
@@ -173,7 +196,29 @@ A hint for future property transitions so the engine can promote layers upfront.
 }
 ```
 
-**Use carefully**: Over-using `will-change` burns memory; browsers ignore hints beyond a surface-area budget. Apply dynamically via JS just before animation and remove after.
+**Use carefully**: `will-change` is a **last resort** for existing performance problems, not a preventive measure. Over-using it:
+
+- Burns GPU memory (each promoted layer consumes video memory)
+- Can cause composition overhead that outweighs benefits
+- Browsers ignore hints beyond a surface-area budget
+
+**Recommended pattern**: Toggle via JavaScript, not static CSS:
+
+```javascript title="will-change-toggle.js" collapse={1-2, 10-15}
+const modal = document.querySelector('.modal');
+
+// Apply before animation starts
+modal.addEventListener('mouseenter', () => {
+  modal.style.willChange = 'transform, opacity';
+});
+
+// Remove after animation completes
+modal.addEventListener('animationend', () => {
+  modal.style.willChange = 'auto';
+});
+```
+
+**When static CSS is acceptable**: Predictable, frequent animations like slide decks or page-flip interfaces where the element will definitely animate on interaction.
 
 ### 2.4 Compositor-Friendly Animations
 
@@ -207,16 +252,18 @@ Animate only **opacity** and **transform** to stay on the compositor thread, avo
 
 ### 2.5 CSS Houdini Paint Worklet
 
-Paint Worklets allow JS-generated backgrounds executed off-main-thread.
+Paint Worklets allow JavaScript-generated backgrounds executed off-main-thread. The CSS Paint API enables custom rendering without DOM overhead.
 
-```javascript
-// checkerboard.js
+```javascript title="checkerboard.js" collapse={1-2}
+// checkerboard.js - Paint Worklet module
 registerPaint(
   "checker",
   class {
     paint(ctx, geom) {
       const s = 16
-      for (let y = 0; y < geom.height; y += s) for (let x = 0; x < geom.width; x += s) ctx.fillRect(x, y, s, s)
+      for (let y = 0; y < geom.height; y += s)
+        for (let x = 0; x < geom.width; x += s)
+          ctx.fillRect(x, y, s, s)
     }
   },
 )
@@ -234,7 +281,16 @@ registerPaint(
 }
 ```
 
-**Performance**: Runs in dedicated worklet thread; Chrome 65+, FF/Safari via polyfill.
+**Browser Support (NOT Baseline)**:
+
+| Browser | Status | Notes |
+| ------- | ------ | ----- |
+| Chrome | Full support | 65+ (April 2018) |
+| Edge | Full support | 79+ |
+| Firefox | **Not supported** | Under consideration (Bug #1302328) |
+| Safari | **Partial** | Development stage, experimental |
+
+**Recommendation**: Treat CSS Paint API as experimental. Use the [CSS Paint Polyfill](https://github.com/GoogleChromeLabs/css-paint-polyfill) by Chrome DevRel for cross-browser support, but consider it progressive enhancement rather than core functionality. The polyfill leverages `-webkit-canvas()` and `-moz-element()` for optimized rendering in non-supporting browsers.
 
 ### 2.6 CSS Size & Selector Efficiency
 
@@ -327,19 +383,28 @@ Variable fonts consolidate multiple weights/styles into a single file, reducing 
 - Variable font (OTF): 405 KB
 - Variable font (WOFF2): 112 KB
 
-**Declaration:**
+**Declaration (modern syntax)**:
 
 ```css
 @font-face {
   font-family: "MyVariableFont";
-  src:
-    url("MyVariableFont.woff2") format("woff2-variations"),
-    url("MyVariableFont.woff2") format("woff2 supports variations");
+  src: url("MyVariableFont.woff2") format("woff2");
   font-weight: 100 900;
   font-stretch: 75% 125%;
   font-style: normal;
 }
 ```
+
+**Format syntax evolution**:
+
+| Syntax | Status |
+| ------ | ------ |
+| `format("woff2")` | **Recommended** - modern browsers auto-detect variable fonts |
+| `format("woff2") tech("variations")` | Current spec, gaining support |
+| `format("woff2-variations")` | Deprecated but still works |
+| `format("woff2 supports variations")` | Removed from spec, avoid |
+
+**Design rationale**: Variable fonts use OpenType 1.8+ variation tables. Modern browsers detect these automatically from the font binary, making explicit variation hints unnecessary. The `tech()` function exists for forward compatibility but adds no practical benefit today.
 
 **Usage:**
 
@@ -420,12 +485,14 @@ Preload critical fonts to discover them early:
 
 ### 4.3 font-display Strategies
 
-| Value      | Block Period     | Swap Period | Behavior          | CWV Impact         | Use Case                      |
-| ---------- | ---------------- | ----------- | ----------------- | ------------------ | ----------------------------- |
-| `block`    | Short (~3s)      | Infinite    | FOIT              | Bad FCP/LCP        | Icon fonts                    |
-| `swap`     | Minimal (~100ms) | Infinite    | FOUT              | Good FCP, risk CLS | Headlines with CLS mitigation |
-| `fallback` | ~100ms           | ~3s         | Compromise        | Balanced           | Body text                     |
-| `optional` | ~100ms           | None        | Performance-first | Excellent CLS      | Non-critical text             |
+| Value      | Block Period            | Swap Period | Behavior          | CWV Impact         | Use Case                      |
+| ---------- | ----------------------- | ----------- | ----------------- | ------------------ | ----------------------------- |
+| `block`    | Short (~3s recommended) | Infinite    | FOIT              | Bad FCP/LCP        | Icon fonts                    |
+| `swap`     | Extremely small (~0)    | Infinite    | FOUT              | Good FCP, risk CLS | Headlines with CLS mitigation |
+| `fallback` | Extremely small (~100ms)| ~3s         | Compromise        | Balanced           | Body text                     |
+| `optional` | Extremely small (~100ms)| None        | Performance-first | Excellent CLS      | Non-critical text             |
+
+**Important**: The ~3s and ~100ms values are **recommendations**, not spec requirements. The CSS Fonts specification defines relative timing concepts ("extremely small", "short"), not exact milliseconds. Actual implementation varies by browser—Firefox exposes these as configurable preferences (`gfx.downloadable_fonts.fallback_delay`).
 
 **Strategy alignment:**
 
@@ -474,6 +541,32 @@ Use CSS descriptors to force fallback fonts to match custom font dimensions:
 - **descent-override**: Space below baseline
 - **line-gap-override**: Extra space between lines
 
+**Browser Support (NOT Baseline)**:
+
+| Property | Chrome | Firefox | Safari |
+| -------- | ------ | ------- | ------ |
+| `size-adjust` | 92+ | 92+ | 17+ |
+| `ascent-override` | 87+ | 89+ | **No** |
+| `descent-override` | 87+ | 89+ | **No** |
+| `line-gap-override` | 87+ | 89+ | **No** |
+
+**Safari limitation**: Safari supports only `size-adjust`. Using `ascent-override` and `descent-override` without Safari support may produce worse results than no adjustment, since the size change without vertical metric correction can increase layout shift.
+
+**Workaround for Safari**: Consider using `@supports` to exclude Safari from full metric overrides:
+
+```css
+@supports (ascent-override: 1%) {
+  /* Chrome, Edge, Firefox only */
+  @font-face {
+    font-family: "Inter-Fallback";
+    src: local("Arial");
+    ascent-override: 90.2%;
+    descent-override: 22.48%;
+    size-adjust: 107.4%;
+  }
+}
+```
+
 ### 5.3 Implementation
 
 **Step 1: Define the web font:**
@@ -521,8 +614,10 @@ body {
 
 **Framework integration:**
 
-- **Next.js**: `@next/font` automatically calculates and injects fallback fonts
+- **Next.js 13+**: `next/font` automatically calculates and injects fallback fonts with `size-adjust`. Self-hosts Google Fonts at build time for GDPR compliance and eliminates runtime network requests.
 - **Nuxt.js**: `@nuxtjs/fontaine` module provides automatic fallback generation
+
+> **Note on Next.js**: The `@next/font` package was renamed to `next/font` and completely removed in Next.js 14 (October 2023). Use `import { Inter } from 'next/font/google'` or `import localFont from 'next/font/local'`.
 
 ## Part 6: Build-Time Processing
 
@@ -533,15 +628,23 @@ body {
 
 ### 6.2 CSS-in-JS Considerations
 
-Runtime CSS-in-JS (styled-components, Emotion) generates and parses CSS in JS bundles, adding 50-200ms scripting cost per route.
+Runtime CSS-in-JS (styled-components, Emotion) generates and parses CSS in JS bundles, adding 50-200ms scripting cost per route. The cost comes from:
+
+1. **JS parsing**: CSS strings embedded in JS bundles increase parse time
+2. **Style injection**: Runtime style tag creation and CSSOM manipulation
+3. **Hydration mismatch risk**: Server-rendered CSS must match client-generated CSS exactly
+
+**Design trade-off**: Runtime CSS-in-JS offers developer experience (colocation, dynamic styles) at the cost of runtime performance. The question is whether your use case requires runtime dynamism.
 
 **Static extraction alternatives:**
 
-- Linaria
-- vanilla-extract
-- Panda CSS
+| Library | Approach | Trade-off |
+| ------- | -------- | --------- |
+| Linaria | Zero-runtime, extracts to CSS | No dynamic styles |
+| vanilla-extract | TypeScript-first, type-safe tokens | Build-time only |
+| Panda CSS | Atomic CSS generation | Learning curve for atomic approach |
 
-These compile to CSS at build time, regaining performance while retaining component-scoped authoring.
+These compile to static CSS at build time, achieving the same performance as hand-written CSS while retaining component-scoped authoring. Use runtime CSS-in-JS only when you need styles that depend on runtime values (user preferences, API responses).
 
 ## Part 7: Measurement & Diagnostics
 
@@ -560,8 +663,8 @@ These compile to CSS at build time, regaining performance while retaining compon
 
 ### 7.3 Custom Metrics
 
-```javascript title="performance-monitoring.js"
-// Monitor font loading
+```javascript title="performance-monitoring.js" collapse={1-2, 12-13}
+// Monitor font loading with PerformanceObserver
 const fontObserver = new PerformanceObserver((list) => {
   list.getEntries().forEach((entry) => {
     if (entry.initiatorType === "css" && entry.name.includes("font")) {
@@ -572,13 +675,13 @@ const fontObserver = new PerformanceObserver((list) => {
 })
 fontObserver.observe({ type: "resource" })
 
-// Monitor layout shifts
+// Monitor layout shifts for font-induced CLS
 const clsObserver = new PerformanceObserver((list) => {
   list.getEntries().forEach((entry) => {
     if (!entry.hadRecentInput) {
       console.log(`Layout shift: ${entry.value}`)
-      // Log font-related shifts
       entry.sources?.forEach((source) => {
+        // Text elements are likely font-related
         if (source.node?.tagName === "P" || source.node?.tagName === "H1") {
           console.log("Possible font-induced CLS")
         }
@@ -634,25 +737,72 @@ clsObserver.observe({ type: "layout-shift" })
 | Total fonts       | ≤100KB | Critical fonts only      |
 | Max font families | 2-3    | Variable fonts preferred |
 
-## Summary
+## Conclusion
 
-1. **Load fast**: Minify, compress, split, and inline critical CSS ≤14KB
-2. **Render smart**: Apply `contain`/`content-visibility` to independent sections
-3. **Animate on compositor**: Stick to `opacity`/`transform`, use Worklets for custom effects
-4. **Optimize fonts**: WOFF2 + subsetting + variable fonts
-5. **Eliminate CLS**: Font metric overrides for dimensionally identical fallbacks
-6. **Ship less CSS**: Tree-shake frameworks, keep selectors flat
+CSS and typography performance optimization centers on understanding why browsers block rendering and what causes layout instability. CSS is render-blocking by design—the browser must build the complete CSSOM before painting. This makes delivery optimization (critical CSS, compression, deferral) fundamentally different from JavaScript optimization.
 
-## References
+Font loading creates a tension between text visibility (FCP/LCP) and layout stability (CLS). The solution isn't choosing between `font-display: swap` or `block`, but making the swap invisible through metric overrides. However, Safari's lack of `ascent-override` and `descent-override` support means zero-CLS font swaps remain aspirational on Apple devices.
+
+Runtime optimization through containment (`contain`, `content-visibility`) represents a shift from global to local layout scope. The browser still does the same work, just scoped to subtrees. This matters most for complex interfaces—dashboards, infinite lists, content-heavy pages—where a single change can cascade layout recalculations across thousands of nodes.
+
+The 14KB critical CSS target persists because it's based on TCP physics, not HTTP versions. HTTP/2 and HTTP/3 improve multiplexing but don't change slow start behavior. Fitting critical CSS in the initial congestion window remains the fastest path to first paint.
+
+## Appendix
+
+### Prerequisites
+
+- Understanding of the browser rendering pipeline (DOM → CSSOM → Render Tree → Layout → Paint → Composite)
+- Familiarity with Core Web Vitals (LCP, CLS, INP)
+- Basic knowledge of HTTP caching and compression
+
+### Terminology
+
+- **CSSOM**: CSS Object Model—the browser's parsed representation of stylesheets
+- **FOUC**: Flash of Unstyled Content—visible unstyled HTML before CSS loads
+- **FOIT**: Flash of Invisible Text—invisible text while fonts load (with `font-display: block`)
+- **FOUT**: Flash of Unstyled Text—fallback font visible before custom font loads (with `font-display: swap`)
+- **Compositor**: Browser thread that handles GPU-accelerated rendering of layers
+- **initcwnd**: Initial congestion window—TCP's starting packet count (~10 packets ≈ 14KB)
+
+### Summary
+
+1. **Load fast**: Minify, compress, split, and inline critical CSS ≤14KB (fits initial congestion window)
+2. **Render smart**: Apply `contain`/`content-visibility` to isolate subtrees from global layout
+3. **Animate on compositor**: Stick to `opacity`/`transform`; use `will-change` sparingly and toggle via JS
+4. **Optimize fonts**: WOFF2 + subsetting + variable fonts; target ≤100KB total
+5. **Eliminate CLS**: Font metric overrides for dimensionally identical fallbacks (Safari lacks `ascent-override`)
+6. **Ship less CSS**: Tree-shake frameworks, keep selectors flat, measure with Coverage tab
+
+### References
+
+**Specifications**:
+
+- [W3C WOFF2 Specification](https://www.w3.org/TR/WOFF2/) - Web Open Font Format 2.0
+- [CSS Containment Module Level 2](https://www.w3.org/TR/css-contain-2/) - Containment and content-visibility spec
+- [CSS Fonts Module Level 4](https://www.w3.org/TR/css-fonts-4/) - font-display, font metric descriptors
+
+**Official Documentation**:
 
 - [CSS Containment - MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_containment) - Containment and content-visibility
 - [will-change - MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/will-change) - Animation optimization hints
-- [Critical CSS](https://web.dev/articles/extract-critical-css) - Extracting and inlining critical CSS
-- [content-visibility](https://web.dev/articles/content-visibility) - Lazy rendering for better performance
-- [Chrome DevTools Coverage](https://developer.chrome.com/docs/devtools/coverage) - Finding unused CSS
-- [WOFF2 Specification](https://www.w3.org/TR/WOFF2/) - W3C Web Open Font Format 2.0
 - [Variable Fonts - MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide) - Variable fonts guide
 - [font-display - MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display) - Font loading behavior control
+- [ascent-override - MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/ascent-override) - Font metric descriptors
+- [Chrome DevTools Coverage](https://developer.chrome.com/docs/devtools/coverage) - Finding unused CSS
+- [Next.js Font Optimization](https://nextjs.org/docs/pages/api-reference/components/font) - next/font API reference
+
+**Industry Expert Content**:
+
+- [Critical CSS - web.dev](https://web.dev/articles/extract-critical-css) - Extracting and inlining critical CSS
+- [content-visibility - web.dev](https://web.dev/articles/content-visibility) - Lazy rendering for better performance
+- [CSS content-visibility Baseline - web.dev](https://web.dev/blog/css-content-visibility-baseline) - September 2025 baseline announcement
 - [Font Metric Overrides - web.dev](https://web.dev/articles/css-size-adjust) - Preventing CLS with size-adjust
+- [Why 14KB - Tune The Web](https://www.tunetheweb.com/blog/critical-resources-and-the-first-14kb/) - TCP slow start and critical resources
+- [Variable Fonts - Evil Martians](https://evilmartians.com/chronicles/the-joy-of-variable-fonts-getting-started-on-the-frontend) - Format syntax evolution
+
+**Tools**:
+
 - [pyftsubset](https://fonttools.readthedocs.io/en/latest/subset/) - Font subsetting tool
 - [Fallback Font Generator](https://screenspan.net/fallback) - Calculate font metric overrides
+- [Capsize](https://seek-oss.github.io/capsize/) - Font metrics calculation
+- [CSS Paint Polyfill](https://github.com/GoogleChromeLabs/css-paint-polyfill) - Cross-browser Houdini support
