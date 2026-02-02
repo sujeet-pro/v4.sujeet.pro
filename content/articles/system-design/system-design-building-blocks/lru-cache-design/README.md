@@ -1,6 +1,6 @@
-# LRU Cache Design: Eviction Strategy and Tradeoffs
+# LRU Cache Design: Eviction Strategies and Trade-offs
 
-Learn the classic LRU cache implementation, understand its limitations, and explore modern alternatives like LRU-K, 2Q, and ARC for building high-performance caching systems.
+Learn the classic LRU cache implementation, understand its limitations, and explore modern alternatives like LRU-K, 2Q, ARC, and SIEVE for building high-performance caching systems.
 
 <figure>
 
@@ -11,82 +11,83 @@ flowchart TB
         LRUK["LRU-K<br/>K-th Reference Tracking<br/>✓ Scan resistant<br/>✗ Complex, needs tuning"]
         TwoQ["2Q<br/>Two Queue System<br/>✓ Simple, O(1)<br/>✓ Scan resistant"]
         ARC["ARC<br/>Adaptive Replacement<br/>✓ Self-tuning<br/>✓ Patent expired 2024"]
+        SIEVE["SIEVE<br/>Lazy Promotion/Eviction<br/>✓ Simpler than LRU<br/>✓ Better hit rates"]
     end
 
     LRU -->|"Add frequency<br/>awareness"| LRUK
     LRU -->|"Simplified<br/>filtering"| TwoQ
     LRUK -->|"Adaptive<br/>balancing"| ARC
     TwoQ -->|"Self-tuning<br/>replacement"| ARC
+    LRU -->|"Lazy promotion<br/>NSDI'24"| SIEVE
 
     style LRU fill:#fff2cc,stroke:#d6b656
     style LRUK fill:#dae8fc,stroke:#6c8ebf
     style TwoQ fill:#d5e8d4,stroke:#82b366
     style ARC fill:#f8cecc,stroke:#b85450
+    style SIEVE fill:#e1d5e7,stroke:#9673a6
 ```
 
-<figcaption>Evolution of cache replacement algorithms from basic LRU to self-tuning ARC</figcaption>
+<figcaption>Evolution of cache replacement algorithms from basic LRU to modern alternatives</figcaption>
 
 </figure>
 
-## TLDR
+## Abstract
 
-**Least Recently Used (LRU)** is a fundamental cache eviction policy that removes the least recently accessed item when the cache is full, based on the principle of temporal locality. While effective for simple workloads, LRU suffers from cache pollution during sequential scans, leading to the development of more sophisticated algorithms.
+Cache eviction is fundamentally a prediction problem: given limited memory, which items should be kept to maximize future hits? The core insight is that different access patterns require different prediction strategies.
 
-### Core Concepts
+**The Trade-off Space:**
 
-- **LRU Implementation**: Combines a hash map (O(1) lookup) with a doubly linked list (O(1) insertion/deletion) to achieve constant-time `get` and `put` operations
-- **Temporal Locality**: The principle that recently accessed data is likely to be accessed again soon, which LRU exploits effectively
-- **Cache Pollution**: Sequential scans can evict valuable "hot" data by filling the cache with single-use "cold" data, systematically degrading performance
-- **JavaScript Map Shortcut**: ES2015 Map objects maintain insertion order, enabling simple LRU implementations without explicit linked lists
+| Strategy | Predicts Future Access By | Vulnerable To | Best For |
+|----------|---------------------------|---------------|----------|
+| Recency (LRU) | Recent access | Sequential scans | Temporal locality |
+| Frequency (LFU) | Access count | One-time popular items | Stable popularity |
+| Hybrid (ARC, 2Q) | Both signals | Complexity overhead | Mixed workloads |
+| Lazy (SIEVE) | Visited bit + FIFO | Very short TTLs | Web caches |
 
-### Algorithm Comparison
+**Key Design Decisions:**
 
-- **LRU (Least Recently Used)**: Simple, O(1) operations, but vulnerable to scan pollution. Best for workloads with strong temporal locality
-- **LRU-K**: Tracks last K accesses per item, evicts based on K-th reference time. Scan-resistant but requires tuning K parameter and has higher complexity
-- **2Q (Two Queue)**: Uses probationary FIFO queue + main LRU cache. Simple O(1) operations with excellent scan resistance, chosen by PostgreSQL
-- **ARC (Adaptive Replacement Cache)**: Self-tuning algorithm that balances recency (T1) and frequency (T2) using ghost lists (B1, B2) for learning. Patented by IBM (US6996676B2)
-- **CAR (Clock with Adaptive Replacement)**: Alternative to ARC with similar adaptive properties (note: IBM also filed a patent application for CAR)
+1. **Recency vs. Frequency**: LRU assumes "recently used = soon needed." This fails catastrophically during sequential scans. Solutions: filter first-time accesses (2Q), adapt dynamically (ARC), or use lazy promotion (SIEVE).
 
-### When to Use Each Algorithm
+2. **Exact vs. Approximated**: True LRU requires O(1) linked list operations on every access. Approximated LRU (Redis, Linux) samples random keys, trading accuracy for throughput—often 95%+ as effective with better scalability.
 
-- **Use LRU** for: Web browsing, file systems, simple applications with strong temporal locality, educational purposes
-- **Use LRU-K** for: Database buffer pools, mixed workloads with both sequential and random access patterns
-- **Use 2Q** for: Production databases (PostgreSQL), scenarios requiring scan resistance without patent concerns
-- **Use ARC** for: Systems where self-tuning is critical and patent licensing is acceptable, unpredictable workload patterns
-- **Consider CAR** for: Projects needing ARC-like adaptivity (note: with ARC patent expired in 2024, ARC itself is now freely usable)
+3. **Memory Overhead vs. Accuracy**: Ghost lists (ARC) and history tracking (LRU-K) improve hit rates but consume memory. SIEVE achieves comparable results with just one bit per entry.
 
-### Implementation Considerations
-
-- **Memory Overhead**: LRU uses 2 pointers per entry; LRU-K adds K timestamps; 2Q requires multiple maps; ARC maintains 4 data structures (T1, T2, B1, B2)
-- **Time Complexity Reality**: Naive implementations may be O(n) for eviction despite theoretical O(1) claims—use priority queues or careful data structure design
-- **Concurrency**: Production systems require thread-safe implementations with appropriate locking or lock-free data structures
-- **Approximated Algorithms**: Redis and Linux use approximated LRU (sampling-based) for better performance with acceptable accuracy trade-offs
-- **Patent Considerations**: ARC patent (US6996676B2, granted 2006, **expired February 22, 2024**) historically caused PostgreSQL to switch from ARC in version 8.0.0 to 2Q in 8.0.2, then to clock sweep in 8.1
-
-### Real-World Usage
-
-- **PostgreSQL**: Uses clock sweep algorithm for buffer management since version 8.1 (briefly used ARC in 8.0.0, then 2Q in 8.0.2 due to patent concerns)
-- **Redis**: Uses approximated LRU with random sampling for cache eviction
-- **Linux Kernel**: Page cache historically used a two-list active/inactive approach; modern kernels (6.1+) support Multi-Generational LRU (MGLRU) for improved performance (some distros backported MGLRU patches to 5.18)
-- **Memcached**: Implements LRU with slab allocator for memory efficiency
-- **CDNs**: Often use LRU variants with size-aware eviction for content delivery
+**Mental Model**: Think of cache eviction as a bouncer at a club with limited capacity. LRU removes whoever hasn't been seen longest. 2Q makes newcomers wait in a probationary area. ARC keeps notes on who was wrongly kicked out and learns from mistakes. SIEVE marks regulars with a wristband and only evicts unmarked patrons.
 
 ## The Classic: Understanding LRU
 
-The **Least Recently Used (LRU)** cache is one of the most fundamental and widely-used caching algorithms. The principle is simple and intuitive: when the cache is full, evict the item that has been accessed the least recently. This is based on the principle of **temporal locality**—the observation that data you've used recently is likely to be needed again soon.
+Least Recently Used (LRU) is a cache eviction policy based on a single assumption: **recently accessed data is likely to be accessed again soon**. This principle, called **temporal locality**, holds for many workloads—web browsing, file system access, database queries—making LRU the default choice for general-purpose caching.
 
-LRU operates on the assumption that recently accessed items are more likely to be accessed again in the near future. This makes it particularly effective for workloads with strong temporal locality, such as web browsing, file system access, and many database operations.
+**Why LRU Works:**
+- **Temporal locality** is common: users revisit pages, code re-executes hot paths, queries repeat
+- **Simple mental model**: recent = important, old = expendable
+- **No frequency tracking**: avoids overhead of counting accesses
 
-## LRU Implementation: O(1) Magic
+**Why LRU Fails:**
+- **Sequential scans**: A full table scan evicts your entire working set with data you'll never access again
+- **No frequency signal**: An item accessed 1000 times gets evicted after one scan if it wasn't touched recently
+- **One-shot pollution**: Batch jobs, backups, and analytics queries poison the cache
 
-To be effective, a cache needs to be fast. The two core operations, `get` (retrieving an item) and `put` (adding or updating an item), must be executed in constant time, or O(1). A naive implementation using just an array would require a linear scan (O(n)) to find the least recently used item, which is far too slow.
+## LRU Implementation: Achieving O(1) Operations
 
-The classic, high-performance LRU solution combines two data structures:
+A cache is only useful if it's fast. Both `get` and `put` must be O(1)—anything slower defeats the purpose of caching. The challenge: tracking recency requires ordering, but maintaining sorted order is O(n) or O(log n).
 
-- **A Hash Map**: This provides the O(1) lookup. The map stores a key that points directly to a node in a linked list.
-- **A Doubly Linked List (DLL)**: This maintains the usage order. The head of the list is the Most Recently Used (MRU) item, and the tail is the Least Recently Used (LRU) item.
+**The Classic Solution: Hash Map + Doubly Linked List**
 
-When an item is accessed (`get`) or added (`put`), it's moved to the head of the DLL. When the cache is full, the item at the tail is evicted. This combination gives both operations the desired O(1) time complexity.
+| Data Structure | Purpose | Operation |
+|----------------|---------|-----------|
+| Hash Map | O(1) key lookup | `map[key] → node pointer` |
+| Doubly Linked List (DLL) | O(1) order maintenance | Head = MRU, Tail = LRU |
+
+**How Operations Work:**
+
+| Operation | Steps | Complexity |
+|-----------|-------|------------|
+| `get(key)` | Hash lookup → unlink → relink at head | O(1) |
+| `put(key, value)` | Update/create at head, evict tail if full | O(1) |
+| Eviction | Remove tail node, delete from hash map | O(1) |
+
+**Why Doubly Linked List?** A singly linked list requires O(n) to find the predecessor for unlinking. Doubly linked lists store `prev` and `next` pointers, enabling O(1) removal from any position.
 
 <figure>
 
@@ -290,38 +291,65 @@ class DoublyLinkedList {
 }
 ```
 
-## When LRU Fails: The Achilles' Heel
+## When LRU Fails: The Scan Problem
 
-LRU's greatest strength is its simplicity, but this is also its greatest weakness. It equates "most recently used" with "most important," an assumption that breaks down catastrophically under a common workload: the **sequential scan**.
+LRU equates "recently used" with "important"—an assumption that breaks catastrophically during **sequential scans**.
 
-Imagine a database performing a full table scan or an application looping over a large dataset that doesn't fit in memory. As each new, single-use item is accessed, LRU dutifully places it at the front of the cache, evicting a potentially valuable, frequently-used item from the tail. This process, known as **cache pollution**, systematically flushes the cache of its "hot" data and fills it with "cold" data that will never be used again.
+**The Failure Mechanism:**
 
-Once the scan is over, the cache is useless, and the application suffers a storm of misses as it tries to reload its true working set. This fundamental flaw is the primary driver behind the evolution of more advanced algorithms.
+```
+Before scan: Cache contains hot items A, B, C, D (frequently accessed)
+During scan: Items 1, 2, 3, 4... sequentially accessed
+After scan:  Cache contains cold items (last N scanned), hot items evicted
+Result:      Miss storm as application reloads working set
+```
 
-### Common LRU Failure Scenarios:
+**Why This Matters:**
+- A single `SELECT * FROM large_table` can destroy hours of cache warmup
+- Background jobs (backups, ETL, analytics) poison production caches
+- The scan data is never accessed again, but it displaced data that would have been
 
-1. **Database Full Table Scans**: Large analytics queries that touch every row
-2. **File System Traversals**: Walking through directory structures
-3. **Batch Processing**: Processing large datasets sequentially
-4. **Memory-Mapped File Access**: Sequential reading of large files
+**Quantifying the Impact:**
 
-## Beyond LRU: Modern Alternatives
+In a cache with 10,000 entries holding a working set with 95% hit rate:
+- A 50,000-item sequential scan evicts the entire working set
+- Hit rate drops to ~0% until the working set is reloaded
+- If working set reload takes 100ms per item, that's 1,000 seconds of degraded performance
 
-To overcome LRU's weaknesses, computer scientists developed policies that incorporate more information than just recency. These algorithms aim to be scan-resistant while retaining low overhead.
+### Common LRU Failure Scenarios
 
-### LRU-K: Adding Frequency Memory
+| Scenario | Why It Fails | Frequency |
+|----------|--------------|-----------|
+| Database full table scans | Analytics queries touch every row once | Common in OLAP |
+| File system traversals | `find`, `du`, backup tools | Daily operations |
+| Batch processing | ETL jobs process datasets sequentially | Nightly jobs |
+| Memory-mapped file reads | Sequential file I/O | Log processing |
+| Cache warmup after restart | Loading entire dataset sequentially | Deployments |
 
-LRU-K extends the classic LRU by tracking the timestamps of the last K accesses for each item. The eviction decision is based on the K-th most recent access time, providing better resistance to cache pollution.
+## Design Choices: Scan-Resistant Algorithms
 
-**How it Works**: An item is considered "hot" and worth keeping only if it has been accessed at least K times. This allows the algorithm to distinguish between items with a proven history of use and single-use items from a scan.
+To overcome LRU's scan vulnerability, several algorithms incorporate additional signals beyond recency. Each makes different trade-offs between complexity, memory overhead, and adaptivity.
 
-**Key Advantages**:
+### LRU-K: History-Based Filtering
 
-- **Scan Resistance**: Items in a sequential scan are typically accessed only once and are evicted quickly
-- **Frequency Awareness**: Distinguishes between truly popular items and recently accessed ones
-- **Backward Compatibility**: LRU-1 is equivalent to classic LRU
+**Mechanism:** Track the timestamps of the last K accesses per item. Evict based on the K-th most recent access time, not the most recent.
 
-**Trade-offs**: The choice of K is critical and workload-dependent. If K is too large, legitimate items might be evicted before they are accessed K times; if it's too small, the algorithm degenerates back to LRU.
+**Why It Works:** Items accessed only once (scan data) have no K-th access time and are evicted first. Items with K accesses have proven popularity.
+
+**Best When:**
+- Database buffer pools with mixed OLTP/OLAP workloads
+- Workloads where frequency is a better predictor than recency
+- K can be tuned for the specific access pattern (typically K=2)
+
+**Trade-offs:**
+- ✅ Scan-resistant: single-access items evicted quickly
+- ✅ Frequency-aware: distinguishes truly popular items
+- ✅ LRU-1 degenerates to standard LRU (backward compatible)
+- ❌ Requires K timestamps per entry (memory overhead)
+- ❌ K parameter needs tuning (workload-dependent)
+- ❌ Naive eviction is O(n); requires heap for O(log n)
+
+**Real-World Example:** The original LRU-K paper (O'Neil et al., 1993) demonstrated that LRU-2 improved buffer hit rates by 5-20% over LRU on database workloads with mixed sequential and random access patterns.
 
 ```ts collapse={1-10, 45-74}
 class LRUKCache {
@@ -408,22 +436,33 @@ class LRUKCache {
 
 In practice, the O(n) eviction complexity is acceptable for small to medium cache sizes (< 10,000 entries), and the simpler implementation reduces bugs and maintenance overhead. For larger caches, production systems typically use approximated LRU-K with sampling.
 
-### 2Q: The Probationary Filter
+### 2Q: Probationary Filtering
 
-The 2Q (Two Queue) algorithm provides similar scan resistance to LRU-K but with a simpler, constant-time implementation. It acts like a bouncer, only letting items into the main cache after they've proven their worth.
+**Mechanism:** Use two queues to filter first-time accesses before admitting to the main cache.
 
-**How it Works**: 2Q uses two buffers:
+| Queue | Type | Purpose |
+|-------|------|---------|
+| A1in (Probationary) | FIFO | Holds first-time accesses |
+| Am (Main) | LRU | Holds proven items (accessed 2+ times) |
+| A1out (Ghost) | Keys only | Remembers recently evicted A1 items |
 
-- **A1 (Probationary Queue)**: FIFO queue for first-time accesses
-- **Am (Main Cache)**: LRU cache for proven items
+**Why It Works:** Sequential scan data enters A1, gets evicted from A1 (never touching Am), and the main cache remains unpolluted. Only items accessed twice make it to Am.
 
-When an item is accessed for the first time, it's placed in the A1 probationary queue. If it's accessed again while in A1, it gets promoted to the main Am cache. If it's never re-referenced, it simply falls off the end of the A1 queue without ever polluting the main cache.
+**Best When:**
+- Production databases needing scan resistance (PostgreSQL used 2Q in 8.0.1-8.0.2)
+- Systems requiring O(1) operations without tuning parameters
+- Patent-free implementations required (no patent on 2Q)
 
-**Key Advantages**:
+**Trade-offs:**
+- ✅ True O(1) operations (no heap, no timestamps)
+- ✅ Simple to implement and debug
+- ✅ Excellent scan resistance
+- ✅ No patents
+- ❌ Fixed queue sizes may not adapt to workload changes
+- ❌ Requires tuning A1/Am size ratio (typically 25%/75%)
+- ❌ Ghost list (A1out) adds memory overhead
 
-- **Simple O(1) Operations**: Avoids the complexity of LRU-K
-- **Effective Filtering**: Prevents scan pollution effectively
-- **Tunable**: Queue sizes can be adjusted based on workload
+**Real-World Example:** PostgreSQL briefly used 2Q in versions 8.0.1-8.0.2 after discovering the ARC patent issue. The PostgreSQL developers found 2Q provided comparable performance to ARC without legal concerns. They later moved to clock sweep in 8.1 for better concurrency characteristics.
 
 ```ts collapse={1-18, 70-85}
 class TwoQueueCache {
@@ -519,41 +558,50 @@ class TwoQueueCache {
 
 > **Implementation Note**: This implementation achieves true O(1) operations by leveraging JavaScript Map's guaranteed insertion order (ES2015+). The A1 queue uses FIFO semantics (oldest = first inserted = first key), while Am uses LRU semantics (re-insert on access moves to end, evict from beginning).
 
-### ARC: Self-Tuning Intelligence
+### ARC: Adaptive Self-Tuning
 
-The Adaptive Replacement Cache (ARC) represents a major leap forward. It is a self-tuning algorithm that dynamically balances between recency (like LRU) and frequency (like LFU) based on the current workload, eliminating the need for manual tuning.
+**Mechanism:** Maintain two LRU lists (T1 for recency, T2 for frequency) with adaptive sizing based on "ghost lists" that remember recently evicted keys.
 
-**How it Works**: ARC maintains two LRU lists of items that are actually in the cache:
+| List | Contents | Purpose |
+|------|----------|---------|
+| T1 | Recently accessed once | Recency-focused cache |
+| T2 | Accessed multiple times | Frequency-focused cache |
+| B1 | Keys evicted from T1 | Ghost list for recency misses |
+| B2 | Keys evicted from T2 | Ghost list for frequency misses |
 
-- **T1**: Pages seen only once recently (prioritizing recency)
-- **T2**: Pages seen at least twice recently (prioritizing frequency)
+**The Learning Rule:**
+- Hit in B1 → "We shouldn't have evicted that recent item" → Increase T1 size
+- Hit in B2 → "We shouldn't have evicted that frequent item" → Increase T2 size
+- Parameter `p` controls the T1/T2 split and adapts continuously
 
-**The "Ghost List" Innovation**: The key to ARC's adaptiveness is its use of two additional "ghost lists" (B1 and B2) that store only the keys of recently evicted items from T1 and T2, respectively. These lists act as a short-term memory of eviction decisions.
+**Why It Works:** The ghost lists act as a feedback mechanism. ARC learns from its eviction mistakes and automatically adjusts the recency/frequency balance for the current workload.
 
-**The Learning Rule**: If a requested item is not in the cache but is found on the B1 ghost list, it means ARC made a mistake by evicting a recently-seen item. It learns from this and increases the size of the T1 (recency) cache. Conversely, a hit on the B2 ghost list signals that a frequently-used item was wrongly evicted, so ARC increases the size of the T2 (frequency) cache.
+**Best When:**
+- Workloads with unpredictable or shifting access patterns
+- Systems where self-tuning eliminates operational burden
+- ZFS (uses ARC for its Adjustable Replacement Cache)
 
-This constant feedback loop allows ARC to learn from its mistakes and dynamically adapt its strategy to the workload in real-time.
+**Trade-offs:**
+- ✅ Self-tuning: no parameters to configure
+- ✅ Handles mixed workloads dynamically
+- ✅ Ghost lists provide learning without storing values
+- ✅ **Patent expired February 22, 2024** (US6996676B2) — now freely usable
+- ❌ Memory overhead: 4 data structures + ghost lists can equal cache size
+- ❌ More complex to implement and debug
+- ❌ Ghost list maintenance adds CPU overhead
 
-**Patent History and Industry Impact**: ARC was developed by Nimrod Megiddo and Dharmendra S. Modha at IBM Almaden Research Center. IBM was granted U.S. Patent 6,996,676 on February 7, 2006, which covers the adaptive replacement cache policy. **The patent expired on February 22, 2024**, making ARC now freely usable.
+**Patent History and Industry Impact:**
 
-This patent had significant historical implications for the open-source community:
+ARC was developed by Nimrod Megiddo and Dharmendra S. Modha at IBM Almaden Research Center. The patent (US6996676B2, filed November 14, 2002, granted February 7, 2006) had significant industry implications:
 
-- **PostgreSQL**: Briefly used ARC in version 8.0.0 as its buffer management algorithm due to excellent performance characteristics. Upon learning of IBM's patent, PostgreSQL switched to the 2Q algorithm in version 8.0.2 (April 2005). Subsequently, PostgreSQL 8.1 introduced the clock sweep algorithm, which remains in use today due to its superior concurrency characteristics.
-- **Alternative Algorithms**: The patent concerns led to increased adoption of algorithms like 2Q and the development of CAR (Clock with Adaptive Replacement). Note that IBM also filed a patent application for CAR (US20060069876A1).
-- **Current Status**: With the ARC patent expired as of February 2024, projects can now freely implement ARC without licensing concerns.
+| System | Response to ARC Patent |
+|--------|----------------------|
+| PostgreSQL | Used ARC in 8.0.0 → Switched to 2Q in 8.0.1 → Clock sweep in 8.1 |
+| ZFS | Licensed through Sun/IBM cross-licensing agreement |
+| MySQL | Adopted LIRS algorithm instead |
+| Open-source projects | Generally avoided ARC until patent expiration |
 
-**Key Advantages**:
-
-- **No Manual Tuning**: Unlike LRU-K (choose K) or 2Q (choose queue sizes), ARC automatically adapts
-- **Handles Mixed Workloads**: Dynamically balances between scan-heavy and access-pattern workloads
-- **Ghost Lists**: Learn from eviction mistakes without keeping full data in memory
-- **Self-Optimization**: Adjusts to workload changes in real-time
-
-**Trade-offs**:
-
-- **Historical Patent Restrictions**: The ARC patent expired February 22, 2024, so this is no longer a concern
-- **Memory Overhead**: Maintains 4 data structures (T1, T2, B1, B2) plus adaptation parameter
-- **Complexity**: More complex to implement and debug than simpler algorithms
+**Real-World Example:** ZFS has used ARC since its inception (2005) through Sun's cross-licensing agreement with IBM. ZFS extended ARC with L2ARC for SSD caching, demonstrating that the adaptive approach works well for storage systems with mixed sequential/random workloads.
 
 ```ts collapse={1-21, 68-137}
 class ARCCache {
@@ -694,337 +742,460 @@ class ARCCache {
 }
 ```
 
+### SIEVE: Lazy Promotion (NSDI'24)
+
+**Mechanism:** Maintain a single FIFO queue with one "visited" bit per entry and a "hand" pointer for eviction.
+
+```
+Queue: [A*] [B] [C*] [D*] [E] ← hand points here
+       *=visited bit set
+
+On hit:  Set visited bit (no list manipulation)
+On miss: Move hand from tail, reset visited bits, evict first unvisited item
+```
+
+**Why It Works:**
+- Items accessed multiple times have their visited bit set and survive the hand sweep
+- Scan data enters, never gets revisited, and is evicted on the first hand pass
+- No list manipulation on hits = better cache locality and concurrency
+
+**Best When:**
+- Web caches with high throughput requirements
+- Systems where lock contention is a concern
+- Workloads where items tend to be accessed in bursts
+
+**Trade-offs:**
+- ✅ Simpler than LRU (no list manipulation on hits)
+- ✅ Better throughput (fewer memory operations)
+- ✅ One bit per entry (minimal memory overhead)
+- ✅ Outperforms LRU on 45%+ of web cache traces
+- ❌ Less effective for very short TTLs (items may be evicted before hand reaches them)
+- ❌ Newer algorithm (2024), less battle-tested than LRU/2Q/ARC
+
+**Real-World Example:** SIEVE (Zhang et al., NSDI'24) was evaluated on 1,559 traces containing 247 billion requests. It reduces miss ratio by 21% on average compared to FIFO and has been adopted by production systems including TiDB and Pelikan (Twitter's cache).
+
+```ts collapse={1-8, 35-60}
+class SIEVECache<K, V> {
+  capacity: number
+  cache: Map<K, { value: V; visited: boolean }>
+  order: K[] // FIFO order
+  hand: number // Eviction pointer
+
+  constructor(capacity: number) {
+    this.capacity = capacity
+    this.cache = new Map()
+    this.order = []
+    this.hand = 0
+  }
+
+  get(key: K): V | null {
+    const entry = this.cache.get(key)
+    if (!entry) return null
+
+    // Lazy promotion: just set the visited bit (no list manipulation)
+    entry.visited = true
+    return entry.value
+  }
+
+  put(key: K, value: V): void {
+    if (this.cache.has(key)) {
+      const entry = this.cache.get(key)!
+      entry.value = value
+      entry.visited = true
+      return
+    }
+
+    // Evict if at capacity
+    while (this.cache.size >= this.capacity) {
+      this.evict()
+    }
+
+    // Insert at head (newest position)
+    this.cache.set(key, { value, visited: false })
+    this.order.unshift(key)
+  }
+
+  private evict(): void {
+    // Move hand from tail toward head, looking for unvisited item
+    while (this.order.length > 0) {
+      // Wrap around if needed
+      if (this.hand >= this.order.length) {
+        this.hand = this.order.length - 1
+      }
+
+      const key = this.order[this.hand]
+      const entry = this.cache.get(key)
+
+      if (!entry) {
+        // Key was deleted externally
+        this.order.splice(this.hand, 1)
+        continue
+      }
+
+      if (entry.visited) {
+        // Give it another chance, reset visited bit
+        entry.visited = false
+        this.hand--
+        if (this.hand < 0) this.hand = this.order.length - 1
+      } else {
+        // Evict this item
+        this.cache.delete(key)
+        this.order.splice(this.hand, 1)
+        return
+      }
+    }
+  }
+}
+```
+
+### Window TinyLFU (Caffeine)
+
+**Mechanism:** Combine a small "window" LRU cache (1%) with a large "main" cache (99%) using frequency-based admission filtering.
+
+```
+Request → Window (1%) → Admission Filter → Main Cache (99%)
+                              ↓
+                    CountMinSketch (frequency estimate)
+```
+
+**Why It Works:**
+- Window cache handles burst traffic (recency)
+- Main cache uses segmented LRU (protected + probationary)
+- Admission filter blocks low-frequency items from polluting main cache
+- 4-bit CountMinSketch provides frequency estimates with minimal memory
+
+**Best When:**
+- High-throughput Java applications
+- Workloads with skewed popularity distributions
+- Systems needing near-optimal hit rates with bounded memory
+
+**Trade-offs:**
+- ✅ Near-optimal hit rates (within 1% of theoretical best)
+- ✅ Only 8 bytes overhead per entry (vs. ARC's doubled cache size for ghosts)
+- ✅ Battle-tested (Caffeine is the standard Java cache library)
+- ❌ More complex than simpler algorithms
+- ❌ Requires frequency decay mechanism (adds CPU overhead)
+- ❌ Java-specific reference implementation
+
+**Real-World Example:** Caffeine's W-TinyLFU achieves 39.6% hit rate on benchmark traces where ARC achieves 20% and the theoretical optimal is 40.3%. The key insight: don't track evicted keys (like ARC's ghost lists) — use probabilistic frequency counting instead.
+
+## How to Choose
+
+### Decision Matrix
+
+| Factor | LRU | 2Q | ARC | SIEVE | W-TinyLFU |
+|--------|-----|----|----|-------|-----------|
+| Implementation complexity | Low | Medium | High | Low | High |
+| Memory overhead per entry | 16 bytes | 24 bytes | 32+ bytes | 1 bit | 8 bytes |
+| Scan resistance | Poor | Good | Excellent | Good | Excellent |
+| Self-tuning | No | No | Yes | No | Partial |
+| Throughput (ops/sec) | High | Medium | Medium | Highest | High |
+| Patent concerns (as of 2024) | None | None | None | None | None |
+
+### Choosing by Workload Pattern
+
+| If Your Workload Has... | Choose | Rationale |
+|-------------------------|--------|-----------|
+| Strong temporal locality | LRU | Simple, effective, O(1) |
+| Frequent full scans | 2Q or SIEVE | Probationary filtering prevents pollution |
+| Unpredictable patterns | ARC | Self-tuning adapts automatically |
+| High throughput needs | SIEVE | No list manipulation on hits |
+| Skewed popularity (Zipf) | W-TinyLFU | Frequency-based filtering excels |
+| Memory constraints | SIEVE or LRU | Minimal per-entry overhead |
+
+### Common Decision Patterns
+
+**"I just need a cache, nothing special"** → Start with LRU. It's simple, well-understood, and works for most workloads.
+
+**"Full table scans are killing my cache"** → Use 2Q. It filters scan data effectively with O(1) operations and no patents.
+
+**"My workload keeps changing"** → Use ARC. It adapts automatically and the patent expired in 2024.
+
+**"I need maximum throughput"** → Use SIEVE. No list manipulation on hits means better CPU cache locality.
+
+**"I'm building a CDN or web cache"** → Use W-TinyLFU (Caffeine) or SIEVE. Both handle popularity skew well.
+
 ## Real-World Applications
 
 The choice of algorithm has profound, practical implications across different domains.
 
-| Aspect               | LRU              | LRU-K                           | 2Q                          | ARC                        |
-| -------------------- | ---------------- | ------------------------------- | --------------------------- | -------------------------- |
-| **Primary Criteria** | Recency          | K-th Recency (History)          | Recency + Second Hit Filter | Adaptive Recency/Frequency |
-| **Scan Resistance**  | Poor             | Good (for K>1)                  | Very Good                   | Excellent                  |
-| **Complexity**       | Low              | High                            | Moderate                    | Moderate-High              |
-| **Time Complexity**  | O(1)             | O(n) naive, O(log n) with heap  | O(1)                        | O(1)                       |
-| **Memory Overhead**  | 2 pointers/entry | K timestamps + 2 pointers/entry | 3 maps + metadata           | 4 structures + ghosts      |
-| **Tuning**           | None             | Manual (parameter K)            | Manual (queue sizes)        | Automatic / Self-Tuning    |
-
-### When to Use LRU
-
-LRU is most effective for:
-
-- **Web Browsing**: Recent pages are likely to be revisited
-- **File System Access**: Recently accessed files are often accessed again
-- **Simple Applications**: Where complexity is a concern
-- **Workloads with Strong Temporal Locality**: When recent access predicts future access
-
-### When to Consider Alternatives
-
-Consider advanced algorithms when:
-
-- **Database Systems**: Mix of OLTP and OLAP workloads
-- **Large-Scale CDNs**: Need to retain popular content over viral content
-- **Operating Systems**: Page replacement in memory management
-- **High-Performance Systems**: Where cache efficiency is critical
+| Aspect               | LRU              | LRU-K                           | 2Q                          | ARC                        | SIEVE |
+| -------------------- | ---------------- | ------------------------------- | --------------------------- | -------------------------- | ----- |
+| **Primary Criteria** | Recency          | K-th Recency (History)          | Recency + Second Hit Filter | Adaptive Recency/Frequency | Visited bit + FIFO |
+| **Scan Resistance**  | Poor             | Good (for K>1)                  | Very Good                   | Excellent                  | Good |
+| **Complexity**       | Low              | High                            | Moderate                    | Moderate-High              | Low |
+| **Time Complexity**  | O(1)             | O(n) naive, O(log n) with heap  | O(1)                        | O(1)                       | O(1) |
+| **Memory Overhead**  | 2 pointers/entry | K timestamps + 2 pointers/entry | 3 maps + metadata           | 4 structures + ghosts      | 1 bit/entry |
+| **Tuning**           | None             | Manual (parameter K)            | Manual (queue sizes)        | Automatic / Self-Tuning    | None |
 
 ### Memory Overhead Analysis
 
-Understanding memory overhead is crucial for capacity planning in production systems. Here's a detailed breakdown:
+Memory overhead determines how much of your allocated cache space actually holds data vs. metadata.
 
-**LRU Cache (Hash Map + Doubly Linked List)**:
+| Algorithm | Per-Entry Overhead | For 10K entries (64B values) |
+|-----------|-------------------|------------------------------|
+| LRU | ~40-50 bytes (hash + 2 pointers) | ~1.6 MB |
+| LRU-K (K=2) | ~56-66 bytes (+ K timestamps) | ~2.0 MB |
+| 2Q | ~60-80 bytes (2 maps + metadata) | ~2.1 MB |
+| ARC | ~80-120 bytes (4 structures + ghosts) | ~2.6 MB |
+| SIEVE | ~1 bit + FIFO position | ~1.0 MB |
+| W-TinyLFU | ~8 bytes (CountMinSketch) | ~1.1 MB |
 
-- Hash map entry: ~24-32 bytes per entry (pointer + hash + metadata)
-- DLL node: 2 pointers (prev, next) = 16 bytes on 64-bit systems
-- Key + Value storage: Varies by data type
-- **Total overhead per entry**: ~40-50 bytes + key/value size
+**Key Insight:** ARC's ghost lists can grow to equal the cache size (storing evicted keys), effectively doubling memory usage for metadata. Caffeine's W-TinyLFU solved this by using probabilistic frequency counting instead of ghost lists—same accuracy, fraction of the memory.
 
-**LRU-K Cache**:
+## Production Implementations
 
-- Everything from LRU, plus:
-- K timestamps: 8 bytes × K (typically K=2, so 16 bytes)
-- **Total overhead per entry**: ~56-66 bytes + key/value size
-- For K=2: ~35% more memory than LRU
+Real-world systems often use approximated or specialized variants of these algorithms, optimized for their specific constraints.
 
-**2Q Cache**:
+### Redis: Approximated LRU
 
-- Two separate maps (A1 and Am): 2× hash map overhead
-- Metadata for tracking queue membership
-- **Total overhead per entry**: ~60-80 bytes + key/value size
-- Ghost entries (evicted keys) add minimal overhead (just key storage)
+Redis uses random sampling instead of tracking exact recency for all keys.
 
-**ARC Cache**:
+**Mechanism:**
+1. Sample N random keys (default: 5, configurable via `maxmemory-samples`)
+2. Evict the least recently used among the sampled keys
+3. Repeat until memory is below threshold
 
-- Four data structures (T1, T2, B1, B2): 4× tracking overhead
-- Ghost lists store only keys (no values): B1 + B2 can equal cache size
-- Adaptation parameter: negligible
-- **Total overhead per entry**: ~80-120 bytes + key/value size
-- Ghost lists effectively double memory for metadata (keys only)
-
-**Production Considerations**:
-
-1. **For 10,000 entries with 64-byte values**:
-   - LRU: ~1 MB overhead + 640 KB data = ~1.6 MB total
-   - LRU-K: ~1.35 MB overhead + 640 KB data = ~2 MB total
-   - 2Q: ~1.5 MB overhead + 640 KB data = ~2.1 MB total
-   - ARC: ~2 MB overhead + 640 KB data = ~2.6 MB total
-
-2. **Trade-off Decision**: The memory overhead difference (40-60%) is often acceptable for the performance benefits in systems with scan-heavy workloads
-
-3. **Approximated Algorithms**: Production systems like Redis use approximated LRU with sampling to reduce memory overhead while maintaining acceptable eviction quality
-
-## Approximated LRU: Production Optimizations
-
-Real-world systems often use approximated LRU algorithms that trade perfect accuracy for better performance and lower memory overhead.
-
-### Redis Approximated LRU
-
-Redis doesn't use strict LRU. Instead, it samples a small number of keys and evicts the least recently used among the sampled keys.
-
-**How it works**:
-
-- Sample N random keys (configurable, default 5)
-- Evict the key with the oldest access time among samples
-- No linked list or complex data structures needed
-
-**Benefits**:
-
-- Constant memory overhead per key (just a timestamp)
-- No pointer chasing (better cache locality)
-- Faster eviction (no list manipulation)
-- Good enough accuracy for most workloads (~95% as effective as true LRU)
-
-**Configuration**:
+**Why This Design:**
+- No linked list = no pointer overhead per key (just 24 bits for LRU clock)
+- No lock contention from list manipulation
+- Sampling 10 keys provides ~95% of true LRU accuracy
 
 ```
+# Redis configuration
 maxmemory-policy allkeys-lru
-maxmemory-samples 5  # Higher = more accurate, slower
+maxmemory-samples 5   # Increase to 10 for near-true LRU accuracy
 ```
 
-### Linux Page Cache
+**As of Redis 3.0:** Uses a pool of good eviction candidates that persists across eviction cycles, improving accuracy without increasing per-key memory.
 
-The Linux kernel has evolved its page replacement strategy over time:
+### Linux Kernel: MGLRU
 
-**Traditional Two-List Approach** (pre-5.18):
+The Linux kernel evolved from a two-list approach to Multi-Generational LRU.
 
-- **Active list**: Recently and frequently used pages
-- **Inactive list**: Candidates for eviction
-- Pages start on the inactive list and get promoted to active on re-reference
+| Era | Algorithm | Limitations |
+|-----|-----------|-------------|
+| Pre-6.1 | Active/Inactive lists | Binary hot/cold, poor scan resistance |
+| 6.1+ | MGLRU | Multiple generations, better aging |
 
-**Multi-Generational LRU (MGLRU)** (kernel 5.18+):
+**MGLRU (merged in Linux 6.1, backported to some 5.x kernels):**
+- Multiple generations (typically 4) instead of 2 lists
+- Pages move to younger generations when accessed
+- Workload-aware: adapts scan frequency to access patterns
 
-Modern kernels support MGLRU, which provides more accurate page aging:
+**Google's deployment results (Chrome OS + Android):**
+- 40% decrease in kswapd CPU usage
+- 85% decrease in low-memory kill events
+- 18% decrease in rendering latency
 
-- Multiple generations instead of just two lists
-- Pages move from older to newer generations when accessed
-- Better handling of diverse workloads
-- Enabled by default in Fedora, Arch Linux, and other distributions
+**Distribution Support:** Enabled by default in Fedora and Arch Linux. Available but not default in Ubuntu and Debian.
 
-This provides scan resistance while improving upon the limitations of the simple two-list approach.
+### Memcached: Segmented LRU
 
-### When to Use Approximated LRU
+Memcached uses per-slab-class LRU with modern segmentation.
 
-- **Large caches** (millions of entries) where pointer overhead is significant
-- **High throughput systems** where eviction speed matters more than perfect accuracy
-- **Memory-constrained environments** where every byte counts
-- **Read-heavy workloads** where eviction is infrequent but must be fast when it happens
+**Slab Allocator:** Memory is divided into slab classes (64B, 128B, 256B, etc.). LRU is per-class, not global—eviction from the 128B class only evicts 128B items, even if there are older 256B items.
+
+**Modern Segmented LRU (since 1.5.x):**
+
+| Queue | Purpose |
+|-------|---------|
+| HOT | Recently written items (FIFO, not LRU) |
+| WARM | Frequently accessed items (LRU) |
+| COLD | Eviction candidates |
+| TEMP | Very short TTL items (no bumping) |
+
+**Key Optimization:** Items are only "bumped" once every 60 seconds, reducing lock contention dramatically.
+
+### PostgreSQL: Clock Sweep
+
+PostgreSQL uses clock sweep for buffer pool management since version 8.1.
+
+**Mechanism:**
+- Circular buffer array with `usage_count` per buffer (0-5)
+- "Clock hand" sweeps through buffers
+- On sweep: if `usage_count > 0`, decrement and skip; if 0, evict
+- On access: increment `usage_count` (saturates at 5)
+
+**Why Clock Sweep:**
+- No linked list = no pointer manipulation on buffer access
+- Single atomic increment instead of list relinking
+- Better concurrency than 2Q (which PostgreSQL used briefly in 8.0.1-8.0.2)
+
+**Implementation Detail:** The `nextVictimBuffer` pointer is a simple unsigned 32-bit integer that wraps around the buffer pool. This simplicity enables high concurrency without complex locking.
 
 ## Concurrency and Thread Safety
 
-Production cache implementations must handle concurrent access safely and efficiently.
+Production caches must handle concurrent access. The key trade-off: simplicity vs. scalability.
 
-### Concurrency Challenges
+| Strategy | Pros | Cons | Used By |
+|----------|------|------|---------|
+| Global lock | Simple, correct | Serializes all ops | Simple caches |
+| Sharded locking | Concurrent access to different shards | Hot shards bottleneck | ConcurrentHashMap |
+| Read-write locks | Multiple readers | Writer starvation | Many caches |
+| Lock-free (CAS) | Best throughput | Complex, hard to debug | Caffeine |
 
-1. **Race Conditions**: Multiple threads accessing/evicting simultaneously
-2. **Lock Contention**: Global locks create bottlenecks in high-concurrency scenarios
-3. **Memory Visibility**: Cache modifications must be visible across threads
-4. **Deadlocks**: Complex locking schemes can introduce deadlock risks
+**Production Recommendation:** Don't implement concurrent caches yourself. Use battle-tested libraries:
 
-### Concurrent LRU Strategies
+| Language | Library | Notes |
+|----------|---------|-------|
+| Node.js | `lru-cache` | Size limits, TTL support |
+| Java | Caffeine | Near-optimal hit rates, lock-free |
+| Go | `groupcache` | Distributed, singleflight |
+| Rust | `moka` | Concurrent, TinyLFU-based |
+| Python | `cachetools` | Simple, extensible |
 
-**1. Global Lock (Simplest)**:
+## Common Pitfalls
 
-```ts
-class ConcurrentLRU<K, V> {
-  private cache: LRUCache<K, V>
-  private lock: Mutex
+### 1. Cache Stampede (Thundering Herd)
 
-  async get(key: K): Promise<V | null> {
-    await this.lock.acquire()
-    try {
-      return this.cache.get(key)
-    } finally {
-      this.lock.release()
-    }
+**The Mistake:** Multiple requests miss the cache simultaneously, all hit the backend.
+
+**Why It Happens:** Cache entry expires, N requests arrive before any can repopulate.
+
+**The Consequence:** Backend overwhelmed with N duplicate requests for the same data.
+
+**The Fix:** Use "singleflight" pattern—only one request fetches, others wait for its result.
+
+```ts collapse={1-5, 18-25}
+class StampedeProtectedCache<K, V> {
+  private cache: Map<K, V>
+  private pending: Map<K, Promise<V>> // In-flight requests
+
+  constructor() {
+    this.cache = new Map()
+    this.pending = new Map()
+  }
+
+  async get(key: K, fetch: () => Promise<V>): Promise<V> {
+    // Return cached value if present
+    if (this.cache.has(key)) return this.cache.get(key)!
+
+    // If another request is fetching, wait for it
+    if (this.pending.has(key)) return this.pending.get(key)!
+
+    // This request will fetch
+    const promise = fetch().then(value => {
+      this.cache.set(key, value)
+      this.pending.delete(key)
+      return value
+    })
+    this.pending.set(key, promise)
+    return promise
   }
 }
 ```
 
-- **Pros**: Simple, correct
-- **Cons**: Serializes all operations, poor scalability
+### 2. Cache Inconsistency
 
-**2. Segmented/Sharded Locking**:
+**The Mistake:** Updating database then cache, or vice versa, without atomicity.
 
-- Divide cache into N segments, each with its own lock
-- Route keys to segments via hash(key) % N
-- Operations on different segments can proceed concurrently
-- **Used by**: Java's ConcurrentHashMap, Guava Cache
+**Why It Happens:** Race conditions between concurrent updates.
 
-**3. Lock-Free Structures**:
+**The Consequence:** Cache serves stale data indefinitely.
 
-- Use atomic operations (CAS) instead of locks
-- Trickier to implement correctly
-- Best performance for high-concurrency read-heavy workloads
-- **Used by**: Caffeine cache (Java), some C++ implementations
+**The Fix:** Use cache-aside with TTL, or write-through with single source of truth. For critical data, prefer short TTLs over complex invalidation.
 
-**4. Read-Write Locks**:
+### 3. Unbounded Cache Growth
 
-- Allow multiple concurrent readers
-- Exclusive lock for writers (evictions)
-- Good when reads vastly outnumber writes
+**The Mistake:** Caching everything without size limits.
 
-**Production Recommendation**: Use battle-tested libraries:
+**Why It Happens:** "More cache = better performance" thinking.
 
-- **Node.js**: `lru-cache` npm package with size limits
-- **Java**: Caffeine or Guava Cache with concurrency level tuning
-- **Go**: `groupcache` for distributed caching
-- **Rust**: `lru` crate with Mutex wrapper
+**The Consequence:** OOM crashes, GC pauses, or swapping.
 
-## Performance Comparison
+**The Fix:** Always set a max size. For LRU, this is trivial—eviction handles it. For other patterns, monitor memory usage.
 
-Here's a comprehensive benchmark to compare the performance characteristics of different algorithms:
+### 4. Wrong Cache Key Granularity
 
-```ts collapse={1-14, 26-51}
-function benchmarkCache(cache: any, operations: Array<{ type: "get" | "put"; key: number; value?: number }>) {
-  const start = performance.now()
+**The Mistake:** Cache keys too coarse (cache entire page) or too fine (cache every DB row).
 
-  for (const op of operations) {
-    if (op.type === "get") {
-      cache.get(op.key)
-    } else {
-      cache.put(op.key, op.value!)
-    }
-  }
+**Why It Happens:** Not analyzing actual access patterns.
 
-  const end = performance.now()
-  return end - start
-}
+**The Consequence:** Too coarse = low hit rate, too fine = high overhead.
 
-// Test different access patterns
-const sequentialScan = Array.from({ length: 1000 }, (_, i) => ({ type: "put" as const, key: i, value: i }))
-const randomAccess = Array.from({ length: 1000 }, () => ({
-  type: "get" as const,
-  key: Math.floor(Math.random() * 100),
-}))
-const mixedWorkload = [
-  ...Array.from({ length: 500 }, (_, i) => ({ type: "put" as const, key: i, value: i })),
-  ...Array.from({ length: 500 }, () => ({ type: "get" as const, key: Math.floor(Math.random() * 50) })),
-]
+**The Fix:** Profile your workload. Match cache granularity to access granularity.
 
-// Test different algorithms
-const lru = new LRUCache(100)
-const lruK = new LRUKCache(100, 2)
-const twoQ = new TwoQueueCache(100)
-const arc = new ARCCache(100)
+### 5. Ignoring Cache Warmup
 
-console.log("=== Cache Performance Benchmark ===")
-console.log("\nSequential Scan Performance (Cache Pollution Test):")
-console.log(`LRU: ${benchmarkCache(lru, sequentialScan)}ms`)
-console.log(`LRU-K: ${benchmarkCache(lruK, sequentialScan)}ms`)
-console.log(`2Q: ${benchmarkCache(twoQ, sequentialScan)}ms`)
-console.log(`ARC: ${benchmarkCache(arc, sequentialScan)}ms`)
+**The Mistake:** Deploying with cold cache and expecting production performance.
 
-console.log("\nRandom Access Performance (Temporal Locality Test):")
-console.log(`LRU: ${benchmarkCache(lru, randomAccess)}ms`)
-console.log(`LRU-K: ${benchmarkCache(lruK, randomAccess)}ms`)
-console.log(`2Q: ${benchmarkCache(twoQ, randomAccess)}ms`)
-console.log(`ARC: ${benchmarkCache(arc, randomAccess)}ms`)
+**Why It Happens:** Testing with warm caches, deploying fresh.
 
-console.log("\nMixed Workload Performance (Real-World Simulation):")
-console.log(`LRU: ${benchmarkCache(lru, mixedWorkload)}ms`)
-console.log(`LRU-K: ${benchmarkCache(lruK, mixedWorkload)}ms`)
-console.log(`2Q: ${benchmarkCache(twoQ, mixedWorkload)}ms`)
-console.log(`ARC: ${benchmarkCache(arc, mixedWorkload)}ms`)
-```
+**The Consequence:** Slow starts, backend overload on deployment.
 
-### Benchmark Results
-
-> **Disclaimer**: The timing values shown below are from a specific hardware configuration and JavaScript runtime. Absolute numbers will vary significantly based on CPU, memory, runtime version, and system load. The value of these benchmarks is in the **relative comparisons** between algorithms, not the specific millisecond values. Focus on the performance ratios and trends rather than absolute timings.
-
-Running the performance test reveals interesting insights about each algorithm's behavior:
-
-**Sequential Scan Performance (Cache Pollution Test):**
-
-- LRU: 0.94ms - Fastest for sequential operations
-- LRU-K: 4.98ms - Higher overhead due to access tracking
-- 2Q: 2.10ms - Moderate overhead with good filtering
-- ARC: 2.10ms - Similar overhead to 2Q
-
-**Random Access Performance (Temporal Locality Test):**
-
-- LRU: 0.20ms - Excellent for temporal locality
-- LRU-K: 0.10ms - Surprisingly fast for random access
-- 2Q: 0.11ms - Very efficient for random access
-- ARC: 0.13ms - Good performance with adaptive overhead
-
-**Mixed Workload Performance (Real-World Simulation):**
-
-- LRU: 0.13ms - Best overall performance for mixed workloads
-- LRU-K: 0.72ms - Higher overhead in mixed scenarios
-- 2Q: 0.87ms - Moderate performance
-- ARC: 0.44ms - Good adaptive performance
-
-### Key Insights from Benchmark Results:
-
-1. **LRU demonstrates** excellent performance across all test scenarios, making it a solid choice for most applications
-2. **LRU-K shows** higher overhead in sequential operations but surprisingly good performance for random access
-3. **2Q and ARC** provide similar performance characteristics, with moderate overhead compared to LRU
-4. **The performance differences** are relatively small in absolute terms, suggesting that algorithm choice should be based on workload characteristics rather than raw performance
+**The Fix:** Pre-warm caches before routing production traffic, or use rolling deployments that let caches warm gradually.
 
 ## Conclusion
 
-The journey from the simple elegance of LRU to the adaptive intelligence of ARC shows a clear evolutionary path in system design. While a basic LRU cache is an indispensable tool, understanding its limitations is crucial for building resilient, high-performance systems.
+Cache eviction is fundamentally about prediction: given limited memory, which items should you keep to maximize future hits? The answer depends entirely on your access patterns.
 
-**Key Takeaways:**
+**Decision Framework:**
 
-1. **LRU is excellent** for simple workloads with strong temporal locality
-2. **Cache pollution** is LRU's primary weakness in real-world scenarios
-3. **Advanced algorithms** like LRU-K, 2Q, and ARC address these limitations
-4. **Choose wisely** based on your specific workload characteristics
+1. **Start with LRU** for most applications—it's simple, well-understood, and works for temporal locality
+2. **Switch to 2Q or SIEVE** when sequential scans are poisoning your cache (analytics queries, batch jobs, backups)
+3. **Consider ARC** when your workload is unpredictable and you can't tune parameters (patent expired February 2024)
+4. **Use W-TinyLFU (Caffeine)** for CDNs and web caches with skewed popularity distributions
 
-Ultimately, there is no single "best" algorithm. The optimal choice depends entirely on the workload. By understanding this spectrum of policies, developers and architects can make more informed decisions, ensuring they select the right tool to build the fast, efficient, and intelligent systems of tomorrow.
+**Production Reality:** Most systems use approximated or specialized variants. Redis samples random keys. Linux uses multiple generations. PostgreSQL uses clock sweep. The textbook algorithms are starting points, not endpoints.
 
-For most applications, start with LRU and consider advanced alternatives when you encounter cache pollution issues or need to optimize for specific workload patterns. The benchmark results show that while LRU remains a solid foundation, modern alternatives can provide significant benefits in the right circumstances.
+The right cache eviction policy can be the difference between a system that degrades gracefully under load and one that falls over. Understand your access patterns, profile your workload, and choose accordingly.
 
-## References
+## Appendix
 
-### Original Research Papers
+### Prerequisites
 
-- **LRU-K**: O'Neil, E. J., O'Neil, P. E., & Weikum, G. (1993). [The LRU-K Page Replacement Algorithm For Database Disk Buffering](https://www.cs.cmu.edu/~natassa/courses/15-721/papers/p297-o_neil.pdf). ACM SIGMOD Record, 22(2), 297-306.
+- Understanding of hash tables and linked lists
+- Basic knowledge of time complexity (Big O notation)
+- Familiarity with cache concepts (hits, misses, eviction)
 
-- **2Q**: Johnson, T., & Shasha, D. (1994). [2Q: A Low Overhead High Performance Buffer Management Replacement Algorithm](https://www.vldb.org/conf/1994/P439.PDF). Proceedings of the 20th International Conference on Very Large Data Bases (VLDB), 439-450.
+### Summary
 
-- **ARC**: Megiddo, N., & Modha, D. S. (2003). [ARC: A Self-Tuning, Low Overhead Replacement Cache](https://www.cs.cmu.edu/~natassa/courses/15-721/papers/arcfast.pdf). Proceedings of the 2nd USENIX Conference on File and Storage Technologies (FAST), 115-130.
+1. **LRU assumes temporal locality**: recently accessed = soon needed. This fails during sequential scans.
+2. **Scan resistance requires additional signals**: 2Q uses probationary filtering, ARC uses ghost lists, SIEVE uses visited bits.
+3. **Approximated algorithms dominate production**: Redis samples keys, Linux uses MGLRU, PostgreSQL uses clock sweep.
+4. **Memory overhead varies significantly**: SIEVE uses 1 bit/entry; ARC can double memory for ghost lists.
+5. **No single best algorithm**: the optimal choice depends on your access patterns, memory constraints, and operational requirements.
+6. **Common pitfalls are preventable**: cache stampede, inconsistency, unbounded growth, and cold starts all have standard solutions.
 
-### Patents
+### References
 
-- **ARC Patent**: U.S. Patent 6,996,676, granted February 7, 2006 to IBM. [System and method for implementing an adaptive replacement cache policy](https://patents.google.com/patent/US6996676B2/en).
+#### Original Research Papers
 
-### Implementation Resources
+- O'Neil, E. J., O'Neil, P. E., & Weikum, G. (1993). [The LRU-K Page Replacement Algorithm For Database Disk Buffering](https://www.cs.cmu.edu/~natassa/courses/15-721/papers/p297-o_neil.pdf). ACM SIGMOD Record, 22(2), 297-306.
 
-- **JavaScript Map**: [MDN Web Docs - Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) - ES2015 specification guaranteeing insertion order.
+- Johnson, T., & Shasha, D. (1994). [2Q: A Low Overhead High Performance Buffer Management Replacement Algorithm](https://www.vldb.org/conf/1994/P439.PDF). VLDB 1994, 439-450.
 
-- **Cache Replacement Policies**: [Wikipedia - Cache replacement policies](https://en.wikipedia.org/wiki/Cache_replacement_policies) - Comprehensive overview of cache algorithms.
+- Megiddo, N., & Modha, D. S. (2003). [ARC: A Self-Tuning, Low Overhead Replacement Cache](https://www.cs.cmu.edu/~natassa/courses/15-721/papers/arcfast.pdf). USENIX FAST 2003, 115-130.
 
-- **Temporal Locality**: [ScienceDirect - Temporal Locality](https://www.sciencedirect.com/topics/computer-science/temporal-locality) - Computer architecture principle underlying LRU.
+- Zhang, Y., Yang, J., Yue, Y., Vigfusson, Y., & Rashmi, K.V. (2024). [SIEVE is Simpler than LRU: an Efficient Turn-Key Eviction Algorithm for Web Caches](https://www.usenix.org/conference/nsdi24/presentation/zhang-yazhuo). USENIX NSDI 2024.
 
-### Production Systems
+- Einziger, G., Friedman, R., & Manes, B. (2017). [TinyLFU: A Highly Efficient Cache Admission Policy](https://dl.acm.org/doi/10.1145/3149371). ACM Transactions on Storage.
 
-- **PostgreSQL and ARC**: [The 2Q Algorithm - Addressing LRU's Sub-Optimality](https://arpitbhayani.me/blogs/2q-cache/) by Arpit Bhayani - Discusses PostgreSQL's migration from ARC to 2Q due to patent concerns.
+#### Patents
 
-- **Redis LRU**: [Redis LRU Cache](https://redis.io/glossary/lru-cache/) - Documentation on Redis's approximated LRU implementation.
+- [US Patent 6,996,676](https://patents.google.com/patent/US6996676B2/en) - ARC (IBM). Granted February 7, 2006. **Expired February 22, 2024**.
 
-- **Database Cache Algorithms**: Zhou, Y., & Philbin, J. (2001). The Multi-Queue Replacement Algorithm for Second Level Buffer Caches. Proceedings of the USENIX Annual Technical Conference.
+- [US Patent Application 20060069876](https://patents.google.com/patent/US20060069876A1/en) - CAR (IBM). Filed September 30, 2004.
 
-### Further Reading
+#### Production Implementations
 
-- **Least Recently Used Replacement**: [ScienceDirect - Least Recently Used Replacement](https://www.sciencedirect.com/topics/computer-science/least-recently-used-replacement) - Academic overview of LRU and its applications.
+- [Redis Key Eviction](https://redis.io/docs/latest/develop/reference/eviction/) - Official documentation on approximated LRU.
 
-- **CMU Database Course**: [Carnegie Mellon Database Systems Course](https://15445.courses.cs.cmu.edu/) - Advanced database systems covering buffer pool management and cache replacement policies.
+- [Linux MGLRU Documentation](https://docs.kernel.org/admin-guide/mm/multigen_lru.html) - Kernel documentation for Multi-Generational LRU.
+
+- [PostgreSQL Buffer Manager](https://www.interdb.jp/pg/pgsql08.html) - Detailed explanation of clock sweep algorithm.
+
+- [Caffeine Wiki - Efficiency](https://github.com/ben-manes/caffeine/wiki/Efficiency) - W-TinyLFU benchmarks and design.
+
+- [SIEVE Project Website](https://cachemon.github.io/SIEVE-website/) - Algorithm details and implementations.
+
+#### PostgreSQL History
+
+- [PostgreSQL Mailing List: ARC Patent Discussion](https://www.postgresql.org/message-id/1105941176.22946.36.camel@localhost.localdomain) - Original discussion about patent concerns.
+
+#### Further Reading
+
+- [CMU 15-445 Database Systems](https://15445.courses.cs.cmu.edu/) - Advanced course covering buffer pool management.
+
+- [MDN Web Docs - Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) - ES2015 Map insertion order guarantee.
