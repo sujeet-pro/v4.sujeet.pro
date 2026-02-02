@@ -1,6 +1,18 @@
 {
   "version": 1,
   "entries": {
+    "http://cs.yale.edu/homes/thomson/publications/calvin-sigmod12.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:24.720Z",
+      "hint": "fetch-node"
+    },
+    "http://highscalability.com/blog/2011/4/6/netflix-run-consistency-checkers-all-the-time-to-fixup-trans.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:25.689Z",
+      "hint": "fetch-node"
+    },
     "http://theory.stanford.edu/~amitp/GameProgramming/": {
       "status": 200,
       "ok": true,
@@ -11,6 +23,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:35:25.306Z",
+      "hint": "fetch-node"
+    },
+    "http://www.brendangregg.com/usemethod.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:58:40.986Z",
       "hint": "fetch-node"
     },
     "https://1.1.1.1/purge-cache/": {
@@ -103,16 +121,48 @@
       "lastChecked": "2026-01-26T13:35:24.421Z",
       "hint": "fetch-node"
     },
+    "https://aomedia.org/av1/specification/": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:43.142Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
     "https://aomediacodec.github.io/av1-avif/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:35:24.420Z",
       "hint": "fetch-node"
     },
+    "https://argo-rollouts.readthedocs.io/en/stable/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:09.954Z",
+      "hint": "fetch-node"
+    },
+    "https://argo-rollouts.readthedocs.io/en/stable/analysis/prometheus/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:11.330Z",
+      "hint": "fetch-node"
+    },
+    "https://argo-rollouts.readthedocs.io/en/stable/features/canary/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:10.513Z",
+      "hint": "fetch-node"
+    },
     "https://arpitbhayani.me/blogs/2q-cache/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:35:24.455Z",
+      "hint": "fetch-node"
+    },
+    "https://arxiv.org/abs/1803.05069": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:22.894Z",
       "hint": "fetch-node"
     },
     "https://arxiv.org/abs/2106.05123": {
@@ -132,6 +182,14 @@
       "ok": true,
       "lastChecked": "2026-01-26T13:35:24.507Z",
       "hint": "fetch-node"
+    },
+    "https://assets.amazon.science/33/9d/b77f13e5448cb7ff5f4f1efd1376/amazon-dynamodb-a-scalable-predictably-performant-and-fully-managed-nosql-database-service.pdf": {
+      "status": 403,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:46.085Z",
+      "error": "HTTP 403",
+      "hint": "manual",
+      "manual": "auto"
     },
     "https://astexplorer.net/": {
       "status": 200,
@@ -169,6 +227,18 @@
       "lastChecked": "2026-01-26T13:35:25.723Z",
       "hint": "fetch-node"
     },
+    "https://aws.amazon.com/blogs/compute/optimizing-video-encoding-with-ffmpeg-using-nvidia-gpu-based-amazon-ec2-instances/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:07.437Z",
+      "hint": "fetch-node"
+    },
+    "https://aws.amazon.com/blogs/networking-and-content-delivery/achieving-zero-downtime-deployments-with-amazon-cloudfront-using-blue-green-continuous-deployments/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:11.657Z",
+      "hint": "fetch-node"
+    },
     "https://aws.amazon.com/blogs/networking-and-content-delivery/handling-redirectsedge-part1/": {
       "status": 200,
       "ok": true,
@@ -179,6 +249,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T16:40:40.846Z",
+      "hint": "fetch-node"
+    },
+    "https://aws.amazon.com/mediaconvert/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:06.539Z",
       "hint": "fetch-node"
     },
     "https://baking-code.dev/post/my-notes-from-bert-belders-talk-on-libuv/": {
@@ -223,10 +299,34 @@
       "lastChecked": "2026-01-26T13:35:25.104Z",
       "hint": "fetch-node"
     },
+    "https://blog.christianposta.com/microservices/do-i-need-an-api-gateway-if-i-have-a-service-mesh/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:41.815Z",
+      "hint": "fetch-node"
+    },
     "https://blog.chromium.org/2025/07/introducing-skia-graphite-chromes.html": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-28T11:14:01.060Z",
+      "hint": "fetch-node"
+    },
+    "https://blog.cloudflare.com/a-brief-anycast-primer/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:47.502Z",
+      "hint": "fetch-node"
+    },
+    "https://blog.cloudflare.com/announcing-1111/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:46.364Z",
+      "hint": "fetch-node"
+    },
+    "https://blog.cloudflare.com/cloudflares-architecture-eliminating-single-p/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:24.902Z",
       "hint": "fetch-node"
     },
     "https://blog.cloudflare.com/eliminating-cold-starts-2-shard-and-conquer/": {
@@ -247,6 +347,12 @@
       "lastChecked": "2026-02-01T03:53:37.234Z",
       "hint": "fetch-node"
     },
+    "https://blog.cloudflare.com/instant-purge/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:52:53.189Z",
+      "hint": "fetch-node"
+    },
     "https://blog.cloudflare.com/introducing-0-rtt/": {
       "status": 200,
       "ok": true,
@@ -259,16 +365,40 @@
       "lastChecked": "2026-01-31T21:08:51.180Z",
       "hint": "fetch-node"
     },
+    "https://blog.cloudflare.com/part1-coreless-purge/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:52:57.109Z",
+      "hint": "fetch-node"
+    },
     "https://blog.cloudflare.com/radar-2025-year-in-review/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-01T16:27:43.538Z",
       "hint": "fetch-node"
     },
+    "https://blog.cloudflare.com/results-experimenting-brotli/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:13.616Z",
+      "hint": "fetch-node"
+    },
     "https://blog.cloudflare.com/rfc-8446-aka-tls-1-3/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T21:39:34.593Z",
+      "hint": "fetch-node"
+    },
+    "https://blog.cloudflare.com/sad-dns-explained/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:49.910Z",
+      "hint": "fetch-node"
+    },
+    "https://blog.cloudflare.com/serverless-performance-comparison-workers-lambda/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:22.808Z",
       "hint": "fetch-node"
     },
     "https://blog.cloudflare.com/speeding-up-https-and-http-3-negotiation-with-dns/": {
@@ -319,6 +449,12 @@
       "lastChecked": "2026-01-31T21:39:35.317Z",
       "hint": "fetch-node"
     },
+    "https://blog.twitter.com/engineering/en_us/a/2010/announcing-snowflake": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:27.364Z",
+      "hint": "playwright"
+    },
     "https://blogs.windows.com/msedgedev/2023/01/17/the-truth-about-css-selector-performance/": {
       "status": 200,
       "ok": true,
@@ -335,6 +471,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-01T14:53:35.635Z",
+      "hint": "fetch-node"
+    },
+    "https://brandur.org/idempotency-keys": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:25.114Z",
       "hint": "fetch-node"
     },
     "https://brilliant.org/wiki/egg-dropping/": {
@@ -429,6 +571,12 @@
       "hint": "manual",
       "manual": "auto"
     },
+    "https://cassandra.apache.org/doc/latest/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:13.225Z",
+      "hint": "fetch-node"
+    },
     "https://cheatsheetseries.owasp.org/": {
       "status": 200,
       "ok": true,
@@ -475,6 +623,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T15:40:41.988Z",
+      "hint": "fetch-node"
+    },
+    "https://chromestatus.com/feature/5188299478007808": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:35.604Z",
       "hint": "fetch-node"
     },
     "https://chromestatus.com/feature/5274139738767360": {
@@ -663,6 +817,24 @@
       "lastChecked": "2026-01-26T13:35:27.339Z",
       "hint": "fetch-node"
     },
+    "https://cloud.google.com/apigee/docs": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:43.644Z",
+      "hint": "fetch-node"
+    },
+    "https://cloud.google.com/blog/products/devops-sre/canary-analysis-lessons-learned-and-best-practices-from-google-and-waze": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:14.080Z",
+      "hint": "fetch-node"
+    },
+    "https://cloud.google.com/cdn/docs/cache-invalidation-overview": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:52:52.858Z",
+      "hint": "fetch-node"
+    },
     "https://cloud.google.com/cdn/docs/using-signed-urls": {
       "status": 200,
       "ok": true,
@@ -673,6 +845,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:35:30.310Z",
+      "hint": "fetch-node"
+    },
+    "https://cloud.google.com/pubsub/docs": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:48.577Z",
+      "hint": "fetch-node"
+    },
+    "https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:36.745Z",
       "hint": "fetch-node"
     },
     "https://cloud.google.com/storage/docs/retry-strategy": {
@@ -693,10 +877,28 @@
       "lastChecked": "2026-01-31T16:40:41.784Z",
       "hint": "fetch-node"
     },
+    "https://courses.cs.washington.edu/courses/cse444/08au/544M/READINGS/fekete-sigmod2008.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:26.336Z",
+      "hint": "fetch-node"
+    },
     "https://cp-algorithms.com/data_structures/disjoint_set_union.html": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T17:12:43.690Z",
+      "hint": "fetch-node"
+    },
+    "https://cse.buffalo.edu/tech-reports/2014-04.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:24.282Z",
+      "hint": "fetch-node"
+    },
+    "https://cseweb.ucsd.edu/~avattani/papers/cache_stampede.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:36:00.309Z",
       "hint": "fetch-node"
     },
     "https://csrc.nist.gov/projects/role-based-access-control": {
@@ -741,10 +943,42 @@
       "lastChecked": "2026-02-01T03:53:38.024Z",
       "hint": "fetch-node"
     },
+    "https://d1.awsstatic.com/whitepapers/AWS_Blue_Green_Deployments.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:11.288Z",
+      "hint": "fetch-node"
+    },
     "https://darksi.de/d.sea-of-nodes/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:35:28.795Z",
+      "hint": "fetch-node"
+    },
+    "https://dashif-documents.azurewebsites.net/Guidelines-Security/master/Guidelines-Security.html": {
+      "status": null,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:42.203Z",
+      "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://dashif-documents.azurewebsites.net/Guidelines-Security/master/Guidelines-Security.html\nCall log:\n\u001b[2m  - navigating to \"https://dashif-documents.azurewebsites.net/Guidelines-Security/master/Guidelines-Security.html\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://dashif.org/Guidelines-TimingModel/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:08:07.433Z",
+      "hint": "fetch-node"
+    },
+    "https://dashif.org/guidelines/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:08:06.510Z",
+      "hint": "fetch-node"
+    },
+    "https://dataintensive.net/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:10.563Z",
       "hint": "fetch-node"
     },
     "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/": {
@@ -769,6 +1003,24 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-01T03:53:40.223Z",
+      "hint": "fetch-node"
+    },
+    "https://datatracker.ietf.org/doc/html/draft-pantos-hls-rfc8216bis": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:08:07.549Z",
+      "hint": "fetch-node"
+    },
+    "https://datatracker.ietf.org/doc/html/rfc1034": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:44.508Z",
+      "hint": "fetch-node"
+    },
+    "https://datatracker.ietf.org/doc/html/rfc1035": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:45.354Z",
       "hint": "fetch-node"
     },
     "https://datatracker.ietf.org/doc/html/rfc2104": {
@@ -841,6 +1093,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-01T16:38:01.936Z",
+      "hint": "fetch-node"
+    },
+    "https://datatracker.ietf.org/doc/html/rfc5905": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:24.021Z",
       "hint": "fetch-node"
     },
     "https://datatracker.ietf.org/doc/html/rfc6066": {
@@ -939,6 +1197,12 @@
       "lastChecked": "2026-01-31T21:39:33.846Z",
       "hint": "fetch-node"
     },
+    "https://datatracker.ietf.org/doc/html/rfc8216": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:08:06.725Z",
+      "hint": "fetch-node"
+    },
     "https://datatracker.ietf.org/doc/html/rfc8252": {
       "status": 200,
       "ok": true,
@@ -1017,6 +1281,12 @@
       "lastChecked": "2026-02-01T16:38:02.722Z",
       "hint": "fetch-node"
     },
+    "https://datatracker.ietf.org/doc/html/rfc9110/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:52:53.236Z",
+      "hint": "fetch-node"
+    },
     "https://datatracker.ietf.org/doc/html/rfc9114": {
       "status": 200,
       "ok": true,
@@ -1063,6 +1333,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:35:37.969Z",
+      "hint": "fetch-node"
+    },
+    "https://datatracker.ietf.org/doc/html/rfc9562": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:25.894Z",
+      "hint": "fetch-node"
+    },
+    "https://datatracker.ietf.org/doc/rfc9111/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:52:52.165Z",
       "hint": "fetch-node"
     },
     "https://datatracker.ietf.org/doc/rfc9204/": {
@@ -1143,6 +1425,18 @@
       "lastChecked": "2026-01-26T13:35:39.734Z",
       "hint": "playwright"
     },
+    "https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-model.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:27.469Z",
+      "hint": "playwright"
+    },
+    "https://dev.mysql.com/doc/refman/8.0/en/optimization-indexes.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:50.214Z",
+      "hint": "playwright"
+    },
     "https://dev.to/receter/how-to-create-a-react-component-library-using-vites-library-mode-4lma": {
       "status": 200,
       "ok": true,
@@ -1179,6 +1473,12 @@
       "lastChecked": "2026-01-26T13:35:36.676Z",
       "hint": "fetch-node"
     },
+    "https://developer.apple.com/documentation/http-live-streaming/hls-authoring-specification-for-apple-devices": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:08:07.224Z",
+      "hint": "fetch-node"
+    },
     "https://developer.apple.com/streaming/": {
       "status": 200,
       "ok": true,
@@ -1189,6 +1489,24 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:35:38.016Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.apple.com/streaming/fps/FairPlayStreamingOverview.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:05.396Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.bitmovin.com/playback/docs/how-does-fairplay-work": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:07.189Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.bitmovin.com/playback/docs/widevine-security-levels-in-web-video-playback": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:06.159Z",
       "hint": "fetch-node"
     },
     "https://developer.chrome.com/blog/inside-browser-part3/": {
@@ -1329,6 +1647,12 @@
       "lastChecked": "2026-01-26T13:35:41.219Z",
       "hint": "fetch-node"
     },
+    "https://developer.hashicorp.com/consul/docs/concept/gossip": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:44.810Z",
+      "hint": "fetch-node"
+    },
     "https://developer.mozilla.org/en-US/blog/fix-image-lcp/": {
       "status": 200,
       "ok": true,
@@ -1351,6 +1675,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T17:48:24.935Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.mozilla.org/en-US/docs/Web/API/CSPViolationReportBody": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:35.855Z",
       "hint": "fetch-node"
     },
     "https://developer.mozilla.org/en-US/docs/Web/API/Cache": {
@@ -1447,6 +1777,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:35:49.023Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.mozilla.org/en-US/docs/Web/API/LayoutShiftAttribution": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:12.242Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.mozilla.org/en-US/docs/Web/API/Media_Source_Extensions_API": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:08:06.810Z",
       "hint": "fetch-node"
     },
     "https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver": {
@@ -1695,6 +2037,12 @@
       "lastChecked": "2026-02-01T05:16:08.917Z",
       "hint": "fetch-node"
     },
+    "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:52:52.349Z",
+      "hint": "fetch-node"
+    },
     "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control": {
       "status": 200,
       "ok": true,
@@ -1705,6 +2053,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:36:15.084Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:52:53.245Z",
       "hint": "fetch-node"
     },
     "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/report-to": {
@@ -1723,6 +2077,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T21:47:59.899Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Reporting-Endpoints": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:36.598Z",
       "hint": "fetch-node"
     },
     "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie": {
@@ -1797,6 +2157,24 @@
       "lastChecked": "2026-02-01T14:53:33.931Z",
       "hint": "fetch-node"
     },
+    "https://developers.cloudflare.com/cache/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:35:59.482Z",
+      "hint": "fetch-node"
+    },
+    "https://developers.cloudflare.com/dns/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:44.609Z",
+      "hint": "fetch-node"
+    },
+    "https://developers.cloudflare.com/reference-architecture/architectures/cdn/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:18.854Z",
+      "hint": "fetch-node"
+    },
     "https://developers.cloudflare.com/workers/": {
       "status": 200,
       "ok": true,
@@ -1807,6 +2185,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-01T03:53:36.548Z",
+      "hint": "fetch-node"
+    },
+    "https://developers.google.com/speed/public-dns/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:45.544Z",
       "hint": "fetch-node"
     },
     "https://developers.google.com/speed/public-dns/cache": {
@@ -1833,13 +2217,31 @@
       "lastChecked": "2026-01-26T13:36:16.958Z",
       "hint": "fetch-node"
     },
-    "https://dl.acm.org/doi/10.1145/511399.511340": {
+    "https://discord.com/blog/how-discord-stores-billions-of-messages": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:25.544Z",
+      "hint": "fetch-node"
+    },
+    "https://discord.com/blog/how-discord-stores-trillions-of-messages": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:12.579Z",
+      "hint": "fetch-node"
+    },
+    "https://dl.acm.org/doi/10.1145/3723006": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-01T16:38:03.746Z",
+      "lastChecked": "2026-02-02T10:42:43.041Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
+    },
+    "https://dl.acm.org/doi/10.1145/511399.511340": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:24.991Z",
+      "hint": "playwright"
     },
     "https://dl.acm.org/doi/10.1145/857076.857078": {
       "status": 200,
@@ -1852,6 +2254,14 @@
       "ok": true,
       "lastChecked": "2026-01-26T13:36:22.931Z",
       "hint": "playwright"
+    },
+    "https://dl.acm.org/doi/pdf/10.1145/3318464.3386134": {
+      "status": null,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:53.610Z",
+      "error": "page.goto: Download is starting\nCall log:\n\u001b[2m  - navigating to \"https://dl.acm.org/doi/pdf/10.1145/3318464.3386134\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "hint": "manual",
+      "manual": "auto"
     },
     "https://dnsviz.net/": {
       "status": 200,
@@ -1871,10 +2281,46 @@
       "lastChecked": "2026-01-26T13:36:17.573Z",
       "hint": "fetch-node"
     },
+    "https://docs.astro.build/en/concepts/why-astro/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:11.875Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:35.577Z",
+      "hint": "fetch-node"
+    },
     "https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:36:18.717Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:47.002Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues-exactly-once-processing.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:48.003Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/DownloadDistValuesCacheBehavior.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:13.590Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PayingForInvalidation.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:14.069Z",
       "hint": "fetch-node"
     },
     "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/ServingCompressedFiles.html": {
@@ -1901,10 +2347,34 @@
       "lastChecked": "2026-01-26T13:36:21.743Z",
       "hint": "fetch-node"
     },
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/edge-functions-choosing.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:11.058Z",
+      "hint": "fetch-node"
+    },
     "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-at-the-edge.html": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:36:22.752Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/origin-shield.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:12.524Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/understanding-the-cache-key.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:52:52.304Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-type-bluegreen.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:09.452Z",
       "hint": "fetch-node"
     },
     "https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/supported-engine-versions.html": {
@@ -1919,10 +2389,46 @@
       "lastChecked": "2026-01-26T13:36:24.753Z",
       "hint": "fetch-node"
     },
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:44.982Z",
+      "hint": "fetch-node"
+    },
     "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/best-practices-dns.html": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T21:08:50.606Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:09.398Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/best-practices.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:13.563Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:12.611Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.aws.amazon.com/apigateway/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:40.758Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.aws.amazon.com/elasticloadbalancing/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:21.864Z",
       "hint": "fetch-node"
     },
     "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/strangler-fig.html": {
@@ -1935,6 +2441,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T16:40:41.231Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.axinom.com/services/drm/general/what-is-drm/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:05.983Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.axinom.com/services/drm/technical-articles/pssh/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:06.787Z",
       "hint": "fetch-node"
     },
     "https://docs.bullmq.io/": {
@@ -1955,10 +2473,40 @@
       "lastChecked": "2026-01-31T16:40:39.687Z",
       "hint": "fetch-node"
     },
+    "https://docs.confluent.io/kafka/design/delivery-semantics.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:46.801Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.confluent.io/platform/current/monitor/monitor-consumer-lag.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:48.408Z",
+      "hint": "fetch-node"
+    },
     "https://docs.cypress.io/accessibility/get-started/introduction": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T17:28:40.045Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/dml/dmlConfigConsistency.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:10.100Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.fastly.com/en/guides/purging-with-surrogate-keys": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:52:52.895Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.flagger.app/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:11.054Z",
       "hint": "fetch-node"
     },
     "https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing": {
@@ -1977,6 +2525,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T17:12:43.962Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.konghq.com/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:41.973Z",
       "hint": "fetch-node"
     },
     "https://docs.libuv.org/en/latest/design.html": {
@@ -2027,6 +2581,12 @@
       "lastChecked": "2026-01-26T13:36:28.331Z",
       "hint": "fetch-node"
     },
+    "https://docs.nats.io/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:47.411Z",
+      "hint": "fetch-node"
+    },
     "https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html": {
       "status": 200,
       "ok": true,
@@ -2037,6 +2597,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:36:24.505Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.percona.com/percona-toolkit/pt-online-schema-change.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:10.514Z",
       "hint": "fetch-node"
     },
     "https://docs.python.org/3/library/heapq.html": {
@@ -2109,6 +2675,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-01T14:53:33.759Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.unified-streaming.com/documentation/drm/common-encryption.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:06.651Z",
       "hint": "fetch-node"
     },
     "https://docs.volta.sh/": {
@@ -2207,10 +2779,22 @@
       "lastChecked": "2026-01-26T13:36:29.628Z",
       "hint": "fetch-node"
     },
+    "https://en.wikipedia.org/wiki/Causal_consistency": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:09.318Z",
+      "hint": "fetch-node"
+    },
     "https://en.wikipedia.org/wiki/D-ary_heap": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T17:22:29.330Z",
+      "hint": "fetch-node"
+    },
+    "https://en.wikipedia.org/wiki/Dan_Kaminsky": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:45.693Z",
       "hint": "fetch-node"
     },
     "https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm": {
@@ -2279,10 +2863,52 @@
       "lastChecked": "2026-01-31T17:12:45.383Z",
       "hint": "fetch-node"
     },
+    "https://engineering.linkedin.com/blog/2019/apache-kafka-trillion-messages": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:49.981Z",
+      "hint": "fetch-node"
+    },
+    "https://engineering.linkedin.com/blog/topic/data-infrastructure": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:17.746Z",
+      "hint": "fetch-node"
+    },
+    "https://engineering.linkedin.com/espresso/introducing-espresso-linkedins-hot-new-distributed-document-store": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:48.659Z",
+      "hint": "fetch-node"
+    },
+    "https://engineering.linkedin.com/kafka/running-kafka-scale": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:47.755Z",
+      "hint": "fetch-node"
+    },
+    "https://engineering.salesforce.com/migration-at-scale-moving-marketing-cloud-caching-from-memcached-to-redis-at-1-5m-rps-without-downtime/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:35:59.301Z",
+      "hint": "fetch-node"
+    },
     "https://eslint.org/docs/latest/use/configure/configuration-files-new": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-01T16:27:41.975Z",
+      "hint": "fetch-node"
+    },
+    "https://etcd.io/docs/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:22.940Z",
+      "hint": "fetch-node"
+    },
+    "https://etcd.io/docs/v3.5/learning/api_guarantees/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:42.552Z",
       "hint": "fetch-node"
     },
     "https://evertpot.com/http-2-push-is-dead/": {
@@ -2309,6 +2935,12 @@
       "lastChecked": "2026-01-26T13:36:29.919Z",
       "hint": "fetch-node"
     },
+    "https://fastify.dev/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:35.661Z",
+      "hint": "fetch-node"
+    },
     "https://fetch.spec.whatwg.org/": {
       "status": 200,
       "ok": true,
@@ -2320,6 +2952,14 @@
       "ok": true,
       "lastChecked": "2026-01-26T13:36:30.479Z",
       "hint": "fetch-node"
+    },
+    "https://fileadmin.cs.lth.se/cs/Personal/Amr_Ergawy/dist-algos-papers/4.pdf": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:49.355Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
     },
     "https://fonttools.readthedocs.io/en/latest/subset/": {
       "status": 200,
@@ -2363,6 +3003,24 @@
       "lastChecked": "2026-01-31T12:23:46.593Z",
       "hint": "fetch-node"
     },
+    "https://github.blog/engineering/infrastructure/mysql-high-availability-at-github/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:12.305Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/AOMediaCodec/SVT-AV1": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:06.922Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/Dash-Industry-Forum/dash.js": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:08:09.399Z",
+      "hint": "fetch-node"
+    },
     "https://github.com/EventEmitter2/EventEmitter2": {
       "status": 200,
       "ok": true,
@@ -2391,6 +3049,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:36:32.524Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/Netflix/vmaf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:07.939Z",
       "hint": "fetch-node"
     },
     "https://github.com/Schniz/fnm": {
@@ -2495,6 +3159,18 @@
       "lastChecked": "2026-01-26T13:36:40.983Z",
       "hint": "fetch-node"
     },
+    "https://github.com/etcd-io/dbtester": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:44.792Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/etcd-io/raft": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:48.254Z",
+      "hint": "fetch-node"
+    },
     "https://github.com/facebook/jscodeshift": {
       "status": 200,
       "ok": true,
@@ -2505,6 +3181,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-01T05:16:08.918Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/github/gh-ost": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:10.006Z",
       "hint": "fetch-node"
     },
     "https://github.com/golang/go/issues/50154": {
@@ -2627,10 +3309,16 @@
       "lastChecked": "2026-01-26T13:36:59.160Z",
       "hint": "fetch-node"
     },
+    "https://github.com/netflix/eureka/wiki/server-self-preservation-mode": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:43.275Z",
+      "hint": "fetch-node"
+    },
     "https://github.com/nicolo-ribaudo/proposal-error-iserror": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-01T16:38:03.276Z",
+      "lastChecked": "2026-02-02T10:42:44.052Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -2693,6 +3381,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-01T14:53:34.886Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/shaka-project/shaka-packager": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:05.736Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/shaka-project/shaka-player": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:08:07.697Z",
       "hint": "fetch-node"
     },
     "https://github.com/sujeet-pro": {
@@ -2761,6 +3461,12 @@
       "lastChecked": "2026-01-26T13:37:09.898Z",
       "hint": "fetch-node"
     },
+    "https://github.com/video-dev/hls.js": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:08:08.488Z",
+      "hint": "fetch-node"
+    },
     "https://github.com/volta-cli/volta/issues/2080": {
       "status": 200,
       "ok": true,
@@ -2797,6 +3503,12 @@
       "lastChecked": "2026-01-29T03:34:53.028Z",
       "hint": "fetch-node"
     },
+    "https://github.com/xataio/pgroll": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:10.739Z",
+      "hint": "fetch-node"
+    },
     "https://go.dev/blog/error-handling-and-go": {
       "status": 200,
       "ok": true,
@@ -2807,6 +3519,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T16:15:29.312Z",
+      "hint": "fetch-node"
+    },
+    "https://grafana.com/blog/2018/08/02/the-red-method-how-to-instrument-your-services/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:58:40.411Z",
       "hint": "fetch-node"
     },
     "https://grafana.com/blog/2025/05/07/grafana-12-release-all-the-new-features/": {
@@ -2839,6 +3557,18 @@
       "lastChecked": "2026-01-26T13:37:06.795Z",
       "hint": "fetch-node"
     },
+    "https://groups.csail.mit.edu/tds/papers/Gilbert/Brewer2.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:09.700Z",
+      "hint": "fetch-node"
+    },
+    "https://groups.csail.mit.edu/tds/papers/Lynch/jacm85.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:21.734Z",
+      "hint": "fetch-node"
+    },
     "https://grpc.io/docs/guides/retry/": {
       "status": 200,
       "ok": true,
@@ -2848,7 +3578,7 @@
     "https://hashnode.com/@sujeetpro": {
       "status": 429,
       "ok": true,
-      "lastChecked": "2026-02-01T16:38:04.049Z",
+      "lastChecked": "2026-02-02T10:42:56.538Z",
       "error": "HTTP 429",
       "hint": "manual",
       "manual": "auto"
@@ -2955,6 +3685,12 @@
       "lastChecked": "2026-01-31T16:40:40.594Z",
       "hint": "fetch-node"
     },
+    "https://ianix.com/pub/dnssec-outages.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:46.795Z",
+      "hint": "fetch-node"
+    },
     "https://incepter.github.io/how-react-works/docs/react-dom/how.hooks.work/": {
       "status": 200,
       "ok": true,
@@ -2965,6 +3701,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-29T03:34:46.807Z",
+      "hint": "fetch-node"
+    },
+    "https://istio.io/latest/docs/concepts/traffic-management/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:10.694Z",
+      "hint": "fetch-node"
+    },
+    "https://istio.io/latest/docs/ops/deployment/architecture/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:44.688Z",
       "hint": "fetch-node"
     },
     "https://istio.io/latest/docs/tasks/traffic-management/circuit-breaking/": {
@@ -2997,6 +3745,18 @@
       "lastChecked": "2026-01-31T17:12:43.582Z",
       "hint": "fetch-node"
     },
+    "https://jepsen.io/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:10.568Z",
+      "hint": "fetch-node"
+    },
+    "https://jepsen.io/consistency": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:11.220Z",
+      "hint": "fetch-node"
+    },
     "https://joyeecheung.github.io/blog/2025/12/30/require-esm-in-node-js-from-experiment-to-stability/": {
       "status": 200,
       "ok": true,
@@ -3021,10 +3781,76 @@
       "lastChecked": "2026-01-31T21:08:51.189Z",
       "hint": "fetch-node"
     },
+    "https://kafka.apache.org/documentation/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:46.646Z",
+      "hint": "fetch-node"
+    },
+    "https://kendralittle.com/2025/12/01/index-bloat-postgres-why-it-matters-how-to-identify-and-resolve/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:47.356Z",
+      "hint": "fetch-node"
+    },
     "https://krasimir.gitbooks.io/react-in-patterns/content/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:07.195Z",
+      "hint": "fetch-node"
+    },
+    "https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:43.408Z",
+      "hint": "fetch-node"
+    },
+    "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:09.928Z",
+      "hint": "fetch-node"
+    },
+    "https://kubernetes.io/docs/reference/kubectl/generated/kubectl_rollout/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:11.882Z",
+      "hint": "fetch-node"
+    },
+    "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:10.872Z",
+      "hint": "fetch-node"
+    },
+    "https://lamport.azurewebsites.net/pubs/multi.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:09.493Z",
+      "hint": "fetch-node"
+    },
+    "https://lamport.azurewebsites.net/pubs/paxos-simple.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:21.540Z",
+      "hint": "fetch-node"
+    },
+    "https://lamport.azurewebsites.net/pubs/time-clocks.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:23.902Z",
+      "hint": "fetch-node"
+    },
+    "https://launchdarkly.com/docs/guides/infrastructure/deployment-strategies": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:11.373Z",
+      "hint": "fetch-node"
+    },
+    "https://launchdarkly.com/docs/home/releases/progressive-rollouts": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:10.018Z",
       "hint": "fetch-node"
     },
     "https://learn.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker": {
@@ -3051,6 +3877,30 @@
       "lastChecked": "2026-01-26T13:37:08.289Z",
       "hint": "fetch-node"
     },
+    "https://learn.microsoft.com/en-us/javascript/api/@azure/storage-blob/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:35.606Z",
+      "hint": "fetch-node"
+    },
+    "https://learn.microsoft.com/en-us/playready/overview/security-level": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:05.321Z",
+      "hint": "fetch-node"
+    },
+    "https://learn.microsoft.com/en-us/playready/packaging/content-encryption-modes": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:06.337Z",
+      "hint": "fetch-node"
+    },
+    "https://learn.microsoft.com/en-us/sql/t-sql/statements/set-transaction-isolation-level-transact-sql": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:24.238Z",
+      "hint": "fetch-node"
+    },
     "https://leetcode.com/problems/egg-drop-with-2-eggs-and-n-floors/": {
       "status": 200,
       "ok": true,
@@ -3075,6 +3925,12 @@
       "lastChecked": "2026-01-31T21:39:34.387Z",
       "hint": "fetch-node"
     },
+    "https://lwn.net/Articles/752063/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:26.098Z",
+      "hint": "fetch-node"
+    },
     "https://m3.material.io/foundations/design-tokens": {
       "status": 200,
       "ok": true,
@@ -3096,7 +3952,7 @@
     "https://martinfowler.com/articles/codemods-api-refactoring/": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-01T16:38:02.777Z",
+      "lastChecked": "2026-02-02T10:42:42.700Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -3111,6 +3967,24 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:09.294Z",
+      "hint": "fetch-node"
+    },
+    "https://martinfowler.com/bliki/BlueGreenDeployment.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:10.587Z",
+      "hint": "fetch-node"
+    },
+    "https://martinfowler.com/bliki/CanaryRelease.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:11.639Z",
+      "hint": "fetch-node"
+    },
+    "https://martinfowler.com/bliki/ParallelChange.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:09.780Z",
       "hint": "fetch-node"
     },
     "https://martinfowler.com/bliki/StranglerFigApplication.html": {
@@ -3140,15 +4014,27 @@
     "https://media.defense.gov/2021/Jan/14/2002564889/-1/-1/0/CSI_ADOPTING_ENCRYPTED_DNS_U_OO_102904_21.PDF": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-01T16:38:03.623Z",
+      "lastChecked": "2026-02-02T10:42:55.895Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
+    },
+    "https://medium.com/@mamidipaka2003/inside-high-traffic-databases-how-instagram-scales-postgresql-beyond-limits-0a4af13696ff": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:36:01.192Z",
+      "hint": "fetch-browser-agent"
     },
     "https://medium.com/@paul.laskar/mastering-web-dynamics-your-guide-to-mutation-resize-and-intersection-observers-ba069ad0f114": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:11.184Z",
+      "hint": "fetch-browser-agent"
+    },
+    "https://medium.com/airbnb-engineering/smartstack-service-discovery-in-the-cloud-4b8a080de619": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:45.911Z",
       "hint": "fetch-browser-agent"
     },
     "https://medium.com/dailyjs/understanding-v8s-bytecode-317d46c94775": {
@@ -3193,6 +4079,12 @@
       "lastChecked": "2026-02-01T15:00:11.805Z",
       "hint": "fetch-browser-agent"
     },
+    "https://medium.com/pinterest-engineering/sharding-pinterest-how-we-scaled-our-mysql-fleet-3f341e96ca6f": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:50.232Z",
+      "hint": "fetch-browser-agent"
+    },
     "https://medium.com/sujeet-pro": {
       "status": 200,
       "ok": true,
@@ -3211,6 +4103,24 @@
       "lastChecked": "2026-01-26T13:37:11.190Z",
       "hint": "fetch-node"
     },
+    "https://microservices.io/patterns/apigateway.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:40.332Z",
+      "hint": "fetch-node"
+    },
+    "https://microservices.io/patterns/client-side-discovery.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:42.312Z",
+      "hint": "fetch-node"
+    },
+    "https://microservices.io/patterns/communication-style/idempotent-consumer.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:47.892Z",
+      "hint": "fetch-node"
+    },
     "https://microservices.io/patterns/data/saga.html": {
       "status": 200,
       "ok": true,
@@ -3223,10 +4133,16 @@
       "lastChecked": "2026-01-26T13:37:12.171Z",
       "hint": "fetch-node"
     },
+    "https://microservices.io/patterns/server-side-discovery.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:43.560Z",
+      "hint": "fetch-node"
+    },
     "https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-01T16:38:02.249Z",
+      "lastChecked": "2026-02-02T10:42:43.204Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -3234,7 +4150,7 @@
     "https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-01T16:38:02.332Z",
+      "lastChecked": "2026-02-02T10:42:43.223Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -3249,6 +4165,48 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:15.250Z",
+      "hint": "playwright"
+    },
+    "https://netflixtechblog.com/av1-now-powering-30-of-netflix-streaming-02f592242d80": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:11.583Z",
+      "hint": "playwright"
+    },
+    "https://netflixtechblog.com/how-and-why-netflix-built-a-real-time-distributed-graph-part-1-ingesting-and-processing-data-80113e124acc": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:56.637Z",
+      "hint": "playwright"
+    },
+    "https://netflixtechblog.com/introducing-netflixs-key-value-data-abstraction-layer-1ea8a0a11b30": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:57.209Z",
+      "hint": "playwright"
+    },
+    "https://netflixtechblog.com/netflix-edge-load-balancing-695c35a15f59": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:27.075Z",
+      "hint": "playwright"
+    },
+    "https://netflixtechblog.com/open-sourcing-zuul-2-82ea476cb2b3": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:46.252Z",
+      "hint": "playwright"
+    },
+    "https://netflixtechblog.com/svt-av1-an-open-source-av1-encoder-and-decoder-ad295d9b5ca2": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:11.584Z",
+      "hint": "playwright"
+    },
+    "https://netflixtechblog.com/tagged/cassandra": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:19.345Z",
       "hint": "playwright"
     },
     "https://nextjs.org/docs/app": {
@@ -3287,10 +4245,22 @@
       "lastChecked": "2026-01-26T13:37:15.782Z",
       "hint": "fetch-node"
     },
+    "https://nextjs.org/docs/pages/guides/static-exports": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:13.145Z",
+      "hint": "fetch-node"
+    },
     "https://nginx.org/en/docs/quic.html": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:13.300Z",
+      "hint": "fetch-node"
+    },
+    "https://nickcraver.com/blog/2016/02/17/stack-overflow-the-architecture-2016-edition/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:12.450Z",
       "hint": "fetch-node"
     },
     "https://nilmamano.com/blog/heapify-analysis": {
@@ -3455,6 +4425,12 @@
       "lastChecked": "2026-01-31T17:12:42.648Z",
       "hint": "fetch-node"
     },
+    "https://openconnect.netflix.com/Open-Connect-Overview.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:19.105Z",
+      "hint": "fetch-node"
+    },
     "https://openid.net/specs/openid-connect-core-1_0.html": {
       "status": 200,
       "ok": true,
@@ -3465,6 +4441,24 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:16.672Z",
+      "hint": "fetch-node"
+    },
+    "https://opentelemetry.io/docs/concepts/sampling/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:58:41.365Z",
+      "hint": "fetch-node"
+    },
+    "https://opentelemetry.io/docs/concepts/semantic-conventions/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:58:40.381Z",
+      "hint": "fetch-node"
+    },
+    "https://opentelemetry.io/docs/specs/otel/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:58:39.562Z",
       "hint": "fetch-node"
     },
     "https://overreacted.io/why-do-hooks-rely-on-call-order/": {
@@ -3533,6 +4527,24 @@
       "lastChecked": "2026-02-01T15:00:11.413Z",
       "hint": "fetch-node"
     },
+    "https://pganalyze.com/blog/5mins-postgres-benchmarking-indexes": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:46.881Z",
+      "hint": "fetch-node"
+    },
+    "https://pganalyze.com/blog/gin-index": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:47.842Z",
+      "hint": "fetch-node"
+    },
+    "https://philipwalton.com/articles/performant-a-b-testing-with-cloudflare-workers/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:52:52.862Z",
+      "hint": "fetch-node"
+    },
     "https://pkg.go.dev/container/heap": {
       "status": 200,
       "ok": true,
@@ -3544,6 +4556,14 @@
       "ok": true,
       "lastChecked": "2026-01-31T17:28:39.211Z",
       "hint": "fetch-node"
+    },
+    "https://pmg.csail.mit.edu/papers/osdi99.pdf": {
+      "status": null,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:46.679Z",
+      "error": "page.goto: net::ERR_CONNECTION_REFUSED at https://pmg.csail.mit.edu/papers/osdi99.pdf\nCall log:\n\u001b[2m  - navigating to \"https://pmg.csail.mit.edu/papers/osdi99.pdf\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "hint": "manual",
+      "manual": "auto"
     },
     "https://polaris.shopify.com/": {
       "status": 200,
@@ -3575,6 +4595,18 @@
       "lastChecked": "2026-01-26T13:37:16.470Z",
       "hint": "fetch-node"
     },
+    "https://prometheus.io/docs/practices/histograms/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:58:39.678Z",
+      "hint": "fetch-node"
+    },
+    "https://pulsar.apache.org/docs/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:47.406Z",
+      "hint": "fetch-node"
+    },
     "https://pulse.internetsociety.org/blog/now-theres-a-way-to-measure-quic-targeting-by-middleboxes": {
       "status": 200,
       "ok": true,
@@ -3593,6 +4625,18 @@
       "lastChecked": "2026-01-26T13:37:16.664Z",
       "hint": "fetch-node"
     },
+    "https://raft.github.io/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:47.333Z",
+      "hint": "fetch-node"
+    },
+    "https://raft.github.io/raft.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:22.077Z",
+      "hint": "fetch-node"
+    },
     "https://raindrop.io/": {
       "status": 200,
       "ok": true,
@@ -3602,7 +4646,7 @@
     "https://react-aria-components.adobe.com/": {
       "status": null,
       "ok": true,
-      "lastChecked": "2026-02-01T16:38:01.952Z",
+      "lastChecked": "2026-02-02T10:42:42.114Z",
       "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://react-aria-components.adobe.com/\nCall log:\n\u001b[2m  - navigating to \"https://react-aria-components.adobe.com/\", waiting until \"domcontentloaded\"\u001b[22m\n",
       "hint": "manual",
       "manual": "auto"
@@ -3793,6 +4837,12 @@
       "lastChecked": "2026-01-26T13:37:37.752Z",
       "hint": "fetch-node"
     },
+    "https://redis.io/compare/memcached/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:35:59.453Z",
+      "hint": "fetch-node"
+    },
     "https://redis.io/docs/": {
       "status": 200,
       "ok": true,
@@ -3835,6 +4885,42 @@
       "lastChecked": "2026-01-26T13:37:31.514Z",
       "hint": "fetch-node"
     },
+    "https://research.google.com/archive/bigtable-osdi06.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:12.945Z",
+      "hint": "fetch-node"
+    },
+    "https://research.google.com/archive/spanner-osdi2012.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:08.654Z",
+      "hint": "fetch-node"
+    },
+    "https://research.google.com/pubs/archive/45855.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:09.995Z",
+      "hint": "fetch-node"
+    },
+    "https://research.google/pubs/maglev-a-fast-and-reliable-software-network-load-balancer/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:21.426Z",
+      "hint": "fetch-node"
+    },
+    "https://research.google/pubs/pub39966/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:48.328Z",
+      "hint": "fetch-node"
+    },
+    "https://samnewman.io/patterns/architectural/bff/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:42.407Z",
+      "hint": "fetch-node"
+    },
     "https://screenspan.net/fallback": {
       "status": 200,
       "ok": true,
@@ -3859,10 +4945,22 @@
       "lastChecked": "2026-02-01T15:00:10.505Z",
       "hint": "fetch-node"
     },
+    "https://shaka-project.github.io/shaka-packager/html/tutorials/drm.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:05.321Z",
+      "hint": "fetch-node"
+    },
     "https://sharp.pixelplumbing.com/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:31.958Z",
+      "hint": "fetch-node"
+    },
+    "https://sharp.pixelplumbing.com/changelog/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:35.673Z",
       "hint": "fetch-node"
     },
     "https://sharp.pixelplumbing.com/performance/": {
@@ -3875,6 +4973,24 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:32.065Z",
+      "hint": "fetch-node"
+    },
+    "https://slack.engineering/scaling-datastores-at-slack-with-vitess/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:47.975Z",
+      "hint": "fetch-node"
+    },
+    "https://slack.engineering/scaling-slacks-job-queue/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:48.158Z",
+      "hint": "fetch-node"
+    },
+    "https://slhck.info/video/2017/03/01/rate-control.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:06.902Z",
       "hint": "fetch-node"
     },
     "https://spectrum.adobe.com/page/design-tokens/": {
@@ -3919,10 +5035,52 @@
       "lastChecked": "2026-01-26T13:37:33.009Z",
       "hint": "fetch-node"
     },
+    "https://sre.google/sre-book/monitoring-distributed-systems/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:58:39.556Z",
+      "hint": "fetch-node"
+    },
+    "https://sre.google/sre-book/service-level-objectives/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:35.714Z",
+      "hint": "fetch-node"
+    },
+    "https://sre.google/workbook/alerting-on-slos/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:37.695Z",
+      "hint": "fetch-node"
+    },
+    "https://sre.google/workbook/canarying-releases/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:09.216Z",
+      "hint": "fetch-node"
+    },
+    "https://sre.google/workbook/error-budget-policy/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:38.672Z",
+      "hint": "fetch-node"
+    },
+    "https://sre.google/workbook/implementing-slos/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:36.676Z",
+      "hint": "fetch-node"
+    },
     "https://stackoverflow.com/users/5570700/sujeet-jaiswal": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:33.327Z",
+      "hint": "fetch-node"
+    },
+    "https://standards.ieee.org/ieee/1588/6825/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:25.106Z",
       "hint": "fetch-node"
     },
     "https://standards.ieee.org/ieee/802.3/7071/": {
@@ -3971,6 +5129,30 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T19:58:23.983Z",
+      "hint": "fetch-node"
+    },
+    "https://stripe.com/blog/how-stripes-document-databases-supported-99.999-uptime-with-zero-downtime-data-migrations": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:49.006Z",
+      "hint": "fetch-node"
+    },
+    "https://stripe.com/blog/idempotency": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:25.427Z",
+      "hint": "fetch-node"
+    },
+    "https://stripe.com/blog/online-migrations": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:12.992Z",
+      "hint": "fetch-node"
+    },
+    "https://stripe.com/blog/payment-api-design": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:42.270Z",
       "hint": "fetch-node"
     },
     "https://styledictionary.com/": {
@@ -4387,6 +5569,18 @@
       "lastChecked": "2026-01-26T13:37:34.740Z",
       "hint": "fetch-node"
     },
+    "https://sujeet.pro/articles/platform-engineering/infrastructure-delivery/deployment-strategies-blue-green-canary.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:11.361Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/platform-engineering/infrastructure-delivery/edge-delivery-and-cache-invalidation.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:52:53.076Z",
+      "hint": "fetch-node"
+    },
     "https://sujeet.pro/articles/platform-engineering/infrastructure-delivery/ssg-performance-optimizations.html": {
       "status": 200,
       "ok": true,
@@ -4399,10 +5593,22 @@
       "lastChecked": "2026-01-26T13:37:34.746Z",
       "hint": "fetch-node"
     },
+    "https://sujeet.pro/articles/platform-engineering/media-systems/drm-basics-for-streaming.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:06.541Z",
+      "hint": "fetch-node"
+    },
     "https://sujeet.pro/articles/platform-engineering/media-systems/image-processing-service-design.html": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:34.750Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/platform-engineering/media-systems/video-transcoding-pipeline.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:07.208Z",
       "hint": "fetch-node"
     },
     "https://sujeet.pro/articles/platform-engineering/media-systems/web-video-playback-architecture.html": {
@@ -4421,6 +5627,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:34.797Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/platform-engineering/observability-reliability/logging-metrics-tracing.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:58:39.826Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/platform-engineering/observability-reliability/slos-slis-error-budgets.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:36.130Z",
       "hint": "fetch-node"
     },
     "https://sujeet.pro/articles/platform-engineering/platform-migrations.html": {
@@ -4531,16 +5749,62 @@
       "lastChecked": "2026-01-26T13:37:34.947Z",
       "hint": "fetch-node"
     },
+    "https://sujeet.pro/articles/system-design/core-distributed-patterns.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:44.246Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
     "https://sujeet.pro/articles/system-design/data-reliability-patterns.html": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:34.944Z",
       "hint": "fetch-node"
     },
+    "https://sujeet.pro/articles/system-design/frontend-system-design.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:44.479Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://sujeet.pro/articles/system-design/real-world-case-studies.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:44.786Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-building-blocks.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:45.183Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-building-blocks/lru-cache-design.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:44.838Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
     "https://sujeet.pro/articles/system-design/system-design-fundamentals.html": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:35.194Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-fundamentals/api-gateway-patterns.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:42.003Z",
       "hint": "fetch-node"
     },
     "https://sujeet.pro/articles/system-design/system-design-fundamentals/caching-fundamentals-and-strategies.html": {
@@ -4549,11 +5813,103 @@
       "lastChecked": "2026-01-26T13:37:34.954Z",
       "hint": "fetch-node"
     },
+    "https://sujeet.pro/articles/system-design/system-design-fundamentals/cdn-architecture-and-caching.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:19.513Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-fundamentals/consistency-and-cap-theorem.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:10.430Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-fundamentals/distributed-consensus.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:47.041Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-fundamentals/dns-deep-dive.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:47.579Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-fundamentals/failure-modes-and-resilience.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:47.408Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-fundamentals/indexing-and-query-optimization.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:47.491Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-fundamentals/load-balancers-architecture.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:22.140Z",
+      "hint": "fetch-node"
+    },
     "https://sujeet.pro/articles/system-design/system-design-fundamentals/lru-cache-design.html": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:34.980Z",
       "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-fundamentals/queues-and-pubsub.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:48.630Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-fundamentals/service-discovery-and-registry.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:44.314Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-fundamentals/sharding-and-replication.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:49.294Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-fundamentals/storage-choices-sql-vs-nosql.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:48.782Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-fundamentals/time-and-ordering.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:54.004Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-fundamentals/transactions-and-acid.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:55.248Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
     },
     "https://sujeet.pro/articles/system-design/system-design-problems.html": {
       "status": 200,
@@ -4702,7 +6058,7 @@
     "https://sujeet.pro/articles/web-foundations/web-security-auth/owasp-top-10-guide.html": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-01T16:38:04.215Z",
+      "lastChecked": "2026-02-02T10:42:56.304Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -4779,10 +6135,22 @@
       "lastChecked": "2026-01-31T16:15:29.538Z",
       "hint": "fetch-node"
     },
+    "https://techdocs.akamai.com/purge-cache/reference/post-invalidate-tag": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:52:53.309Z",
+      "hint": "fetch-node"
+    },
     "https://temporal.io/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:35.320Z",
+      "hint": "fetch-node"
+    },
+    "https://temporal.io/blog/error-handling-in-distributed-systems": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:06.940Z",
       "hint": "fetch-node"
     },
     "https://terrazzo.app/docs/": {
@@ -4861,6 +6229,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:37.162Z",
+      "hint": "fetch-node"
+    },
+    "https://us-cert.cisa.gov/ncas/alerts/TA13-088A": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:46.559Z",
+      "hint": "fetch-node"
+    },
+    "https://use-the-index-luke.com/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:46.934Z",
       "hint": "fetch-node"
     },
     "https://users.math.msu.edu/users/magyarp/math481/Egg-Drop-Recurrence.pdf": {
@@ -4995,6 +6375,12 @@
       "lastChecked": "2026-01-26T13:37:38.828Z",
       "hint": "fetch-node"
     },
+    "https://varnish-cache.org/docs/7.3/users-guide/vcl-grace.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:52:53.309Z",
+      "hint": "fetch-node"
+    },
     "https://vercel.com/blog/ab-testing-with-nextjs-and-vercel": {
       "status": 200,
       "ok": true,
@@ -5047,6 +6433,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-28T06:54:56.884Z",
+      "hint": "fetch-node"
+    },
+    "https://w3c.github.io/encrypted-media/format-registry/initdata/cenc.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:05.341Z",
       "hint": "fetch-node"
     },
     "https://w3c.github.io/frame-timing/": {
@@ -5139,6 +6531,12 @@
       "lastChecked": "2026-01-26T13:37:50.142Z",
       "hint": "fetch-node"
     },
+    "https://web.dev/articles/eme-basics": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:06.378Z",
+      "hint": "fetch-node"
+    },
     "https://web.dev/articles/extract-critical-css": {
       "status": 200,
       "ok": true,
@@ -5197,6 +6595,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T17:48:26.208Z",
+      "hint": "fetch-node"
+    },
+    "https://web.dev/articles/optimize-cls": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:12.407Z",
       "hint": "fetch-node"
     },
     "https://web.dev/articles/optimize-inp": {
@@ -5355,6 +6759,12 @@
       "lastChecked": "2026-01-31T17:22:29.043Z",
       "hint": "fetch-node"
     },
+    "https://web.stanford.edu/class/cs345d-01/rl/aries.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:23.527Z",
+      "hint": "fetch-node"
+    },
     "https://webaim.org/projects/million/": {
       "status": 200,
       "ok": true,
@@ -5433,6 +6843,20 @@
       "lastChecked": "2026-01-31T17:22:30.292Z",
       "hint": "fetch-node"
     },
+    "https://www.akamai.com/resources/reference-architecture/content-delivery-network": {
+      "status": null,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:54.886Z",
+      "error": "page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://www.akamai.com/resources/reference-architecture/content-delivery-network\", waiting until \"domcontentloaded\"\u001b[22m\n",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:09.002Z",
+      "hint": "fetch-node"
+    },
     "https://www.anthropic.com/news/claude-for-chrome": {
       "status": 200,
       "ok": true,
@@ -5467,6 +6891,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-29T04:32:03.083Z",
+      "hint": "fetch-node"
+    },
+    "https://www.canva.dev/blog/engineering/canva-incident-report-api-gateway-outage/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:41.853Z",
       "hint": "fetch-node"
     },
     "https://www.catchpoint.com/http2-vs-http3/tls1-2-vs-1-3": {
@@ -5575,10 +7005,64 @@
       "lastChecked": "2026-01-31T21:39:29.682Z",
       "hint": "playwright"
     },
+    "https://www.cockroachlabs.com/blog/consistency-model/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:11.270Z",
+      "hint": "fetch-node"
+    },
+    "https://www.cockroachlabs.com/blog/living-without-atomic-clocks/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:09.548Z",
+      "hint": "fetch-node"
+    },
+    "https://www.cockroachlabs.com/blog/scaling-raft/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:49.001Z",
+      "hint": "fetch-node"
+    },
+    "https://www.cockroachlabs.com/blog/serializable-lockless-distributed-isolation-cockroachdb/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:10.439Z",
+      "hint": "fetch-node"
+    },
+    "https://www.cockroachlabs.com/blog/what-write-skew-looks-like/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:26.555Z",
+      "hint": "fetch-node"
+    },
+    "https://www.cockroachlabs.com/docs/stable/architecture/overview.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:47.834Z",
+      "hint": "fetch-node"
+    },
+    "https://www.confluent.io/blog/distributed-consensus-reloaded-apache-zookeeper-and-replication-in-kafka/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:23.642Z",
+      "hint": "fetch-node"
+    },
     "https://www.confluent.io/blog/how-choose-number-topics-partitions-kafka-cluster/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:54.704Z",
+      "hint": "fetch-node"
+    },
+    "https://www.confluent.io/blog/how-to-survive-a-kafka-outage/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:50.548Z",
+      "hint": "fetch-node"
+    },
+    "https://www.crunchydata.com/blog/why-covering-indexes-are-incredibly-helpful": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:47.577Z",
       "hint": "fetch-node"
     },
     "https://www.cs.cmu.edu/~natassa/courses/15-721/papers/arcfast.pdf": {
@@ -5593,10 +7077,52 @@
       "lastChecked": "2026-01-26T13:37:56.633Z",
       "hint": "fetch-node"
     },
+    "https://www.cs.cornell.edu/courses/cs734/2000FA/cached%20papers/SessionGuaranteesPDIS_1.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:10.677Z",
+      "hint": "fetch-node"
+    },
     "https://www.cs.princeton.edu/courses/archive/fall09/cos518/papers/chash.pdf": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:56.336Z",
+      "hint": "fetch-node"
+    },
+    "https://www.cs.umd.edu/~abadi/papers/abadi-pacelc.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:09.331Z",
+      "hint": "fetch-node"
+    },
+    "https://www.cs.utexas.edu/users/lorenzo/corsi/cs380d/papers/paper2-1.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:24.108Z",
+      "hint": "fetch-node"
+    },
+    "https://www.databass.dev/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:14.343Z",
+      "hint": "fetch-node"
+    },
+    "https://www.datadoghq.com/blog/burn-rate-is-better-error-rate/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:35.836Z",
+      "hint": "fetch-node"
+    },
+    "https://www.datadoghq.com/blog/datadog-deployment-tracking/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:45:09.523Z",
+      "hint": "fetch-node"
+    },
+    "https://www.datastax.com/blog/cassandra-anti-patterns": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:12.917Z",
       "hint": "fetch-node"
     },
     "https://www.debugbear.com/blog/fetchpriority-attribute": {
@@ -5659,10 +7185,34 @@
       "lastChecked": "2026-01-26T13:37:58.027Z",
       "hint": "fetch-node"
     },
+    "https://www.eecs.harvard.edu/~michaelm/postscripts/mythesis.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:22.928Z",
+      "hint": "fetch-node"
+    },
+    "https://www.enterpriseintegrationpatterns.com/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:48.323Z",
+      "hint": "fetch-node"
+    },
     "https://www.enterpriseintegrationpatterns.com/patterns/messaging/PublishSubscribeChannel.html": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:57.275Z",
+      "hint": "fetch-node"
+    },
+    "https://www.envoyproxy.io/docs/envoy/latest/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:41.134Z",
+      "hint": "fetch-node"
+    },
+    "https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/load_balancing/load_balancers": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:21.730Z",
       "hint": "fetch-node"
     },
     "https://www.etsi.org/deliver/etsi_en/301500_301599/301549/03.02.01_60/en_301549v030201p.pdf": {
@@ -5681,6 +7231,24 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:58.130Z",
+      "hint": "fetch-node"
+    },
+    "https://www.fastly.com/documentation/guides/concepts/edge-state/cache/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:19.975Z",
+      "hint": "fetch-node"
+    },
+    "https://www.fastly.com/documentation/guides/full-site-delivery/performance/serving-stale-content/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:52:52.198Z",
+      "hint": "fetch-node"
+    },
+    "https://www.fastly.com/products/edge-compute": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:35.576Z",
       "hint": "fetch-node"
     },
     "https://www.figma.com/blog/design-systems-104-making-metrics-matter/": {
@@ -5725,6 +7293,12 @@
       "lastChecked": "2026-01-26T13:37:58.593Z",
       "hint": "fetch-node"
     },
+    "https://www.haproxy.com/documentation/haproxy-configuration-manual/latest/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:22.152Z",
+      "hint": "fetch-node"
+    },
     "https://www.iana.org/assignments/dns-parameters": {
       "status": 200,
       "ok": true,
@@ -5736,6 +7310,18 @@
       "ok": true,
       "lastChecked": "2026-01-31T21:39:49.048Z",
       "hint": "playwright"
+    },
+    "https://www.infoq.com/articles/cap-twelve-years-later-how-the-rules-have-changed/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:09.399Z",
+      "hint": "fetch-node"
+    },
+    "https://www.infoq.com/articles/netflix-global-cache/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:36:00.583Z",
+      "hint": "fetch-node"
     },
     "https://www.instagram.com/sujeet__pro/": {
       "status": 200,
@@ -5765,6 +7351,24 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:38:00.634Z",
+      "hint": "fetch-node"
+    },
+    "https://www.iso.org/standard/83314.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:08:06.116Z",
+      "hint": "fetch-node"
+    },
+    "https://www.iso.org/standard/84637.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:08:11.457Z",
+      "hint": "fetch-node"
+    },
+    "https://www.iso.org/standard/85623.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:08:09.337Z",
       "hint": "fetch-node"
     },
     "https://www.iso.org/standard/87633.html": {
@@ -5803,10 +7407,46 @@
       "lastChecked": "2026-01-26T13:37:59.719Z",
       "hint": "fetch-node"
     },
+    "https://www.libvips.org/2025/12/04/What's-new-in-8.18.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:35.520Z",
+      "hint": "fetch-node"
+    },
     "https://www.linkedin.com/in/sujeetkrjaiswal/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:38:01.002Z",
+      "hint": "fetch-node"
+    },
+    "https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:23.251Z",
+      "hint": "fetch-node"
+    },
+    "https://www.mongodb.com/company/blog/mongodb-8-0-raising-the-bar": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:49.039Z",
+      "hint": "fetch-node"
+    },
+    "https://www.mongodb.com/customers/ebay": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:12.424Z",
+      "hint": "fetch-node"
+    },
+    "https://www.mongodb.com/docs/manual/data-modeling/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:13.096Z",
+      "hint": "fetch-node"
+    },
+    "https://www.morling.dev/blog/on-idempotency-keys/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:48.415Z",
       "hint": "fetch-node"
     },
     "https://www.netguru.com/blog/enterprise-design-systems": {
@@ -5839,10 +7479,34 @@
       "lastChecked": "2026-01-26T13:38:00.271Z",
       "hint": "fetch-node"
     },
+    "https://www.oreilly.com/library/view/dns-and-bind/0596100574/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:46.493Z",
+      "hint": "fetch-node"
+    },
+    "https://www.oreilly.com/library/view/slo-adoption-and/9781492075370/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:36.447Z",
+      "hint": "fetch-node"
+    },
     "https://www.phoronix.com/news/libuv-io-uring": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:38:01.083Z",
+      "hint": "fetch-node"
+    },
+    "https://www.pingcap.com/blog/building-a-large-scale-distributed-storage-system-based-on-raft/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:49.696Z",
+      "hint": "fetch-node"
+    },
+    "https://www.postgresql.org/about/news/postgresql-17-released-2936/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:49.632Z",
       "hint": "fetch-node"
     },
     "https://www.postgresql.org/about/news/postgresql-18-released-3142/": {
@@ -5851,10 +7515,46 @@
       "lastChecked": "2026-01-26T13:38:02.041Z",
       "hint": "fetch-node"
     },
+    "https://www.postgresql.org/docs/current/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:13.972Z",
+      "hint": "fetch-node"
+    },
     "https://www.postgresql.org/docs/current/datatype-json.html": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:38:03.495Z",
+      "hint": "fetch-node"
+    },
+    "https://www.postgresql.org/docs/current/indexes.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:46.649Z",
+      "hint": "fetch-node"
+    },
+    "https://www.postgresql.org/docs/current/planner-optimizer.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:48.649Z",
+      "hint": "fetch-node"
+    },
+    "https://www.postgresql.org/docs/current/transaction-iso.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:24.946Z",
+      "hint": "fetch-node"
+    },
+    "https://www.postgresql.org/docs/current/using-explain.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:47.629Z",
+      "hint": "fetch-node"
+    },
+    "https://www.rabbitmq.com/tutorials/amqp-concepts": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:46.904Z",
       "hint": "fetch-node"
     },
     "https://www.radix-ui.com/": {
@@ -5903,6 +7603,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T21:08:54.075Z",
+      "hint": "fetch-node"
+    },
+    "https://www.rfc-editor.org/rfc/rfc5861": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:28:18.892Z",
       "hint": "fetch-node"
     },
     "https://www.rfc-editor.org/rfc/rfc6781": {
@@ -5971,6 +7677,12 @@
       "lastChecked": "2026-01-31T21:48:00.897Z",
       "hint": "fetch-node"
     },
+    "https://www.rfc-editor.org/rfc/rfc9111": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:35.308Z",
+      "hint": "fetch-node"
+    },
     "https://www.rfc-editor.org/rfc/rfc9111.html": {
       "status": 200,
       "ok": true,
@@ -6017,6 +7729,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:38:02.409Z",
+      "hint": "fetch-node"
+    },
+    "https://www.scylladb.com/2024/12/03/enterprise-tablets/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:48.283Z",
+      "hint": "fetch-node"
+    },
+    "https://www.seas.upenn.edu/~zives/03f/cis550/codd.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:13.353Z",
       "hint": "fetch-node"
     },
     "https://www.shopify.com/partners/blog/design-system": {
@@ -6091,6 +7815,30 @@
       "lastChecked": "2026-02-01T16:27:41.676Z",
       "hint": "fetch-node"
     },
+    "https://www.uber.com/blog/how-uber-serves-over-40-million-reads-per-second-using-an-integrated-cache/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:57.988Z",
+      "hint": "playwright"
+    },
+    "https://www.uber.com/blog/postgres-to-mysql-migration/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:06:51.055Z",
+      "hint": "playwright"
+    },
+    "https://www.uber.com/blog/real-time-push-platform/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:59.859Z",
+      "hint": "playwright"
+    },
+    "https://www.uber.com/blog/schemaless-part-one-mysql-datastore/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:20.148Z",
+      "hint": "playwright"
+    },
     "https://www.untitledui.com/blog/react-component-libraries": {
       "status": 200,
       "ok": true,
@@ -6103,10 +7851,28 @@
       "lastChecked": "2026-01-26T13:38:03.150Z",
       "hint": "fetch-node"
     },
+    "https://www.usenix.org/legacy/event/atc10/tech/full_papers/Hunt.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:26:23.485Z",
+      "hint": "fetch-node"
+    },
+    "https://www.usenix.org/system/files/conference/nsdi13/nsdi13-final170_update.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T09:35:59.840Z",
+      "hint": "fetch-node"
+    },
     "https://www.uxpin.com/studio/blog/design-system-governance/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:38:03.447Z",
+      "hint": "fetch-node"
+    },
+    "https://www.videolan.org/developers/x264.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:07.194Z",
       "hint": "fetch-node"
     },
     "https://www.vldb.org/conf/1994/P439.PDF": {
@@ -6114,6 +7880,14 @@
       "ok": true,
       "lastChecked": "2026-01-26T13:38:03.505Z",
       "hint": "fetch-node"
+    },
+    "https://www.vs.inf.ethz.ch/publ/papers/VssV.pdf": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:42:52.378Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
     },
     "https://www.w3.org/TR/CSP3/": {
       "status": 200,
@@ -6259,6 +8033,18 @@
       "lastChecked": "2026-01-26T19:58:19.300Z",
       "hint": "fetch-node"
     },
+    "https://www.w3.org/TR/encrypted-media-2/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:41:05.706Z",
+      "hint": "fetch-node"
+    },
+    "https://www.w3.org/TR/encrypted-media/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:08:07.157Z",
+      "hint": "fetch-node"
+    },
     "https://www.w3.org/TR/event-timing/": {
       "status": 200,
       "ok": true,
@@ -6277,6 +8063,18 @@
       "lastChecked": "2026-02-01T15:27:52.736Z",
       "hint": "fetch-node"
     },
+    "https://www.w3.org/TR/media-source-2/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T05:08:06.129Z",
+      "hint": "fetch-node"
+    },
+    "https://www.w3.org/TR/reporting-1/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T04:56:35.675Z",
+      "hint": "fetch-node"
+    },
     "https://www.w3.org/TR/requestidlecallback/": {
       "status": 200,
       "ok": true,
@@ -6287,6 +8085,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T19:58:25.942Z",
+      "hint": "fetch-node"
+    },
+    "https://www.w3.org/TR/trace-context/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T03:58:39.541Z",
       "hint": "fetch-node"
     },
     "https://www.w3.org/TR/wai-aria-1.2/": {
@@ -6359,6 +8163,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:38:03.601Z",
+      "hint": "fetch-node"
+    },
+    "https://www.youtube.com/watch?v=1m3Wx1XBL3I": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T08:34:12.828Z",
       "hint": "fetch-node"
     },
     "https://www.youtube.com/watch?v=EeYvFl7li9E": {
@@ -6467,6 +8277,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T17:12:43.701Z",
+      "hint": "fetch-node"
+    },
+    "https://zookeeper.apache.org/doc/current/zookeeperProgrammers.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-02T10:21:43.912Z",
       "hint": "fetch-node"
     },
     "https://zsh.sourceforge.io/Doc/Release/Completion-System.html": {

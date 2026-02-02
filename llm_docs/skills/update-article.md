@@ -19,18 +19,64 @@ Update an **existing** article based on a prompt. This skill is agent-agnostic a
 
 ### Content-Type Specific Guidelines
 
-**For System Design Problem articles** (`content/articles/system-design/system-design-problems/*`):
+Based on the article path, read the corresponding guideline **in addition to core guidelines**:
 
-- `llm_docs/guidelines-content/system-design-problems.md` — **MUST read in addition to core guidelines**
+#### System Design Problems (`content/articles/system-design/system-design-problems/*`)
 
-This guideline covers:
+- `llm_docs/guidelines-content/system-design-problems.md`
 
-- How to scope vague problem statements ("Design X")
+Covers:
+- Scoping vague problem statements ("Design X")
+- **Multiple design paths** based on different requirements
 - Tradeoff-focused approach (no single correct answer)
-- Full-stack principal perspective (frontend performance + backend + infra)
-- Required sections: Scale estimation, API design, Data modeling, Low-level design for critical components
-- Frontend considerations: DOM performance, data structures for UI, API response optimization
-- Infrastructure: Cloud-agnostic concepts first, then AWS examples (managed + self-hosted)
+- Full-stack principal perspective (frontend + backend + infra)
+- Required sections: Scale estimation, API design, Data modeling, Low-level design
+- Cloud-agnostic concepts first, then AWS examples
+
+#### System Design Fundamentals & Building Blocks (`content/articles/system-design/system-design-fundamentals/*` and `system-design-building-blocks/*`)
+
+- `llm_docs/guidelines-content/system-design-fundamentals.md`
+
+Covers:
+- **All viable approaches** for each concept (not just the popular one)
+- **Factors influencing design choices** - When does each approach shine?
+- **Explicit trade-offs** with decision matrices
+- **Real-world examples** - Companies that chose each path, why, and outcomes
+- Common pitfalls with concrete examples
+
+#### Core Distributed Patterns (`content/articles/system-design/core-distributed-patterns/*`)
+
+- `llm_docs/guidelines-content/core-distributed-patterns.md`
+
+Covers:
+- **All major pattern variants** (not just textbook version)
+- **Design decision trees** - What choices remain after choosing the pattern?
+- **Production implementations differ from theory** - Show real deviations
+- Code examples for each variant
+- At least 2 contrasting real-world implementations with specific details
+
+#### Frontend System Design (`content/articles/system-design/frontend-system-design/*`)
+
+- `llm_docs/guidelines-content/frontend-system-design.md`
+
+Covers:
+- **Multiple implementation approaches** (not just one library)
+- **Browser constraints** - Main thread, memory, storage quotas
+- **Device/network considerations** - Mobile vs desktop, offline scenarios
+- Framework-agnostic concepts first, then specific implementations
+- Real-world examples from production apps (Figma, Notion, Discord, etc.)
+
+#### Real-World Case Studies (`content/articles/system-design/real-world-case-studies/*`)
+
+- `llm_docs/guidelines-content/real-world-case-studies.md`
+
+Covers:
+- **Deep dives** into production systems (not summaries)
+- **Beyond incidents**: performance breakthroughs, bottleneck removals, architecture evolutions
+- **Extreme specificity**: exact tools, versions, configurations, numbers
+- Options considered (not just chosen approach)
+- Measurable outcomes with before/after metrics
+- Transferable lessons for readers' own systems
 
 ## Core Principles
 

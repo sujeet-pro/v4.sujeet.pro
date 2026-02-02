@@ -10,41 +10,154 @@
       id: "system-design",
       topics: [
         {
-          id: "system-design-problems",
-          articles: [
-            "design-uber-ride-hailing",
-            "design-google-docs-collaboration",
-            "design-youtube-video-platform",
-            "design-notification-system",
-            "design-chat-messaging",
-            "design-social-feed",
-            "design-search-autocomplete",
-            "url-shortener-design",
-          ],
-        },
-        {
           id: "system-design-fundamentals",
           articles: [
+            // Core Distributed Concepts
             "consistency-and-cap-theorem",
+            "distributed-consensus",
+            "time-and-ordering",
+            "failure-modes-and-resilience",
+            // Data Layer
+            "storage-choices-sql-vs-nosql",
             "sharding-and-replication",
-            "circuit-breaker-patterns",
-            "service-discovery-and-registry",
-            "queues-and-pubsub",
-            "api-gateway-patterns",
-            "rate-limiting-strategies",
+            "indexing-and-query-optimization",
+            "transactions-and-acid",
+            // Infrastructure Components
             "load-balancers-architecture",
             "cdn-architecture-and-caching",
             "caching-fundamentals-and-strategies",
-            "lru-cache-design",
+            "api-gateway-patterns",
+            "service-discovery-and-registry",
+            "dns-deep-dive",
+            // Messaging & Communication
+            "queues-and-pubsub",
+            "event-driven-architecture",
+            "rpc-and-api-design",
+            // Reliability Patterns
+            "rate-limiting-strategies",
+            "circuit-breaker-patterns",
+            "capacity-planning-and-estimation",
           ],
         },
         {
-          id: "data-reliability-patterns",
+          id: "system-design-building-blocks",
           articles: [
-            "failure-modes-and-resilience",
-            "capacity-planning-back-of-envelope",
-            "indexing-and-query-optimization",
-            "sql-vs-nosql-storage-choices",
+            "lru-cache-design",
+            "unique-id-generation",
+            "distributed-cache-design",
+            "blob-storage-design",
+            "distributed-search-engine",
+            "distributed-logging-system",
+            "distributed-monitoring",
+            "task-scheduler-design",
+            "sharded-counters",
+            "leaderboard-design",
+          ],
+        },
+        {
+          id: "system-design-problems",
+          articles: [
+            // Storage & Data Systems
+            "design-key-value-store",
+            "design-distributed-file-system",
+            "design-time-series-database",
+            // Content & Media Platforms
+            "design-youtube-video-platform",
+            "design-netflix-streaming",
+            "design-instagram-photo-sharing",
+            "design-spotify-music-streaming",
+            // Communication & Social
+            "design-real-time-chat-messaging",
+            "design-social-feed",
+            "design-notification-system",
+            "design-email-system",
+            // Location & Maps
+            "design-uber-ride-hailing",
+            "design-google-maps",
+            "design-yelp-proximity-service",
+            // Search & Discovery
+            "design-search-autocomplete",
+            "design-web-crawler",
+            "design-google-search",
+            // Productivity & Collaboration
+            "design-google-docs-collaboration",
+            "design-dropbox-file-sync",
+            "design-google-calendar",
+            // E-commerce & Transactions
+            "design-payment-system",
+            "design-flash-sale-system",
+            "design-amazon-shopping-cart",
+            // Infrastructure
+            "url-shortener-design",
+            "design-pastebin",
+            "design-api-rate-limiter",
+          ],
+        },
+        {
+          id: "core-distributed-patterns",
+          articles: [
+            "crdt-for-collaborative-systems",
+            "operational-transformation",
+            "distributed-locking",
+            "exactly-once-delivery",
+            "event-sourcing-deep-dive",
+            "change-data-capture",
+            "database-migrations-at-scale",
+            "multi-region-architecture",
+            "graceful-degradation",
+          ],
+        },
+        {
+          id: "frontend-system-design",
+          articles: [
+            // Core Patterns
+            "virtualization-and-windowing",
+            "offline-first-architecture",
+            "client-state-management",
+            "real-time-sync-client",
+            // Performance
+            "bundle-splitting-strategies",
+            "rendering-strategies",
+            "image-loading-optimization",
+            "performance-monitoring-client",
+            // Frontend System Problems
+            "design-rich-text-editor",
+            "design-infinite-feed",
+            "design-drag-drop-system",
+            "design-form-builder",
+            "design-data-grid",
+            "design-file-uploader",
+          ],
+        },
+        {
+          id: "real-world-case-studies",
+          articles: [
+            // Outages & Incident Analysis
+            "facebook-2021-outage-analysis",
+            "aws-kinesis-2020-outage",
+            // Architecture Transformations
+            "netflix-microservices-evolution",
+            "uber-microservices-journey",
+            "twitter-timeline-architecture",
+            "shopify-pod-architecture",
+            "slack-distributed-architecture",
+            // Database & Storage Migrations
+            "github-mysql-migration",
+            "instagram-cassandra-migration",
+            "pinterest-mysql-sharding",
+            "youtube-vitess-scaling",
+            "dropbox-magic-pocket",
+            // Performance Optimizations
+            "discord-message-storage",
+            "discord-rust-read-states",
+            "whatsapp-erlang-scaling",
+            "figma-multiplayer-infrastructure",
+            // Data Infrastructure
+            "linkedin-kafka-origin",
+            "facebook-tao-social-graph",
+            "uber-schemaless-datastore",
+            // Reliability Patterns
+            "stripe-idempotency-reliability",
           ],
         },
       ],

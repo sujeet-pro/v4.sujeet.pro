@@ -4,16 +4,68 @@ This document provides exhaustive guidance for writing "System Design Architectu
 
 ## Core Philosophy
 
-### No Single Correct Answer
+### No Single Correct Answer — Multiple Design Paths
 
-System design problems are inherently open-ended. The focus is:
+System design problems are inherently open-ended. **Every design should present multiple valid paths** based on different requirements and constraints.
 
-1. **How to choose** the most optimal strategy
-2. **Clearly state tradeoffs** being assumed
-3. **Compare competing approaches** - explain all viable options and justify the chosen approach
-4. **Acknowledge constraints** - different constraints lead to different optimal solutions
+The focus is:
 
-**Pattern for every major decision:**
+1. **Multiple design paths** - Present 2-3 complete approaches for the overall system
+2. **How to choose** - Clear criteria for when each path is optimal
+3. **Explicit tradeoffs** - What you gain and sacrifice with each choice
+4. **Real-world examples** - Which companies chose which path and why
+5. **Acknowledge constraints** - Different constraints lead to different optimal solutions
+
+### Design Paths Structure (Required for Major Systems)
+
+For complex systems, present alternative architectures:
+
+```markdown
+## Design Paths
+
+### Path A: [Name - e.g., "Consistency-First"]
+
+**Best when:**
+- [Condition 1]
+- [Condition 2]
+
+**Architecture:**
+[High-level diagram showing this approach]
+
+**Key characteristics:**
+- [Property 1]
+- [Property 2]
+
+**Trade-offs:**
+- ✅ [Advantage 1]
+- ✅ [Advantage 2]
+- ❌ [Disadvantage 1]
+- ❌ [Disadvantage 2]
+
+**Real-world example:** [Company] uses this approach because [reason]. Result: [outcome].
+
+### Path B: [Name - e.g., "Availability-First"]
+
+[Same structure]
+
+### Path Comparison
+
+| Factor | Path A | Path B |
+|--------|--------|--------|
+| Consistency | Strong | Eventual |
+| Latency | Higher | Lower |
+| Complexity | Lower | Higher |
+| Best for | Financial systems | Social features |
+
+### This Article's Focus
+
+This article focuses on **Path A** because [rationale].
+For Path B implementation details, see [link or note that it's covered in variations section].
+```
+
+### Pattern for Component-Level Decisions
+
+For decisions within a design path:
 
 ```markdown
 ### [Decision Point]

@@ -1,6 +1,6 @@
 # SSG Performance Optimizations: Build, Cache, and Delivery
 
-Master production-grade SSG architecture with deployment strategies, performance optimization techniques, and advanced AWS patterns for building fast, scalable static sites.
+Production-grade Static Site Generation (SSG) architecture for AWS CloudFront delivery. Covers atomic deployments, pre-compression strategies, Lambda@Edge routing patterns, and Core Web Vitals optimization—with specific focus on design tradeoffs and operational failure modes that senior engineers encounter in production.
 
 <figure>
 
@@ -29,86 +29,41 @@ flowchart LR
 
 </figure>
 
-## TLDR
+## Abstract
 
-**Static Site Generation (SSG)** is a build-time rendering approach that pre-generates HTML, CSS, and JavaScript files for exceptional performance, security, and scalability when deployed on AWS with CloudFront CDN.
+SSG performance hinges on three architectural decisions that compound:
 
-### Core SSG Principles
+1. **Where computation happens**: Build-time rendering eliminates request-time processing—Time to First Byte (TTFB) drops from 200-500ms (Server-Side Rendering) to <50ms (CDN edge)
+2. **How deployments are structured**: Atomic, versioned directories in S3 (`/build_001/`, `/build_002/`) enable instant rollbacks via CloudFront origin path updates—no partial deployments, no corrupted states
+3. **Where intelligence lives**: Lambda@Edge vs CloudFront Functions determines routing flexibility vs cost—CloudFront Functions at $0.10/1M invocations for simple rewrites, Lambda@Edge at $0.60/1M for complex logic requiring network access
 
-- **Build-Time Rendering**: All pages generated at build time, not request time
-- **Static Assets**: Pure HTML, CSS, JS files served from CDN edge locations
-- **Content Sources**: Markdown files, headless CMS APIs, or structured data
-- **Templates/Components**: React, Vue, or templating languages for page generation
-- **Global CDN**: Deployed to edge locations worldwide for instant delivery
+**Critical tradeoffs**:
 
-### Rendering Spectrum Comparison
+| Decision | Optimizes For | Sacrifices |
+|----------|---------------|------------|
+| Pre-compression (Brotli Q11) | 15-20% smaller files vs Gzip | Build time (seconds vs milliseconds per file) |
+| Lambda@Edge routing | Network access, body manipulation, 30s timeout | Cost (6x CloudFront Functions), cold starts |
+| Atomic deployments | Instant rollback, no partial failures | S3 storage (retain N versions) |
+| Origin Shield | Cache hit ratio, origin load reduction | Additional cost per request |
 
-- **SSG**: Fastest TTFB, excellent SEO, stale data, lowest infrastructure complexity
-- **SSR**: Slower TTFB, excellent SEO, real-time data, highest infrastructure complexity
-- **CSR**: Slowest TTFB, poor SEO, real-time data, low infrastructure complexity
-- **Hybrid**: Per-page rendering decisions for optimal performance and functionality
+**Core Web Vitals targets** (75th percentile): CLS < 0.1, LCP (Largest Contentful Paint) < 2.5s, INP (Interaction to Next Paint) < 200ms
 
-### Advanced AWS Architecture
+## Static Site Generation Fundamentals
 
-- **Atomic Deployments**: Versioned directories in S3 (e.g., `/build_001/`, `/build_002/`)
-- **Instant Rollbacks**: CloudFront origin path updates for zero-downtime rollbacks
-- **Lambda@Edge**: Dynamic routing, redirects, and content negotiation at the edge
-- **Blue-Green Deployments**: Parallel environments with traffic switching via cookies
-- **Canary Releases**: Gradual traffic shifting for risk mitigation
+SSG shifts computation from request-time to build-time. The architectural implication: servers become stateless file delivery mechanisms, enabling CDN-first architectures where edge locations serve pre-built assets without origin round-trips.
 
-### Performance Optimization
+### Build-Time Rendering Model
 
-- **Pre-Compression**: Brotli (Q11) and Gzip (-9) compression during build process
-- **Content Negotiation**: Lambda@Edge function serving optimal compression format
-- **CLS Prevention**: Image dimensions, font optimization, responsive component rendering
-- **Asset Delivery**: Organized S3 structure with proper metadata and cache headers
-- **Edge Caching**: CloudFront cache policies with optimal TTL values
+SSG pre-renders all pages during a build phase, producing static HTML, CSS, and JavaScript files. This contrasts with database-driven systems (WordPress, Drupal) that generate HTML per-request.
 
-### Deployment Strategies
+**Why build-time?** Request-time rendering introduces latency per request (database queries, template rendering, API calls). Build-time amortizes this cost across all future requests—compute once, serve millions of times.
 
-- **Versioned Deployments**: Each build in unique S3 directory with build version headers
-- **Rollback Mechanisms**: Instant rollbacks via CloudFront origin path updates
-- **Cache Invalidation**: Strategic cache purging for new deployments
-- **Zero-Downtime**: Atomic deployments with instant traffic switching
-- **A/B Testing**: Lambda@Edge routing based on user cookies or IP hashing
+The process:
 
-### Advanced Patterns
-
-- **Dual Build Strategy**: Separate mobile/desktop builds for optimal CLS prevention
-- **Edge Redirects**: High-performance redirects handled at CloudFront edge
-- **Pre-Compressed Assets**: Build-time compression with content negotiation
-- **Responsive Rendering**: Device-specific builds with user agent detection
-- **Gradual Rollouts**: Canary releases with percentage-based traffic routing
-
-### Performance Benefits
-
-- **TTFB**: <50ms (vs 200-500ms for SSR)
-- **Compression Ratios**: 85-90% bandwidth savings with pre-compression
-- **Global Delivery**: Edge locations worldwide for instant access
-- **Scalability**: CDN handles unlimited traffic without server scaling
-- **Security**: Reduced attack surface with no server-side code execution
-
-### Best Practices
-
-- **Build Optimization**: Parallel builds, incremental generation, asset optimization
-- **Cache Strategy**: Aggressive caching with proper cache invalidation
-- **Monitoring**: Real-time metrics, performance monitoring, error tracking
-- **SEO Optimization**: Static sitemaps, meta tags, structured data
-- **Security**: HTTPS enforcement, security headers, CSP policies
-
-## Part 1: Deconstructing Static Site Generation (SSG)
-
-The modern web is undergoing a significant architectural shift, moving away from the traditional request-time computation of dynamic websites toward a more performant, secure, and scalable model. At the heart of this transformation is **Static Site Generation (SSG)**, a powerful technique that redefines how web applications are built and delivered.
-
-### 1.1 The Build-Time Revolution: Core Principles of SSG
-
-Static Site Generation is a process where an entire website is pre-rendered into a set of static HTML, CSS, and JavaScript files during a "build" phase. This stands in stark contrast to traditional database-driven systems, like WordPress or Drupal, which generate HTML pages on the server in real-time for every user request.
-
-With SSG, the computationally expensive work of rendering pages is performed only once, at build time, long before a user ever visits the site. The process begins with content sources, which can be plain text files like Markdown or data fetched from a headless Content Management System (CMS) API. These sources are fed into a static site generator engine along with a set of templates or components, which can range from simple templating languages like Liquid (used by Jekyll) to complex JavaScript frameworks like React (used by Next.js and Gatsby).
-
-The generator then programmatically combines the content and templates to produce a folder full of optimized, static assets. These assets—pure HTML, CSS, and JavaScript—are then deployed to a web server or, more commonly, a global Content Delivery Network (CDN). When a user requests a page, the CDN can serve the pre-built HTML file directly from an edge location close to the user, resulting in near-instantaneous load times.
-
-This fundamental architectural shift from request-time to build-time computation is the defining characteristic of SSG. The workflow can be visualized as follows:
+1. **Content ingestion**: Markdown files, headless CMS APIs, or structured data
+2. **Template application**: React, Vue, Astro components, or templating languages (Liquid, Nunjucks)
+3. **Asset generation**: Optimized HTML, CSS, JS bundles
+4. **Deployment**: Upload to S3, configure CloudFront origin
 
 <figure>
 
@@ -122,102 +77,118 @@ graph TD
     E -- Serves Cached Asset --> F
 ```
 
-<figcaption>Static site generation workflow showing the build process from content sources to CDN deployment</figcaption>
+<figcaption>SSG workflow: content and templates compile to static assets deployed to CDN edge locations.</figcaption>
 
 </figure>
 
-### 1.2 The Modern SSG Ecosystem
+### Framework Comparison and Build Performance
 
-The landscape of static site generators has matured dramatically from its early days. Initial tools like Jekyll, written in Ruby, popularized the concept for blogs and simple project sites by being "blog-aware" and easy to use. Today, the ecosystem is a diverse and powerful collection of frameworks catering to a vast array of use cases and developer preferences.
-
-Modern tools like Next.js, Astro, and Hugo are better described as sophisticated "meta-frameworks" rather than simple generators. They offer hybrid rendering models, allowing developers to build static pages where possible while seamlessly integrating server-rendered or client-side functionality where necessary.
+Modern SSG frameworks evolved from simple generators (Jekyll) to sophisticated meta-frameworks supporting hybrid rendering. The key architectural differentiator: how much JavaScript ships to the client.
 
 | Generator  | Language/Framework | Key Architectural Feature                                                                           | Build Performance | Ideal Use Case                                                              |
 | ---------- | ------------------ | --------------------------------------------------------------------------------------------------- | ----------------- | --------------------------------------------------------------------------- |
-| Next.js    | JavaScript/React   | Hybrid rendering (SSG, SSR, ISR) and a full-stack React framework                                   | Moderate to Fast  | Complex web applications, e-commerce sites, enterprise applications         |
-| Hugo       | Go                 | Exceptionally fast build times due to its Go implementation                                         | Fastest           | Large content-heavy sites, blogs, and documentation with thousands of pages |
-| Astro      | JavaScript/Astro   | "Islands Architecture" that ships zero JavaScript by default, hydrating only interactive components | Fast              | Content-rich marketing sites, portfolios, and blogs focused on performance  |
-| Eleventy   | JavaScript         | Highly flexible and unopinionated, supporting over ten templating languages                         | Fast              | Custom websites, blogs, and projects where developers want maximum control  |
-| Jekyll     | Ruby               | Mature, blog-aware, and deeply integrated with GitHub Pages                                         | Slower            | Personal blogs, simple project websites, and documentation                  |
-| Docusaurus | JavaScript/React   | Optimized specifically for building documentation websites with features like versioning and search | Fast              | Technical documentation, knowledge bases, and open-source project sites     |
+| Next.js 15 | JavaScript/React   | Hybrid rendering (SSG, SSR, ISR) with per-page `isrCacheTime` revalidation                          | Moderate to Fast  | Complex web applications, e-commerce sites, enterprise applications         |
+| Hugo       | Go                 | Single-binary Go implementation; processes thousands of pages in seconds                            | Fastest           | Large content-heavy sites, blogs, and documentation with thousands of pages |
+| Astro 5.x  | JavaScript/Astro   | Islands Architecture—ships zero JS by default; up to 127 pages/second with optimization             | Fast              | Content-rich marketing sites, portfolios, and blogs focused on performance  |
+| Eleventy   | JavaScript         | Highly flexible; supports 10+ templating languages                                                  | Fast              | Custom websites where developers want maximum control                       |
+| Jekyll     | Ruby               | Mature, blog-aware, deeply integrated with GitHub Pages                                             | Slower            | Personal blogs, simple project websites, GitHub Pages deployments           |
+| Docusaurus | JavaScript/React   | Documentation-optimized with versioning, search, and sidebar navigation                             | Fast              | Technical documentation, knowledge bases, and open-source project sites     |
 
-### 1.3 The Core Advantages: Why Choose SSG?
+**Build performance insight**: Astro 5.x benchmarks show optimization potential from 35 pages/second to 127 pages/second (3.6x improvement). Key bottleneck: API calls in child components cause per-page build slowdowns—solution is passing data as props from parent or marking components as client-only.
 
-The widespread adoption of Static Site Generation is driven by a set of compelling advantages that directly address the primary challenges of modern web development:
+### Why SSG: Architectural Tradeoffs
 
-**Performance**: By pre-building pages, SSG eliminates server-side processing and database queries at request time. The resulting static files can be deployed to a CDN and served from edge locations around the world. This dramatically reduces the Time to First Byte (TTFB) and leads to exceptionally fast page load times, which is a critical factor for user experience and SEO.
+SSG adoption stems from specific tradeoffs that favor read-heavy, infrequently-updated content:
 
-**Security**: The attack surface of a static site is significantly smaller than that of a dynamic site. With no live database connection or complex server-side application layer to exploit during a request, common vulnerabilities like SQL injection or server-side code execution are effectively nullified. The hosting infrastructure can be greatly simplified, further enhancing security.
+**Performance**: TTFB drops from 200-500ms (SSR with database queries) to <50ms (CDN edge). The 4-10x improvement compounds with geographic distribution—users in Sydney get the same latency as users in Virginia when assets are cached at edge locations.
 
-**Scalability & Cost-Effectiveness**: Serving static files from a CDN is inherently scalable and cost-efficient. A CDN can handle massive traffic spikes with ease, automatically distributing the load across its global network without requiring the complex and expensive scaling of server fleets and databases.
+**Security**: Attack surface reduction is structural, not configurational. No database connection at request time eliminates SQL injection. No server-side code execution eliminates RCE (Remote Code Execution) vectors. The security model becomes: "secure your build pipeline and S3 bucket permissions."
 
-**Developer Experience**: The modern SSG workflow, often part of a Jamstack architecture, offers significant benefits to development teams. Content can be managed in version control systems like Git, providing a clear history of changes. The decoupled nature of the frontend from the backend allows teams to work in parallel.
+**Scalability**: CDN cost model is per-request data transfer, not compute. A traffic spike from 1K to 1M requests doesn't require provisioning servers—CloudFront handles distribution across 225+ edge locations automatically. Cost scales linearly with bandwidth, not exponentially with compute.
 
-## Part 2: The Rendering Spectrum: SSG vs. SSR vs. CSR
+**Developer experience**: Git-based workflows enable PR previews, rollback via commit revert, and content versioning. The tradeoff: dynamic content requires either client-side fetching (slower perceived performance) or incremental static regeneration (ISR, increased complexity).
 
-Choosing the right rendering strategy is a foundational architectural decision that impacts performance, cost, complexity, and user experience. While SSG offers clear benefits, it is part of a broader spectrum of rendering patterns.
+## Rendering Strategy Selection
 
-### 2.1 Defining the Patterns
+Rendering strategy is a per-page (or per-component) decision, not a global architecture choice. The deciding factors: data freshness requirements, SEO needs, and infrastructure cost tolerance.
 
-**Static Site Generation (SSG)**: Generates all pages at build time, before any user request is made. The server's only job is to deliver these pre-built static files. This is ideal for content that is the same for every user and changes infrequently, such as blogs, documentation, and marketing pages.
+### Pattern Definitions
 
-**Server-Side Rendering (SSR)**: The HTML for a page is generated on the server at request time. Each time a user requests a URL, the server fetches the necessary data, renders the complete HTML page, and sends it to the client's browser. This ensures the content is always up-to-date and is highly effective for SEO.
+**SSG**: All pages generated at build time. Server delivers pre-built files. Ideal when content is identical for all users and changes infrequently (blogs, docs, marketing pages).
 
-**Client-Side Rendering (CSR)**: The server sends a nearly empty HTML file containing little more than a link to a JavaScript bundle. The browser then downloads and executes this JavaScript, which in turn fetches data from an API and renders the page entirely on the client-side. This pattern is the foundation of Single Page Applications (SPAs).
+**SSR**: HTML generated per-request. Server fetches data, renders HTML, sends to client. Required when content must reflect current state (user dashboards, real-time data).
 
-### 2.2 Comparative Analysis: A Head-to-Head Battle
+**CSR (Client-Side Rendering)**: Server sends minimal HTML with JavaScript bundle. Browser fetches data and renders. Foundation of SPAs (Single Page Applications). Tradeoff: poor initial SEO, slower First Contentful Paint (FCP).
 
-| Metric                       | Static Site Generation (SSG)                                      | Server-Side Rendering (SSR)                                             | Client-Side Rendering (CSR)                                                   |
-| ---------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Time to First Byte (TTFB)    | Fastest. Served directly from CDN edge                            | Slower. Requires server processing for each request                     | Slowest. Server sends minimal HTML quickly, but meaningful content is delayed |
-| First Contentful Paint (FCP) | Fast. Browser can render HTML immediately                         | Slower. Browser must wait for the server-generated HTML                 | Slowest. Browser shows a blank page until JS loads and executes               |
-| Time to Interactive (TTI)    | Fast. Minimal client-side JS needed for hydration                 | Slower. Can be blocked by hydration of the full page                    | Slowest. TTI is delayed until the entire app is rendered on the client        |
-| SEO                          | Excellent. Search engines can easily crawl the fully-formed HTML  | Excellent. Search engines receive a fully rendered page from the server | Poor. Crawlers may see a blank page without executing JavaScript              |
-| Data Freshness               | Stale. Content is only as fresh as the last build                 | Real-time. Data is fetched on every request                             | Real-time. Data is fetched on the client as needed                            |
-| Infrastructure Complexity    | Lowest. Requires only static file hosting (e.g., S3 + CloudFront) | Highest. Requires a running Node.js or similar server environment       | Low. Server only serves static files, but a robust API backend is needed      |
-| Scalability                  | Highest. Leverages the global scale of CDNs                       | Lower. Scaling requires managing and scaling server instances           | High. Frontend scales like SSG; backend API must be scaled separately         |
+### Comparative Analysis
 
-### 2.3 The Hybrid Future: Beyond the Dichotomy
+| Metric                       | SSG                                      | SSR                                             | CSR                                                   |
+| ---------------------------- | ---------------------------------------- | ----------------------------------------------- | ----------------------------------------------------- |
+| TTFB                         | <50ms (CDN edge)                         | 200-500ms (server processing)                   | Fast initial, slow meaningful content                 |
+| First Contentful Paint       | Fast (immediate HTML render)             | Slower (wait for server HTML)                   | Slowest (blank until JS executes)                     |
+| Time to Interactive          | Fast (minimal hydration JS)              | Slower (full-page hydration)                    | Slowest (full app render on client)                   |
+| SEO                          | Excellent (crawlable HTML)               | Excellent (crawlable HTML)                      | Poor without SSR fallback                             |
+| Data Freshness               | Stale (last build timestamp)             | Real-time                                       | Real-time                                             |
+| Infrastructure               | S3 + CloudFront only                     | Node.js servers + scaling                       | Static hosting + API backend                          |
+| Cost at Scale                | Linear (bandwidth)                       | Exponential (compute)                           | Linear (bandwidth) + API costs                        |
 
-The most significant modern trend is the move away from choosing a single rendering pattern for an entire application. The lines between SSG and SSR are blurring, with leading frameworks like Next.js and Astro empowering developers to make rendering decisions on a per-page or even per-component basis.
+### Hybrid Rendering
 
-This hybrid approach offers the best of all worlds: the performance of SSG for marketing pages, the real-time data of SSR for a user dashboard, and the rich interactivity of CSR for an embedded chat widget, all within the same application.
+Modern frameworks (Next.js 15, Astro 5.x) enable per-page rendering decisions:
 
-## Part 3: Advanced SSG Architecture on AWS: Deployment and Rollback Strategies
+- **Marketing pages**: SSG for performance
+- **User dashboards**: SSR for real-time data
+- **Interactive widgets**: CSR with client-side hydration (Islands Architecture in Astro)
 
-Moving from theory to practice, building a production-grade static site on AWS requires robust, automated, and resilient deployment and rollback strategies. A poorly designed deployment process can negate the inherent reliability of a static architecture.
+Next.js 15 adds per-page `isrCacheTime` for fine-grained ISR (Incremental Static Regeneration) control—revalidate pricing pages every hour, blog posts every day.
 
-### 3.1 The Foundation: Atomic and Immutable Deployments
+## AWS Deployment Architecture
 
-The cornerstone of any reliable deployment strategy is to treat each release as an atomic and immutable artifact. This means that a deployment should succeed or fail as a single unit, and once deployed, a version should never be altered.
+Production SSG deployments require atomic releases, instant rollbacks, and cost-aware cache invalidation. The architecture decisions here determine your Mean Time to Recovery (MTTR) during incidents.
 
-Instead of deploying to a single live folder, each build should be uploaded to a new, uniquely identified directory within S3. A common and effective convention is to use version numbers or Git commit hashes for these directory names, for example: `s3://my-bucket/deployments/v1.2.0/` or `s3://my-bucket/deployments/a8c3e5f/`.
+### Atomic and Immutable Deployments
 
-This approach is critical for two reasons:
+**Why atomic?** Partial deployments create inconsistent states—users might receive `index.html` from v2 but `main.js` from v1 if uploads are interrupted. Atomic deployments guarantee all-or-nothing transitions.
 
-1. It prevents a partially failed deployment from corrupting the live site
-2. It makes rollbacks instantaneous and trivial
+**Implementation**: Each build uploads to a unique, versioned directory:
 
-### 3.2 Strategy 1: The S3 Versioning Fallacy (And When to Use It)
+```
+s3://my-bucket/deployments/v1.2.0/
+s3://my-bucket/deployments/v1.2.1/
+s3://my-bucket/deployments/a8c3e5f/  # Git commit hash
+```
 
-Amazon S3 offers a built-in feature called Object Versioning, which automatically keeps a history of all versions of an object within a bucket. However, this approach is an anti-pattern for application deployment and rollback.
+**Design rationale**:
 
-S3 versioning operates at the individual object level, not at the holistic deployment level. A single site deployment can involve hundreds or thousands of file changes. Rolling back requires a complex and slow process of identifying and restoring each of these files individually.
+1. **Immutability**: Once deployed, a version is never modified—debugging production issues means examining a frozen artifact
+2. **Instant rollback**: Change CloudFront origin path from `/v1.2.1/` to `/v1.2.0/`—no re-upload, no rebuild
+3. **Parallel testing**: QA can verify `/v1.2.1/` while `/v1.2.0/` serves production traffic
 
-Therefore, S3 Object Versioning should be viewed as a disaster recovery tool, not a deployment strategy. It is invaluable for recovering an accidentally deleted file but is ill-suited for managing application releases.
+**Storage cost tradeoff**: Retaining N versions costs N × build size. Implement lifecycle rules to delete versions older than 30-90 days, keeping the last 5-10 for rollback.
 
-### 3.3 Strategy 2: Instant Rollback via CloudFront Origin Path Update
+### S3 Versioning: Anti-Pattern for Deployments
 
-A far more effective and reliable strategy leverages the atomic deployment principle. In this model, a single CloudFront distribution is used, but its Origin Path is configured to point to a specific, versioned deployment directory within the S3 bucket.
+S3 Object Versioning tracks individual file history, not deployment snapshots. A deployment touching 500 files requires 500 individual restore operations for rollback—operationally infeasible during incidents.
 
-**Deployment Flow:**
+**When S3 versioning helps**: Disaster recovery for accidental deletions, compliance requirements for audit trails.
 
-1. The CI/CD pipeline executes the static site generator to build the site
-2. The pipeline uploads the complete build artifact to a new, version-stamped folder in the S3 bucket (e.g., `s3://my-bucket/deployments/v1.2.1/`)
-3. The pipeline makes an API call to AWS CloudFront to update the distribution's configuration, changing the Origin Path to point to the new directory (e.g., `/deployments/v1.2.1`)
-4. Finally, the pipeline creates a CloudFront invalidation for all paths (`/*`) to purge the old content from the CDN cache
+**When it fails**: Application rollbacks requiring atomic state transitions across hundreds of files.
 
-**Rollback Flow:** A rollback is simply a reversal of the release step. To revert to a previous version, the pipeline re-executes the CloudFront update, pointing the Origin Path back to a known-good directory, and issues another cache invalidation.
+### CloudFront Origin Path Rollbacks
+
+The preferred strategy: single CloudFront distribution with origin path pointing to versioned S3 directories.
+
+**Deployment flow**:
+
+1. CI/CD builds site, uploads to `s3://my-bucket/deployments/v1.2.1/`
+2. Update CloudFront origin path to `/deployments/v1.2.1`
+3. Invalidate cache (`/*`) to purge old content
+
+**Rollback flow**: Update origin path to `/deployments/v1.2.0`, invalidate cache. No rebuild required.
+
+**Cache invalidation cost**: First 1,000 paths/month are free. Beyond: $0.005/path. Wildcard `/*` counts as one path but invalidates all objects. For a 500-page site deploying 3x/day, monthly cost: ~$0 (within free tier) to $4.50 (90 invalidations × $0.05 average).
+
+**Propagation timing**: Invalidations complete within seconds to minutes across 225+ edge locations. Not instant—plan for 1-2 minute visibility delay during deployments.
 
 <figure>
 
@@ -244,9 +215,11 @@ sequenceDiagram
 
 </figure>
 
-### 3.4 Strategy 3: Lambda@Edge-Based Rollback with Build Version Headers
+### Lambda@Edge Build Version Routing
 
-For more sophisticated rollback scenarios, we can implement a Lambda@Edge function that dynamically routes requests based on a build version header. This approach provides granular control and enables advanced deployment patterns.
+For sophisticated rollback and A/B testing scenarios, Lambda@Edge functions route requests based on headers, cookies, or percentage-based rules.
+
+**Why Lambda@Edge over CloudFront Functions?** This pattern requires modifying the origin request after cache miss—CloudFront Functions can only modify viewer request/response and cannot change origin domain or path dynamically.
 
 <figure>
 
@@ -339,54 +312,88 @@ update_build_version() {
 update_build_version $1 $2
 ```
 
-This approach provides several advantages:
+**Advantages**:
 
-- **Instant Rollbacks**: Switching between build versions is immediate
-- **A/B Testing**: Can route different users to different build versions
-- **Gradual Rollouts**: Can gradually shift traffic between versions
-- **Zero Downtime**: No interruption in service during deployments
+- **Instant rollbacks**: Header update + cache invalidation
+- **A/B testing**: Route users to different builds via cookies
+- **Gradual rollouts**: Percentage-based traffic shifting
+- **Zero downtime**: No service interruption
 
-## Part 4: Performance Tuning: Conquering Cumulative Layout Shift (CLS)
+**Cost tradeoff**: Lambda@Edge at $0.60/1M requests vs CloudFront Functions at $0.10/1M. For 10M requests/month, the difference is $5/month—marginal for the flexibility gained.
 
-Performance is a primary driver for adopting Static Site Generation, but raw speed is only part of the user experience equation. Visual stability is equally critical. **Cumulative Layout Shift (CLS)** is a Core Web Vital metric that measures the unexpected shifting of page content as it loads.
+### CloudFront Functions vs Lambda@Edge Decision Matrix
 
-A good user experience corresponds to a [CLS score of 0.1 or less](https://web.dev/articles/cls), measured at the 75th percentile across both mobile and desktop. Even though a site's content is static, CLS issues are common because the problem is often not about dynamic content, but about the browser's inability to correctly predict the layout of the page from the initial HTML.
+This is a critical architectural decision affecting cost, latency, and capabilities:
 
-### 4.1 Understanding and Diagnosing CLS
+| Capability | CloudFront Functions | Lambda@Edge |
+|------------|---------------------|-------------|
+| Execution locations | 225+ edge locations | 13 regional edge caches |
+| Max execution time | <1ms | 5s (viewer), 30s (origin) |
+| Scaling | 10M+ req/sec | 10K req/sec per region |
+| Languages | JavaScript only | Node.js, Python |
+| Network access | No | Yes |
+| Body manipulation | No | Yes |
+| Pricing | $0.10/1M invocations | $0.60/1M + execution time |
 
-The most common causes of CLS on static sites include:
+**Use CloudFront Functions for**: URL normalization, simple header manipulation, A/B test cookie reading, cache key manipulation.
 
-**Images and Media without Dimensions**: When an `<img>` tag lacks width and height attributes, the browser reserves zero space for it initially. When the image file finally downloads, the browser must reflow the page to make room, causing all subsequent content to shift downwards.
+**Use Lambda@Edge for**: Origin routing, third-party API calls, image transformation, request body manipulation, complex routing logic.
 
-**Asynchronously Loaded Content**: Third-party ads, embeds (like YouTube videos), or iframes that are loaded via JavaScript often arrive after the initial page render. If space is not reserved for them, their appearance will cause a layout shift.
+### Origin Shield: Cache Hit Optimization
 
-**Web Fonts**: The use of custom web fonts can lead to shifts. When a fallback font is initially rendered and then swapped for the web font once it downloads, differences in character size and spacing can cause text to reflow.
+Origin Shield adds a centralized caching layer between edge locations and S3, collapsing simultaneous requests for the same object.
 
-**Client-Side Injected Content**: Even on a static site, client-side scripts might inject content like announcement banners or cookie consent forms after the initial load, pushing page content down.
+**When to enable**: Sites with global traffic where multiple edge locations request the same uncached object simultaneously. Origin Shield serves one request to S3, caches the response, and serves all waiting edges.
 
-### 4.2 Mitigating CLS: Code-Level Fixes
+**Cost tradeoff**: Additional per-request charge. Justified when S3 request costs exceed Origin Shield costs—typically at high traffic volumes with cache miss rates >10%.
 
-**Reserving Space for Images:**
+## Core Web Vitals Optimization
 
-The most effective solution is to always include width and height attributes on all `<img>` and `<video>` elements. Modern browsers use these attributes to calculate the image's aspect ratio and reserve the appropriate amount of space in the layout before the image has even started downloading.
+Raw speed (TTFB, FCP) is necessary but insufficient. Visual stability—measured by CLS—determines perceived quality. A page that loads fast but shifts content during load frustrates users more than a slightly slower, stable page.
+
+**Current thresholds** (75th percentile, as of 2025):
+
+- **CLS**: <0.1 (Good), 0.1-0.25 (Needs Improvement), >0.25 (Poor)
+- **LCP**: <2.5s (Good), 2.5-4.0s (Needs Improvement), >4.0s (Poor)
+- **INP**: <200ms (Good), 200-500ms (Needs Improvement), >500ms (Poor)
+
+### Diagnosing CLS
+
+Common CLS causes on static sites:
+
+**Images without dimensions**: Browser reserves zero space initially. Image download triggers reflow, shifting all subsequent content.
+
+**Asynchronous embeds**: Third-party ads, YouTube iframes, social widgets arrive after initial render. No reserved space = layout shift.
+
+**Web fonts**: Fallback font renders first, web font swap causes text reflow due to different character metrics.
+
+**Client-side injections**: Announcement banners, cookie consent dialogs injected after initial paint push content down.
+
+**Layout Shift Attribution API**: Debug CLS by accessing `LayoutShift.sources`—returns up to 5 DOM elements causing shifts, sorted by impact area. `sources[0]` is the largest contributor.
+
+### CLS Mitigation Patterns
+
+**Image dimension reservation**:
+
+Always include `width` and `height` attributes. Modern browsers calculate aspect ratio and reserve space before download.
 
 ```html
 <img src="puppy.jpg" width="1280" height="720" style="width: 100%; height: auto;" alt="A cute puppy playing." />
 ```
 
-**Handling Asynchronous Content (Embeds, Ads):**
+**Async content placeholders**:
 
-Statically reserve space for the container that will hold the dynamic content. If the content has fixed dimensions, a simple `<div>` with explicit width and height styles will work. If the height is variable, setting a min-height to the most common or minimum expected height can significantly reduce the shift.
+Reserve space for embeds with explicit dimensions. Variable-height content: use `min-height` matching the most common size.
 
 ```html
 <div style="width: 300px; height: 250px; background-color: #f0f0f0;">
-  <!-- Dynamic content will be injected here -->
+  <!-- Ad unit injected here -->
 </div>
 ```
 
-**Optimizing Web Fonts:**
+**Font optimization**:
 
-To minimize font-related shifts, the goal is to make the web font available as early as possible and to reduce the visual difference between the fallback font and the web font.
+Preload critical fonts and match fallback metrics to minimize swap shift.
 
 ```html
 <head>
@@ -395,27 +402,35 @@ To minimize font-related shifts, the goal is to make the web font available as e
     @font-face {
       font-family: "My Critical Font";
       src: url("/fonts/my-critical-font.woff2") format("woff2");
-      font-display: swap; /* Show fallback font immediately */
+      font-display: swap; /* Show fallback immediately, swap when loaded */
     }
     body {
-      font-family: "My Critical Font", Arial, sans-serif; /* Arial is the fallback */
+      font-family: "My Critical Font", Arial, sans-serif; /* Match fallback metrics */
     }
   </style>
 </head>
 ```
 
-### 4.3 Advanced CLS Optimization: Responsive Component Rendering
+**Font-display tradeoff**: `swap` shows content immediately (better FCP) but risks CLS. `optional` avoids CLS but may show fallback font if web font loads slowly. Choose based on font metric similarity to fallback.
 
-For complex applications with different layouts for mobile and desktop, a sophisticated approach involves generating separate builds for different device types and serving them based on user agent detection.
+### Dual Build Strategy for Responsive CLS
 
-**The Problem:**
-When a page renders different UI components for mobile vs desktop (e.g., header menu bar), and the page is statically generated at build time, what do you render? For mobile, desktop, both, or nothing?
+**Problem**: Mobile and desktop layouts have different component dimensions. Static generation at build time must choose one—rendering both causes CLS on one device type; rendering neither requires client-side hydration (slow).
 
-**Solution: Dual Build Strategy**
+**Solution**: Generate separate builds for mobile and desktop, route via user agent detection.
 
-Generate two separate build outputs—one optimized for mobile and another for desktop—stored in the same S3 bucket under `mobile/*` and `desktop/*` folders.
+S3 structure:
+```
+s3://my-bucket/
+├── mobile/
+│   ├── index.html
+│   └── ...
+└── desktop/
+    ├── index.html
+    └── ...
+```
 
-**Implementation with Lambda@Edge:**
+**Implementation with Lambda@Edge**:
 
 ```javascript title="device-router.js" collapse={1-4}
 // Lambda@Edge function for device-based routing
@@ -439,46 +454,57 @@ exports.handler = (event, context, callback) => {
 }
 ```
 
-**CloudFront Configuration:**
+**CloudFront cache key configuration**:
 
-- Configure the cache key to include the `CloudFront-Is-Mobile-Viewer` header
-- This ensures that mobile and desktop versions are cached separately
-- Set up the Lambda@Edge function as an origin request interceptor
+- Include `CloudFront-Is-Mobile-Viewer` header in cache key
+- Mobile and desktop versions cache separately
+- Lambda@Edge triggers on origin request (after cache miss)
 
-This approach eliminates CLS issues caused by responsive design differences while maintaining optimal performance for each device type.
+**Tradeoff**: Build time doubles (2 builds), storage doubles. Justified when mobile/desktop layouts differ significantly and CLS impact is measurable.
 
-## Part 5: Asset Delivery Optimization: Serving Pre-Compressed Files
+## Pre-Compression Architecture
 
-To achieve the fastest possible load times, it is essential to minimize the size of assets like JavaScript and CSS files that are sent over the network. While CDNs can compress files automatically, an advanced technique known as **pre-compression** offers superior results by shifting the compression work to the build process.
+Compression determines bandwidth and load time. The architectural decision: compress at build time (maximum compression, zero runtime cost) or at edge (simpler, lower compression ratio).
 
-### 5.1 Edge Compression vs. Pre-Compression: A Critical Choice
+### Edge vs Build-Time Compression
 
-There are two primary strategies for delivering compressed assets from an AWS S3 origin via CloudFront:
+**CloudFront edge compression**:
 
-**CloudFront Edge Compression**: This is the simpler approach. You can configure your CloudFront distribution to automatically compress files on-the-fly using Gzip and Brotli as they are requested from the S3 origin for the first time. CloudFront then caches and serves these compressed versions. This method is easy to enable but comes with a trade-off: to minimize the latency added by the compression step, CloudFront uses a lower compression level.
+- Enable via cache policy: `EnableAcceptEncodingGzip`, `EnableAcceptEncodingBrotli`
+- CloudFront compresses on first request, caches result
+- Uses lower compression levels to minimize latency
+- **Size limits**: Only compresses objects 1KB–10MB
 
-**Pre-Compression**: In this strategy, assets are compressed during the site's build process, before they are ever uploaded to S3. This allows you to use the highest possible compression settings (e.g., Brotli quality level 11), which can take more time but results in significantly smaller file sizes.
+**Build-time pre-compression**:
 
-The choice between these two methods is a classic trade-off between operational simplicity (Edge Compression) and maximum performance (Pre-Compression).
+- Compress during CI/CD with maximum quality (Brotli Q11, Gzip -9)
+- Upload `.br` and `.gz` variants to S3
+- Content negotiation via Lambda@Edge or CloudFront Functions
+- Zero runtime compression cost
 
-### 5.2 Understanding Compression in CloudFront
+**Compression ratio comparison**:
 
-When enabling automatic compression in CloudFront:
+| Content Type | Brotli Q11 vs Gzip -9 |
+|--------------|----------------------|
+| JavaScript   | 15% smaller          |
+| HTML         | 20% smaller          |
+| CSS          | 16% smaller          |
 
-- Set the "Compress objects automatically" option to Yes
-- Use a cache policy with Gzip and Brotli settings enabled
-- Ensure TTL values in the cache policy are greater than zero
+**Build time tradeoff**: Brotli Q11 encoding takes ~1.8s for a 1.6MB JavaScript file vs ~0.05s for Gzip. Amortized across deployments, this is negligible. Decompression speed is identical—clients see no penalty.
 
-**[Limitations of Edge Compression](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/ServingCompressedFiles.html):**
+### CloudFront Compression Limitations
 
-- Objects below 1,000 bytes or exceeding 10,000,000 bytes are not compressed
-- If an uncompressed copy is already in the cache, CloudFront may serve it without re-compressing
-- CloudFront compresses objects on a best-effort basis, occasionally skipping compression
-- Brotli requires HTTPS; Chrome and Firefox only support Brotli over secure connections
+**Edge compression constraints** ([CloudFront docs](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/ServingCompressedFiles.html)):
 
-### 5.3 Architecture for Serving Pre-Compressed Assets
+- **Size range**: Only compresses objects 1KB–10MB
+- **Cache race condition**: If uncompressed copy is cached first, CloudFront serves uncompressed until TTL expires
+- **Best-effort**: CloudFront may skip compression under load
+- **HTTPS requirement for Brotli**: Browsers only request `br` encoding over HTTPS (95.9% browser support as of 2025)
+- **TTL dependency**: Cache policy TTL must be >0 for compression to apply
 
-Implementing a pre-compression strategy involves coordinating the build process, S3 object metadata, a Lambda@Edge function, and CloudFront cache policies.
+### Pre-Compression Implementation
+
+Coordinates build process, S3 metadata, edge function content negotiation, and cache policy configuration.
 
 <figure>
 
@@ -507,11 +533,25 @@ graph TD
 
 </figure>
 
-**Build Step**: Integrate a compression step into your CI/CD pipeline's build script. After your assets are bundled, use tools to create both Gzip (.gz) and Brotli (.br) versions of each text-based asset (JS, CSS, HTML, SVG).
+**Build step**: After bundling, generate Gzip and Brotli variants:
 
-**S3 Upload and Metadata**: Upload the compressed files to organized directories in your S3 bucket (e.g., `/br/` and `/gz/`). When uploading, you must set the correct object metadata for each file. The Content-Type must reflect the original file type, and the Content-Encoding header must be set to `gzip` or `br` respectively.
+```bash
+# Brotli (quality 11, maximum compression)
+brotli -q 11 -o main.js.br main.js
 
-**Lambda@Edge Function**: Create a Lambda@Edge function that triggers on the viewer request event. This function's sole purpose is to perform content negotiation. It inspects the Accept-Encoding header sent by the user's browser and rewrites the request URI accordingly.
+# Gzip (level 9, maximum compression)
+gzip -9 -k main.js
+```
+
+**S3 upload with metadata**: Critical—set `Content-Encoding` header on compressed files:
+
+```bash
+aws s3 cp main.js.br s3://bucket/assets/main.js \
+  --content-encoding br \
+  --content-type application/javascript
+```
+
+**Content negotiation function**: Inspects `Accept-Encoding` header, rewrites URI to serve optimal variant.
 
 ```javascript title="compression-negotiator.js" collapse={1-4}
 // Lambda@Edge content negotiation function
@@ -540,29 +580,31 @@ exports.handler = (event, context, callback) => {
 }
 ```
 
-**CloudFront Configuration**: In your CloudFront distribution's cache behavior, you must create a cache policy that forwards the Accept-Encoding header to the origin. You must also set the "Compress Objects Automatically" option to No.
+**CloudFront configuration**:
 
-### 5.4 Real-World Performance Impact
+- Cache policy: Include `Accept-Encoding` header in cache key (ensures separate cache entries per encoding)
+- Disable automatic compression: Set "Compress Objects Automatically" to No
+- Origin request policy: Forward `Accept-Encoding` to S3
 
-For a production e-commerce site like Quince's New Arrival Page, implementing pre-compression showed significant improvements:
+### Production Impact
 
-- **Total Uncompressed Content Length**: 3,710,512 bytes
-- **Brotli Compression Ratio**: ~15:1 (highest quality)
-- **Gzip Compression Ratio**: ~8:1 (highest quality)
-- **Bandwidth Savings**: 85-90% reduction in transfer size
-- **Performance Improvement**: 40-60% faster load times
+E-commerce site benchmark (production deployment):
 
-This pattern effectively offloads the logic of content negotiation from a traditional web server to the CDN edge. It is a powerful serverless architecture that enhances performance by serving the most optimal asset to every user.
+- **Uncompressed size**: 3.7MB
+- **Brotli Q11**: ~247KB (15:1 ratio)
+- **Gzip -9**: ~463KB (8:1 ratio)
+- **Bandwidth savings**: 85-90%
+- **Load time improvement**: 40-60% faster
 
-## Part 6: Enhancing User Experience: Sophisticated Redirection Strategies
+The pattern shifts content negotiation from web server to CDN edge—serverless architecture serving optimal assets per-client capability.
 
-Properly managing URL redirects is a critical aspect of website maintenance, essential for preserving SEO equity, fixing broken links, and guiding users seamlessly through site changes. For static sites on AWS, there are multiple methods for handling redirects, each with distinct performance and operational characteristics.
+## Edge Redirect Strategies
 
-### 6.1 Method 1: Client-Side Redirects with HTML Meta Tags
+URL redirects preserve SEO equity, fix broken links, and enable site restructuring. The architectural decision: where does redirect logic execute?
 
-For simple redirects, you can generate HTML pages that redirect users using meta tags. This approach is suitable for basic use cases but has limitations for SEO and performance.
+### Client-Side Redirects (Meta Refresh)
 
-**Implementation:**
+Suitable for simple cases but incurs full page download before redirect.
 
 ```html
 <!doctype html>
@@ -579,59 +621,34 @@ For simple redirects, you can generate HTML pages that redirect users using meta
 </html>
 ```
 
-**Components:**
+**SEO consideration**: Search engines follow meta refresh but prefer server-side 301 redirects for link equity transfer.
 
-- `http-equiv="refresh"`: Redirects after 0 seconds
-- `robots` meta tag: Prevents search engine indexing
-- `canonical` link: Defines the preferred URL for SEO
-- Fallback anchor tag: Provides a clickable link
+### S3 Routing Rules
 
-### 6.2 Method 2: Hosting Provider Redirects
+**Critical limitation**: S3 routing rules only work with **public website endpoints**, not private buckets with Origin Access Control (OAC). For production SSG architectures using private S3 + CloudFront, this method is unavailable.
 
-Many hosting providers support redirection using configuration files like `_redirects`:
+Additionally:
 
-```txt
-/gh https://github.com/sujeet-pro
-/in https://www.linkedin.com/in/sujeetkrjaiswal/
-/linkedin https://www.linkedin.com/in/sujeetkrjaiswal/
-/twitter https://twitter.com/sujeetpro
-/x https://twitter.com/sujeetpro
-```
-
-This approach is simple but requires requests to reach the origin server.
-
-### 6.3 Method 3: S3 Static Website Routing Rules
-
-When an Amazon S3 bucket is configured for static website hosting, it provides a mechanism to define routing rules. These rules, specified in a JSON document in the bucket's properties, allow you to conditionally redirect requests based on the object key prefix or an HTTP error code returned by a request.
-
-This method is well-suited for simple, sitewide redirection scenarios but is [limited to 50 routing rules per website configuration](https://docs.aws.amazon.com/AmazonS3/latest/userguide/how-to-page-redirect.html). For more than 50 redirects, AWS recommends using object-level redirects via the `x-amz-website-redirect-location` metadata property. Common use cases include:
-
-- Redirecting a renamed folder: If you rename a directory from `/blog/` to `/articles/`
-- Creating vanity URLs: A rule can redirect a simple path like `/twitter` to an external profile URL
-- Supporting Single Page Applications (SPAs): A common pattern for SPAs is to redirect all 404 Not Found errors back to index.html
+- Limited to 50 rules per bucket
+- Redirect executes at origin, not edge (full round-trip: Browser → CloudFront → S3 → redirect)
+- No programmatic logic—pattern matching only
 
 ```json
 {
   "RoutingRules": [
     {
-      "Condition": {
-        "KeyPrefixEquals": "docs/"
-      },
-      "Redirect": {
-        "ReplaceKeyPrefixWith": "documents/"
-      }
+      "Condition": { "KeyPrefixEquals": "docs/" },
+      "Redirect": { "ReplaceKeyPrefixWith": "documents/" }
     }
   ]
 }
 ```
 
-However, S3 routing rules have significant limitations. More importantly, the redirection logic is executed at the S3 origin, which means a request must travel all the way from the user's browser, through the CloudFront CDN, to the S3 bucket before the redirect is issued.
+**Recommendation**: Use CloudFront Functions or Lambda@Edge instead—faster, more flexible, works with private buckets.
 
-### 6.4 Method 4: High-Performance Edge Redirects with Lambda@Edge
+### Lambda@Edge Edge Redirects
 
-For a more performant, scalable, and flexible solution, redirects should be handled at the CDN edge using AWS Lambda@Edge. This is the architecturally superior approach.
-
-In this pattern, a Lambda@Edge function is associated with the viewer request event of a CloudFront distribution. This function intercepts every incoming request before CloudFront checks its cache. The function's code contains the redirection logic. If the requested URI matches a rule, the function immediately generates and returns an HTTP 301 (Moved Permanently) or 302 (Found) response directly from the edge location closest to the user.
+Redirects execute at edge location before cache lookup—minimal latency (Browser → CloudFront → Browser).
 
 ```javascript collapse={1-10}
 // A Lambda@Edge function for managing redirects at the edge.
@@ -677,41 +694,26 @@ exports.handler = (event, context, callback) => {
 }
 ```
 
-This edge-based approach offers several key advantages over S3-based rules:
+**Advantages over S3 routing**:
 
-**Performance**: The performance difference is significant. An S3 redirect requires a full round trip: Browser → CloudFront → S3 → CloudFront → Browser. A Lambda@Edge redirect is resolved in a single, short trip: Browser → CloudFront → Browser.
+- **Latency**: Single hop vs origin round-trip
+- **Scalability**: Redirect map in DynamoDB supports thousands of rules, updated without function redeployment
+- **Flexibility**: Programmatic logic (geo-redirects, device detection, A/B routing)
+- **Private bucket compatible**: Works with OAC-protected S3 origins
 
-**Scalability and Manageability**: The redirection logic is decoupled from the S3 bucket. The redirectMap can be stored in a separate S3 object or a DynamoDB table, allowing for thousands of rules to be managed and updated without redeploying the Lambda function itself.
+**Alternative: CloudFront Functions**: For simple redirect maps (no network access needed), CloudFront Functions at $0.10/1M invocations is more cost-effective than Lambda@Edge at $0.60/1M. Use Lambda@Edge only when you need DynamoDB lookups or complex logic.
 
-**Flexibility**: The function can implement complex, programmatic logic, such as redirects based on the user's country, device type, language preferences, or A/B testing cookies.
+## Advanced Deployment Patterns
 
-### 6.5 Method 5: Web Server Redirects
+For business-critical applications requiring gradual rollouts and instant rollback capabilities.
 
-If you serve your static files via your own web servers, all web servers support redirections.
+### Blue-Green Deployments
 
-**Nginx Configuration:**
+Maintain two parallel production environments (Blue, Green). Traffic switches atomically between them.
 
-```nginx
-server {
-  # Temporary redirect to an individual page
-  rewrite ^/oldpage1$ http://www.domain.com/newpage1 redirect;
+**Why Lambda@Edge for blue-green?** Cookie-based routing requires reading request headers and modifying origin—capabilities only available in Lambda@Edge, not CloudFront Functions.
 
-  # Permanent redirect to an individual page
-  rewrite ^/oldpage2$ http://www.domain.com/newpage2 permanent;
-}
-```
-
-## Part 7: Advanced Deployment Patterns: Blue-Green and Canary Releases
-
-For business-critical applications where even the small delay of a CloudFront update is unacceptable, or where more sophisticated release strategies like canary testing are required, advanced deployment patterns become essential.
-
-### 7.1 Zero-Downtime Blue-Green Deployments
-
-The Blue-Green deployment pattern is the gold standard for zero-downtime deployments. This technique involves maintaining two parallel, identical, and isolated production environments, named "Blue" and "Green". At any given time, one environment (e.g., Blue) is live and serving all production traffic. The other environment (Green) is idle.
-
-A new version of the application is deployed to the idle Green environment. Once it has been fully deployed and tested, the release is executed by switching the router to direct all incoming traffic from the Blue environment to the Green environment.
-
-For a static site on AWS, this architecture is best implemented with a single CloudFront distribution and a Lambda@Edge function:
+**Architecture**: Single CloudFront distribution, Lambda@Edge routes based on cookie or header:
 
 ```javascript title="blue-green-router.js" collapse={1-5}
 // This function routes traffic to a 'blue' or 'green' S3 origin
@@ -752,11 +754,11 @@ exports.handler = async (event) => {
 }
 ```
 
-### 7.2 Canary Releases and Gradual Rollouts
+### Canary Releases
 
-Canary releases allow you to gradually shift traffic to a new version, enabling you to monitor performance and catch issues before affecting all users.
+Shift traffic gradually (1% → 5% → 25% → 100%) while monitoring error rates and performance metrics.
 
-**Implementation with Lambda@Edge:**
+**IP-based consistent routing**: Hash client IP to ensure same user sees same version across requests (session stability):
 
 ```javascript title="canary-router.js" collapse={1-4}
 // Lambda@Edge canary release router
@@ -785,36 +787,85 @@ exports.handler = async (event) => {
 }
 ```
 
-This pattern transforms deployment from a simple rollback strategy into a comprehensive release management strategy. It enables canary releases, A/B testing, and other advanced techniques that fundamentally de-risk the process of shipping new features.
+**Monitoring during canary**: Track error rates, latency percentiles, and Core Web Vitals for canary cohort vs production. Automated rollback triggers when metrics degrade beyond threshold.
 
-## Conclusion: Building for the Future with SSG
+## Conclusion
 
-Static Site Generation has evolved far beyond its origins as a simple tool for blogs. When combined with the power of modern cloud infrastructure, it represents a robust architectural foundation for a new class of web applications that are exceptionally fast, secure, and scalable by default.
+SSG performance optimization is an exercise in shifting complexity: from request-time to build-time (pre-rendering, pre-compression), from origin to edge (Lambda@Edge routing, CloudFront caching), from runtime to deploy-time (atomic deployments, versioned rollbacks).
 
-The analysis demonstrates a clear and powerful trend: the strategic offloading of complexity from the origin to the build process and the CDN edge.
+**Key architectural principles**:
 
-### Key Architectural Principles
+1. **Build-time is free, request-time is expensive**: Pre-render, pre-compress, pre-compute. Every millisecond saved at build time compounds across millions of requests.
 
-1. **Embrace Build-Time Rendering**: The core principle of SSG is to perform as much work as possible during the build phase. This includes not only rendering HTML but also optimizing assets, pre-compressing files, and generating code that prevents performance issues like CLS.
+2. **Atomic deployments enable instant rollback**: Versioned S3 directories + CloudFront origin path updates. No partial failures, no corrupted states.
 
-2. **Adopt Atomic and Immutable Deployments**: Treating each deployment as an immutable, versioned artifact is fundamental to reliability. This practice, implemented through versioned directories in S3, eliminates the risk of corrupted deployments and enables instantaneous, risk-free rollbacks.
+3. **Edge intelligence reduces latency**: Lambda@Edge for complex routing, CloudFront Functions for simple transformations. Choose based on capability requirements, not defaults.
 
-3. **Push Intelligence to the Edge**: The most sophisticated patterns discussed—Blue-Green deployments, pre-compressed asset serving, and high-performance redirects—all share a common theme. They leverage the programmability of the CDN edge via Lambda@Edge to make dynamic, intelligent decisions close to the user.
+4. **Core Web Vitals are architectural constraints**: CLS <0.1, LCP <2.5s, INP <200ms aren't just metrics—they're design requirements that influence dual-build strategies, font loading, and image dimension handling.
 
-4. **Optimize for Core Web Vitals**: Performance optimization should be treated as a first-class concern throughout the build and deployment pipeline. CLS prevention, pre-compression, and edge-based optimizations should be automated and enforced.
+5. **Cost awareness at scale**: CloudFront Functions at $0.10/1M vs Lambda@Edge at $0.60/1M. Origin Shield adds cost but reduces S3 requests. Cache invalidations free for first 1,000/month.
 
-5. **Design for Resilience**: Advanced deployment patterns like Blue-Green deployments and canary releases provide the safety net needed for confident, continuous delivery in production environments.
+The future of high-performance delivery isn't choosing between static and dynamic—it's per-component rendering decisions orchestrated at the edge.
 
-By integrating these strategies, development teams can build and operate web applications that provide a superior user experience, a hardened security posture, and unparalleled scalability. The future of high-performance web development is not about choosing between static and dynamic; it is about intelligently composing applications that leverage the best of both worlds, orchestrated at the edge.
+## Appendix
 
-## References
+### Prerequisites
 
-- [CloudFront Serving Compressed Files](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/ServingCompressedFiles.html)
-- [S3 Website Routing Rules](https://docs.aws.amazon.com/AmazonS3/latest/userguide/how-to-page-redirect.html)
-- [Lambda@Edge Redirection](https://aws.amazon.com/blogs/networking-and-content-delivery/handling-redirectsedge-part1/)
-- [Squash Compression Benchmark](https://quixdb.github.io/squash-benchmark/#results)
-- [Cumulative Layout Shift (CLS)](https://web.dev/articles/cls)
-- [HTTP Redirections - MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections)
-- [Meta Element - MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta)
-- [Canonical Link - MDN](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel#canonical)
-- [NGINX Rewrite Rules](https://blog.nginx.org/blog/creating-nginx-rewrite-rules)
+- AWS fundamentals: S3, CloudFront, Lambda
+- CDN caching concepts: TTL, cache keys, invalidation
+- HTTP compression: Gzip, Brotli, Accept-Encoding header
+- Core Web Vitals metrics and measurement
+
+### Terminology
+
+- **TTFB (Time to First Byte)**: Time from request initiation to first byte of response
+- **FCP (First Contentful Paint)**: Time until first content renders on screen
+- **LCP (Largest Contentful Paint)**: Time until largest content element renders
+- **CLS (Cumulative Layout Shift)**: Sum of unexpected layout shifts during page lifecycle
+- **INP (Interaction to Next Paint)**: Latency of user interactions (replaces FID)
+- **ISR (Incremental Static Regeneration)**: Re-generating static pages on-demand after initial build
+- **OAC (Origin Access Control)**: CloudFront mechanism to restrict S3 access
+- **Origin Shield**: CloudFront caching layer between edge locations and origin
+
+### Summary
+
+- SSG shifts computation from request-time to build-time, reducing TTFB from 200-500ms to <50ms
+- Atomic deployments via versioned S3 directories enable instant rollback
+- Lambda@Edge ($0.60/1M) for complex routing, CloudFront Functions ($0.10/1M) for simple transformations
+- Pre-compression with Brotli Q11 achieves 15-20% smaller files than Gzip
+- Core Web Vitals targets: CLS <0.1, LCP <2.5s, INP <200ms
+- Cache invalidation: 1,000 paths/month free, $0.005/path beyond
+
+### References
+
+**AWS Documentation (Primary)**
+
+- [CloudFront Serving Compressed Files](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/ServingCompressedFiles.html) - Compression limits, Brotli requirements
+- [CloudFront Functions vs Lambda@Edge](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/edge-functions-choosing.html) - Capability comparison, pricing
+- [CloudFront Origin Shield](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/origin-shield.html) - Architecture, benefits
+- [CloudFront Cache Policy Best Practices](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/DownloadDistValuesCacheBehavior.html) - Cache key configuration
+- [S3 Website Routing Rules](https://docs.aws.amazon.com/AmazonS3/latest/userguide/how-to-page-redirect.html) - 50 rule limit, limitations
+- [CloudFront Invalidation Pricing](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PayingForInvalidation.html) - Free tier, cost structure
+- [Zero-downtime Deployments with CloudFront](https://aws.amazon.com/blogs/networking-and-content-delivery/achieving-zero-downtime-deployments-with-amazon-cloudfront-using-blue-green-continuous-deployments/) - Blue-green architecture
+
+**Web Vitals (Google)**
+
+- [Core Web Vitals Thresholds](https://web.dev/articles/defining-core-web-vitals-thresholds) - CLS, LCP, INP thresholds
+- [Cumulative Layout Shift (CLS)](https://web.dev/articles/cls) - Measurement, optimization
+- [CLS Optimization Guide](https://web.dev/articles/optimize-cls) - Mitigation patterns
+
+**Compression**
+
+- [Brotli Browser Support](https://caniuse.com/brotli) - 95.9% as of 2025
+- [Brotli Compression Research (Cloudflare)](https://blog.cloudflare.com/results-experimenting-brotli/) - Compression ratio benchmarks
+- [Squash Compression Benchmark](https://quixdb.github.io/squash-benchmark/#results) - Algorithm comparison
+
+**Framework Documentation**
+
+- [Next.js Static Export](https://nextjs.org/docs/pages/guides/static-exports) - SSG, ISR configuration
+- [Astro Performance](https://docs.astro.build/en/concepts/why-astro/) - Islands architecture, build optimization
+
+**Web Standards**
+
+- [LayoutShiftAttribution API (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/LayoutShiftAttribution) - CLS debugging
+- [HTTP Redirections (MDN)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Redirections) - 301 vs 302 semantics

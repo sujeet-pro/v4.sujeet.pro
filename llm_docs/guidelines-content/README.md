@@ -19,6 +19,20 @@ These are **in addition to** core guidelines for specific article types:
 | Content Type | Guideline | When to Use |
 |--------------|-----------|-------------|
 | System Design Problems | `system-design-problems.md` | Articles in `system-design/system-design-problems/` |
+| System Design Fundamentals & Building Blocks | `system-design-fundamentals.md` | Articles in `system-design/system-design-fundamentals/` or `system-design-building-blocks/` |
+| Core Distributed Patterns | `core-distributed-patterns.md` | Articles in `system-design/core-distributed-patterns/` |
+| Frontend System Design | `frontend-system-design.md` | Articles in `system-design/frontend-system-design/` |
+| Real-World Case Studies | `real-world-case-studies.md` | Articles in `system-design/real-world-case-studies/` |
+
+#### System Design Guidelines Overview
+
+| Guideline | Focus | Key Requirement |
+|-----------|-------|-----------------|
+| `system-design-problems.md` | End-to-end designs | Multiple design paths, API/data modeling, frontend + backend + infra |
+| `system-design-fundamentals.md` | Foundational concepts | All viable approaches, decision matrices, real-world examples with outcomes |
+| `core-distributed-patterns.md` | Pattern deep-dives | All variants, decision trees, production implementations vs theory |
+| `frontend-system-design.md` | Client-side architecture | Browser constraints, device/network profiles, accessibility |
+| `real-world-case-studies.md` | Production learnings | Extreme specificity, options considered, measurable outcomes |
 
 If any older docs conflict with this folder, the guidance here wins.
 

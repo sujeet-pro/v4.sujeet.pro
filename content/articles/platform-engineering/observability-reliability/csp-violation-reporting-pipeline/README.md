@@ -29,38 +29,39 @@ flowchart LR
 
 </figure>
 
-## TLDR
+## Abstract
 
-**CSP-Sentinel** is a streaming data pipeline for ingesting, deduplicating, and analyzing CSP violation reports at scale (50k-500k+ RPS).
+CSP violation reporting presents a specific scaling challenge: browsers generate reports unpredictably, often in bursts during incidents, and the data is high-volume but low-value per individual event. The core insight is to treat reports as a **streaming analytics problem**, not a transactional one.
 
-### Core Architecture
+<figure>
 
-- **Fire-and-forget ingestion**: Spring WebFlux returns `204 No Content` immediately, no DB interaction
-- **Kafka buffering**: Decouples ingestion from processing, survives storage slowdowns
-- **Redis deduplication**: Suppresses identical violations within 10-minute windows using hash keys
-- **Snowflake OLAP**: Clustered by date/directive for efficient analytics queries
+```mermaid
+flowchart TD
+    subgraph "Mental Model"
+        direction TB
+        A["Browser Reports<br/>(Unpredictable Bursts)"] --> B["Fire-and-Forget API<br/>(Sub-ms Response)"]
+        B --> C["Kafka Buffer<br/>(Absorbs Spikes)"]
+        C --> D["Deduplication<br/>(70-90% Noise Reduction)"]
+        D --> E["OLAP Storage<br/>(Analytics, Not OLTP)"]
+    end
+```
 
-### Technology Choices (Q1 2026)
+<figcaption>Mental model: CSP reports flow through a pipeline optimized for eventual consistency and noise reduction, not transactional guarantees</figcaption>
 
-- **Java 25 LTS** with ZGC for sub-millisecond GC pauses ([Oracle Java 25](https://www.oracle.com/news/announcement/oracle-releases-java-25-2025-09-16/))
-- **Spring Boot 4 / Framework 7** with WebFlux for non-blocking I/O ([Spring Blog](https://spring.io/blog/2025/11/20/spring-boot-4-0-0-available-now/))
-- **Kafka 3.8+** on AWS MSK with lz4 compression ([AWS MSK](https://aws.amazon.com/about-aws/whats-new/2025/02/amazon-msk-apache-kafka-version-3-8/))
-- **Valkey 8.x** on ElastiCache (Redis-compatible, post-licensing change) ([AWS ElastiCache Docs](https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/supported-engine-versions.html))
-- **PostgreSQL 18** for local development ([PostgreSQL 18 Release](https://www.postgresql.org/about/news/postgresql-18-released-3142/))
+</figure>
 
-### Scaling Strategy
+**Key design trade-offs:**
 
-- **Partition formula**: `P = max(target/producer_throughput, target/consumer_throughput) × growth_factor`
-- **48 partitions** handles baseline 50k RPS with headroom to 240k RPS
-- **Consumer pods**: Scale on Kafka lag, not CPU
-- **Snowflake ingestion**: Buffer to 100-250MB compressed files, use Snowpipe for >50k RPS
+| Decision | Optimizes For | Sacrifices |
+| :------- | :------------ | :--------- |
+| `acks=1` (leader only) | Latency (~1ms vs ~10ms) | Durability (rare message loss on leader failure) |
+| 10-minute dedup window | Storage cost, query noise | Precision (identical violations merged) |
+| 24-hour Kafka retention | Cost | Replay capability beyond 24h |
+| Stateless API | Horizontal scaling | Session-based rate limiting |
 
-### Key Design Decisions
+**When this design fits:** High-volume telemetry where individual events are expendable, eventual consistency is acceptable, and the goal is aggregate insights rather than per-event guarantees.
 
-- **`acks=1`** for Kafka producer: Prioritizes latency over strict durability (acceptable for CSP reports)
-- **Stateless API**: No session state, horizontal scaling via HPA on CPU
-- **24-hour Kafka retention**: Cost optimization; Kafka is a buffer, not storage
-- **90-day data retention**: Balance between historical analysis and storage costs
+**When it doesn't:** Audit logs requiring strict durability, real-time alerting on individual violations, or compliance scenarios requiring guaranteed delivery.
 
 ## 1. Project Goals & Background
 
@@ -82,7 +83,12 @@ Modern browsers send CSP violation reports as JSON payloads when a webpage viola
 
 ### 2.1 Functional Requirements
 
-- **Ingestion API:** Expose a `POST /csp/report` endpoint accepting standard CSP JSON formats ([Legacy `csp-report`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/report-uri) with `application/csp-report` content type and [modern `Report-To`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/report-to) with `application/reports+json`).
+- **Ingestion API:** Expose a `POST /csp/report` endpoint accepting both CSP report formats:
+  - **Legacy format** (`report-uri`): `Content-Type: application/csp-report` with `csp-report` wrapper object
+  - **Modern format** (`report-to` + Reporting API): `Content-Type: application/reports+json` with array of report objects
+
+> **Browser support note:** Firefox does not support `report-to` as of early 2026. Safari has partial support. Chromium-based browsers fully support both. Accept both formats to maximize coverage.
+
 - **Immediate Response:** Always respond with HTTP 204 without waiting for processing.
 - **Deduplication:** Suppress identical violations from the same browser within a short window (e.g., 10 minutes) using Redis.
 - **Storage:** Store detailed violation records (timestamp, directive, blocked URI, etc.) for querying.
@@ -185,7 +191,61 @@ flowchart LR
 
 ## 5. Data Model
 
-### 5.1 Unified Schema Fields
+### 5.1 CSP Report Formats (Input)
+
+The ingestion API must parse two distinct JSON formats. Per [W3C CSP3](https://www.w3.org/TR/CSP3/), the `report-uri` directive is deprecated but remains widely used due to Firefox's lack of `report-to` support.
+
+**Legacy format** (`Content-Type: application/csp-report`):
+
+```json title="legacy-csp-report.json" collapse={1, 10-12}
+{
+  "csp-report": {
+    "document-uri": "https://example.com/page",
+    "blocked-uri": "https://evil.com/script.js",
+    "violated-directive": "script-src 'self'",
+    "effective-directive": "script-src",
+    "original-policy": "script-src 'self'; report-uri /csp",
+    "disposition": "enforce",
+    "status-code": 200
+  }
+}
+```
+
+**Modern format** (`Content-Type: application/reports+json`):
+
+```json title="modern-reporting-api.json" collapse={1, 15-18}
+[
+  {
+    "type": "csp-violation",
+    "age": 53531,
+    "url": "https://example.com/page",
+    "user_agent": "Mozilla/5.0 ...",
+    "body": {
+      "documentURL": "https://example.com/page",
+      "blockedURL": "https://evil.com/script.js",
+      "effectiveDirective": "script-src-elem",
+      "originalPolicy": "script-src 'self'; report-to csp-endpoint",
+      "disposition": "enforce",
+      "statusCode": 200,
+      "sample": "console.log(\"ma"
+    }
+  }
+]
+```
+
+**Key differences:**
+
+| Aspect | Legacy (`report-uri`) | Modern (Reporting API) |
+| :----- | :-------------------- | :--------------------- |
+| Wrapper | `csp-report` object | Array of report objects |
+| Field naming | `kebab-case` | `camelCase` |
+| Directive field | `violated-directive` | `effectiveDirective` |
+| Code sample | Not included | `sample` (first 40 chars, requires `'report-sample'`) |
+| Batching | Single report per POST | May batch multiple reports |
+
+The consumer normalizes both formats to a unified internal schema before deduplication.
+
+### 5.2 Internal Schema (Normalized)
 
 | Field                | Type      | Description                          |
 | :------------------- | :-------- | :----------------------------------- |
@@ -199,7 +259,7 @@ flowchart LR
 | `ORIGINAL_POLICY`    | STRING    | Full CSP string                      |
 | `VIOLATION_HASH`     | STRING    | Deduplication key                    |
 
-### 5.2 Snowflake DDL (Production)
+### 5.3 Snowflake DDL (Production)
 
 ```sql title="snowflake/csp_violations.sql" collapse={4-8}
 CREATE TABLE CSP_VIOLATIONS (
@@ -217,7 +277,7 @@ CREATE TABLE CSP_VIOLATIONS (
 CLUSTER BY (EVENT_DATE, VIOLATED_DIRECTIVE);
 ```
 
-### 5.3 Postgres DDL (Development)
+### 5.4 Postgres DDL (Development)
 
 ```sql title="postgres/csp_violations.sql" collapse={2-6}
 CREATE TABLE csp_violations (
@@ -290,7 +350,7 @@ $$
   - **Spike Alert:** > 50% increase in violations over 5m moving average.
   - **Lag Alert:** Consumer lag > 1 million messages (indication of stalled consumers).
 
-## 8. Appendix: Infrastructure Optimization & Tuning
+## 8. Infrastructure Optimization & Tuning
 
 ### 8.1 Kafka Configuration (AWS MSK)
 
@@ -321,6 +381,37 @@ Optimizing the Netty engine for 50k+ RPS:
   - For < 50k RPS: Direct Batch Inserts (JDBC) or small batch `COPY`.
   - For > 50k RPS: Write to S3 -> Trigger **[Snowpipe](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro)**. This decouples consumer logic from warehouse loading latency.
 
+## 9. Edge Cases and Failure Modes
+
+### 9.1 Report Format Variations
+
+Browsers implement CSP reporting with subtle differences. The pipeline must handle:
+
+| Variation | Source | Handling |
+| :-------- | :----- | :------- |
+| Missing `blocked-uri` | Some inline violations | Default to `"inline"` |
+| Truncated `sample` | Reporting API limit | Accept up to 40 chars per spec |
+| Extension violations | `blocked-uri` starts with `moz-extension://`, `chrome-extension://` | Filter out (not actionable) |
+| Empty `referrer` | Privacy settings | Normalize to `null` |
+| Query strings in URIs | Standard behavior | Strip for deduplication, preserve for storage |
+
+### 9.2 Failure Scenarios
+
+**Kafka unavailable:** The WebFlux API returns `204` regardless—reports are dropped silently. This is acceptable for CSP telemetry but would need circuit breakers and local buffering for stricter guarantees.
+
+**Redis unavailable:** Consumer continues without deduplication. All reports flow to storage, increasing costs but preserving data. Alert on Redis connection failures.
+
+**Snowflake ingestion lag:** Kafka acts as a buffer (24-hour retention). If lag exceeds retention, oldest messages are lost. Monitor consumer lag as primary SLI.
+
+**Dedup hash collisions:** SHA-1 collisions are theoretically possible but practically irrelevant at this scale (~10^-18 probability). If strict deduplication is required, use SHA-256.
+
+### 9.3 Known Limitations
+
+- **No per-user rate limiting:** Stateless API cannot throttle abusive clients without external infrastructure (e.g., WAF)
+- **No replay capability:** Once Kafka retention expires, data cannot be reprocessed from source
+- **Browser timing variability:** Reporting API does not guarantee batch delivery—expect single-report POSTs in many cases
+- **Cross-origin restrictions:** Report endpoints must be HTTPS and cannot redirect to different origins
+
 ## Conclusion
 
 CSP-Sentinel balances throughput, cost, and operational simplicity through three key design decisions:
@@ -331,14 +422,52 @@ CSP-Sentinel balances throughput, cost, and operational simplicity through three
 
 The technology choices (Java 25 with ZGC, Valkey for Redis compatibility, Snowflake for OLAP) prioritize operational simplicity over marginal performance gains. The system handles 50k-500k+ RPS with infrastructure that a single engineer can maintain.
 
-## References
+The design explicitly trades durability for latency—acceptable for telemetry where aggregate trends matter more than individual events. For audit-grade reporting, add `acks=all`, increase Kafka retention, and implement client-side retry with idempotency keys.
 
-### CSP Specifications
+## Appendix
 
-- [MDN: Content-Security-Policy report-uri](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/report-uri) - Legacy CSP reporting format (`application/csp-report`)
-- [MDN: Content-Security-Policy report-to](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/report-to) - Modern Reporting API format (`application/reports+json`)
+### Prerequisites
 
-### Technology Stack
+- Familiarity with streaming data pipelines (Kafka producer/consumer model)
+- Understanding of CSP headers and browser security policies
+- Basic knowledge of OLAP vs OLTP workloads
+- Experience with Kubernetes horizontal pod autoscaling
+
+### Terminology
+
+| Term | Definition |
+| :--- | :--------- |
+| **CSP** | Content Security Policy - browser security mechanism that restricts resource loading |
+| **Fire-and-forget** | Pattern where the sender does not wait for acknowledgment |
+| **HPA** | Horizontal Pod Autoscaler - Kubernetes component for scaling based on metrics |
+| **OLAP** | Online Analytical Processing - optimized for aggregate queries over large datasets |
+| **Snowpipe** | Snowflake's continuous data ingestion service |
+| **ZGC** | Z Garbage Collector - low-latency GC for JVM with sub-millisecond pauses |
+
+### Summary
+
+- CSP violation reports are high-volume, low-value telemetry best handled as a streaming analytics problem
+- Fire-and-forget ingestion (`204` immediate response) isolates browser impact from backend performance
+- Kafka buffers absorb traffic spikes and decouple ingestion from processing
+- Redis-based deduplication reduces storage by 70-90% using hash keys with TTL
+- Snowflake clustering by date/directive optimizes the dominant query pattern
+- Scale consumers on Kafka lag, not CPU—processing depth is the bottleneck
+
+### References
+
+#### Specifications
+
+- [W3C Content Security Policy Level 3](https://www.w3.org/TR/CSP3/) - Authoritative CSP specification; `report-uri` deprecated in favor of `report-to`
+- [W3C Reporting API](https://www.w3.org/TR/reporting-1/) - Modern reporting infrastructure used by `report-to` directive
+- [MDN: CSPViolationReportBody](https://developer.mozilla.org/en-US/docs/Web/API/CSPViolationReportBody) - Report body schema for modern Reporting API
+
+#### CSP Implementation
+
+- [MDN: Content-Security-Policy report-uri](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/report-uri) - Legacy reporting format (`application/csp-report`)
+- [MDN: Content-Security-Policy report-to](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/report-to) - Modern Reporting API integration
+- [MDN: Reporting-Endpoints header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Reporting-Endpoints) - Endpoint configuration for modern reporting
+
+#### Technology Stack
 
 - [Oracle Java 25 LTS Announcement](https://www.oracle.com/news/announcement/oracle-releases-java-25-2025-09-16/) - Released September 16, 2025
 - [Spring Boot 4.0.0 Release](https://spring.io/blog/2025/11/20/spring-boot-4-0-0-available-now/) - Released November 20, 2025
@@ -346,9 +475,8 @@ The technology choices (Java 25 with ZGC, Valkey for Redis compatibility, Snowfl
 - [AWS MSK Kafka 3.8 Support](https://aws.amazon.com/about-aws/whats-new/2025/02/amazon-msk-apache-kafka-version-3-8/) - February 2025
 - [AWS ElastiCache Supported Versions](https://docs.aws.amazon.com/AmazonElastiCache/latest/dg/supported-engine-versions.html) - Valkey 8.x documentation
 - [PostgreSQL 18 Release](https://www.postgresql.org/about/news/postgresql-18-released-3142/) - Released September 25, 2025
-- [Grafana 12 Release](https://grafana.com/blog/2025/05/07/grafana-12-release-all-the-new-features/) - May 2025
 
-### Performance & Scaling
+#### Performance & Scaling
 
 - [Confluent: How to Choose Kafka Partition Count](https://www.confluent.io/blog/how-choose-number-topics-partitions-kafka-cluster/) - Partition sizing formula: `max(t/p, t/c)`
 - [Snowflake: Preparing Data Files](https://docs.snowflake.com/en/user-guide/data-load-considerations-prepare) - 100-250MB compressed file sizing recommendation

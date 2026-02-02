@@ -1,6 +1,6 @@
 # Image Processing Service Design: CDN, Transforms, and APIs
 
-This document presents the architectural design for a cloud-agnostic, multi-tenant image processing platform that provides on-the-fly transformations with enterprise-grade security, performance, and cost optimization. The platform supports hierarchical multi-tenancy (Organization → Tenant → Space), public and private image delivery, and deployment across AWS, GCP, Azure, or on-premise infrastructure. Key capabilities include deterministic transformation caching to ensure sub-second delivery, signed URL generation for secure private access, CDN integration for global edge caching, and a "transform-once-serve-forever" approach that minimizes processing costs while guaranteeing HTTP 200 responses even for first-time transformation requests.
+This document presents the architectural design for a cloud-agnostic, multi-tenant image processing platform that provides on-the-fly transformations with enterprise-grade security, performance, and cost optimization. The platform supports hierarchical multi-tenancy (Organization → Tenant → Space), public and private image delivery, and deployment across AWS, GCP, Azure, or on-premise infrastructure. Key capabilities include deterministic transformation caching to ensure sub-second delivery, HMAC-SHA256 signed URLs for secure private access, CDN (Content Delivery Network) integration for global edge caching, and a "transform-once-serve-forever" approach that minimizes processing costs while guaranteeing HTTP 200 responses even for first-time transformation requests.
 
 <figure>
 
@@ -29,36 +29,47 @@ graph TB
 
 </figure>
 
-## TLDR
+## Abstract
 
-A **multi-tenant image service platform** provides on-demand image transformations with deterministic caching, signed URL security, and cloud-agnostic deployment.
+Image processing at scale requires balancing three competing concerns: **latency** (users expect sub-second delivery), **cost** (processing and storage grow with traffic), and **correctness** (transformations must be deterministic and secure). This architecture resolves these tensions through a layered caching strategy with content-addressed storage.
 
-### Core Architecture
+<figure>
 
-- **Multi-layer caching** (CDN → Redis → Database → Storage) achieves 95%+ cache hit rates
-- **Transform-once-serve-forever** model with content-addressed storage eliminates duplicate processing
-- **Guaranteed HTTP 200** responses—even first-time transforms complete synchronously (< 800ms for images < 5MB)
-- **Hierarchical tenancy** (Organization → Tenant → Space) with policy inheritance for flexible isolation
+```mermaid
+flowchart LR
+    subgraph "Cache Layers"
+        CDN["CDN Edge\n95% hit rate"]
+        Redis["Redis\n80% of misses"]
+        DB["DB Index\n90% of remainder"]
+        Process["Transform\n< 5% of requests"]
+    end
 
-### Technology Choices
+    Request --> CDN
+    CDN -->|5% miss| Redis
+    Redis -->|20% miss| DB
+    DB -->|10% miss| Process
+    Process -->|store| DB
+```
 
-- **Sharp (libvips)** for image processing—4-5x faster than ImageMagick, low memory footprint ([Sharp Performance](https://sharp.pixelplumbing.com/performance/))
-- **Redis with Redlock** for distributed locking and caching—note that Redlock has [known limitations](https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html) for safety-critical scenarios
-- **PostgreSQL** with JSONB for flexible policy storage and metadata
-- **AVIF/WebP** automatic format negotiation—AVIF offers 20-30% better compression than WebP ([format comparison](https://cloudinary.com/guides/image-formats/avif-vs-webp-4-key-differences-and-how-to-choose))
+<figcaption>Multi-layer caching eliminates 99.9% of redundant processing—only the first request for each unique transformation hits the Transform Engine.</figcaption>
 
-### Security Model
+</figure>
 
-- **HMAC-SHA256 signed URLs** with expiration timestamps for private content
-- **Key rotation support** via key IDs (kid) in signed URLs
-- **Row-level tenant isolation** enforced at database and API layers
-- **Rate limiting** with sliding window algorithm per organization
+**Core mental model:**
 
-### Cost Optimization
+1. **Content-addressed storage**: Hash(original + operations) → unique derived asset. Same inputs always produce the same output, enabling infinite caching.
+2. **Synchronous-first with async fallback**: Transform inline for < 5MB images (< 800ms). Queue larger images but return 202 with polling URL.
+3. **Efficiency locks, not safety locks**: Redlock prevents duplicate processing but doesn't guarantee mutual exclusion. If two transforms race, both succeed—we just store one.
+4. **Hierarchical policies**: Organization → Tenant → Space inheritance. Override at any level. Enforce at every layer (API, database, CDN).
 
-- **56% cost reduction** through multi-layer caching and storage lifecycle management
-- **Storage tiering** (hot → warm → cold) based on access patterns
-- **CDN origin offloading** reduces bandwidth costs from $0.09/GB to $0.02/GB
+**Technology selection rationale:**
+
+| Component       | Choice                 | Why                                                                                           |
+| --------------- | ---------------------- | --------------------------------------------------------------------------------------------- |
+| Image processor | Sharp 0.34+ (libvips)  | 26x faster than jimp, 4-5x faster than ImageMagick, ~50MB memory per worker                   |
+| Distributed lock| Redlock                | Sufficient for efficiency (not correctness); simpler than etcd/ZooKeeper                      |
+| Formats         | AVIF → WebP → JPEG     | AVIF: 94.89% browser support, 50% smaller than JPEG. WebP: 95.93% support, 25-34% savings     |
+| Database        | PostgreSQL + JSONB     | Row-level security, flexible policy storage, proven at scale                                  |
 
 ## System Overview
 
@@ -164,13 +175,25 @@ A **multi-tenant image service platform** provides on-demand image transformatio
 
 #### Image Processing Library
 
-| Technology          | Pros                                             | Cons                    | Recommendation             |
-| ------------------- | ------------------------------------------------ | ----------------------- | -------------------------- |
-| **Sharp (libvips)** | Fast, low memory, modern formats, Node.js native | Linux-focused build     | ✅ **Recommended**         |
-| ImageMagick         | Feature-rich, mature                             | Slower, higher memory   | Use for complex operations |
-| Jimp                | Pure JavaScript, portable                        | Slower, limited formats | Development only           |
+| Technology          | Pros                                                      | Cons                     | Recommendation             |
+| ------------------- | --------------------------------------------------------- | ------------------------ | -------------------------- |
+| **Sharp (libvips)** | 26x faster than jimp, low memory (~50MB), modern formats  | Linux-focused build      | ✅ **Recommended**         |
+| ImageMagick         | Feature-rich, mature                                      | 4-5x slower than Sharp   | Use for complex operations |
+| Jimp                | Pure JavaScript, portable                                 | Very slow, limited formats | Development only         |
 
-**Choice**: **Sharp** for primary processing with ImageMagick fallback for advanced features.
+**Choice**: **Sharp 0.34+** (latest: 0.34.5, November 2025) with libvips 8.18 for primary processing.
+
+**Why Sharp over alternatives:**
+
+- **Performance**: 64.42 ops/sec for JPEG processing on x64, 49.20 ops/sec on ARM64 (benchmarked without libvips caching; production performance higher)
+- **Memory efficiency**: Uses streaming and memory-mapped I/O; set `MALLOC_ARENA_MAX="2"` on Linux to reduce glibc fragmentation
+- **Modern format support**: AVIF, WebP, and as of libvips 8.18: UltraHDR (for HDR displays), Camera RAW via libraw, Oklab colorspace (CSS4-standard, faster than CIELAB)
+
+**libvips 8.18 (December 2025) notable additions:**
+
+- **UltraHDR**: Single image file displays optimally on both SDR and HDR screens via Google's libultrahdr
+- **Camera RAW**: 28% faster and 40% less memory than ImageMagick when resizing CR2/NEF files
+- **BigTIFF output**: Support for TIFF files > 4GB
 
 ```bash
 npm install sharp
@@ -262,15 +285,33 @@ import crypto from "crypto"
 
 #### Distributed Locking
 
-| Technology          | Pros                          | Cons                                | Recommendation         |
-| ------------------- | ----------------------------- | ----------------------------------- | ---------------------- |
-| **Redlock (Redis)** | Simple, Redis-based           | Network partitions, clock skew risk | ✅ **Recommended**     |
-| etcd                | Consistent, Kubernetes native | Separate service                    | Use if already running |
-| Database locks      | Simple, transactional         | Contention, less scalable           | Development only       |
+| Technology          | Pros                          | Cons                                     | Recommendation         |
+| ------------------- | ----------------------------- | ---------------------------------------- | ---------------------- |
+| **Redlock (Redis)** | Simple, Redis-based           | No fencing tokens, clock skew risk       | ✅ For efficiency only |
+| etcd                | Linearizable, fencing tokens  | Separate service, higher latency         | Safety-critical use    |
+| ZooKeeper           | Strong consistency, mature    | Complex operations, JVM dependency       | Safety-critical use    |
+| Database locks      | Simple, transactional         | Contention, less scalable                | Development only       |
 
-**Choice**: **Redlock** with Redis
+**Choice**: **Redlock** with Redis for transform deduplication (efficiency), **not** for safety-critical mutual exclusion.
 
-> **⚠️ Important Limitation**: Redlock has [known safety limitations](https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html) related to clock skew and process pauses. For this image service use case (efficiency optimization, not correctness), Redlock is appropriate. For safety-critical mutual exclusion where lock violations could cause data corruption, consider etcd or ZooKeeper instead.
+**Why Redlock is sufficient here:**
+
+The image service uses locks to prevent duplicate work, not to prevent data corruption. If two workers race past the lock:
+
+1. Both fetch the original image
+2. Both apply the same transformation (deterministic)
+3. Both attempt to store the result
+4. One wins (upsert semantics), the other's write is a no-op
+
+This is inefficient (wasted compute) but not incorrect. The content-addressed storage ensures idempotency.
+
+**Why Redlock is insufficient for safety-critical scenarios** (per [Martin Kleppmann's analysis](https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html)):
+
+1. **No fencing tokens**: Cannot generate monotonically increasing tokens to detect stale lock holders after process pauses/GC stops
+2. **Timing assumptions**: Depends on bounded network delays and clock accuracy that frequently break in practice
+3. **Clock vulnerabilities**: Uses `gettimeofday()` (not monotonic); NTP adjustments can cause time jumps
+
+**Redis's current recommendation** (from [official docs](https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/)): Use N=5 Redis masters with majority voting, implement fencing tokens separately if correctness matters, monitor clock drift.
 
 ```bash
 npm install redlock
@@ -450,6 +491,92 @@ sequenceDiagram
         end
     end
 ```
+
+### Edge Authentication Patterns
+
+Modern CDNs support signature validation at the edge, eliminating origin round-trips for private content. This section covers three deployment patterns with different security/complexity tradeoffs.
+
+**Pattern 1: Origin-based validation (simplest)**
+
+All requests hit the origin, which validates signatures. The CDN caches responses keyed by the full URL including signature parameters.
+
+- **Pros**: Simple deployment, no edge configuration
+- **Cons**: Every unique signed URL generates a cache miss, origin must handle all validation
+- **When to use**: Low traffic, simple deployments, or when CDN doesn't support edge compute
+
+**Pattern 2: Edge signature validation with normalized cache keys**
+
+The edge validates the signature, then strips signature parameters before checking the cache. This allows multiple signed URLs for the same content to share a single cache entry.
+
+```javascript title="cloudflare-worker-auth.js" collapse={1-5, 25-40}
+// Cloudflare Worker for edge signature validation
+// Workers run on V8 isolates: ~1/10th memory of Node.js, <5ms cold start
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url)
+
+    // Extract and validate signature
+    const sig = url.searchParams.get("sig")
+    const exp = url.searchParams.get("exp")
+    const kid = url.searchParams.get("kid")
+
+    if (!sig || !exp || !kid) {
+      return new Response("Missing signature", { status: 401 })
+    }
+
+    // Check expiration
+    if (Date.now() / 1000 > parseInt(exp)) {
+      return new Response("Signature expired", { status: 401 })
+    }
+
+    // Validate HMAC (key fetched from Workers KV or secrets)
+    const key = await env.SIGNING_KEYS.get(kid)
+    if (!key) {
+      return new Response("Invalid key", { status: 401 })
+    }
+
+    // Reconstruct canonical string and verify
+    const canonical = createCanonicalString(url.pathname, exp, url.hostname)
+    const expected = await computeHmac(key, canonical)
+
+    if (!timingSafeEqual(sig, expected)) {
+      return new Response("Invalid signature", { status: 401 })
+    }
+
+    // Strip signature params for cache key normalization
+    url.searchParams.delete("sig")
+    url.searchParams.delete("exp")
+    url.searchParams.delete("kid")
+
+    // Fetch from origin/cache with normalized URL
+    return fetch(url.toString(), {
+      cf: { cacheKey: url.toString() }, // Normalized cache key
+    })
+  },
+}
+```
+
+- **Pros**: High cache efficiency, reduced origin load, sub-5ms auth latency
+- **Cons**: Requires edge compute (CloudFlare Workers, CloudFront Functions, Fastly Compute)
+- **When to use**: High-traffic private content, latency-sensitive applications
+
+**Pattern 3: JWT tokens with edge validation**
+
+Use JWT (JSON Web Token) instead of HMAC signatures. The edge can decode and validate JWTs without origin contact, and the token can carry claims (user ID, tenant ID, allowed operations).
+
+- **Pros**: Self-contained tokens with embedded claims, standard format
+- **Cons**: Larger URLs, no revocation without short expiry or edge-stored blocklist
+- **When to use**: When tokens need to carry user context, or when integrating with existing JWT infrastructure
+
+**CDN-specific implementation notes:**
+
+| CDN             | Edge Auth Capability                                      | Cache Key Normalization         |
+| --------------- | --------------------------------------------------------- | ------------------------------- |
+| CloudFlare      | Workers (full JS), Rules (limited)                        | `cf.cacheKey` in Workers        |
+| CloudFront      | Functions (limited JS), Lambda@Edge (full Node.js)        | `cache-policy` with query keys  |
+| Fastly          | Compute@Edge (Rust/JS/Go), VCL                            | `req.hash` manipulation in VCL  |
+| Akamai          | EdgeWorkers (JS), Property Manager                        | Cache ID modification           |
 
 ---
 
@@ -1229,6 +1356,14 @@ class TransformEngine {
 
   /**
    * Determine output format based on operations and Accept header
+   *
+   * Format selection priority (as of 2025):
+   * - AVIF: 94.89% browser support, ~50% smaller than JPEG, 20-25% smaller than WebP
+   * - WebP: 95.93% browser support, 25-34% smaller than JPEG
+   * - JPEG: Universal fallback
+   *
+   * Note: JPEG XL gained Chrome support in Jan 2026 but adoption is still emerging.
+   * Consider adding once browser support exceeds 80%.
    */
   determineFormat(requestedFormat, acceptHeader) {
     if (requestedFormat && requestedFormat !== "auto") {
@@ -1239,11 +1374,11 @@ class TransformEngine {
     const accept = (acceptHeader || "").toLowerCase()
 
     if (accept.includes("image/avif")) {
-      return "avif" // Best compression
+      return "avif" // Best compression: ~50% smaller than JPEG
     }
 
     if (accept.includes("image/webp")) {
-      return "webp" // Good compression, wide support
+      return "webp" // Good compression: 25-34% smaller than JPEG, slightly wider support
     }
 
     return "jpg" // Fallback
@@ -1251,14 +1386,23 @@ class TransformEngine {
 
   /**
    * Get automatic quality based on format
+   *
+   * Quality values are calibrated to produce visually similar output across formats.
+   * AVIF and WebP compress more efficiently, so they need lower quality values
+   * to achieve similar file sizes with equivalent visual quality.
+   *
+   * Real-world example (2000×2000 product photo):
+   * - JPEG q=80: ~540 KB
+   * - WebP q=85: ~350 KB (35% smaller)
+   * - AVIF q=75 (CQ 28): ~210 KB (61% smaller)
    */
   getAutoQuality(format) {
     const qualityMap = {
-      avif: 75, // AVIF compresses very well
-      webp: 80, // WebP compresses well
-      jpg: 85, // JPEG needs higher quality
+      avif: 75, // AVIF compresses very well; q=75 ≈ JPEG q=85 visually
+      webp: 80, // WebP compresses well; q=80 ≈ JPEG q=85 visually
+      jpg: 85, // JPEG baseline quality
       jpeg: 85,
-      png: 90, // PNG is lossless
+      png: 90, // PNG quality affects compression, not visual fidelity (lossless)
     }
 
     return qualityMap[format] || 85
@@ -1298,19 +1442,26 @@ export default TransformEngine
 
 ### Distributed Locking
 
-```javascript title="lock-manager.js" collapse={1-13}
+```javascript title="lock-manager.js" collapse={1-18}
 import Redlock from "redlock"
 import Redis from "ioredis"
 
 /**
  * Distributed lock manager using Redlock algorithm
- * NOTE: Redlock has known limitations for safety-critical scenarios.
- * Consider etcd/ZooKeeper for strict mutual exclusion requirements.
+ *
+ * IMPORTANT: This lock manager is designed for EFFICIENCY optimization, not
+ * CORRECTNESS guarantees. Redlock cannot provide fencing tokens, so:
+ *
+ * - SAFE: Preventing duplicate transforms (if lock fails, we waste compute but don't corrupt data)
+ * - UNSAFE: Protecting financial transactions, inventory updates, or any operation where
+ *   concurrent execution could cause data inconsistency
+ *
+ * For safety-critical mutual exclusion, use etcd (Raft consensus) or ZooKeeper (ZAB protocol).
  * See: https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html
  */
 class LockManager {
   constructor(redisClients) {
-    // Initialize Redlock with multiple Redis instances for reliability
+    // Initialize Redlock with multiple Redis instances (N=5 recommended for production)
     this.redlock = new Redlock(redisClients, {
       driftFactor: 0.01,
       retryCount: 10,
@@ -2634,76 +2785,242 @@ export default HealthCheckService
 
 ---
 
-## Summary
+## Failure Modes and Edge Cases
 
-This document presents a comprehensive architecture for a **multi-tenant, cloud-agnostic image processing platform** with the following key characteristics:
+This section documents failure scenarios, their detection, and recovery strategies. Understanding these modes is critical for production operations.
 
-### Architecture Highlights
+### Transform Timeout (> 800ms SLA breach)
 
-1. **Multi-Tenancy**: Three-level hierarchy (Organization → Tenant → Space) with policy inheritance
-2. **Cloud Portability**: Storage and queue abstractions enable deployment to AWS, GCP, Azure, or on-premise
-3. **Performance**: Guaranteed HTTP 200 responses with < 800ms p95 latency for first transforms
-4. **Security**: Cryptographic signed URLs with HMAC-SHA256 and key rotation support
-5. **Cost Optimization**: 56% cost reduction through multi-layer caching and storage lifecycle management
-6. **Scalability**: Kubernetes-native deployment with horizontal autoscaling
+**Cause**: Large images (> 5MB), complex operations (multiple resize + effects), cold storage retrieval, or resource contention.
 
-### Technology Recommendations
+**Detection**: `transform_duration_seconds` histogram exceeds p95 threshold.
 
-- **Image Processing**: Sharp (libvips) for performance
-- **Caching**: Redis with Redlock for distributed locking
-- **Database**: PostgreSQL 15+ with JSONB for flexible policies
-- **Storage**: Provider-specific SDKs with unified abstraction
-- **Framework**: Fastify for low-latency HTTP serving
-- **Orchestration**: Kubernetes for cloud-agnostic deployment
+**Mitigation strategies**:
 
-### Key Design Decisions
+1. **Size-based routing**: Queue images > 5MB to async workers, return 202 with polling URL
+2. **Operation limits**: Cap maximum output dimensions (e.g., 4096×4096), reject excessive blur/sharpen values
+3. **Timeout with fallback**: Return lower-quality transform or original if timeout approaches
+4. **Pre-warm cold storage**: Move frequently accessed cold-tier assets back to hot tier proactively
 
-1. **Synchronous transforms** for first requests ensure immediate delivery
-2. **Content-addressed storage** prevents duplicate processing
-3. **Hierarchical policies** enable flexible multi-tenancy
-4. **Edge authentication** reduces origin load for private content
-5. **Transform canonicalization** maximizes cache hit rates
+```javascript title="timeout-handling.js" collapse={1-5, 25-35}
+async function transformWithTimeout(assetId, operations, timeoutMs = 750) {
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
 
-This architecture provides a production-ready foundation for building a Cloudinary-alternative image service with enterprise-grade performance, security, and cost efficiency.
+  try {
+    return await transform(assetId, operations, { signal: controller.signal })
+  } catch (error) {
+    if (error.name === "AbortError") {
+      // Return degraded response or queue for async processing
+      metrics.transformTimeouts.inc({ org: assetId.split("/")[0] })
 
-## References
+      // Option 1: Return original (fastest fallback)
+      return { fallback: "original", reason: "timeout" }
 
-### Image Processing
+      // Option 2: Queue and return 202
+      // await queue.publish('transforms', { assetId, operations })
+      // return { status: 202, pollUrl: `/v1/transforms/${jobId}` }
+    }
+    throw error
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+```
 
-- [Sharp Documentation](https://sharp.pixelplumbing.com/) - High-performance Node.js image processing library
-- [Sharp Performance Benchmarks](https://sharp.pixelplumbing.com/performance/) - Performance comparison with other libraries
-- [libvips](https://www.libvips.org/) - The underlying image processing library powering Sharp
+### Storage Tier Restoration Latency
 
-### Image Formats
+**Cold storage retrieval** (Glacier, Coldline, Archive) adds 1-12 hours of latency. This breaks the synchronous transform guarantee.
 
-- [AVIF vs WebP Comparison](https://cloudinary.com/guides/image-formats/avif-vs-webp-4-key-differences-and-how-to-choose) - Cloudinary guide on format selection
-- [WebP Documentation](https://developers.google.com/speed/webp) - Google's WebP format specification
-- [AVIF Specification](https://aomediacodec.github.io/av1-avif/) - AOM AVIF specification
+**Mitigation**:
 
-### Distributed Locking
+1. **Tier tracking in database**: `derived_assets.cache_tier` column indicates current storage tier
+2. **Proactive restoration**: Cron job restores cold assets with recent `last_accessed_at` updates
+3. **Graceful degradation**: For cold original assets, return 202 and trigger async restoration
 
-- [Redis Distributed Locks](https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/) - Official Redis documentation on Redlock
-- [How to do Distributed Locking](https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html) - Martin Kleppmann's analysis of Redlock limitations
-- [Is Redlock Safe?](https://antirez.com/news/101) - Antirez's response to Redlock criticism
+```sql title="cold-restoration-query.sql"
+-- Find cold assets accessed recently that should be restored
+SELECT id, storage_key, cache_tier
+FROM derived_assets
+WHERE cache_tier = 'cold'
+  AND last_accessed_at > NOW() - INTERVAL '24 hours'
+ORDER BY access_count DESC
+LIMIT 100;
+```
 
-### Cloud Storage
+### CDN Cache Invalidation Failures
 
-- [AWS S3 SDK v3](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/) - AWS SDK for JavaScript
-- [Google Cloud Storage Node.js](https://cloud.google.com/nodejs/docs/reference/storage/latest) - GCS client library
-- [Azure Blob Storage SDK](https://learn.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-nodejs) - Azure Storage client
+**Scenario**: Asset updated, but stale version persists in CDN edge caches.
 
-### Caching & Performance
+**Root causes**:
+- Invalidation API rate limits exceeded
+- Propagation delays (CDNs quote 0-60 seconds, but outliers exist)
+- Wildcard invalidation missed specific paths
 
-- [Redis Cluster](https://redis.io/docs/latest/operate/oss_and_stack/management/scaling/) - Redis clustering documentation
-- [CDN Caching Best Practices](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching) - MDN HTTP caching guide
+**Mitigation**:
 
-### Security
+1. **Version in URL**: Include asset version (`/v{version}/`) so updates get new cache keys automatically
+2. **Soft purge with fallback**: Use CDN's stale-while-revalidate to serve stale during revalidation
+3. **Invalidation monitoring**: Track invalidation success rates and propagation times
+4. **Dual-write period**: For critical updates, serve from origin for 60 seconds before relying on CDN
 
-- [HMAC-SHA256](https://datatracker.ietf.org/doc/html/rfc2104) - RFC 2104 HMAC specification
-- [Signed URLs Best Practices](https://cloud.google.com/cdn/docs/using-signed-urls) - GCP guide on signed URL implementation
+### Lock Contention Under Load
 
-### Frameworks & Tools
+**Scenario**: Multiple workers compete for the same transform lock, causing lock acquisition timeouts.
 
-- [Fastify](https://www.fastify.io/) - Low-overhead web framework for Node.js
-- [PostgreSQL JSONB](https://www.postgresql.org/docs/current/datatype-json.html) - JSON support in PostgreSQL
+**Detection**: `redlock_acquisition_failures` metric spikes, `lock_wait_time` increases.
+
+**Mitigation**:
+
+1. **Lock-free fast path**: Check if transform exists before acquiring lock (optimistic check)
+2. **Retry with jitter**: Exponential backoff with randomized jitter to prevent thundering herd
+3. **Lock timeout tuning**: Set lock TTL to 2x expected transform time, not a fixed value
+4. **Shard by hash prefix**: Distribute lock contention across multiple Redis masters
+
+### Partial Upload / Corrupt Original
+
+**Scenario**: Upload interrupted, storage contains partial file, transform fails with cryptic libvips error.
+
+**Detection**: Sharp throws `VipsError` on invalid input; content hash doesn't match expected.
+
+**Mitigation**:
+
+1. **Hash verification on upload**: Compute SHA-256 during upload, verify before marking complete
+2. **Input validation**: Check magic bytes and basic structure before transformation
+3. **Graceful error messages**: Map libvips errors to user-friendly responses
+
+```javascript title="input-validation.js" collapse={1-3}
+import sharp from "sharp"
+
+async function validateImage(buffer) {
+  try {
+    const metadata = await sharp(buffer).metadata()
+
+    // Check for reasonable dimensions
+    if (metadata.width > 50000 || metadata.height > 50000) {
+      return { valid: false, error: "Image dimensions exceed maximum (50000×50000)" }
+    }
+
+    // Check for minimum size (likely corrupt if too small)
+    if (buffer.length < 100) {
+      return { valid: false, error: "Image file too small, possibly corrupt" }
+    }
+
+    return { valid: true, metadata }
+  } catch (error) {
+    return { valid: false, error: `Invalid image: ${error.message}` }
+  }
+}
+```
+
+### Rate Limit Exhaustion
+
+**Scenario**: Burst traffic exhausts rate limits, legitimate requests rejected.
+
+**Mitigation**:
+
+1. **Tiered limits**: Higher limits for authenticated requests vs. anonymous
+2. **Burst allowance**: Sliding window with small burst buffer (e.g., 110% of limit for 10 seconds)
+3. **Priority queuing**: VIP tenants get separate, higher limits
+4. **Graceful 429 responses**: Include `Retry-After` header with exact reset time
+
+---
+
+## Conclusion
+
+This architecture provides a production-ready foundation for building a cloud-agnostic image processing platform. The key insight is that image transformation is an ideal candidate for aggressive caching: transformations are pure functions (same inputs → same outputs), making content-addressed storage highly effective.
+
+**Critical tradeoffs made in this design:**
+
+1. **Synchronous-first over queue-first**: We accept higher p99 latency for small images in exchange for simpler client integration (no polling). For large images, we fall back to async.
+
+2. **Efficiency locks over safety locks**: Redlock prevents duplicate work but doesn't guarantee mutual exclusion. This is acceptable because content-addressed storage ensures idempotency—duplicate transforms are wasteful, not dangerous.
+
+3. **Edge authentication over origin-only**: Moving signature validation to the edge adds complexity but dramatically improves private content latency and reduces origin load.
+
+4. **Storage tiering over uniform hot storage**: Cold storage introduces retrieval latency but reduces costs by 40-60% for infrequently accessed content.
+
+**What this architecture does not cover:**
+
+- Video transcoding (different latency characteristics, requires different chunking strategies)
+- Real-time image editing (collaborative features, operational transforms)
+- AI/ML-based transformations (background removal, upscaling—requires GPU infrastructure)
+- Geographic data residency requirements (beyond standard CDN region configuration)
+
+## Appendix
+
+### Prerequisites
+
+- Familiarity with distributed systems concepts (caching, consistency, partitioning)
+- Understanding of HTTP caching semantics (Cache-Control, ETags, CDN behavior)
+- Basic knowledge of image formats and compression (JPEG, WebP, AVIF characteristics)
+- Experience with at least one cloud provider's storage and CDN offerings
+
+### Terminology
+
+| Term                    | Definition                                                                                      |
+| ----------------------- | ----------------------------------------------------------------------------------------------- |
+| **Asset**               | An original uploaded image, stored with its content hash                                        |
+| **Derived Asset**       | A transformed version of an asset, identified by the hash of (original + operations)           |
+| **Content-Addressed**   | Storage keyed by content hash rather than arbitrary ID; same content → same key                 |
+| **Fencing Token**       | Monotonically increasing token used to detect stale lock holders                                |
+| **Operations Hash**     | SHA-256 of (canonical operation string + original content hash + output format)                 |
+| **Signed URL**          | URL with cryptographic signature proving authorization; includes expiration timestamp           |
+| **Storage Tier**        | Access latency class: hot (ms), warm (seconds), cold (minutes to hours)                         |
+| **Transform Canonicalization** | Normalizing operation parameters to ensure equivalent transforms produce identical cache keys |
+
+### Summary
+
+- **Multi-layer caching** (CDN → Redis → Database → Storage) eliminates 99.9% of redundant processing
+- **Content-addressed storage** with deterministic hashing ensures transform idempotency
+- **Sharp (libvips 8.18)** provides 26x performance over alternatives with ~50MB memory footprint
+- **AVIF** (94.89% browser support) offers 50% compression improvement over JPEG; WebP (95.93%) offers 25-34%
+- **Redlock** is appropriate for efficiency optimization but not safety-critical mutual exclusion
+- **Edge authentication** with normalized cache keys maximizes CDN hit rates for private content
+- **Hierarchical policies** (Organization → Tenant → Space) enable flexible multi-tenant isolation
+
+### References
+
+#### Specifications and Official Documentation
+
+- [RFC 2104 - HMAC](https://datatracker.ietf.org/doc/html/rfc2104) - HMAC-SHA256 specification for signed URLs
+- [AV1 Image File Format (AVIF)](https://aomediacodec.github.io/av1-avif/) - AOM AVIF specification
+- [WebP Container Specification](https://developers.google.com/speed/webp/docs/riff_container) - Google WebP format spec
+- [HTTP Caching (RFC 9111)](https://www.rfc-editor.org/rfc/rfc9111) - HTTP caching semantics
+
+#### Core Library Documentation
+
+- [Sharp Documentation](https://sharp.pixelplumbing.com/) - High-performance Node.js image processing
+- [Sharp Performance Benchmarks](https://sharp.pixelplumbing.com/performance/) - 64.42 ops/sec JPEG, 26x faster than jimp
+- [Sharp Changelog v0.34.5](https://sharp.pixelplumbing.com/changelog/) - November 2025 release notes
+- [libvips 8.18 Release Notes](https://www.libvips.org/2025/12/04/What's-new-in-8.18.html) - UltraHDR, Camera RAW, Oklab support
+- [Redis Distributed Locks](https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/) - Official Redlock documentation
+
+#### Design Rationale and Analysis
+
+- [How to do Distributed Locking](https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html) - Martin Kleppmann's Redlock analysis (fencing tokens, timing assumptions)
+- [Is Redlock Safe?](https://antirez.com/news/101) - Salvatore Sanfilippo's (antirez) response
+
+#### Browser Support and Format Comparison
+
+- [Can I Use: AVIF](https://caniuse.com/avif) - 94.89% global support (January 2026)
+- [Can I Use: WebP](https://caniuse.com/webp) - 95.93% global support (January 2026)
+- [JPEG XL in Chromium](https://chromestatus.com/feature/5188299478007808) - Chrome team's January 2026 merge
+
+#### Cloud Provider SDKs
+
+- [AWS SDK for JavaScript v3](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/) - S3 client
+- [Google Cloud Storage Node.js](https://cloud.google.com/nodejs/docs/reference/storage/latest) - GCS client
+- [Azure Blob Storage SDK](https://learn.microsoft.com/en-us/javascript/api/@azure/storage-blob/) - Azure Storage client
+
+#### Edge Computing
+
+- [CloudFlare Workers Documentation](https://developers.cloudflare.com/workers/) - Edge compute platform
+- [CloudFront Functions](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-functions.html) - AWS edge compute
+- [Fastly Compute@Edge](https://www.fastly.com/products/edge-compute) - Fastly edge platform
+
+#### Frameworks and Tools
+
+- [Fastify](https://fastify.dev/) - Low-overhead Node.js web framework
+- [PostgreSQL JSONB](https://www.postgresql.org/docs/current/datatype-json.html) - JSON support documentation
 - [Prometheus](https://prometheus.io/docs/introduction/overview/) - Monitoring and alerting toolkit
