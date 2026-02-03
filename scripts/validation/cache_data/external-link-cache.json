@@ -367,6 +367,12 @@
       "lastChecked": "2026-02-03T08:48:16.298Z",
       "hint": "fetch-node"
     },
+    "https://blog.bulloak.io/post/20200917-the-impossibility-of-exactly-once/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T09:49:12.373Z",
+      "hint": "fetch-node"
+    },
     "https://blog.bytebytego.com/p/how-discord-serves-15-million-users": {
       "status": 200,
       "ok": true,
@@ -594,6 +600,12 @@
       "ok": true,
       "lastChecked": "2026-02-03T08:48:22.815Z",
       "hint": "fetch-node"
+    },
+    "https://bravenewgeek.com/you-cannot-have-exactly-once-delivery/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T09:49:22.326Z",
+      "hint": "fetch-browser-agent"
     },
     "https://brenocon.com/dean_perf.html": {
       "status": 200,
@@ -979,6 +991,12 @@
       "lastChecked": "2026-02-03T08:48:15.358Z",
       "hint": "fetch-node"
     },
+    "https://cloud.google.com/pubsub/docs/exactly-once-delivery": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T09:49:12.647Z",
+      "hint": "fetch-node"
+    },
     "https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring": {
       "status": 200,
       "ok": true,
@@ -1103,6 +1121,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:49:27.534Z",
+      "hint": "fetch-node"
+    },
+    "https://cwiki.apache.org/confluence/display/KAFKA/KIP-129%3A+Streams+Exactly-Once+Semantics": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T09:49:12.355Z",
       "hint": "fetch-node"
     },
     "https://cwiki.apache.org/confluence/display/KAFKA/KIP-98+-+Exactly+Once+Delivery+and+Transactional+Messaging": {
@@ -1577,6 +1601,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:28.143Z",
+      "hint": "fetch-node"
+    },
+    "https://debezium.io/blog/2019/02/19/reliable-microservices-data-exchange-with-the-outbox-pattern/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T09:49:12.004Z",
       "hint": "fetch-node"
     },
     "https://debezium.io/blog/2023/06/22/towards-exactly-once-delivery/": {
@@ -4540,6 +4570,12 @@
       "ok": true,
       "lastChecked": "2026-02-03T08:49:05.065Z",
       "hint": "fetch-node"
+    },
+    "https://medium.com/@jaykreps/exactly-once-support-in-apache-kafka-55e1fdd0a35f": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T09:49:13.408Z",
+      "hint": "fetch-browser-agent"
     },
     "https://medium.com/@mamidipaka2003/inside-high-traffic-databases-how-instagram-scales-postgresql-beyond-limits-0a4af13696ff": {
       "status": 200,
