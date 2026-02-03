@@ -83,6 +83,7 @@
             "design-google-docs-collaboration",
             "design-dropbox-file-sync",
             "design-google-calendar",
+            "design-issue-tracker",
             // E-commerce & Transactions
             "design-payment-system",
             "design-flash-sale-system",
@@ -91,6 +92,7 @@
             "url-shortener-design",
             "design-pastebin",
             "design-api-rate-limiter",
+            "design-cookie-consent-service",
           ],
         },
         {
@@ -115,6 +117,7 @@
             "offline-first-architecture",
             "client-state-management",
             "real-time-sync-client",
+            "widget-framework",
             // Performance
             "bundle-splitting-strategies",
             "rendering-strategies",

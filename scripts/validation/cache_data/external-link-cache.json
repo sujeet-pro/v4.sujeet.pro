@@ -136,7 +136,7 @@
     "https://aomedia.org/av1/specification/": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:05.791Z",
+      "lastChecked": "2026-02-03T03:45:16.943Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -240,7 +240,7 @@
     "https://assets.amazon.science/33/9d/b77f13e5448cb7ff5f4f1efd1376/amazon-dynamodb-a-scalable-predictably-performant-and-fully-managed-nosql-database-service.pdf": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:08.532Z",
+      "lastChecked": "2026-02-03T03:45:20.356Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -249,6 +249,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:35:25.309Z",
+      "hint": "fetch-node"
+    },
+    "https://atlassian.design/components/pragmatic-drag-and-drop": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:06.935Z",
       "hint": "fetch-node"
     },
     "https://atlassian.design/contribution/": {
@@ -281,10 +287,28 @@
       "lastChecked": "2026-01-26T13:35:24.899Z",
       "hint": "fetch-node"
     },
+    "https://aws.amazon.com/blogs/architecture/build-a-virtual-waiting-room-with-amazon-dynamodb-and-aws-lambda-at-seatgeek/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:56:14.222Z",
+      "hint": "fetch-node"
+    },
+    "https://aws.amazon.com/blogs/architecture/disaster-recovery-dr-architecture-on-aws-part-iv-multi-site-active-active/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:25:47.949Z",
+      "hint": "fetch-node"
+    },
     "https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:35:25.723Z",
+      "hint": "fetch-node"
+    },
+    "https://aws.amazon.com/blogs/aws/aws-services-scale-to-new-heights-for-prime-day-2025-key-metrics-and-milestones/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:56:13.267Z",
       "hint": "fetch-node"
     },
     "https://aws.amazon.com/blogs/compute/optimizing-video-encoding-with-ffmpeg-using-nvidia-gpu-based-amazon-ec2-instances/": {
@@ -303,6 +327,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-02T18:14:06.483Z",
+      "hint": "fetch-node"
+    },
+    "https://aws.amazon.com/blogs/database/monitor-amazon-aurora-global-database-replication-at-scale-using-amazon-cloudwatch-metrics-insights/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:25:48.924Z",
       "hint": "fetch-node"
     },
     "https://aws.amazon.com/blogs/networking-and-content-delivery/achieving-zero-downtime-deployments-with-amazon-cloudfront-using-blue-green-continuous-deployments/": {
@@ -551,6 +581,12 @@
       "lastChecked": "2026-01-28T18:03:46.620Z",
       "hint": "playwright"
     },
+    "https://blog.ticketmaster.com/how-ticketmaster-queue-works/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:56:14.189Z",
+      "hint": "fetch-node"
+    },
     "https://blog.trailofbits.com/2019/03/25/what-application-developers-need-to-know-about-tls-early-data-0rtt/": {
       "status": 200,
       "ok": true,
@@ -561,6 +597,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-02T08:26:27.364Z",
+      "hint": "playwright"
+    },
+    "https://blog.twitter.com/engineering/en_us/a/2013/twitter-typeaheadjs-you-autocomplete-me": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:23.800Z",
       "hint": "playwright"
     },
     "https://blog.x.com/engineering/en_us/a/2010/announcing-snowflake": {
@@ -586,6 +628,12 @@
       "ok": true,
       "lastChecked": "2026-02-02T15:26:02.516Z",
       "hint": "playwright"
+    },
+    "https://blogs.bing.com/search/March-2013/A-Deeper-Look-at-Autosuggest": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:10.412Z",
+      "hint": "fetch-node"
     },
     "https://blogs.windows.com/msedgedev/2023/01/17/the-truth-about-css-selector-performance/": {
       "status": 200,
@@ -1021,6 +1069,12 @@
       "lastChecked": "2026-02-02T18:06:30.111Z",
       "hint": "fetch-node"
     },
+    "https://cloud.google.com/blog/topics/developers-practitioners/demystifying-cloud-spanner-multi-region-configurations": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:25:53.030Z",
+      "hint": "fetch-node"
+    },
     "https://cloud.google.com/cdn/docs/cache-invalidation-overview": {
       "status": 200,
       "ok": true,
@@ -1105,6 +1159,12 @@
       "lastChecked": "2026-02-02T18:19:09.084Z",
       "hint": "fetch-node"
     },
+    "https://crdt.tech/papers.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:57:43.392Z",
+      "hint": "fetch-node"
+    },
     "https://cse.buffalo.edu/tech-reports/2014-04.pdf": {
       "status": 200,
       "ok": true,
@@ -1147,6 +1207,12 @@
       "lastChecked": "2026-01-26T13:35:35.002Z",
       "hint": "fetch-node"
     },
+    "https://css-tricks.com/debouncing-throttling-explained-examples/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:10.254Z",
+      "hint": "fetch-node"
+    },
     "https://curity.io/resources/learn/jwt-best-practices/": {
       "status": 200,
       "ok": true,
@@ -1180,7 +1246,7 @@
     "https://dashif-documents.azurewebsites.net/Guidelines-Security/master/Guidelines-Security.html": {
       "status": null,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:05.239Z",
+      "lastChecked": "2026-02-03T03:45:16.374Z",
       "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://dashif-documents.azurewebsites.net/Guidelines-Security/master/Guidelines-Security.html\nCall log:\n\u001b[2m  - navigating to \"https://dashif-documents.azurewebsites.net/Guidelines-Security/master/Guidelines-Security.html\", waiting until \"domcontentloaded\"\u001b[22m\n",
       "hint": "manual",
       "manual": "auto"
@@ -1893,6 +1959,12 @@
       "lastChecked": "2026-01-26T13:35:41.219Z",
       "hint": "fetch-node"
     },
+    "https://developer.chrome.com/docs/workbox/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:57:42.974Z",
+      "hint": "fetch-node"
+    },
     "https://developer.hashicorp.com/consul/docs/concept/gossip": {
       "status": 200,
       "ok": true,
@@ -2013,10 +2085,22 @@
       "lastChecked": "2026-01-29T03:34:47.088Z",
       "hint": "fetch-node"
     },
+    "https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:05.816Z",
+      "hint": "fetch-node"
+    },
     "https://developer.mozilla.org/en-US/docs/Web/API/Houdini_APIs": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T21:08:47.781Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:12:24.862Z",
       "hint": "fetch-node"
     },
     "https://developer.mozilla.org/en-US/docs/Web/API/IntersectionObserver": {
@@ -2079,6 +2163,12 @@
       "lastChecked": "2026-01-26T13:35:54.078Z",
       "hint": "fetch-node"
     },
+    "https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:06.921Z",
+      "hint": "fetch-node"
+    },
     "https://developer.mozilla.org/en-US/docs/Web/API/Prioritized_Task_Scheduling_API": {
       "status": 200,
       "ok": true,
@@ -2115,6 +2205,12 @@
       "lastChecked": "2026-02-02T18:33:36.397Z",
       "hint": "fetch-node"
     },
+    "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:12:23.837Z",
+      "hint": "fetch-node"
+    },
     "https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API": {
       "status": 200,
       "ok": true,
@@ -2125,6 +2221,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T17:48:29.936Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:57:42.869Z",
       "hint": "fetch-node"
     },
     "https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_streams": {
@@ -2143,6 +2245,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-01T04:35:42.935Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:12:23.148Z",
       "hint": "fetch-node"
     },
     "https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API": {
@@ -2475,6 +2583,12 @@
       "lastChecked": "2026-02-01T15:37:16.999Z",
       "hint": "fetch-node"
     },
+    "https://developers.google.com/tag-platform/security/guides/consent": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:19:24.123Z",
+      "hint": "fetch-node"
+    },
     "https://developers.mews.com/design-system-adoption-metric-building/": {
       "status": 200,
       "ok": true,
@@ -2544,7 +2658,7 @@
     "https://dl.acm.org/doi/10.1145/3723006": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:06.067Z",
+      "lastChecked": "2026-02-03T03:45:17.185Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -2576,7 +2690,7 @@
     "https://dl.acm.org/doi/pdf/10.1145/3318464.3386134": {
       "status": null,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:20.642Z",
+      "lastChecked": "2026-02-03T03:45:33.059Z",
       "error": "page.goto: Download is starting\nCall log:\n\u001b[2m  - navigating to \"https://dl.acm.org/doi/pdf/10.1145/3318464.3386134\", waiting until \"domcontentloaded\"\u001b[22m\n",
       "hint": "manual",
       "manual": "auto"
@@ -2725,6 +2839,12 @@
       "lastChecked": "2026-01-31T21:08:50.606Z",
       "hint": "fetch-node"
     },
+    "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/routing-policy-latency.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:25:49.584Z",
+      "hint": "fetch-node"
+    },
     "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html": {
       "status": 200,
       "ok": true,
@@ -2783,6 +2903,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T16:40:41.231Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.aws.amazon.com/wellarchitected/latest/reducing-scope-of-impact-with-cell-based-architecture/what-is-a-cell-based-architecture.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:25:48.504Z",
       "hint": "fetch-node"
     },
     "https://docs.axinom.com/services/drm/general/what-is-drm/": {
@@ -2849,6 +2975,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-02T05:41:10.100Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.dndkit.com/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:06.233Z",
       "hint": "fetch-node"
     },
     "https://docs.fastly.com/en/guides/purging-with-surrogate-keys": {
@@ -3187,6 +3319,12 @@
       "lastChecked": "2026-02-02T15:17:26.828Z",
       "hint": "fetch-node"
     },
+    "https://en.wikipedia.org/wiki/CAP_theorem": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:25:48.982Z",
+      "hint": "fetch-node"
+    },
     "https://en.wikipedia.org/wiki/Cache_replacement_policies": {
       "status": 200,
       "ok": true,
@@ -3307,6 +3445,12 @@
       "lastChecked": "2026-02-02T10:42:47.755Z",
       "hint": "fetch-node"
     },
+    "https://engineering.linkedin.com/open-source/cleo-open-source-technology-behind-linkedins-typeahead-search": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:08.412Z",
+      "hint": "fetch-node"
+    },
     "https://engineering.linkedin.com/teams/data/data-infrastructure/feed-infrastructure": {
       "status": 200,
       "ok": true,
@@ -3341,6 +3485,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-02T10:21:42.552Z",
+      "hint": "fetch-node"
+    },
+    "https://eur-lex.europa.eu/legal-content/EN/ALL/?uri=CELEX%3A32002L0058": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:19:26.105Z",
       "hint": "fetch-node"
     },
     "https://evertpot.com/http-2-push-is-dead/": {
@@ -3388,7 +3538,7 @@
     "https://fileadmin.cs.lth.se/cs/Personal/Amr_Ergawy/dist-algos-papers/4.pdf": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:18.216Z",
+      "lastChecked": "2026-02-03T03:45:30.625Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -3433,6 +3583,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:36:30.526Z",
+      "hint": "fetch-node"
+    },
+    "https://gdpr.eu/article-6-how-to-process-personal-data-legally/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:19:22.857Z",
+      "hint": "fetch-node"
+    },
+    "https://gdpr.eu/article-7-how-to-get-consent-to-collect-personal-data/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:19:23.782Z",
       "hint": "fetch-node"
     },
     "https://gist.github.com/chanks/7585810": {
@@ -3505,6 +3667,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-01T16:06:32.960Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/InteractiveAdvertisingBureau/GDPR-Transparency-and-Consent-Framework": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:19:23.556Z",
       "hint": "fetch-node"
     },
     "https://github.com/Netflix/Hystrix/wiki": {
@@ -3801,10 +3969,18 @@
       "lastChecked": "2026-02-02T10:21:43.275Z",
       "hint": "fetch-node"
     },
+    "https://github.com/nicknisi/talks/blob/main/drag-and-drop/notes.md": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:45:18.106Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
     "https://github.com/nicolo-ribaudo/proposal-error-iserror": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:06.970Z",
+      "lastChecked": "2026-02-03T03:45:18.018Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -4136,7 +4312,7 @@
     "https://hashnode.com/@sujeetpro": {
       "status": 429,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:20.098Z",
+      "lastChecked": "2026-02-03T03:45:33.916Z",
       "error": "HTTP 429",
       "hint": "manual",
       "manual": "auto"
@@ -4177,6 +4353,12 @@
       "lastChecked": "2026-01-26T13:37:06.287Z",
       "hint": "fetch-node"
     },
+    "https://html.spec.whatwg.org/multipage/dnd.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:05.606Z",
+      "hint": "fetch-node"
+    },
     "https://html.spec.whatwg.org/multipage/dom.html": {
       "status": 200,
       "ok": true,
@@ -4211,6 +4393,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:06.940Z",
+      "hint": "fetch-node"
+    },
+    "https://html.spec.whatwg.org/multipage/server-sent-events.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:12:23.856Z",
       "hint": "fetch-node"
     },
     "https://html.spec.whatwg.org/multipage/structured-data.html": {
@@ -4258,7 +4446,7 @@
     "https://ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm": {
       "status": null,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:19.221Z",
+      "lastChecked": "2026-02-03T03:45:31.829Z",
       "error": "page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm\", waiting until \"domcontentloaded\"\u001b[22m\n",
       "hint": "manual",
       "manual": "auto"
@@ -4316,6 +4504,12 @@
       "ok": true,
       "lastChecked": "2026-01-31T17:12:47.550Z",
       "hint": "playwright"
+    },
+    "https://jakearchibald.com/2014/offline-cookbook/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:57:42.718Z",
+      "hint": "fetch-node"
     },
     "https://jakearchibald.com/2015/tasks-microtasks-queues-and-schedules/": {
       "status": 200,
@@ -4473,6 +4667,12 @@
       "lastChecked": "2026-01-26T13:37:08.289Z",
       "hint": "fetch-node"
     },
+    "https://learn.microsoft.com/en-us/azure/well-architected/reliability/highly-available-multi-region-design": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:25:48.362Z",
+      "hint": "fetch-node"
+    },
     "https://learn.microsoft.com/en-us/gaming/playfab/community/leaderboards/tournaments-leaderboards/using-resettable-statistics-and-leaderboards": {
       "status": 200,
       "ok": true,
@@ -4554,7 +4754,7 @@
     "https://lucene.apache.org/core/9_11_1/core/org/apache/lucene/codecs/lucene912/package-summary.html": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:07.081Z",
+      "lastChecked": "2026-02-03T03:45:18.235Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -4575,6 +4775,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-02T18:33:36.009Z",
+      "hint": "fetch-node"
+    },
+    "https://marknotfound.com/posts/reverse-engineering-linears-sync-magic/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:57:43.444Z",
       "hint": "fetch-node"
     },
     "https://martin.kleppmann.com/2016/02/08/how-to-do-distributed-locking.html": {
@@ -4604,7 +4810,7 @@
     "https://martinfowler.com/articles/codemods-api-refactoring/": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:05.816Z",
+      "lastChecked": "2026-02-03T03:45:16.856Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -4684,7 +4890,7 @@
     "https://media.defense.gov/2021/Jan/14/2002564889/-1/-1/0/CSI_ADOPTING_ENCRYPTED_DNS_U_OO_102904_21.PDF": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:19.890Z",
+      "lastChecked": "2026-02-03T03:45:33.958Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -4848,7 +5054,7 @@
     "https://mitpress.mit.edu/9780262046305/introduction-to-algorithms/": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:06.103Z",
+      "lastChecked": "2026-02-03T03:45:17.232Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -4856,7 +5062,7 @@
     "https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:06.189Z",
+      "lastChecked": "2026-02-03T03:45:17.268Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -4866,6 +5072,12 @@
       "ok": true,
       "lastChecked": "2026-02-01T15:00:11.390Z",
       "hint": "fetch-node"
+    },
+    "https://netflixtechblog.com/active-active-for-multi-regional-resiliency-c47719f6685b": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:25:58.042Z",
+      "hint": "playwright"
     },
     "https://netflixtechblog.com/announcing-evcache-distributed-in-memory-datastore-for-cloud-c26a698c27f7": {
       "status": 200,
@@ -5149,6 +5361,12 @@
       "lastChecked": "2026-01-26T19:58:25.538Z",
       "hint": "fetch-node"
     },
+    "https://oag.ca.gov/privacy/ccpa": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:19:26.260Z",
+      "hint": "fetch-node"
+    },
     "https://oauth.net/2.1/": {
       "status": 200,
       "ok": true,
@@ -5329,10 +5547,16 @@
       "lastChecked": "2026-01-31T17:28:39.211Z",
       "hint": "fetch-node"
     },
+    "https://plus.excalidraw.com/blog/building-excalidraw-p2p-collaboration-feature": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:57:43.377Z",
+      "hint": "fetch-node"
+    },
     "https://pmg.csail.mit.edu/papers/osdi99.pdf": {
       "status": null,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:09.161Z",
+      "lastChecked": "2026-02-03T03:45:21.782Z",
       "error": "page.goto: net::ERR_CONNECTION_REFUSED at https://pmg.csail.mit.edu/papers/osdi99.pdf\nCall log:\n\u001b[2m  - navigating to \"https://pmg.csail.mit.edu/papers/osdi99.pdf\", waiting until \"domcontentloaded\"\u001b[22m\n",
       "hint": "manual",
       "manual": "auto"
@@ -5460,15 +5684,27 @@
     "https://react-aria-components.adobe.com/": {
       "status": null,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:05.126Z",
+      "lastChecked": "2026-02-03T03:45:16.284Z",
       "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://react-aria-components.adobe.com/\nCall log:\n\u001b[2m  - navigating to \"https://react-aria-components.adobe.com/\", waiting until \"domcontentloaded\"\u001b[22m\n",
       "hint": "manual",
       "manual": "auto"
+    },
+    "https://react-dnd.github.io/react-dnd/docs/overview": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:06.448Z",
+      "hint": "fetch-node"
     },
     "https://react-spectrum.adobe.com/react-aria/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:16.762Z",
+      "hint": "fetch-node"
+    },
+    "https://react-spectrum.adobe.com/react-aria/dnd.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:07.404Z",
       "hint": "fetch-node"
     },
     "https://react.dev/blog/2022/03/29/react-v18": {
@@ -5889,6 +6125,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-02T10:42:48.158Z",
+      "hint": "fetch-node"
+    },
+    "https://slack.engineering/slacks-migration-to-a-cellular-architecture/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:25:48.824Z",
       "hint": "fetch-node"
     },
     "https://slhck.info/video/2017/03/01/rate-control.html": {
@@ -6701,6 +6943,12 @@
       "lastChecked": "2026-02-02T18:19:08.322Z",
       "hint": "fetch-node"
     },
+    "https://sujeet.pro/articles/system-design/core-distributed-patterns/multi-region-architecture.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:25:49.143Z",
+      "hint": "fetch-node"
+    },
     "https://sujeet.pro/articles/system-design/core-distributed-patterns/operational-transformation.html": {
       "status": 200,
       "ok": true,
@@ -6719,6 +6967,12 @@
       "lastChecked": "2026-02-02T14:58:05.836Z",
       "hint": "playwright"
     },
+    "https://sujeet.pro/articles/system-design/frontend-system-design/design-drag-drop-system.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:06.919Z",
+      "hint": "fetch-node"
+    },
     "https://sujeet.pro/articles/system-design/frontend-system-design/design-infinite-feed.html": {
       "status": 200,
       "ok": true,
@@ -6729,6 +6983,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-02T18:33:36.751Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/system-design/frontend-system-design/offline-first-architecture.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:57:43.406Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/system-design/frontend-system-design/real-time-sync-client.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:12:23.684Z",
       "hint": "fetch-node"
     },
     "https://sujeet.pro/articles/system-design/real-world-case-studies.html": {
@@ -6941,6 +7207,20 @@
       "lastChecked": "2026-01-26T13:37:34.990Z",
       "hint": "fetch-node"
     },
+    "https://sujeet.pro/articles/system-design/system-design-problems/design-cookie-consent-service.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:45:33.735Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-problems/design-flash-sale-system.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:56:14.879Z",
+      "hint": "fetch-node"
+    },
     "https://sujeet.pro/articles/system-design/system-design-problems/design-google-docs-collaboration.html": {
       "status": 200,
       "ok": true,
@@ -6951,6 +7231,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-02T18:41:44.334Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet.pro/articles/system-design/system-design-problems/design-search-autocomplete.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:10.159Z",
       "hint": "fetch-node"
     },
     "https://sujeet.pro/articles/system-design/system-design-problems/url-shortener-design.html": {
@@ -7547,6 +7833,12 @@
       "lastChecked": "2026-01-28T17:52:23.007Z",
       "hint": "fetch-node"
     },
+    "https://w3c.github.io/touch-events/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:05.687Z",
+      "hint": "fetch-node"
+    },
     "https://w3c.github.io/webappsec-fetch-metadata/": {
       "status": 200,
       "ok": true,
@@ -7701,6 +7993,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T13:37:58.073Z",
+      "hint": "fetch-node"
+    },
+    "https://web.dev/articles/origin-private-file-system": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:57:43.666Z",
       "hint": "fetch-node"
     },
     "https://web.dev/articles/preconnect-and-dns-prefetch": {
@@ -7892,7 +8190,7 @@
     "https://wecode.wepay.com/posts/scds-battle-of-containerization": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:07.642Z",
+      "lastChecked": "2026-02-03T03:45:19.462Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -7942,10 +8240,16 @@
     "https://www.akamai.com/resources/reference-architecture/content-delivery-network": {
       "status": null,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:17.148Z",
+      "lastChecked": "2026-02-03T03:45:28.283Z",
       "error": "page.goto: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://www.akamai.com/resources/reference-architecture/content-delivery-network\", waiting until \"domcontentloaded\"\u001b[22m\n",
       "hint": "manual",
       "manual": "auto"
+    },
+    "https://www.alibabacloud.com/blog/system-stability-assurance-for-large-scale-flash-sales_596968": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:56:13.760Z",
+      "hint": "fetch-node"
     },
     "https://www.allthingsdistributed.com/files/amazon-dynamo-sosp2007.pdf": {
       "status": 200,
@@ -8107,11 +8411,23 @@
       "lastChecked": "2026-02-01T05:16:09.181Z",
       "hint": "fetch-node"
     },
+    "https://www.cloudflare.com/case-studies/onetrust/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:19:24.912Z",
+      "hint": "fetch-node"
+    },
     "https://www.cloudflare.com/learning/dns/dnssec/how-dnssec-works/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T21:39:29.682Z",
       "hint": "playwright"
+    },
+    "https://www.cnil.fr/en/cookies-and-other-tracking-devices-cnil-publishes-new-guidelines": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:19:24.304Z",
+      "hint": "fetch-node"
     },
     "https://www.cockroachlabs.com/blog/consistency-model/": {
       "status": 200,
@@ -8147,6 +8463,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-02T09:06:47.834Z",
+      "hint": "fetch-node"
+    },
+    "https://www.cockroachlabs.com/docs/stable/multi-active-availability": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:25:48.667Z",
       "hint": "fetch-node"
     },
     "https://www.confluent.io/blog/distributed-consensus-reloaded-apache-zookeeper-and-replication-in-kafka/": {
@@ -8353,6 +8675,12 @@
       "lastChecked": "2026-02-02T18:06:30.530Z",
       "hint": "fetch-node"
     },
+    "https://www.elastic.co/search-labs/blog/elasticsearch-autocomplete-search": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:09.879Z",
+      "hint": "fetch-node"
+    },
     "https://www.enterpriseintegrationpatterns.com/": {
       "status": 200,
       "ok": true,
@@ -8461,6 +8789,12 @@
       "lastChecked": "2026-01-31T17:28:42.041Z",
       "hint": "playwright"
     },
+    "https://www.gabrielgambetta.com/client-side-prediction-server-reconciliation.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:12:23.812Z",
+      "hint": "fetch-node"
+    },
     "https://www.gatsbyjs.com/docs/how-to/performance/improving-build-performance/": {
       "status": 200,
       "ok": true,
@@ -8484,6 +8818,12 @@
       "ok": true,
       "lastChecked": "2026-01-26T13:37:58.593Z",
       "hint": "fetch-node"
+    },
+    "https://www.gov.br/cidadania/pt-br/acesso-a-informacao/lgpd": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:19:42.086Z",
+      "hint": "fetch-browser-agent"
     },
     "https://www.graphql-js.org/docs/n1-dataloader/": {
       "status": 200,
@@ -8519,6 +8859,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-02T09:36:00.583Z",
+      "hint": "fetch-node"
+    },
+    "https://www.infoq.com/presentations/shopify-architecture-flash-sale/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:56:14.937Z",
       "hint": "fetch-node"
     },
     "https://www.informit.com/store/implementing-domain-driven-design-9780321834577": {
@@ -8641,6 +8987,12 @@
       "lastChecked": "2026-01-26T13:38:01.002Z",
       "hint": "fetch-node"
     },
+    "https://www.microsoft.com/en-us/research/wp-content/uploads/2013/01/SIGIR2013-Shokouhi-PersonalizedQAC.pdf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:08.779Z",
+      "hint": "fetch-node"
+    },
     "https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-95-51.pdf": {
       "status": 200,
       "ok": true,
@@ -8689,6 +9041,12 @@
       "lastChecked": "2026-02-02T18:33:37.019Z",
       "hint": "fetch-node"
     },
+    "https://www.notion.com/blog/how-we-made-notion-available-offline": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:57:43.582Z",
+      "hint": "fetch-node"
+    },
     "https://www.notion.com/blog/sharding-postgres-at-notion": {
       "status": 200,
       "ok": true,
@@ -8711,6 +9069,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T17:28:39.553Z",
+      "hint": "fetch-node"
+    },
+    "https://www.onetrust.com/blog/global-cdn-asynchronous-loading/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:19:25.288Z",
       "hint": "fetch-node"
     },
     "https://www.oracle.com/news/announcement/oracle-releases-java-25-2025-09-16/": {
@@ -8863,6 +9227,12 @@
       "lastChecked": "2026-02-02T09:28:18.892Z",
       "hint": "fetch-node"
     },
+    "https://www.rfc-editor.org/rfc/rfc6455.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:12:22.484Z",
+      "hint": "fetch-node"
+    },
     "https://www.rfc-editor.org/rfc/rfc6781": {
       "status": 200,
       "ok": true,
@@ -8887,6 +9257,12 @@
       "lastChecked": "2026-01-31T21:48:02.340Z",
       "hint": "fetch-node"
     },
+    "https://www.rfc-editor.org/rfc/rfc7692.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:12:23.401Z",
+      "hint": "fetch-node"
+    },
     "https://www.rfc-editor.org/rfc/rfc7871": {
       "status": 200,
       "ok": true,
@@ -8897,6 +9273,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-31T21:08:56.194Z",
+      "hint": "fetch-node"
+    },
+    "https://www.rfc-editor.org/rfc/rfc8441.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:12:24.567Z",
       "hint": "fetch-node"
     },
     "https://www.rfc-editor.org/rfc/rfc8659.html": {
@@ -9085,6 +9467,12 @@
       "lastChecked": "2026-02-01T16:27:41.676Z",
       "hint": "fetch-node"
     },
+    "https://www.uber.com/blog/building-ubers-data-lake-batch-data-replication-using-hivesync/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:26:02.471Z",
+      "hint": "playwright"
+    },
     "https://www.uber.com/blog/distributed-tracing/": {
       "status": 200,
       "ok": true,
@@ -9107,6 +9495,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-02T09:06:57.988Z",
+      "hint": "playwright"
+    },
+    "https://www.uber.com/blog/kafka/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:26:05.963Z",
       "hint": "playwright"
     },
     "https://www.uber.com/blog/postgres-to-mysql-migration/": {
@@ -9208,7 +9602,7 @@
     "https://www.vs.inf.ethz.ch/publ/papers/VssV.pdf": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:19.754Z",
+      "lastChecked": "2026-02-03T03:45:33.028Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -9235,6 +9629,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T19:58:24.201Z",
+      "hint": "fetch-node"
+    },
+    "https://www.w3.org/TR/IndexedDB/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:57:43.016Z",
       "hint": "fetch-node"
     },
     "https://www.w3.org/TR/WCAG22/": {
@@ -9393,6 +9793,12 @@
       "lastChecked": "2026-02-02T05:08:06.129Z",
       "hint": "fetch-node"
     },
+    "https://www.w3.org/TR/pointerevents/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:05.377Z",
+      "hint": "fetch-node"
+    },
     "https://www.w3.org/TR/reporting-1/": {
       "status": 200,
       "ok": true,
@@ -9409,6 +9815,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-01-26T19:58:25.942Z",
+      "hint": "fetch-node"
+    },
+    "https://www.w3.org/TR/service-workers/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T02:57:42.337Z",
       "hint": "fetch-node"
     },
     "https://www.w3.org/TR/trace-context/": {
@@ -9465,6 +9877,12 @@
       "lastChecked": "2026-01-31T17:22:29.634Z",
       "hint": "fetch-node"
     },
+    "https://www.w3.org/WAI/WCAG22/Understanding/dragging-movements.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:08:07.310Z",
+      "hint": "fetch-node"
+    },
     "https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html": {
       "status": 200,
       "ok": true,
@@ -9499,6 +9917,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-02T08:34:12.828Z",
+      "hint": "fetch-node"
+    },
+    "https://www.youtube.com/watch?v=B5NULPSiOGw": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-03T03:12:23.925Z",
       "hint": "fetch-node"
     },
     "https://www.youtube.com/watch?v=EeYvFl7li9E": {
@@ -9540,7 +9964,7 @@
     "https://www3.ntu.edu.sg/scse/staff/czsun/projects/otfaq/": {
       "status": 500,
       "ok": true,
-      "lastChecked": "2026-02-02T18:46:06.425Z",
+      "lastChecked": "2026-02-03T03:45:17.586Z",
       "error": "HTTP 500",
       "hint": "manual",
       "manual": "auto"
