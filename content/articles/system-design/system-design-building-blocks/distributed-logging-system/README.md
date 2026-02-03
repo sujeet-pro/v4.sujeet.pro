@@ -89,13 +89,13 @@ Structured logging (JSON, Protocol Buffers) shifts parsing cost from query time 
 
 **Trade-offs:**
 
-| Aspect | Unstructured | Structured (JSON) | Structured (Protobuf) |
-|--------|--------------|-------------------|----------------------|
-| Write simplicity | ✅ printf-style | Requires log library | Requires codegen |
-| Query flexibility | ❌ Regex only | ✅ Field extraction | ✅ Field extraction |
-| Schema evolution | N/A | Implicit (any field) | Explicit (field numbers) |
-| Compression ratio | 2-5x | 5-10x | 10-20x |
-| Cross-language | ✅ Universal | ✅ Universal | Requires runtime |
+| Aspect            | Unstructured    | Structured (JSON)    | Structured (Protobuf)    |
+| ----------------- | --------------- | -------------------- | ------------------------ |
+| Write simplicity  | ✅ printf-style | Requires log library | Requires codegen         |
+| Query flexibility | ❌ Regex only   | ✅ Field extraction  | ✅ Field extraction      |
+| Schema evolution  | N/A             | Implicit (any field) | Explicit (field numbers) |
+| Compression ratio | 2-5x            | 5-10x                | 10-20x                   |
+| Cross-language    | ✅ Universal    | ✅ Universal         | Requires runtime         |
 
 **Design choice**: JSON is the de-facto standard for application logs because it balances flexibility with tooling support. Protocol Buffers excel for high-volume internal telemetry where schema discipline is enforced.
 
@@ -130,11 +130,11 @@ spec:
   template:
     spec:
       containers:
-      - name: fluentd
-        resources:
-          requests:
-            memory: "200Mi"
-            cpu: "100m"
+        - name: fluentd
+          resources:
+            requests:
+              memory: "200Mi"
+              cpu: "100m"
 ```
 
 - **Pros**: Resource-efficient (one agent serves all pods), simpler management
@@ -153,10 +153,10 @@ spec:
 
 **Push vs Pull:**
 
-| Model | Latency | Failure Mode | Backpressure |
-|-------|---------|--------------|--------------|
-| Push | Lower (immediate) | Agent buffers on failure | Agent-side |
-| Pull | Higher (polling interval) | Central buffer | Server-side |
+| Model | Latency                   | Failure Mode             | Backpressure |
+| ----- | ------------------------- | ------------------------ | ------------ |
+| Push  | Lower (immediate)         | Agent buffers on failure | Agent-side   |
+| Pull  | Higher (polling interval) | Central buffer           | Server-side  |
 
 **Batching** is critical for efficiency. Fluent Bit defaults to 2KB chunks, flushing every 1 second. Larger batches reduce network overhead but increase latency and memory pressure.
 
@@ -168,13 +168,13 @@ spec:
 
 ### Agent Comparison
 
-| Agent | Language | Memory | Throughput | Best For |
-|-------|----------|--------|------------|----------|
-| Fluent Bit | C | ~20MB | High | Edge, IoT, resource-constrained |
-| Fluentd | Ruby | ~100MB | Medium | Plugin ecosystem, complex routing |
-| Vector | Rust | ~50MB | Very high | Performance-critical, modern stacks |
-| Filebeat | Go | ~30MB | Medium | Elastic ecosystem |
-| Logstash | Java | ~500MB | Medium | Complex transformations |
+| Agent      | Language | Memory | Throughput | Best For                            |
+| ---------- | -------- | ------ | ---------- | ----------------------------------- |
+| Fluent Bit | C        | ~20MB  | High       | Edge, IoT, resource-constrained     |
+| Fluentd    | Ruby     | ~100MB | Medium     | Plugin ecosystem, complex routing   |
+| Vector     | Rust     | ~50MB  | Very high  | Performance-critical, modern stacks |
+| Filebeat   | Go       | ~30MB  | Medium     | Elastic ecosystem                   |
+| Logstash   | Java     | ~500MB | Medium     | Complex transformations             |
 
 ## Buffer and Stream Processing
 
@@ -202,12 +202,12 @@ Topic: application-logs
 
 **Partition key choices:**
 
-| Key | Pros | Cons |
-|-----|------|------|
-| Service name | Co-located logs, good compression | Hot partitions for high-volume services |
-| Trace ID | Correlated logs together | Uneven distribution |
-| Round-robin | Even distribution | No ordering guarantees |
-| Timestamp bucket | Time locality | Clock skew issues |
+| Key              | Pros                              | Cons                                    |
+| ---------------- | --------------------------------- | --------------------------------------- |
+| Service name     | Co-located logs, good compression | Hot partitions for high-volume services |
+| Trace ID         | Correlated logs together          | Uneven distribution                     |
+| Round-robin      | Even distribution                 | No ordering guarantees                  |
+| Timestamp bucket | Time locality                     | Clock skew issues                       |
 
 **Backpressure in Kafka consumers:**
 
@@ -268,12 +268,12 @@ Row-oriented:           Columnar:
 
 ClickHouse achieves **170x compression** on nginx access logs through layered compression:
 
-| Technique | How It Works | Best For |
-|-----------|--------------|----------|
+| Technique           | How It Works                                       | Best For                                |
+| ------------------- | -------------------------------------------------- | --------------------------------------- |
 | Dictionary encoding | Store unique values in dictionary, reference by ID | Low-cardinality fields (level, service) |
-| Delta encoding | Store differences between consecutive values | Timestamps, monotonic IDs |
-| LZ4 | Fast block compression | General purpose, read-heavy |
-| ZSTD | Higher compression, more CPU | Archive, I/O-bound queries |
+| Delta encoding      | Store differences between consecutive values       | Timestamps, monotonic IDs               |
+| LZ4                 | Fast block compression                             | General purpose, read-heavy             |
+| ZSTD                | Higher compression, more CPU                       | Archive, I/O-bound queries              |
 
 **Codec selection rule**: ZSTD for large range scans where decompression is amortized; LZ4 when decompression latency dominates (point queries).
 
@@ -281,11 +281,11 @@ ClickHouse achieves **170x compression** on nginx access logs through layered co
 
 Hot/warm/cold tiering balances query performance against storage cost:
 
-| Tier | Storage | Indexing | Retention | Query Latency |
-|------|---------|----------|-----------|---------------|
-| Hot | NVMe SSD | Full | 1-7 days | <100ms |
-| Warm | HDD/SSD | Partial | 7-90 days | 1-10s |
-| Cold | Object storage (S3) | Metadata only | Years | 30s-minutes |
+| Tier | Storage             | Indexing      | Retention | Query Latency |
+| ---- | ------------------- | ------------- | --------- | ------------- |
+| Hot  | NVMe SSD            | Full          | 1-7 days  | <100ms        |
+| Warm | HDD/SSD             | Partial       | 7-90 days | 1-10s         |
+| Cold | Object storage (S3) | Metadata only | Years     | 30s-minutes   |
 
 **Elasticsearch ILM (Index Lifecycle Management)** automates transitions:
 
@@ -350,19 +350,20 @@ Chunks: [compressed log lines matching these labels]
 **Query execution**: Filter by labels (indexed), then brute-force scan chunk content.
 
 **LogQL query**:
+
 ```logql
 {service="payment"} |= "timeout" | json | latency_ms > 500
 ```
 
 **Trade-offs:**
 
-| Aspect | Inverted Index (Elasticsearch) | Label-Only (Loki) |
-|--------|-------------------------------|-------------------|
-| Index size | 2-4x original | <5% original |
-| Storage cost | High | Low |
-| Full-text search | ✅ Fast | ❌ Scan required |
-| High cardinality | Handles well | ⚠️ Label explosion |
-| Query latency | Consistent | Varies with scan size |
+| Aspect           | Inverted Index (Elasticsearch) | Label-Only (Loki)     |
+| ---------------- | ------------------------------ | --------------------- |
+| Index size       | 2-4x original                  | <5% original          |
+| Storage cost     | High                           | Low                   |
+| Full-text search | ✅ Fast                        | ❌ Scan required      |
+| High cardinality | Handles well                   | ⚠️ Label explosion    |
+| Query latency    | Consistent                     | Varies with scan size |
 
 **Cardinality constraint**: Loki performs poorly with high-cardinality labels (user IDs, request IDs). Keep label cardinality under 100,000 unique combinations.
 
@@ -376,6 +377,7 @@ Bloom filter: "Probably yes" or "Definitely no"
 ```
 
 **Characteristics:**
+
 - False positives possible (check chunk, find nothing)
 - False negatives impossible (if filter says no, it's no)
 - Memory: ~10 bits per element for 1% false positive rate
@@ -388,12 +390,12 @@ Bloom filter: "Probably yes" or "Definitely no"
 
 ### Real-Time vs Historical
 
-| Query Type | Latency SLA | Index Strategy | Storage Tier |
-|------------|-------------|----------------|--------------|
-| Live tail | <1s | In-memory only | Hot |
-| Incident investigation | <10s | Full index | Hot + Warm |
-| Compliance audit | Minutes OK | Partial/None | Warm + Cold |
-| Analytics/trending | Minutes OK | Aggregated | All tiers |
+| Query Type             | Latency SLA | Index Strategy | Storage Tier |
+| ---------------------- | ----------- | -------------- | ------------ |
+| Live tail              | <1s         | In-memory only | Hot          |
+| Incident investigation | <10s        | Full index     | Hot + Warm   |
+| Compliance audit       | Minutes OK  | Partial/None   | Warm + Cold  |
+| Analytics/trending     | Minutes OK  | Aggregated     | All tiers    |
 
 ### Correlation Across Services
 
@@ -465,11 +467,11 @@ logs-payment-2024-01-16
 
 Standard replication for durability:
 
-| Strategy | Consistency | Write Latency | Failure Tolerance |
-|----------|-------------|---------------|-------------------|
-| Sync 2 replicas | Strong | Higher | 1 node |
-| Async replication | Eventual | Lower | Data loss window |
-| Quorum (2 of 3) | Strong | Medium | 1 node |
+| Strategy          | Consistency | Write Latency | Failure Tolerance |
+| ----------------- | ----------- | ------------- | ----------------- |
+| Sync 2 replicas   | Strong      | Higher        | 1 node            |
+| Async replication | Eventual    | Lower         | Data loss window  |
+| Quorum (2 of 3)   | Strong      | Medium        | 1 node            |
 
 Logs typically tolerate eventual consistency—losing a few log lines during failures is acceptable for most use cases.
 
@@ -485,6 +487,7 @@ logs-payment (logical) →
 ```
 
 **Shard key considerations:**
+
 - Hash of trace ID: Even distribution, but scatter-gather queries
 - Round-robin: Maximum distribution, no locality
 - Consistent hashing: Smooth rebalancing when adding shards
@@ -501,6 +504,7 @@ logs-payment (logical) →
 4. **Visualization**: Kibana queries via REST API
 
 **Design characteristics:**
+
 - Inverted indexes for full-text search
 - Shard sizing: 10-50GB per shard for optimal performance
 - Replica count: Typically 1 (2 copies total)
@@ -518,6 +522,7 @@ logs-payment (logical) →
 5. **Index Store**: Label index in BoltDB, Cassandra, or object storage
 
 **Design characteristics:**
+
 - Label-only indexing (like Prometheus for logs)
 - Chunk compression: Snappy or LZ4
 - Cost: 10x cheaper than full-text indexing at scale
@@ -535,6 +540,7 @@ Three optimizations reduced query latency from 3s to 700ms:
 3. **Sharded tag maps**: Distributed high-cardinality tag lookups across nodes
 
 **Design characteristics:**
+
 - Columnar storage with MergeTree engine
 - Compression: 170x possible with proper codecs
 - Materialized views for pre-aggregation
@@ -563,6 +569,7 @@ Three optimizations reduced query latency from 3s to 700ms:
 - Observability Pipelines Worker for complex routing
 
 **Design characteristics:**
+
 - Log entries optimally <25KB, max 1MB
 - Separation of indexing from storage
 - Multi-tenant isolation
@@ -588,6 +595,7 @@ Three optimizations reduced query latency from 3s to 700ms:
 **The consequence**: Storage costs spiral; query performance degrades.
 
 **The fix**:
+
 - Sample high-volume, low-value logs
 - Use log levels appropriately (ERROR/WARN for alerts, INFO for business events, DEBUG for local dev)
 - Set per-service quotas
@@ -670,7 +678,6 @@ Netflix's 5 PB/day deployment demonstrates that extreme scale is achievable with
 - [Elasticsearch Data Tiers](https://www.elastic.co/docs/manage-data/lifecycle/data-tiers) - Hot/warm/cold/frozen storage
 - [Splunk SmartStore Architecture](https://help.splunk.com/en/splunk-enterprise/administer/manage-indexers-and-indexer-clusters/9.0/implement-smartstore-to-reduce-local-storage-requirements/smartstore-architecture-overview) - Compute-storage separation
 - [Datadog CloudPrem](https://www.datadoghq.com/blog/introducing-datadog-cloudprem/) - Self-hosted log management architecture
-- [Sidecars vs DaemonSets](https://wecode.wepay.com/posts/scds-battle-of-containerization) - Collection agent deployment patterns
 - [Fluent Bit Architecture Patterns](https://fluentbit.io/blog/2020/12/03/common-architecture-patterns-with-fluentd-and-fluent-bit/) - Edge collection strategies
 - [Uber Distributed Tracing](https://www.uber.com/blog/distributed-tracing/) - Jaeger architecture and trace correlation
 - [Lessons from Building Observability Tools at Netflix](https://netflixtechblog.com/lessons-from-building-observability-tools-at-netflix-7cfafed6ab17) - Multi-system observability stack

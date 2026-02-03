@@ -39,12 +39,12 @@ SSG performance hinges on three architectural decisions that compound:
 
 **Critical tradeoffs**:
 
-| Decision | Optimizes For | Sacrifices |
-|----------|---------------|------------|
-| Pre-compression (Brotli Q11) | 15-20% smaller files vs Gzip | Build time (seconds vs milliseconds per file) |
-| Lambda@Edge routing | Network access, body manipulation, 30s timeout | Cost (6x CloudFront Functions), cold starts |
-| Atomic deployments | Instant rollback, no partial failures | S3 storage (retain N versions) |
-| Origin Shield | Cache hit ratio, origin load reduction | Additional cost per request |
+| Decision                     | Optimizes For                                  | Sacrifices                                    |
+| ---------------------------- | ---------------------------------------------- | --------------------------------------------- |
+| Pre-compression (Brotli Q11) | 15-20% smaller files vs Gzip                   | Build time (seconds vs milliseconds per file) |
+| Lambda@Edge routing          | Network access, body manipulation, 30s timeout | Cost (6x CloudFront Functions), cold starts   |
+| Atomic deployments           | Instant rollback, no partial failures          | S3 storage (retain N versions)                |
+| Origin Shield                | Cache hit ratio, origin load reduction         | Additional cost per request                   |
 
 **Core Web Vitals targets** (75th percentile): CLS < 0.1, LCP (Largest Contentful Paint) < 2.5s, INP (Interaction to Next Paint) < 200ms
 
@@ -85,14 +85,14 @@ graph TD
 
 Modern SSG frameworks evolved from simple generators (Jekyll) to sophisticated meta-frameworks supporting hybrid rendering. The key architectural differentiator: how much JavaScript ships to the client.
 
-| Generator  | Language/Framework | Key Architectural Feature                                                                           | Build Performance | Ideal Use Case                                                              |
-| ---------- | ------------------ | --------------------------------------------------------------------------------------------------- | ----------------- | --------------------------------------------------------------------------- |
-| Next.js 15 | JavaScript/React   | Hybrid rendering (SSG, SSR, ISR) with per-page `isrCacheTime` revalidation                          | Moderate to Fast  | Complex web applications, e-commerce sites, enterprise applications         |
-| Hugo       | Go                 | Single-binary Go implementation; processes thousands of pages in seconds                            | Fastest           | Large content-heavy sites, blogs, and documentation with thousands of pages |
-| Astro 5.x  | JavaScript/Astro   | Islands Architecture—ships zero JS by default; up to 127 pages/second with optimization             | Fast              | Content-rich marketing sites, portfolios, and blogs focused on performance  |
-| Eleventy   | JavaScript         | Highly flexible; supports 10+ templating languages                                                  | Fast              | Custom websites where developers want maximum control                       |
-| Jekyll     | Ruby               | Mature, blog-aware, deeply integrated with GitHub Pages                                             | Slower            | Personal blogs, simple project websites, GitHub Pages deployments           |
-| Docusaurus | JavaScript/React   | Documentation-optimized with versioning, search, and sidebar navigation                             | Fast              | Technical documentation, knowledge bases, and open-source project sites     |
+| Generator  | Language/Framework | Key Architectural Feature                                                               | Build Performance | Ideal Use Case                                                              |
+| ---------- | ------------------ | --------------------------------------------------------------------------------------- | ----------------- | --------------------------------------------------------------------------- |
+| Next.js 15 | JavaScript/React   | Hybrid rendering (SSG, SSR, ISR) with per-page `isrCacheTime` revalidation              | Moderate to Fast  | Complex web applications, e-commerce sites, enterprise applications         |
+| Hugo       | Go                 | Single-binary Go implementation; processes thousands of pages in seconds                | Fastest           | Large content-heavy sites, blogs, and documentation with thousands of pages |
+| Astro 5.x  | JavaScript/Astro   | Islands Architecture—ships zero JS by default; up to 127 pages/second with optimization | Fast              | Content-rich marketing sites, portfolios, and blogs focused on performance  |
+| Eleventy   | JavaScript         | Highly flexible; supports 10+ templating languages                                      | Fast              | Custom websites where developers want maximum control                       |
+| Jekyll     | Ruby               | Mature, blog-aware, deeply integrated with GitHub Pages                                 | Slower            | Personal blogs, simple project websites, GitHub Pages deployments           |
+| Docusaurus | JavaScript/React   | Documentation-optimized with versioning, search, and sidebar navigation                 | Fast              | Technical documentation, knowledge bases, and open-source project sites     |
 
 **Build performance insight**: Astro 5.x benchmarks show optimization potential from 35 pages/second to 127 pages/second (3.6x improvement). Key bottleneck: API calls in child components cause per-page build slowdowns—solution is passing data as props from parent or marking components as client-only.
 
@@ -122,15 +122,15 @@ Rendering strategy is a per-page (or per-component) decision, not a global archi
 
 ### Comparative Analysis
 
-| Metric                       | SSG                                      | SSR                                             | CSR                                                   |
-| ---------------------------- | ---------------------------------------- | ----------------------------------------------- | ----------------------------------------------------- |
-| TTFB                         | <50ms (CDN edge)                         | 200-500ms (server processing)                   | Fast initial, slow meaningful content                 |
-| First Contentful Paint       | Fast (immediate HTML render)             | Slower (wait for server HTML)                   | Slowest (blank until JS executes)                     |
-| Time to Interactive          | Fast (minimal hydration JS)              | Slower (full-page hydration)                    | Slowest (full app render on client)                   |
-| SEO                          | Excellent (crawlable HTML)               | Excellent (crawlable HTML)                      | Poor without SSR fallback                             |
-| Data Freshness               | Stale (last build timestamp)             | Real-time                                       | Real-time                                             |
-| Infrastructure               | S3 + CloudFront only                     | Node.js servers + scaling                       | Static hosting + API backend                          |
-| Cost at Scale                | Linear (bandwidth)                       | Exponential (compute)                           | Linear (bandwidth) + API costs                        |
+| Metric                 | SSG                          | SSR                           | CSR                                   |
+| ---------------------- | ---------------------------- | ----------------------------- | ------------------------------------- |
+| TTFB                   | <50ms (CDN edge)             | 200-500ms (server processing) | Fast initial, slow meaningful content |
+| First Contentful Paint | Fast (immediate HTML render) | Slower (wait for server HTML) | Slowest (blank until JS executes)     |
+| Time to Interactive    | Fast (minimal hydration JS)  | Slower (full-page hydration)  | Slowest (full app render on client)   |
+| SEO                    | Excellent (crawlable HTML)   | Excellent (crawlable HTML)    | Poor without SSR fallback             |
+| Data Freshness         | Stale (last build timestamp) | Real-time                     | Real-time                             |
+| Infrastructure         | S3 + CloudFront only         | Node.js servers + scaling     | Static hosting + API backend          |
+| Cost at Scale          | Linear (bandwidth)           | Exponential (compute)         | Linear (bandwidth) + API costs        |
 
 ### Hybrid Rendering
 
@@ -325,15 +325,15 @@ update_build_version $1 $2
 
 This is a critical architectural decision affecting cost, latency, and capabilities:
 
-| Capability | CloudFront Functions | Lambda@Edge |
-|------------|---------------------|-------------|
-| Execution locations | 225+ edge locations | 13 regional edge caches |
-| Max execution time | <1ms | 5s (viewer), 30s (origin) |
-| Scaling | 10M+ req/sec | 10K req/sec per region |
-| Languages | JavaScript only | Node.js, Python |
-| Network access | No | Yes |
-| Body manipulation | No | Yes |
-| Pricing | $0.10/1M invocations | $0.60/1M + execution time |
+| Capability          | CloudFront Functions | Lambda@Edge               |
+| ------------------- | -------------------- | ------------------------- |
+| Execution locations | 225+ edge locations  | 13 regional edge caches   |
+| Max execution time  | <1ms                 | 5s (viewer), 30s (origin) |
+| Scaling             | 10M+ req/sec         | 10K req/sec per region    |
+| Languages           | JavaScript only      | Node.js, Python           |
+| Network access      | No                   | Yes                       |
+| Body manipulation   | No                   | Yes                       |
+| Pricing             | $0.10/1M invocations | $0.60/1M + execution time |
 
 **Use CloudFront Functions for**: URL normalization, simple header manipulation, A/B test cookie reading, cache key manipulation.
 
@@ -420,6 +420,7 @@ Preload critical fonts and match fallback metrics to minimize swap shift.
 **Solution**: Generate separate builds for mobile and desktop, route via user agent detection.
 
 S3 structure:
+
 ```
 s3://my-bucket/
 ├── mobile/
@@ -485,10 +486,10 @@ Compression determines bandwidth and load time. The architectural decision: comp
 **Compression ratio comparison**:
 
 | Content Type | Brotli Q11 vs Gzip -9 |
-|--------------|----------------------|
-| JavaScript   | 15% smaller          |
-| HTML         | 20% smaller          |
-| CSS          | 16% smaller          |
+| ------------ | --------------------- |
+| JavaScript   | 15% smaller           |
+| HTML         | 20% smaller           |
+| CSS          | 16% smaller           |
 
 **Build time tradeoff**: Brotli Q11 encoding takes ~1.8s for a 1.6MB JavaScript file vs ~0.05s for Gzip. Amortized across deployments, this is negligible. Decompression speed is identical—clients see no penalty.
 

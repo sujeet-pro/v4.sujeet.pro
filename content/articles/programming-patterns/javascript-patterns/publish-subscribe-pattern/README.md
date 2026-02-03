@@ -48,14 +48,15 @@ flowchart TB
 
 **Key Implementation Decisions:**
 
-| Decision | Recommendation | Why |
-|----------|---------------|-----|
-| Subscriber storage | `Map<string, Set<Function>>` | O(1) add/delete, prevents duplicates, preserves insertion order (ES6+ guarantee) |
-| Error isolation | try/catch per subscriber | One failing subscriber must not break others |
-| Async publish | Return `Promise.allSettled()` | Await completion without short-circuiting on errors |
-| Cleanup | Return unsubscribe function | Prevents memory leaks; ties to component lifecycle |
+| Decision           | Recommendation                | Why                                                                              |
+| ------------------ | ----------------------------- | -------------------------------------------------------------------------------- |
+| Subscriber storage | `Map<string, Set<Function>>`  | O(1) add/delete, prevents duplicates, preserves insertion order (ES6+ guarantee) |
+| Error isolation    | try/catch per subscriber      | One failing subscriber must not break others                                     |
+| Async publish      | Return `Promise.allSettled()` | Await completion without short-circuiting on errors                              |
+| Cleanup            | Return unsubscribe function   | Prevents memory leaks; ties to component lifecycle                               |
 
 **When NOT to Use:**
+
 - Request-response patterns (use direct calls)
 - Single known recipient (Observer pattern suffices)
 - When you need delivery guarantees (Pub/Sub doesn't guarantee delivery)
@@ -73,13 +74,13 @@ Eugster et al.'s foundational paper ["The Many Faces of Publish/Subscribe"](http
 
 ### Pub/Sub vs Observer Pattern
 
-| Aspect | Observer | Pub/Sub |
-|--------|----------|---------|
-| Coupling | Subject knows observers directly | Publishers and subscribers unknown to each other |
-| Intermediary | None—Subject IS the dispatcher | Broker/Event Bus required |
-| Cardinality | One-to-many | Many-to-many |
-| Typical scope | In-process, single component | Cross-component, potentially distributed |
-| Use case | UI state binding, reactive streams | Module communication, microservices |
+| Aspect        | Observer                           | Pub/Sub                                          |
+| ------------- | ---------------------------------- | ------------------------------------------------ |
+| Coupling      | Subject knows observers directly   | Publishers and subscribers unknown to each other |
+| Intermediary  | None—Subject IS the dispatcher     | Broker/Event Bus required                        |
+| Cardinality   | One-to-many                        | Many-to-many                                     |
+| Typical scope | In-process, single component       | Cross-component, potentially distributed         |
+| Use case      | UI state binding, reactive streams | Module communication, microservices              |
 
 Observer is appropriate when a single subject owns the state and notifies dependents. Pub/Sub is appropriate when multiple independent components need to communicate without direct references.
 
@@ -107,6 +108,7 @@ export class PubSub<T> {
 ```
 
 **Why `Set` over `Array`:**
+
 - **O(1) add/delete** vs O(n) for array splice
 - **Automatic deduplication**—same callback added twice is stored once
 - **Insertion order guaranteed** per ECMA-262: "Set objects iterate through elements in insertion order"
@@ -142,6 +144,7 @@ document.addEventListener("user:login", (e: CustomEvent) => {
 ```
 
 **Limitations:**
+
 - **Main thread only**—doesn't work in Web Workers or Node.js
 - **No TypeScript generics**—`detail` is `any`
 - **Global namespace**—all events share `document`, risking collisions
@@ -230,13 +233,13 @@ export const pubsub = new PubSub()
 
 **Design Decisions:**
 
-| Choice | Rationale |
-|--------|-----------|
-| `Map<string, Map<number, Callback>>` | Nested maps give O(1) operations at both topic and subscriber level |
-| Numeric tokens | Monotonic IDs avoid collision; simpler than UUID |
-| `Promise.allSettled` over `Promise.all` | Doesn't short-circuit on first rejection—all subscribers complete |
-| Empty topic cleanup | Prevents unbounded memory growth from stale topics |
-| Per-subscriber try/catch | Isolates failures; one bad subscriber doesn't break others |
+| Choice                                  | Rationale                                                           |
+| --------------------------------------- | ------------------------------------------------------------------- |
+| `Map<string, Map<number, Callback>>`    | Nested maps give O(1) operations at both topic and subscriber level |
+| Numeric tokens                          | Monotonic IDs avoid collision; simpler than UUID                    |
+| `Promise.allSettled` over `Promise.all` | Doesn't short-circuit on first rejection—all subscribers complete   |
+| Empty topic cleanup                     | Prevents unbounded memory growth from stale topics                  |
+| Per-subscriber try/catch                | Isolates failures; one bad subscriber doesn't break others          |
 
 ### Memory Leak Prevention
 
@@ -254,18 +257,18 @@ Node.js warns at 11+ listeners per event: `MaxListenersExceededWarning: Possible
 import { useEffect, useState } from "react"
 import { pubsub } from "./pubsub"
 
-interface StatusEvent { userId: string; isOnline: boolean }
+interface StatusEvent {
+  userId: string
+  isOnline: boolean
+}
 
 function UserStatus({ userId }: { userId: string }) {
   const [isOnline, setIsOnline] = useState(false)
 
   useEffect(() => {
-    const { unsubscribe } = pubsub.subscribe<StatusEvent>(
-      "user:status",
-      (data) => {
-        if (data.userId === userId) setIsOnline(data.isOnline)
-      }
-    )
+    const { unsubscribe } = pubsub.subscribe<StatusEvent>("user:status", (data) => {
+      if (data.userId === userId) setIsOnline(data.isOnline)
+    })
     // Critical: cleanup on unmount or userId change
     return unsubscribe
   }, [userId])
@@ -275,6 +278,7 @@ function UserStatus({ userId }: { userId: string }) {
 ```
 
 **Key points:**
+
 - Return `unsubscribe` directly from `useEffect` — it's already a cleanup function
 - Include `userId` in deps array — re-subscribes when prop changes
 - Named function isn't needed since we use the returned `unsubscribe`
@@ -292,6 +296,7 @@ Per [Node.js EventEmitter docs](https://nodejs.org/api/events.html): "All listen
 Per [WHATWG DOM Standard](https://dom.spec.whatwg.org/): EventTarget listeners are called in registration order within each phase.
 
 **Caveat:** Not all libraries guarantee order. If order matters for your use case, either:
+
 1. Use a single subscriber that orchestrates the sequence
 2. Verify your library's implementation
 
@@ -329,6 +334,7 @@ pubsub.subscribe("data", async (data) => {
 Topic naming convention: `domain.entity.action` (e.g., `user.profile.updated`, `cart.item.added`).
 
 Wildcard types (MQTT convention):
+
 - `*` — matches exactly one segment: `user.*.login` matches `user.123.login`
 - `#` — matches zero or more segments (must be last): `user.#` matches `user`, `user.123`, `user.123.login`
 
@@ -354,6 +360,7 @@ function topicMatches(pattern: string, topic: string): boolean {
 Standard pub/sub has **no built-in backpressure**. Publishers emit as fast as they can regardless of subscriber capacity.
 
 **Strategies:**
+
 - **Debounce/throttle at publish** — lossy but prevents flooding
 - **Buffer with limits** — accumulate events, drop oldest when full
 - **Async iterator with highWater** — libraries like [event-iterator](https://github.com/rolftimmermans/event-iterator) provide backpressure signals
@@ -369,6 +376,7 @@ Understanding when to avoid pub/sub is as important as knowing when to use it.
 Per [CodeOpinion](https://codeopinion.com/beware-anti-patterns-in-event-driven-architecture/): "Commands do not use the publish-subscribe pattern. Trying to force everything into publish-subscribe when that's not the pattern you want will lead you to apply more patterns incorrectly."
 
 **Command vs Event:**
+
 - **Command**: "CreateOrder" — directed to a specific handler, expects execution
 - **Event**: "OrderCreated" — notification of something that happened, no expectation of specific handler
 
@@ -378,7 +386,7 @@ If your publisher expects a specific response event back, you've recreated synch
 
 ### 3. CRUD Events Lacking Intent
 
-`CustomerChanged` doesn't indicate *why* something changed. Consumers must diff the data to infer intent. Prefer intent-revealing events: `CustomerAddressUpdated`, `CustomerDeactivated`.
+`CustomerChanged` doesn't indicate _why_ something changed. Consumers must diff the data to infer intent. Prefer intent-revealing events: `CustomerAddressUpdated`, `CustomerDeactivated`.
 
 ### 4. Simple Systems
 
@@ -401,6 +409,7 @@ The implicit control flow that provides loose coupling also makes debugging hard
 Pub/sub solves "prop drilling" when unrelated components need to react to the same events.
 
 **E-commerce cart example:**
+
 - `ProductCard` publishes `cart.item.added` on button click
 - `CartIcon` subscribes → updates badge count
 - `Toast` subscribes → shows confirmation
@@ -413,6 +422,7 @@ Each subscriber is independent. Adding a new reaction requires no changes to `Pr
 External brokers (Redis Pub/Sub, RabbitMQ, Google Cloud Pub/Sub, Kafka) provide distributed pub/sub with durability.
 
 **User registration flow:**
+
 - `UserService` publishes `user.created`
 - `EmailService` → sends welcome email
 - `AnalyticsService` → tracks signup metrics
@@ -424,12 +434,12 @@ Services deploy independently. Adding a new reaction (e.g., CRM sync) requires n
 
 For production, prefer battle-tested libraries unless you need custom semantics.
 
-| Library | Size | Wildcards | TypeScript | API | Maintained |
-|---------|------|-----------|------------|-----|------------|
-| [mitt](https://github.com/developit/mitt) | 200B | `*` (all events) | Yes | `on()`, `off()`, `emit()` | Yes (11k+ stars) |
-| [nanoevents](https://github.com/ai/nanoevents) | 107B | No | Yes | Returns unbind from `on()` | Yes |
-| [EventEmitter3](https://github.com/primus/eventemitter3) | 1.5KB | No | Yes | Node.js-compatible | Yes |
-| [EventEmitter2](https://github.com/EventEmitter2/EventEmitter2) | Larger | Yes (`*`, `**`) | Yes | Extended EE API | Yes |
+| Library                                                         | Size   | Wildcards        | TypeScript | API                        | Maintained       |
+| --------------------------------------------------------------- | ------ | ---------------- | ---------- | -------------------------- | ---------------- |
+| [mitt](https://github.com/developit/mitt)                       | 200B   | `*` (all events) | Yes        | `on()`, `off()`, `emit()`  | Yes (11k+ stars) |
+| [nanoevents](https://github.com/ai/nanoevents)                  | 107B   | No               | Yes        | Returns unbind from `on()` | Yes              |
+| [EventEmitter3](https://github.com/primus/eventemitter3)        | 1.5KB  | No               | Yes        | Node.js-compatible         | Yes              |
+| [EventEmitter2](https://github.com/EventEmitter2/EventEmitter2) | Larger | Yes (`*`, `**`)  | Yes        | Extended EE API            | Yes              |
 
 **Recommendations:**
 
@@ -444,14 +454,14 @@ For production, prefer battle-tested libraries unless you need custom semantics.
 
 ### Implementation Checklist
 
-| Practice | Why |
-|----------|-----|
-| Return unsubscribe function | Enables cleanup; prevents memory leaks |
-| Use `Map/Set` not plain objects | O(1) operations, guaranteed iteration order |
-| try/catch per subscriber | Isolates failures; one bad handler doesn't break others |
-| `Promise.allSettled` for async | Waits for all handlers; doesn't short-circuit on rejection |
-| Clean up empty topics | Prevents unbounded memory growth |
-| Hierarchical topic names | `domain.entity.action` enables wildcards, organization |
+| Practice                        | Why                                                        |
+| ------------------------------- | ---------------------------------------------------------- |
+| Return unsubscribe function     | Enables cleanup; prevents memory leaks                     |
+| Use `Map/Set` not plain objects | O(1) operations, guaranteed iteration order                |
+| try/catch per subscriber        | Isolates failures; one bad handler doesn't break others    |
+| `Promise.allSettled` for async  | Waits for all handlers; doesn't short-circuit on rejection |
+| Clean up empty topics           | Prevents unbounded memory growth                           |
+| Hierarchical topic names        | `domain.entity.action` enables wildcards, organization     |
 
 ### Error Handling Strategies
 
@@ -465,11 +475,13 @@ For production, prefer battle-tested libraries unless you need custom semantics.
 Pub/Sub trades explicit control flow for decoupling. Publishers emit without knowing receivers; subscribers react without knowing sources. This enables independent component evolution and many-to-many communication at the cost of implicit, harder-to-trace control flow.
 
 **Use pub/sub when:**
+
 - Multiple independent components need to react to the same events
 - Components should evolve independently (add/remove reactions without changing publishers)
 - You're building event-driven architecture (frontend cross-component communication, backend microservices)
 
 **Avoid pub/sub when:**
+
 - You need request-response semantics
 - There's a single known recipient (use Observer or direct calls)
 - Delivery guarantees are required (use message queues)
@@ -487,13 +499,13 @@ Implementation is straightforward: `Map<string, Set<Function>>`, return unsubscr
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **Publisher** | Component that emits events; unaware of subscribers |
-| **Subscriber** | Component that registers callbacks for events; unaware of publishers |
-| **Broker / Event Bus** | Intermediary that routes events from publishers to subscribers |
-| **Topic / Channel** | Named category for events; subscribers register interest by topic |
-| **Backpressure** | Mechanism for consumers to signal producers to slow down |
+| Term                   | Definition                                                           |
+| ---------------------- | -------------------------------------------------------------------- |
+| **Publisher**          | Component that emits events; unaware of subscribers                  |
+| **Subscriber**         | Component that registers callbacks for events; unaware of publishers |
+| **Broker / Event Bus** | Intermediary that routes events from publishers to subscribers       |
+| **Topic / Channel**    | Named category for events; subscribers register interest by topic    |
+| **Backpressure**       | Mechanism for consumers to signal producers to slow down             |
 
 ### Summary
 
@@ -508,22 +520,26 @@ Implementation is straightforward: `Map<string, Set<Function>>`, return unsubscr
 ### References
 
 **Specifications & Standards:**
+
 - [The Many Faces of Publish/Subscribe](https://dl.acm.org/doi/10.1145/857076.857078) - Eugster et al., ACM Computing Surveys 2003. Foundational paper defining the three dimensions of decoupling.
 - [ECMA-262: Map and Set Objects](https://tc39.es/ecma262/multipage/keyed-collections.html) - Guarantees insertion order for iteration.
 - [WHATWG DOM Standard: EventTarget](https://dom.spec.whatwg.org/#interface-eventtarget) - Browser's native pub/sub mechanism.
 - [OASIS MQTT 5.0 Specification](https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html) - Distributed pub/sub protocol.
 
 **Official Documentation:**
+
 - [Node.js Events Documentation](https://nodejs.org/api/events.html) - EventEmitter ordering guarantees, async handler pitfalls.
 - [MDN: CustomEvent](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent) - Browser native event API.
 - [MDN: WeakRef](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakRef) - Memory management considerations.
 
 **Libraries:**
+
 - [mitt](https://github.com/developit/mitt) - 200B functional event emitter.
 - [nanoevents](https://github.com/ai/nanoevents) - 107B with TypeScript support.
 - [EventEmitter3](https://github.com/primus/eventemitter3) - Node.js-compatible API.
 - [EventEmitter2](https://github.com/EventEmitter2/EventEmitter2) - Wildcard support.
 
 **Architectural Guidance:**
+
 - [Enterprise Integration Patterns: Publish-Subscribe Channel](https://www.enterpriseintegrationpatterns.com/patterns/messaging/PublishSubscribeChannel.html) - Messaging patterns reference.
 - [CodeOpinion: Antipatterns in Event-Driven Architecture](https://codeopinion.com/beware-anti-patterns-in-event-driven-architecture/) - When not to use pub/sub.

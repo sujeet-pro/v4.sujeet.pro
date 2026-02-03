@@ -26,6 +26,7 @@ Based on the article path, read the corresponding guideline **in addition to cor
 - `llm_docs/guidelines-content/system-design-problems.md`
 
 Covers:
+
 - Scoping vague problem statements ("Design X")
 - **Multiple design paths** based on different requirements
 - Tradeoff-focused approach (no single correct answer)
@@ -38,6 +39,7 @@ Covers:
 - `llm_docs/guidelines-content/system-design-fundamentals.md`
 
 Covers:
+
 - **All viable approaches** for each concept (not just the popular one)
 - **Factors influencing design choices** - When does each approach shine?
 - **Explicit trade-offs** with decision matrices
@@ -49,6 +51,7 @@ Covers:
 - `llm_docs/guidelines-content/core-distributed-patterns.md`
 
 Covers:
+
 - **All major pattern variants** (not just textbook version)
 - **Design decision trees** - What choices remain after choosing the pattern?
 - **Production implementations differ from theory** - Show real deviations
@@ -60,6 +63,7 @@ Covers:
 - `llm_docs/guidelines-content/frontend-system-design.md`
 
 Covers:
+
 - **Multiple implementation approaches** (not just one library)
 - **Browser constraints** - Main thread, memory, storage quotas
 - **Device/network considerations** - Mobile vs desktop, offline scenarios
@@ -71,6 +75,7 @@ Covers:
 - `llm_docs/guidelines-content/real-world-case-studies.md`
 
 Covers:
+
 - **Deep dives** into production systems (not summaries)
 - **Beyond incidents**: performance breakthroughs, bottleneck removals, architecture evolutions
 - **Extreme specificity**: exact tools, versions, configurations, numbers

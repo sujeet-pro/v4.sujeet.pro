@@ -48,6 +48,7 @@ The key insight: practical OT is not distributed. Google Docs, Google Wave, and 
 **Approach 1: Last-write-wins**
 
 Two users edit "hello" concurrently:
+
 - User A inserts "x" at position 0 → "xhello"
 - User B deletes character at position 4 → "hell"
 
@@ -62,6 +63,7 @@ Fails because: latency makes locking unusable. With 100ms round-trip, a user typ
 **Approach 3: Apply operations as-received**
 
 User A and B both start with "abc":
+
 - A: Insert 'x' at position 0 → sends Ins(0,'x')
 - B: Delete at position 2 → sends Del(2)
 
@@ -85,6 +87,7 @@ T(O2, O1) → O2'  // O2 transformed against O1
 ```
 
 The transformed operations are designed so that:
+
 - Starting from state S
 - Applying O1 then O2' yields the same state as
 - Applying O2 then O1'
@@ -95,28 +98,25 @@ For string operations, transformation typically adjusts positions:
 // Transform insert against insert
 function transformInsertInsert(
   op1: { pos: number; char: string },
-  op2: { pos: number; char: string }
+  op2: { pos: number; char: string },
 ): { pos: number; char: string } {
   if (op1.pos < op2.pos) {
-    return op1; // No adjustment needed
+    return op1 // No adjustment needed
   } else if (op1.pos > op2.pos) {
-    return { ...op1, pos: op1.pos + 1 }; // Shift right
+    return { ...op1, pos: op1.pos + 1 } // Shift right
   } else {
     // Tie-breaking: use site ID or timestamp
     // Both insert at same position
-    return { ...op1, pos: op1.pos + 1 }; // Arbitrary but consistent
+    return { ...op1, pos: op1.pos + 1 } // Arbitrary but consistent
   }
 }
 
 // Transform delete against insert
-function transformDeleteInsert(
-  del: { pos: number },
-  ins: { pos: number; char: string }
-): { pos: number } {
+function transformDeleteInsert(del: { pos: number }, ins: { pos: number; char: string }): { pos: number } {
   if (del.pos < ins.pos) {
-    return del;
+    return del
   } else {
-    return { pos: del.pos + 1 };
+    return { pos: del.pos + 1 }
   }
 }
 ```
@@ -129,18 +129,19 @@ function transformDeleteInsert(
 
 ### Failure Modes
 
-| Failure | Impact | Mitigation |
-|---------|--------|------------|
-| TP1 violation | Documents diverge permanently | Formal verification of transformation functions |
-| TP2 violation | Divergence with 3+ concurrent operations | Use server-ordered architecture (avoid TP2 requirement) |
-| Causality violation | Operations apply out of order | Vector clocks or server-assigned sequence numbers |
-| Transformation bugs | Silent corruption, divergence | Checksums, periodic reconciliation |
+| Failure             | Impact                                   | Mitigation                                              |
+| ------------------- | ---------------------------------------- | ------------------------------------------------------- |
+| TP1 violation       | Documents diverge permanently            | Formal verification of transformation functions         |
+| TP2 violation       | Divergence with 3+ concurrent operations | Use server-ordered architecture (avoid TP2 requirement) |
+| Causality violation | Operations apply out of order            | Vector clocks or server-assigned sequence numbers       |
+| Transformation bugs | Silent corruption, divergence            | Checksums, periodic reconciliation                      |
 
 ## Design Paths
 
 ### Path 1: Client-Server OT (Jupiter/Wave Model)
 
 **When to choose this path:**
+
 - Network connectivity is reliable
 - Latency tolerance allows server round-trips
 - Simplicity is prioritized over offline capability
@@ -149,11 +150,13 @@ function transformDeleteInsert(
 **How it works:**
 
 The server maintains a single canonical operation history. Clients send operations to the server, which:
+
 1. Transforms incoming operations against any operations the client hasn't seen
 2. Assigns a sequence number
 3. Broadcasts the transformed operation to all clients
 
 Clients maintain three states:
+
 - **Server state**: Last acknowledged server revision
 - **Pending operations**: Sent to server, awaiting acknowledgment
 - **Local operations**: Not yet sent (buffered during server round-trip)
@@ -183,20 +186,21 @@ sequenceDiagram
 **Why this avoids TP2:**
 
 TP2 is required when operations can be transformed along different paths (different orderings of concurrent operations). With a central server:
+
 - The server decides the canonical order
 - All transformations follow a single path
 - TP2 never comes into play
 
 **Trade-offs vs other paths:**
 
-| Aspect | Client-Server | Peer-to-Peer |
-|--------|---------------|--------------|
-| TP2 requirement | Not needed | Required |
-| Correctness proofs | Straightforward | Notoriously difficult |
-| Server dependency | Single point of failure | No central dependency |
-| Latency | Round-trip per operation batch | Direct client-to-client |
-| Offline support | Limited (buffer operations) | Native |
-| Implementation complexity | Moderate | Very high |
+| Aspect                    | Client-Server                  | Peer-to-Peer            |
+| ------------------------- | ------------------------------ | ----------------------- |
+| TP2 requirement           | Not needed                     | Required                |
+| Correctness proofs        | Straightforward                | Notoriously difficult   |
+| Server dependency         | Single point of failure        | No central dependency   |
+| Latency                   | Round-trip per operation batch | Direct client-to-client |
+| Offline support           | Limited (buffer operations)    | Native                  |
+| Implementation complexity | Moderate                       | Very high               |
 
 **Real-world example:**
 
@@ -207,6 +211,7 @@ Joseph Gentle (ShareJS author, ex-Google Wave): "Whatever the bugs are, I don't 
 ### Path 2: Peer-to-Peer OT (adOPTed, GOTO)
 
 **When to choose this path:**
+
 - Offline-first requirement is critical
 - No server infrastructure available
 - Academic research context
@@ -221,6 +226,7 @@ The adOPTed algorithm (Ressel et al. 1996) introduced an N-dimensional interacti
 **The TP2 problem:**
 
 For three concurrent operations O1, O2, O3, TP2 requires:
+
 ```
 T(O3, O1 ∘ T(O2, O1)) ≡ T(O3, O2 ∘ T(O1, O2))
 ```
@@ -233,13 +239,13 @@ Randolph et al. (2013) proved formally: "There is no IT function, based on class
 
 Using controller synthesis techniques, they showed that position and character parameters are necessary but not sufficient. Every published TP2-claiming algorithm was subsequently shown to have counterexamples:
 
-| Algorithm | Year | TP2 Claim | Status |
-|-----------|------|-----------|--------|
-| dOPT | 1989 | Implied | Disproven |
-| adOPTed | 1996 | Asserted | Disproven |
-| SOCT2 | 1998 | "Proven" | Disproven |
-| SDT | 2002 | Claimed | Disproven |
-| IMOR | 2003 | Machine-verified | Invalid assumptions |
+| Algorithm | Year | TP2 Claim        | Status              |
+| --------- | ---- | ---------------- | ------------------- |
+| dOPT      | 1989 | Implied          | Disproven           |
+| adOPTed   | 1996 | Asserted         | Disproven           |
+| SOCT2     | 1998 | "Proven"         | Disproven           |
+| SDT       | 2002 | Claimed          | Disproven           |
+| IMOR      | 2003 | Machine-verified | Invalid assumptions |
 
 Raph Levien: "For a decade or so, TP2 was something of a philosopher's stone, with several alchemists of OT claiming that they had found a set of transforms satisfying TP2, only for counterexamples to emerge later."
 
@@ -261,6 +267,7 @@ Wave was eventually shut down; its federation protocol remains unproven in produ
 ### Path 3: Tombstone Transformation Functions (TTF)
 
 **When to choose this path:**
+
 - Need provably correct transformation functions
 - Can tolerate memory overhead
 - Building a new implementation from scratch
@@ -271,25 +278,25 @@ TTF (Oster et al. 2006) sidesteps the TP2 impossibility by changing the data mod
 
 ```typescript
 interface TombstoneChar {
-  char: string;
-  visible: boolean;
-  id: UniqueId; // For ordering
+  char: string
+  visible: boolean
+  id: UniqueId // For ordering
 }
 
-type Document = TombstoneChar[];
+type Document = TombstoneChar[]
 
 function deleteAt(doc: Document, pos: number): Document {
-  let visibleCount = 0;
+  let visibleCount = 0
   for (let i = 0; i < doc.length; i++) {
     if (doc[i].visible) {
       if (visibleCount === pos) {
-        doc[i].visible = false;
-        return doc;
+        doc[i].visible = false
+        return doc
       }
-      visibleCount++;
+      visibleCount++
     }
   }
-  return doc;
+  return doc
 }
 ```
 
@@ -312,6 +319,7 @@ Tombstones can be removed only when all sites have seen all operations that refe
 ### Path 4: Context-Based OT (COT)
 
 **When to choose this path:**
+
 - Need undo/redo support
 - Want to avoid TP2 at the function level
 - Building a distributed system with known operation context
@@ -369,6 +377,7 @@ graph TD
 **Context:** World's most widely used collaborative editor, 40+ concurrent editors on popular documents.
 
 **Implementation choices:**
+
 - Architecture: Client-server (Jupiter-derived)
 - Transport: WebSocket with operation batching
 - Persistence: Event-sourced revision log
@@ -376,21 +385,25 @@ graph TD
 **Architecture:**
 
 Each document stores a revision log of operations. The visible document is the result of replaying all operations from the initial state. This enables:
+
 - Revision history ("See previous versions")
 - Conflict-free persistence (append-only log)
 - Recovery from any point in time
 
 **Specific details:**
+
 - Operations use a streaming format: Retain(n), Insert(chars), Delete(n)
 - Attributes (bold, font) are separate operations on ranges
 - Checkpoints created periodically to avoid replaying full history
 
 **What worked:**
+
 - Simplicity of client-server model enabled rapid iteration
 - Operation batching amortizes round-trip cost
 - Event sourcing simplified persistence and history
 
 **What was hard:**
+
 - Rich text requires tree-structured operations (paragraphs, lists, tables)
 - Cursor/selection state must be transformed alongside content
 - Presence indicators (who's editing where) add additional sync complexity
@@ -402,6 +415,7 @@ Each document stores a revision log of operations. The visible document is the r
 **Context:** Open-sourced Google Wave codebase, reference implementation for Wave protocol.
 
 **Implementation choices:**
+
 - Architecture: Client-server with federation attempt
 - Protocol: Wave Federation Protocol (XMPP-based)
 - Operation types: Document mutations, wavelet operations
@@ -409,22 +423,26 @@ Each document stores a revision log of operations. The visible document is the r
 **Architecture:**
 
 Wave operations are hierarchical:
+
 - **Wavelet**: Container for participants and documents
 - **Document**: Rich text with elements and annotations
 - **Operations**: Retain, InsertCharacters, DeleteCharacters, InsertElement, etc.
 
 **Specific details from whitepaper:**
+
 - Every character, start tag, or end tag is an "item"
 - Gaps between items are "positions"
 - Operations compose: B∙A satisfies (B∙A)(d) = B(A(d))
 - Clients must wait for ACK before sending next batch
 
 **What worked:**
+
 - Document model handles rich text well
 - Composition of operations simplifies some transformations
 - Open protocol enabled third-party clients
 
 **What was hard:**
+
 - Federation never achieved production stability
 - Complexity overwhelmed both users and developers
 - Performance issues with large documents
@@ -436,6 +454,7 @@ Wave operations are hierarchical:
 **Context:** Commercial rich-text editor with real-time collaboration, 4+ years R&D.
 
 **Implementation choices:**
+
 - Architecture: Client-server
 - Key innovation: OT for tree-structured documents
 - Transport: WebSocket
@@ -445,16 +464,19 @@ Wave operations are hierarchical:
 Rich text isn't a string—it's a tree (paragraphs containing spans containing text). Operations like "split paragraph" or "merge cells" don't map to simple insert/delete. CKEditor claims to be the first production system to solve OT for trees.
 
 **Specific details:**
+
 - Operations can "break" during transformation (one op becomes multiple)
 - Selective undo: users only undo their own changes
 - Custom transformation functions for 50+ operation types
 
 **What worked:**
+
 - Tree model handles complex formatting (tables, lists, images)
 - Selective undo improves UX in multi-user scenarios
 - Years of investment produced stable implementation
 
 **What was hard:**
+
 - Operation breaking adds significant complexity
 - Testing all transformation combinations is combinatorial
 - Performance optimization for large documents
@@ -463,14 +485,14 @@ Rich text isn't a string—it's a tree (paragraphs containing spans containing t
 
 ### Implementation Comparison
 
-| Aspect | Google Docs | Apache Wave | CKEditor 5 |
-|--------|-------------|-------------|------------|
-| Architecture | Client-server | Client-server + federation | Client-server |
-| Document model | Streaming ops | Hierarchical wavelets | Tree-structured |
-| Offline | Limited buffer | Limited buffer | Planned sync queue |
-| Rich text | Yes (ops on ranges) | Yes (elements + annotations) | Yes (native tree ops) |
-| Undo model | Global history | Global history | Selective (user's ops only) |
-| Scale | Proven at massive scale | Abandoned | Production-proven |
+| Aspect         | Google Docs             | Apache Wave                  | CKEditor 5                  |
+| -------------- | ----------------------- | ---------------------------- | --------------------------- |
+| Architecture   | Client-server           | Client-server + federation   | Client-server               |
+| Document model | Streaming ops           | Hierarchical wavelets        | Tree-structured             |
+| Offline        | Limited buffer          | Limited buffer               | Planned sync queue          |
+| Rich text      | Yes (ops on ranges)     | Yes (elements + annotations) | Yes (native tree ops)       |
+| Undo model     | Global history          | Global history               | Selective (user's ops only) |
+| Scale          | Proven at massive scale | Abandoned                    | Production-proven           |
 
 ## Implementation Guide
 
@@ -497,17 +519,18 @@ graph TD
 
 ### Library Options
 
-| Library | Language | Architecture | Maturity | Best For |
-|---------|----------|--------------|----------|----------|
-| ShareDB | Node.js | Client-server | Production | JSON documents |
-| ot.js | JavaScript | Client-server | Production | Plain text |
-| Yjs | JavaScript | P2P (CRDT) | Production | Offline-first |
-| CKEditor 5 | JavaScript | Client-server | Production | Rich text |
-| Quill + y-quill | JavaScript | P2P (CRDT) | Production | Rich text + offline |
+| Library         | Language   | Architecture  | Maturity   | Best For            |
+| --------------- | ---------- | ------------- | ---------- | ------------------- |
+| ShareDB         | Node.js    | Client-server | Production | JSON documents      |
+| ot.js           | JavaScript | Client-server | Production | Plain text          |
+| Yjs             | JavaScript | P2P (CRDT)    | Production | Offline-first       |
+| CKEditor 5      | JavaScript | Client-server | Production | Rich text           |
+| Quill + y-quill | JavaScript | P2P (CRDT)    | Production | Rich text + offline |
 
 ### Building Custom (Rare)
 
 **When to build custom:**
+
 - Document model doesn't fit existing libraries
 - Need specific consistency guarantees
 - Performance requirements exceed library capabilities
@@ -550,20 +573,20 @@ Joseph Gentle's estimate: "Wave took 2 years to write and if we rewrote it today
 ```typescript
 // Client state machine
 interface ClientState {
-  serverRevision: number;
-  pending: Operation | null;  // Sent, awaiting ACK
-  buffer: Operation[];        // Not yet sent
+  serverRevision: number
+  pending: Operation | null // Sent, awaiting ACK
+  buffer: Operation[] // Not yet sent
 }
 
 function onLocalEdit(state: ClientState, op: Operation): ClientState {
   if (state.pending) {
     // Transform against pending before buffering
-    const transformed = transform(op, state.pending);
-    return { ...state, buffer: [...state.buffer, transformed] };
+    const transformed = transform(op, state.pending)
+    return { ...state, buffer: [...state.buffer, transformed] }
   } else {
     // Send immediately
-    send(op);
-    return { ...state, pending: op };
+    send(op)
+    return { ...state, pending: op }
   }
 }
 ```
@@ -577,6 +600,7 @@ function onLocalEdit(state: ClientState, op: Operation): ClientState {
 **Example:** Notion-like app stores every keystroke. After 6 months, loading a busy document takes 30 seconds as the client replays 500K operations.
 
 **Solutions:**
+
 - Periodic snapshots: Store document state at intervals, only replay recent operations
 - Checkpoint compaction: Combine operations into single state updates
 - Lazy loading: Load recent ops, fetch history on demand
@@ -588,6 +612,7 @@ function onLocalEdit(state: ClientState, op: Operation): ClientState {
 **Why it fails:** OT bugs emerge with high concurrency, reordered packets, and edge-case timing. The "dOPT puzzle" only manifests with specific 3-user concurrent patterns.
 
 **Solution:**
+
 - Fuzz testing: Random operation sequences with random timing
 - Chaos engineering: Inject latency, reordering, duplication
 - Invariant checking: Assert convergence after every operation sequence
@@ -595,20 +620,15 @@ function onLocalEdit(state: ClientState, op: Operation): ClientState {
 
 ```typescript
 // Property-based test for TP1
-test('TP1: transformation paths converge', () => {
+test("TP1: transformation paths converge", () => {
   fc.assert(
-    fc.property(
-      arbitraryOperation(),
-      arbitraryOperation(),
-      arbitraryDocument(),
-      (op1, op2, doc) => {
-        const path1 = apply(apply(doc, op1), transform(op2, op1));
-        const path2 = apply(apply(doc, op2), transform(op1, op2));
-        expect(path1).toEqual(path2);
-      }
-    )
-  );
-});
+    fc.property(arbitraryOperation(), arbitraryOperation(), arbitraryDocument(), (op1, op2, doc) => {
+      const path1 = apply(apply(doc, op1), transform(op2, op1))
+      const path2 = apply(apply(doc, op2), transform(op1, op2))
+      expect(path1).toEqual(path2)
+    }),
+  )
+})
 ```
 
 ### 5. Assuming Transform Functions Are Symmetric
@@ -672,4 +692,3 @@ OT remains the foundation of Google Docs and most production collaborative edito
 - [Google Drive Blog](https://drive.googleblog.com/2010/09/whats-different-about-new-google-docs.html) - Google Docs architecture overview.
 - [CKEditor Blog](https://ckeditor.com/blog/lessons-learned-from-creating-a-rich-text-editor-with-real-time-collaboration/) - Production lessons for rich text OT.
 - [ShareDB GitHub](https://github.com/share/sharedb) - Production-ready OT library.
-- [OT FAQ](https://www3.ntu.edu.sg/scse/staff/czsun/projects/otfaq/) - Comprehensive academic resource by Chengzheng Sun.

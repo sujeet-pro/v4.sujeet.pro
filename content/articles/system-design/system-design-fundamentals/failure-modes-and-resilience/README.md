@@ -67,6 +67,7 @@ Understanding failure modes is prerequisite to designing resilience. The classic
 The process crashes and stays crashed. Other processes can detect the failure (eventually) through timeout.
 
 **Characteristics:**
+
 - Clean, detectable, recoverable
 - Process halts and performs no further actions
 - Detected via heartbeat timeout
@@ -80,6 +81,7 @@ The process crashes and stays crashed. Other processes can detect the failure (e
 The process crashes but may restart with partial state. More realistic than fail-stop for real systems.
 
 **Characteristics:**
+
 - Process may restart with stale or partial state
 - Need to distinguish "slow" from "dead"
 - Requires stable storage for state recovery
@@ -93,6 +95,7 @@ The process crashes but may restart with partial state. More realistic than fail
 The process fails to send or receive messages but otherwise operates correctly.
 
 **Characteristics:**
+
 - **Send omission:** Process fails to send a message it should send
 - **Receive omission:** Process fails to receive a message sent to it
 - Often caused by full queues, network issues, or resource exhaustion
@@ -106,6 +109,7 @@ The process fails to send or receive messages but otherwise operates correctly.
 The process responds, but not within the expected time bound.
 
 **Characteristics:**
+
 - Response is correct but late
 - Violates performance SLAs
 - May be indistinguishable from omission if timeout fires first
@@ -119,6 +123,7 @@ The process responds, but not within the expected time bound.
 The process exhibits arbitrary behavior—including malicious or irrational responses.
 
 **Characteristics:**
+
 - Can send conflicting information to different parties
 - Can lie about its state
 - Requires BFT (Byzantine Fault Tolerant) protocols to handle
@@ -132,6 +137,7 @@ The process exhibits arbitrary behavior—including malicious or irrational resp
 **The most dangerous failure mode in production systems.** Introduced by Microsoft Research in their 2017 paper "Gray Failure: The Achilles' Heel of Cloud-Scale Systems."
 
 **Characteristics:**
+
 - Partial degradation that evades health checks
 - Different observers see different health states
 - Often manifests as elevated latency, increased error rate on specific paths, or degraded throughput
@@ -165,12 +171,12 @@ One component's failure triggers failures in dependent components, amplifying th
 
 **Cascade mechanisms:**
 
-| Mechanism | Description | Example |
-|-----------|-------------|---------|
-| **Resource exhaustion** | Failing component ties up caller resources | Slow DB → thread pool exhaustion → upstream timeout |
-| **Retry storms** | Failed requests trigger coordinated retries | Service restart → all clients retry simultaneously |
+| Mechanism               | Description                                  | Example                                                   |
+| ----------------------- | -------------------------------------------- | --------------------------------------------------------- |
+| **Resource exhaustion** | Failing component ties up caller resources   | Slow DB → thread pool exhaustion → upstream timeout       |
+| **Retry storms**        | Failed requests trigger coordinated retries  | Service restart → all clients retry simultaneously        |
 | **Load redistribution** | Remaining capacity receives diverted traffic | Node failure → remaining nodes overloaded → more failures |
-| **Dependency chain** | Failure propagates through call graph | Auth service down → all authenticated endpoints fail |
+| **Dependency chain**    | Failure propagates through call graph        | Auth service down → all authenticated endpoints fail      |
 
 **Real-world example:** Amazon's 2004 "retry storm" incident. A service experienced increased latency. Callers retried. The retries increased load, worsening latency. More retries. The positive feedback loop took down multiple services.
 
@@ -182,11 +188,11 @@ One component's failure triggers failures in dependent components, amplifying th
 
 **Design choices:**
 
-| Parameter | Consideration |
-|-----------|---------------|
-| **Interval** | Shorter = faster detection, more overhead |
-| **Timeout** | timeout = interval × missed_count + network_jitter |
-| **Payload** | Include load metrics for proactive detection |
+| Parameter    | Consideration                                      |
+| ------------ | -------------------------------------------------- |
+| **Interval** | Shorter = faster detection, more overhead          |
+| **Timeout**  | timeout = interval × missed_count + network_jitter |
+| **Payload**  | Include load metrics for proactive detection       |
 
 **Common mistake:** Using heartbeat interval = timeout. A single delayed heartbeat triggers false positive. Use at least 2-3 missed heartbeats before declaring failure.
 
@@ -196,11 +202,11 @@ One component's failure triggers failures in dependent components, amplifying th
 
 **Shallow vs. deep health checks:**
 
-| Type | What It Tests | Failure Modes |
-|------|---------------|---------------|
-| **Shallow** (TCP/HTTP) | Process is running, port open | Misses gray failures, resource exhaustion |
-| **Deep** (functional) | Critical path works end-to-end | Expensive, may timeout, can mask partial failures |
-| **Dependency** | Checks downstream connectivity | Can cause cascade if dependency is slow |
+| Type                   | What It Tests                  | Failure Modes                                     |
+| ---------------------- | ------------------------------ | ------------------------------------------------- |
+| **Shallow** (TCP/HTTP) | Process is running, port open  | Misses gray failures, resource exhaustion         |
+| **Deep** (functional)  | Critical path works end-to-end | Expensive, may timeout, can mask partial failures |
+| **Dependency**         | Checks downstream connectivity | Can cause cascade if dependency is slow           |
 
 **Design decision:** Separate liveness from readiness.
 
@@ -249,6 +255,7 @@ Every network call needs a timeout. Without one, a hung dependency can exhaust c
 **Mechanism:** Fixed timeout value, configured per operation.
 
 **Best when:**
+
 - Latency distribution is well-understood and stable
 - Operation has clear SLA requirements
 - Simple is preferred over optimal
@@ -266,6 +273,7 @@ Example:
 ```
 
 **Trade-offs:**
+
 - ✅ Simple to understand and debug
 - ✅ Predictable behavior
 - ❌ Doesn't adapt to changing conditions
@@ -276,19 +284,21 @@ Example:
 **Mechanism:** Timeout adjusts based on observed latency.
 
 **Best when:**
+
 - Latency varies significantly (e.g., batch processing, variable workloads)
 - Operations can tolerate variability
 - Team can operate more complex logic
 
 **Implementation approaches:**
 
-| Approach | Mechanism | Example |
-|----------|-----------|---------|
-| **Percentile-based** | Timeout = p99 + buffer | Netflix's approach: p99 × 1.5 |
-| **Moving average** | Exponentially weighted MA of recent latencies | gRPC's adaptive approach |
-| **Hedging** | Start second request after p50 latency | Google's "The Tail at Scale" |
+| Approach             | Mechanism                                     | Example                       |
+| -------------------- | --------------------------------------------- | ----------------------------- |
+| **Percentile-based** | Timeout = p99 + buffer                        | Netflix's approach: p99 × 1.5 |
+| **Moving average**   | Exponentially weighted MA of recent latencies | gRPC's adaptive approach      |
+| **Hedging**          | Start second request after p50 latency        | Google's "The Tail at Scale"  |
 
 **Trade-offs:**
+
 - ✅ Adapts to changing conditions
 - ✅ Can be more aggressive when service is healthy
 - ❌ More complex to debug
@@ -327,11 +337,11 @@ Example (AWS SDK defaults):
 
 **Jitter strategies:**
 
-| Strategy | Formula | Use Case |
-|----------|---------|----------|
-| **Full jitter** | random(0, calculated_delay) | Default choice, maximum spread |
-| **Equal jitter** | calculated_delay/2 + random(0, calculated_delay/2) | When you need some minimum wait |
-| **Decorrelated jitter** | random(base, previous_delay × 3) | AWS recommendation, even better spread |
+| Strategy                | Formula                                            | Use Case                               |
+| ----------------------- | -------------------------------------------------- | -------------------------------------- |
+| **Full jitter**         | random(0, calculated_delay)                        | Default choice, maximum spread         |
+| **Equal jitter**        | calculated_delay/2 + random(0, calculated_delay/2) | When you need some minimum wait        |
+| **Decorrelated jitter** | random(base, previous_delay × 3)                   | AWS recommendation, even better spread |
 
 **AWS's analysis (Marc Brooker's blog):** Decorrelated jitter showed best results in their simulations, completing work 40% faster than exponential backoff without jitter during contention.
 
@@ -361,15 +371,15 @@ Example (Envoy default):
 
 Not all errors should be retried:
 
-| Response | Retry? | Rationale |
-|----------|--------|-----------|
-| **5xx Server Error** | Yes, with backoff | Transient; server may recover |
-| **429 Too Many Requests** | Yes, with longer backoff | Honor Retry-After header if present |
-| **408 Request Timeout** | Yes, with backoff | May be transient |
-| **4xx Client Error** | No | Request is malformed; retry won't help |
-| **Connection refused** | Yes, limited | Server may be restarting |
-| **Connection reset** | Yes | Network blip |
-| **SSL handshake failure** | No | Certificate/config issue |
+| Response                  | Retry?                   | Rationale                              |
+| ------------------------- | ------------------------ | -------------------------------------- |
+| **5xx Server Error**      | Yes, with backoff        | Transient; server may recover          |
+| **429 Too Many Requests** | Yes, with longer backoff | Honor Retry-After header if present    |
+| **408 Request Timeout**   | Yes, with backoff        | May be transient                       |
+| **4xx Client Error**      | No                       | Request is malformed; retry won't help |
+| **Connection refused**    | Yes, limited             | Server may be restarting               |
+| **Connection reset**      | Yes                      | Network blip                           |
+| **SSL handshake failure** | No                       | Certificate/config issue               |
 
 **Idempotency requirement:** Only retry operations that are safe to repeat. POST requests that create resources need idempotency keys.
 
@@ -388,20 +398,20 @@ stateDiagram-v2
 
 **States:**
 
-| State | Behavior |
-|-------|----------|
-| **Closed** | Normal operation; requests pass through; failures counted |
-| **Open** | Requests fail immediately; no calls to dependency |
-| **Half-Open** | Limited probe requests allowed; success resets to Closed |
+| State         | Behavior                                                  |
+| ------------- | --------------------------------------------------------- |
+| **Closed**    | Normal operation; requests pass through; failures counted |
+| **Open**      | Requests fail immediately; no calls to dependency         |
+| **Half-Open** | Limited probe requests allowed; success resets to Closed  |
 
 **Design decisions:**
 
 #### Failure Counting Strategy
 
-| Strategy | Mechanism | Best For |
-|----------|-----------|----------|
-| **Count-based** | Open after N failures | Simple, predictable |
-| **Rate-based** | Open when error rate > X% | Handles varying traffic |
+| Strategy        | Mechanism                         | Best For                               |
+| --------------- | --------------------------------- | -------------------------------------- |
+| **Count-based** | Open after N failures             | Simple, predictable                    |
+| **Rate-based**  | Open when error rate > X%         | Handles varying traffic                |
 | **Consecutive** | Open after N consecutive failures | Avoids flapping on intermittent errors |
 
 **Real-world example (Hystrix, now deprecated but patterns live on):**
@@ -415,12 +425,12 @@ circuitBreaker.sleepWindowInMilliseconds = 5000  // Time in Open before probe
 
 #### Tuning Parameters
 
-| Parameter | Consideration |
-|-----------|---------------|
-| **Error threshold** | Too low = flapping; too high = slow detection |
-| **Volume threshold** | Prevents opening on low-traffic services |
-| **Reset timeout** | Too short = probe during ongoing failure; too long = delayed recovery |
-| **Half-open probes** | Single probe is fragile; multiple probes add load |
+| Parameter            | Consideration                                                         |
+| -------------------- | --------------------------------------------------------------------- |
+| **Error threshold**  | Too low = flapping; too high = slow detection                         |
+| **Volume threshold** | Prevents opening on low-traffic services                              |
+| **Reset timeout**    | Too short = probe during ongoing failure; too long = delayed recovery |
+| **Half-open probes** | Single probe is fragile; multiple probes add load                     |
 
 **Anti-pattern:** Circuit breaker per request type on same dependency. If the dependency is down, it's down for all request types. Use per-dependency circuit breakers.
 
@@ -448,6 +458,7 @@ Service A and C continue operating.
 ```
 
 **Trade-offs:**
+
 - ✅ Strong isolation
 - ✅ Failure is contained
 - ❌ Thread overhead (each pool has threads)
@@ -459,6 +470,7 @@ Service A and C continue operating.
 **Mechanism:** Limit concurrent requests via semaphore; requests run on caller's thread.
 
 **Trade-offs:**
+
 - ✅ No thread overhead
 - ✅ Lower latency (no queue/handoff)
 - ❌ If dependency is slow, caller thread is blocked
@@ -466,10 +478,10 @@ Service A and C continue operating.
 
 **When to use which:**
 
-| Isolation Type | Use When |
-|----------------|----------|
+| Isolation Type  | Use When                                           |
+| --------------- | -------------------------------------------------- |
 | **Thread pool** | Dependency is unreliable; need timeout enforcement |
-| **Semaphore** | Dependency is reliable; latency is critical |
+| **Semaphore**   | Dependency is reliable; latency is critical        |
 
 #### Connection Pool Limits
 
@@ -508,12 +520,12 @@ Database max_connections: 200 → Risk of connection exhaustion
 
 **Mechanism:** Classify requests by importance; shed lower priority first.
 
-| Priority | Examples | Shed First? |
-|----------|----------|-------------|
-| **Critical** | Health checks, auth tokens | Never (or last) |
-| **High** | Paid user requests, real-time APIs | Last resort |
-| **Normal** | Standard requests | When overloaded |
-| **Low** | Analytics, batch jobs | First |
+| Priority     | Examples                           | Shed First?     |
+| ------------ | ---------------------------------- | --------------- |
+| **Critical** | Health checks, auth tokens         | Never (or last) |
+| **High**     | Paid user requests, real-time APIs | Last resort     |
+| **Normal**   | Standard requests                  | When overloaded |
+| **Low**      | Analytics, batch jobs              | First           |
 
 **Implementation:** Priority typically in request header or derived from path/user.
 
@@ -523,12 +535,12 @@ Database max_connections: 200 → Risk of connection exhaustion
 
 **Approaches:**
 
-| Approach | Mechanism |
-|----------|-----------|
-| **Token bucket** | Allow N requests per time window |
-| **Leaky bucket** | Smooth bursty traffic |
-| **Adaptive** | Adjust limit based on current latency |
-| **Client-based** | Per-client quotas |
+| Approach         | Mechanism                             |
+| ---------------- | ------------------------------------- |
+| **Token bucket** | Allow N requests per time window      |
+| **Leaky bucket** | Smooth bursty traffic                 |
+| **Adaptive**     | Adjust limit based on current latency |
+| **Client-based** | Per-client quotas                     |
 
 **Google's CoDel (Controlled Delay):** Admission control based on queue latency rather than queue length. If requests are sitting in queue too long (target: 5ms), start dropping. This adapts automatically to varying service capacity.
 
@@ -536,13 +548,13 @@ Database max_connections: 200 → Risk of connection exhaustion
 
 When the primary path fails, what's the backup?
 
-| Strategy | Description | Trade-off |
-|----------|-------------|-----------|
-| **Cache fallback** | Return stale cached data | Data may be outdated |
-| **Degraded mode** | Return partial result | Feature may be incomplete |
+| Strategy           | Description               | Trade-off                       |
+| ------------------ | ------------------------- | ------------------------------- |
+| **Cache fallback** | Return stale cached data  | Data may be outdated            |
+| **Degraded mode**  | Return partial result     | Feature may be incomplete       |
 | **Static default** | Return hardcoded response | May not be appropriate for user |
-| **Fail silent** | Return empty, continue | Data loss may go unnoticed |
-| **Fail fast** | Return error immediately | Bad UX but honest |
+| **Fail silent**    | Return empty, continue    | Data loss may go unnoticed      |
+| **Fail fast**      | Return error immediately  | Bad UX but honest               |
 
 **Design decision:** Fallback appropriateness depends on the use case:
 
@@ -552,6 +564,7 @@ When the primary path fails, what's the backup?
 - **Authentication:** No fallback; either authorized or not
 
 **Real-world example (Netflix):** Netflix's fallback hierarchy for recommendations:
+
 1. Personalized recommendations (primary)
 2. Genre-based recommendations (degraded)
 3. Top 10 in region (more degraded)
@@ -568,18 +581,19 @@ Beyond individual resilience patterns, architectural decisions determine how far
 **Mechanism:** Divide the system into independent cells, each serving a subset of users.
 
 **AWS's approach:** Many AWS services use cell-based architecture. Each cell:
+
 - Has independent capacity and resources
 - Serves a subset of customers (by account ID hash)
 - Can fail without affecting other cells
 
 **Characteristics:**
 
-| Aspect | Cell Architecture |
-|--------|------------------|
+| Aspect           | Cell Architecture                   |
+| ---------------- | ----------------------------------- |
 | **Blast radius** | Limited to single cell (% of users) |
-| **Scaling** | Add more cells |
-| **Complexity** | Cell-aware routing required |
-| **Efficiency** | Some redundancy across cells |
+| **Scaling**      | Add more cells                      |
+| **Complexity**   | Cell-aware routing required         |
+| **Efficiency**   | Some redundancy across cells        |
 
 **Real-world example (AWS DynamoDB):** DynamoDB uses partition-based isolation. Each partition is a cell. A hot partition affects only data in that partition; other partitions continue normally.
 
@@ -607,10 +621,10 @@ Probability two random customers share both workers: 1/28 ≈ 3.6%
 
 **Design choices:**
 
-| Scope | Use Case | Trade-off |
-|-------|----------|-----------|
-| **Single zone** | Minimize latency | No zone failure tolerance |
-| **Multi-zone** | Survive zone failure | Cross-zone data transfer cost |
+| Scope            | Use Case               | Trade-off                                   |
+| ---------------- | ---------------------- | ------------------------------------------- |
+| **Single zone**  | Minimize latency       | No zone failure tolerance                   |
+| **Multi-zone**   | Survive zone failure   | Cross-zone data transfer cost               |
 | **Multi-region** | Survive region failure | Complexity, latency, consistency challenges |
 
 **Capacity planning for zone failure:**
@@ -634,6 +648,7 @@ During zone failure: 1000 req/s capacity, 0% headroom
 Chaos engineering is **empirical validation of system resilience**. The goal is to discover weaknesses before they manifest in production incidents.
 
 **Core process:**
+
 1. Define steady state (what "normal" looks like)
 2. Hypothesize that steady state continues during failure
 3. Inject failure
@@ -644,29 +659,30 @@ Chaos engineering is **empirical validation of system resilience**. The goal is 
 
 ### Failure Injection Types
 
-| Category | Examples |
-|----------|----------|
-| **Infrastructure** | VM termination, disk failure, network partition |
-| **Application** | Process crash, memory exhaustion, CPU contention |
-| **Network** | Latency injection, packet loss, DNS failure |
-| **Dependency** | Database slowdown, cache failure, third-party API error |
+| Category           | Examples                                                |
+| ------------------ | ------------------------------------------------------- |
+| **Infrastructure** | VM termination, disk failure, network partition         |
+| **Application**    | Process crash, memory exhaustion, CPU contention        |
+| **Network**        | Latency injection, packet loss, DNS failure             |
+| **Dependency**     | Database slowdown, cache failure, third-party API error |
 
 ### Tools and Approaches
 
-| Tool | Scope | Approach |
-|------|-------|----------|
-| **Chaos Monkey** | Instance | Randomly terminates instances |
-| **Chaos Kong** | Region | Simulates entire region failure |
-| **Latency Monkey** | Network | Injects artificial latency |
-| **AWS FIS** | AWS resources | Managed fault injection |
-| **Gremlin** | Multi-platform | Commercial chaos platform |
-| **LitmusChaos** | Kubernetes | CNCF chaos project |
+| Tool               | Scope          | Approach                        |
+| ------------------ | -------------- | ------------------------------- |
+| **Chaos Monkey**   | Instance       | Randomly terminates instances   |
+| **Chaos Kong**     | Region         | Simulates entire region failure |
+| **Latency Monkey** | Network        | Injects artificial latency      |
+| **AWS FIS**        | AWS resources  | Managed fault injection         |
+| **Gremlin**        | Multi-platform | Commercial chaos platform       |
+| **LitmusChaos**    | Kubernetes     | CNCF chaos project              |
 
 ### Game Days
 
 Scheduled chaos exercises with teams prepared to observe and respond.
 
 **Netflix's approach:**
+
 1. **Announce:** Teams know chaos is happening (builds confidence)
 2. **Define scope:** Which services, what failures
 3. **Establish abort criteria:** When to stop the experiment
@@ -675,6 +691,7 @@ Scheduled chaos exercises with teams prepared to observe and respond.
 6. **Debrief:** Document findings, prioritize fixes
 
 **Progression:**
+
 1. Start in non-production (staging/dev)
 2. Graduate to production during low-traffic periods
 3. Eventually run during peak (Netflix runs Chaos Monkey continuously)

@@ -1,6 +1,7 @@
 # System Design Fundamentals & Building Blocks Guidelines
 
 This document provides guidance for writing articles in:
+
 - `content/articles/system-design/system-design-fundamentals/`
 - `content/articles/system-design/system-design-building-blocks/`
 
@@ -31,10 +32,12 @@ For every major concept, use this structure:
 **How it works:** [Mechanism explanation]
 
 **Best when:**
+
 - [Condition 1]
 - [Condition 2]
 
 **Trade-offs:**
+
 - ✅ [Advantage 1]
 - ✅ [Advantage 2]
 - ❌ [Disadvantage 1]
@@ -49,21 +52,23 @@ The result: [concrete outcome]. The trade-off they accepted: [specific sacrifice
 
 ### Decision Matrix
 
-| Factor | Option A | Option B | Option C |
-|--------|----------|----------|----------|
-| Latency requirement | < 10ms | < 100ms | < 1s |
-| Consistency need | Strong | Eventual OK | Eventual OK |
-| Scale (ops/sec) | < 10K | < 100K | > 100K |
-| Operational complexity | Low | Medium | High |
+| Factor                 | Option A | Option B    | Option C    |
+| ---------------------- | -------- | ----------- | ----------- |
+| Latency requirement    | < 10ms   | < 100ms     | < 1s        |
+| Consistency need       | Strong   | Eventual OK | Eventual OK |
+| Scale (ops/sec)        | < 10K    | < 100K      | > 100K      |
+| Operational complexity | Low      | Medium      | High        |
 
 ### Choosing Your Approach
 
 **Start with these questions:**
+
 1. [Question about requirements]
 2. [Question about constraints]
 3. [Question about team/org]
 
 **Common patterns:**
+
 - If [condition], lean toward [option]
 - If [condition], lean toward [option]
 ```
@@ -83,6 +88,7 @@ Good: "Netflix chose Cassandra for viewing history because they needed to handle
 ### Cite Specific Sources
 
 Always link to:
+
 - Engineering blog posts
 - Conference talks (with timestamps)
 - Design documents
@@ -105,6 +111,7 @@ Show the concept visually—how data flows, where state lives, what can fail.
 ### 3. Abstract (Mental Model)
 
 Provide the key insight that makes the concept click:
+
 - The core problem being solved
 - Why naive solutions fail
 - The fundamental trade-off space
@@ -112,6 +119,7 @@ Provide the key insight that makes the concept click:
 ### 4. Core Concept Explanation
 
 Explain the mechanism in depth:
+
 - How it works internally
 - Invariants it maintains
 - Failure modes
@@ -130,11 +138,13 @@ For each major implementation choice:
 **Mechanism:** [How it works]
 
 **When to use:**
+
 - Uniform access patterns
 - No range query requirements
 - Need even data distribution
 
 **Trade-offs:**
+
 - ✅ Even distribution with good hash function
 - ✅ Simple to implement
 - ❌ Range queries require scatter-gather
@@ -149,11 +159,13 @@ Partition key choice is critical—hot partitions can throttle entire tables.
 **Mechanism:** [How it works]
 
 **When to use:**
+
 - Time-series data
 - Range query requirements
 - Sequential access patterns
 
 **Trade-offs:**
+
 - ✅ Efficient range queries
 - ✅ Sequential writes to same partition
 - ❌ Hotspots on recent data
@@ -176,35 +188,36 @@ Create a dedicated section on decision factors:
 
 #### 1. Access Patterns
 
-| Pattern | Recommended Approach | Rationale |
-|---------|---------------------|-----------|
-| Random point reads | Hash partitioning | Even distribution |
-| Range scans | Range partitioning | Sequential access |
-| Time-series writes | Range + TTL | Natural ordering |
-| Key-value with hot keys | Hash + caching | Spread load |
+| Pattern                 | Recommended Approach | Rationale         |
+| ----------------------- | -------------------- | ----------------- |
+| Random point reads      | Hash partitioning    | Even distribution |
+| Range scans             | Range partitioning   | Sequential access |
+| Time-series writes      | Range + TTL          | Natural ordering  |
+| Key-value with hot keys | Hash + caching       | Spread load       |
 
 #### 2. Consistency Requirements
 
-| Requirement | Approach | Example |
-|-------------|----------|---------|
-| Strong consistency | Single leader, sync replication | Banking transactions |
-| Eventual (seconds) | Multi-leader, async replication | Social media feeds |
-| Eventual (minutes OK) | Leaderless, gossip | DNS, config distribution |
+| Requirement           | Approach                        | Example                  |
+| --------------------- | ------------------------------- | ------------------------ |
+| Strong consistency    | Single leader, sync replication | Banking transactions     |
+| Eventual (seconds)    | Multi-leader, async replication | Social media feeds       |
+| Eventual (minutes OK) | Leaderless, gossip              | DNS, config distribution |
 
 #### 3. Scale Characteristics
 
-| Scale Factor | Threshold | Recommended Approach |
-|--------------|-----------|---------------------|
-| Operations/sec | < 10K | Single node may suffice |
-| Operations/sec | 10K-100K | Replication + caching |
-| Operations/sec | > 100K | Sharding required |
-| Data size | < 100GB | Single node |
-| Data size | 100GB-10TB | Replication |
-| Data size | > 10TB | Sharding required |
+| Scale Factor   | Threshold  | Recommended Approach    |
+| -------------- | ---------- | ----------------------- |
+| Operations/sec | < 10K      | Single node may suffice |
+| Operations/sec | 10K-100K   | Replication + caching   |
+| Operations/sec | > 100K     | Sharding required       |
+| Data size      | < 100GB    | Single node             |
+| Data size      | 100GB-10TB | Replication             |
+| Data size      | > 10TB     | Sharding required       |
 
 #### 4. Operational Constraints
 
 Consider your team's ability to operate:
+
 - **Managed services** when: small team, no dedicated SREs
 - **Self-hosted** when: cost at scale, specific customization needs
 - **Simpler tech** when: debugging > performance optimization
@@ -222,9 +235,11 @@ Include 2-3 detailed case studies:
 **Problem:** Ordering messages across distributed servers with clock skew.
 
 **Naive approach:** Physical timestamps
+
 - Failed because: 50ms+ clock skew caused message reordering
 
 **Chosen approach:** Hybrid Logical Clocks (HLC)
+
 - Physical time when clocks agree
 - Logical increment when clocks conflict
 - Result: Causal ordering preserved, <1ms ordering latency
@@ -238,10 +253,12 @@ Include 2-3 detailed case studies:
 **Problem:** Need globally unique, sortable IDs at 100K+ messages/second.
 
 **Rejected approaches:**
+
 1. UUIDs: Not sortable, poor index locality
 2. Database sequences: Single point of failure, bottleneck
 
 **Chosen approach:** Snowflake IDs
+
 - 41 bits: timestamp (69 years of IDs)
 - 10 bits: worker ID
 - 12 bits: sequence (4096 IDs/ms/worker)
@@ -276,14 +293,18 @@ Dedicate a section to mistakes:
 ### 9. Appendix Requirements
 
 #### Prerequisites
+
 - Assumed knowledge (link to prerequisite articles)
 
 #### Summary
+
 - 3-5 key takeaways
 - Decision framework summary
 
 #### References
+
 Prioritized:
+
 1. Original papers/RFCs
 2. Official documentation
 3. Engineering blog posts from companies at scale
@@ -292,17 +313,20 @@ Prioritized:
 ## Quality Checklist
 
 ### Design Choices
+
 - [ ] Multiple approaches presented for each major decision
 - [ ] Clear "when to use" criteria for each approach
 - [ ] Explicit trade-offs (pros AND cons)
 - [ ] Real-world examples with specific details
 
 ### Decision Factors
+
 - [ ] Factors organized by category (scale, consistency, access patterns, ops)
 - [ ] Thresholds and criteria are specific, not vague
 - [ ] Includes operational/team considerations
 
 ### Real-World Examples
+
 - [ ] Specific companies named
 - [ ] Concrete numbers (scale, performance, impact)
 - [ ] Why they chose that approach
@@ -310,6 +334,7 @@ Prioritized:
 - [ ] Source linked
 
 ### Depth
+
 - [ ] Covers failure modes
 - [ ] Addresses edge cases
 - [ ] Includes common pitfalls

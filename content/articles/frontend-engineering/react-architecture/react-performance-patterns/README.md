@@ -65,10 +65,10 @@ Rendering means React calls your component function. It does not necessarily mea
 
 React separates work into two phases:
 
-| Phase | What Happens | Interruptible (React 18+) |
-|-------|--------------|---------------------------|
-| **Render** | Call components, build VDOM, diff against previous | Yes |
-| **Commit** | Apply DOM mutations, run effects | No |
+| Phase      | What Happens                                       | Interruptible (React 18+) |
+| ---------- | -------------------------------------------------- | ------------------------- |
+| **Render** | Call components, build VDOM, diff against previous | Yes                       |
+| **Commit** | Apply DOM mutations, run effects                   | No                        |
 
 The render phase is pure computation. React may call components multiple times, pause rendering, or discard work entirely. The commit phase applies changes to the DOM synchronously—once React starts committing, it runs to completion.
 
@@ -127,22 +127,22 @@ It doesn't help when:
 `memo` wraps a component to skip re-rendering when props are shallowly equal:
 
 ```tsx title="memo usage" collapse={1-3,15-20}
-import { memo } from 'react';
+import { memo } from "react"
 
 interface ChartProps {
-  data: number[];
-  color: string;
+  data: number[]
+  color: string
 }
 
 // Only re-renders if data or color reference changes
 const Chart = memo(function Chart({ data, color }: ChartProps) {
   // Expensive rendering logic
-  return <canvas>{/* ... */}</canvas>;
-});
+  return <canvas>{/* ... */}</canvas>
+})
 
 // Parent component
 function Dashboard() {
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState("all")
   // ...
 }
 ```
@@ -153,40 +153,39 @@ function Dashboard() {
 
 ```tsx title="Custom comparison" {3-7}
 const Chart = memo(
-  function Chart({ dataPoints }: { dataPoints: Point[] }) { /* ... */ },
+  function Chart({ dataPoints }: { dataPoints: Point[] }) {
+    /* ... */
+  },
   (prevProps, nextProps) => {
     // Return true to skip re-render, false to re-render
-    return prevProps.dataPoints.length === nextProps.dataPoints.length &&
-      prevProps.dataPoints.every((p, i) =>
-        p.x === nextProps.dataPoints[i].x && p.y === nextProps.dataPoints[i].y
-      );
-  }
-);
+    return (
+      prevProps.dataPoints.length === nextProps.dataPoints.length &&
+      prevProps.dataPoints.every((p, i) => p.x === nextProps.dataPoints[i].x && p.y === nextProps.dataPoints[i].y)
+    )
+  },
+)
 ```
 
-**Danger:** Custom comparers must compare *all* props. Skipping a callback prop causes stale closures—the component sees outdated state.
+**Danger:** Custom comparers must compare _all_ props. Skipping a callback prop causes stale closures—the component sees outdated state.
 
 ### `useMemo`: Caching Computed Values
 
 `useMemo` caches a calculated value, recomputing only when dependencies change:
 
 ```tsx title="useMemo for expensive computation" collapse={1-5,17-20}
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react"
 
 interface Todo {
-  id: string;
-  text: string;
-  completed: boolean;
+  id: string
+  text: string
+  completed: boolean
 }
 
 function TodoList({ todos, filter }: { todos: Todo[]; filter: string }) {
   // filterTodos only runs when todos or filter changes
-  const visibleTodos = useMemo(
-    () => filterTodos(todos, filter),
-    [todos, filter]
-  );
+  const visibleTodos = useMemo(() => filterTodos(todos, filter), [todos, filter])
 
-  return <List items={visibleTodos} />;
+  return <List items={visibleTodos} />
 }
 ```
 
@@ -194,16 +193,16 @@ function TodoList({ todos, filter }: { todos: Todo[]; filter: string }) {
 
 ```tsx title="Dependency trap" {4-5,8-9}
 function Search({ items }: { items: Item[] }) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("")
 
   // ❌ Bad: options object is new every render
-  const options = { caseSensitive: false, query };
+  const options = { caseSensitive: false, query }
 
   const results = useMemo(
     // Recalculates every render because options changed
     () => searchItems(items, options),
-    [items, options]
-  );
+    [items, options],
+  )
 }
 ```
 
@@ -211,13 +210,13 @@ function Search({ items }: { items: Item[] }) {
 
 ```tsx title="Fixed dependency" {4-5}
 function Search({ items }: { items: Item[] }) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("")
 
   // ✅ Object created inside useMemo, dependencies are primitives
   const results = useMemo(() => {
-    const options = { caseSensitive: false, query };
-    return searchItems(items, options);
-  }, [items, query]);
+    const options = { caseSensitive: false, query }
+    return searchItems(items, options)
+  }, [items, query])
 }
 ```
 
@@ -226,21 +225,21 @@ function Search({ items }: { items: Item[] }) {
 `useCallback` returns the same function reference across renders when dependencies haven't changed:
 
 ```tsx title="useCallback for stable callbacks" collapse={1-3,13-15}
-import { useCallback, useState } from 'react';
+import { useCallback, useState } from "react"
 
 const MemoizedChild = memo(function Child({ onClick }: { onClick: () => void }) {
-  return <button onClick={onClick}>Click</button>;
-});
+  return <button onClick={onClick}>Click</button>
+})
 
 function Parent() {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(0)
 
   // Same function reference as long as count hasn't changed
   const handleClick = useCallback(() => {
-    console.log('Count:', count);
-  }, [count]);
+    console.log("Count:", count)
+  }, [count])
 
-  return <MemoizedChild onClick={handleClick} />;
+  return <MemoizedChild onClick={handleClick} />
 }
 ```
 
@@ -250,17 +249,17 @@ function Parent() {
 
 ```tsx title="Stale closure trap" {3-5,8-10}
 function Counter() {
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(0)
 
   // ❌ Bad: empty deps means count is always 0 in the closure
   const increment = useCallback(() => {
-    setCount(count + 1); // Always sets to 1
-  }, []);
+    setCount(count + 1) // Always sets to 1
+  }, [])
 
   // ✅ Good: use updater function to avoid dependency
   const increment = useCallback(() => {
-    setCount(c => c + 1); // Works correctly
-  }, []);
+    setCount((c) => c + 1) // Works correctly
+  }, [])
 }
 ```
 
@@ -284,8 +283,8 @@ React Compiler (currently in beta) analyzes your code at build time and automati
 ```tsx title="With React Compiler"
 // No manual memoization needed—compiler handles it
 function TodoList({ todos, filter }) {
-  const visibleTodos = filterTodos(todos, filter);
-  return <List items={visibleTodos} />;
+  const visibleTodos = filterTodos(todos, filter)
+  return <List items={visibleTodos} />
 }
 ```
 
@@ -297,28 +296,28 @@ The compiler applies memoization correctly based on data flow analysis, avoiding
 
 React 18 introduced concurrent rendering—the render phase can be interrupted, paused, and resumed. This is opt-in: you only get concurrent behavior when using concurrent features (`useTransition`, `useDeferredValue`, Suspense for data).
 
-| React 17 | React 18+ |
-|----------|-----------|
-| Synchronous rendering—once started, runs to completion | Interruptible rendering—can pause for urgent updates |
-| Updates processed in order | Updates have priority—urgent updates interrupt transitions |
-| Batching only in React event handlers | Automatic batching everywhere (promises, setTimeout, native events) |
+| React 17                                               | React 18+                                                           |
+| ------------------------------------------------------ | ------------------------------------------------------------------- |
+| Synchronous rendering—once started, runs to completion | Interruptible rendering—can pause for urgent updates                |
+| Updates processed in order                             | Updates have priority—urgent updates interrupt transitions          |
+| Batching only in React event handlers                  | Automatic batching everywhere (promises, setTimeout, native events) |
 
 ### Transitions: Urgent vs. Non-Urgent Updates
 
 `useTransition` marks state updates as non-urgent. React handles urgent updates (typing, clicking) first, then resumes transition updates:
 
 ```tsx title="useTransition for tab switching" collapse={1-4,24-30}
-import { useState, useTransition } from 'react';
+import { useState, useTransition } from "react"
 
 function TabContainer() {
-  const [tab, setTab] = useState('home');
-  const [isPending, startTransition] = useTransition();
+  const [tab, setTab] = useState("home")
+  const [isPending, startTransition] = useTransition()
 
   function selectTab(nextTab: string) {
     startTransition(() => {
       // This update is non-urgent
-      setTab(nextTab);
-    });
+      setTab(nextTab)
+    })
   }
 
   return (
@@ -328,7 +327,7 @@ function TabContainer() {
         <TabContent tab={tab} />
       </div>
     </div>
-  );
+  )
 }
 ```
 
@@ -344,19 +343,19 @@ function TabContainer() {
 
 ```tsx title="Transition limitation" {4-5,9-10}
 function SearchForm() {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("")
 
   // ❌ Bad: input feels laggy
-  const handleChange = (e) => startTransition(() => setQuery(e.target.value));
+  const handleChange = (e) => startTransition(() => setQuery(e.target.value))
 
   // ✅ Good: separate state for input vs. results
-  const [inputValue, setInputValue] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [inputValue, setInputValue] = useState("")
+  const [searchQuery, setSearchQuery] = useState("")
 
   const handleChange = (e) => {
-    setInputValue(e.target.value); // Urgent
-    startTransition(() => setSearchQuery(e.target.value)); // Deferred
-  };
+    setInputValue(e.target.value) // Urgent
+    startTransition(() => setSearchQuery(e.target.value)) // Deferred
+  }
 }
 ```
 
@@ -365,26 +364,23 @@ function SearchForm() {
 `useDeferredValue` defers updating a value, showing stale content while fresh content renders in the background:
 
 ```tsx title="useDeferredValue for search" collapse={1-4,20-25}
-import { useState, useDeferredValue, Suspense } from 'react';
+import { useState, useDeferredValue, Suspense } from "react"
 
 function SearchPage() {
-  const [query, setQuery] = useState('');
-  const deferredQuery = useDeferredValue(query);
-  const isStale = query !== deferredQuery;
+  const [query, setQuery] = useState("")
+  const deferredQuery = useDeferredValue(query)
+  const isStale = query !== deferredQuery
 
   return (
     <>
-      <input
-        value={query}
-        onChange={e => setQuery(e.target.value)}
-      />
+      <input value={query} onChange={(e) => setQuery(e.target.value)} />
       <div style={{ opacity: isStale ? 0.5 : 1 }}>
         <Suspense fallback={<Spinner />}>
           <SearchResults query={deferredQuery} />
         </Suspense>
       </div>
     </>
-  );
+  )
 }
 ```
 
@@ -395,18 +391,18 @@ function SearchPage() {
 
 **Difference from debouncing:**
 
-| Debouncing | `useDeferredValue` |
-|------------|-------------------|
-| Fixed delay (e.g., 300ms) | No fixed delay—adapts to device speed |
-| Blocks during delay | Background render is interruptible |
-| Same behavior on all devices | Fast devices see less delay |
+| Debouncing                   | `useDeferredValue`                    |
+| ---------------------------- | ------------------------------------- |
+| Fixed delay (e.g., 300ms)    | No fixed delay—adapts to device speed |
+| Blocks during delay          | Background render is interruptible    |
+| Same behavior on all devices | Fast devices see less delay           |
 
 ### Suspense for Data Fetching
 
 Suspense lets components "wait" for data, showing a fallback until ready:
 
 ```tsx title="Suspense boundaries" collapse={1-3,16-20}
-import { Suspense } from 'react';
+import { Suspense } from "react"
 
 function ProfilePage({ userId }: { userId: string }) {
   return (
@@ -416,13 +412,13 @@ function ProfilePage({ userId }: { userId: string }) {
         <ProfilePosts userId={userId} />
       </Suspense>
     </Suspense>
-  );
+  )
 }
 
 // Components use Suspense-enabled data fetching
 function ProfileDetails({ userId }) {
-  const user = use(fetchUser(userId)); // Suspends until resolved
-  return <h1>{user.name}</h1>;
+  const user = use(fetchUser(userId)) // Suspends until resolved
+  return <h1>{user.name}</h1>
 }
 ```
 
@@ -436,10 +432,10 @@ function ProfileDetails({ userId }) {
 
 ```tsx title="Transition preserves visible content" {4-6}
 function Router() {
-  const [page, setPage] = useState('/');
+  const [page, setPage] = useState("/")
 
   function navigate(url: string) {
-    startTransition(() => setPage(url)); // Keeps current page visible
+    startTransition(() => setPage(url)) // Keeps current page visible
   }
 }
 ```
@@ -459,20 +455,16 @@ Virtualization renders only visible items (plus a small buffer), maintaining a c
 **`FixedSizeList`**: For items with uniform heights
 
 ```tsx title="FixedSizeList" collapse={1-6,23-28}
-import { FixedSizeList } from 'react-window';
+import { FixedSizeList } from "react-window"
 
 interface RowProps {
-  index: number;
-  style: React.CSSProperties;
-  data: string[];
+  index: number
+  style: React.CSSProperties
+  data: string[]
 }
 
 function Row({ index, style, data }: RowProps) {
-  return (
-    <div style={style}>
-      {data[index]}
-    </div>
-  );
+  return <div style={style}>{data[index]}</div>
 }
 
 function VirtualizedList({ items }: { items: string[] }) {
@@ -487,31 +479,26 @@ function VirtualizedList({ items }: { items: string[] }) {
     >
       {Row}
     </FixedSizeList>
-  );
+  )
 }
 ```
 
 **`VariableSizeList`**: For items with dynamic heights
 
 ```tsx title="VariableSizeList" collapse={1-4,15-20}
-import { VariableSizeList } from 'react-window';
+import { VariableSizeList } from "react-window"
 
 function getItemSize(index: number): number {
   // Return height for item at index
-  return items[index].isExpanded ? 200 : 50;
+  return items[index].isExpanded ? 200 : 50
 }
 
 function VirtualizedList({ items }) {
   return (
-    <VariableSizeList
-      height={400}
-      width="100%"
-      itemCount={items.length}
-      itemSize={getItemSize}
-    >
+    <VariableSizeList height={400} width="100%" itemCount={items.length} itemSize={getItemSize}>
       {Row}
     </VariableSizeList>
-  );
+  )
 }
 ```
 
@@ -551,30 +538,23 @@ The Profiler records component renders and timing:
 For programmatic measurement:
 
 ```tsx title="Profiler component" collapse={1-4,20-25}
-import { Profiler, ProfilerOnRenderCallback } from 'react';
+import { Profiler, ProfilerOnRenderCallback } from "react"
 
-const onRender: ProfilerOnRenderCallback = (
-  id,
-  phase,
-  actualDuration,
-  baseDuration,
-  startTime,
-  commitTime
-) => {
+const onRender: ProfilerOnRenderCallback = (id, phase, actualDuration, baseDuration, startTime, commitTime) => {
   console.log({
-    id,                // Profiler id prop
-    phase,             // "mount" | "update" | "nested-update"
-    actualDuration,    // Time spent rendering (with memoization)
-    baseDuration,      // Time without any memoization (worst case)
-  });
-};
+    id, // Profiler id prop
+    phase, // "mount" | "update" | "nested-update"
+    actualDuration, // Time spent rendering (with memoization)
+    baseDuration, // Time without any memoization (worst case)
+  })
+}
 
 function App() {
   return (
     <Profiler id="App" onRender={onRender}>
       <MainContent />
     </Profiler>
-  );
+  )
 }
 ```
 

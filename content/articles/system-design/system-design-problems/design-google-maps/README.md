@@ -12,7 +12,7 @@ Building a mapping and navigation platform.
 
 1. Map rendering: tile-based, vector tiles, zoom levels
 2. Data model: roads, points of interest, boundaries
-3. Routing: graph algorithms, A*, Dijkstra, traffic-aware
+3. Routing: graph algorithms, A\*, Dijkstra, traffic-aware
 4. Traffic data: real-time, historical, prediction
 5. Search: geocoding, reverse geocoding, POI search
 6. Offline maps: tile downloading, compression

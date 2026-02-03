@@ -55,52 +55,52 @@ Flash sale design centers on three constraints working against each other:
 
 The mental model: **waiting room → token gate → atomic inventory → async order queue**. Each layer handles one constraint and shields the next.
 
-| Design Decision | Tradeoff |
-|-----------------|----------|
-| CDN waiting room | Absorbs traffic cheaply; adds user-facing latency |
-| Token-based admission | Prevents overselling; requires pre-allocation |
-| Redis atomic counters | Sub-millisecond inventory checks; single point of failure |
-| Async order processing | Handles 100x normal load; delayed confirmation |
+| Design Decision        | Tradeoff                                                  |
+| ---------------------- | --------------------------------------------------------- |
+| CDN waiting room       | Absorbs traffic cheaply; adds user-facing latency         |
+| Token-based admission  | Prevents overselling; requires pre-allocation             |
+| Redis atomic counters  | Sub-millisecond inventory checks; single point of failure |
+| Async order processing | Handles 100x normal load; delayed confirmation            |
 
 ## Requirements
 
 ### Functional Requirements
 
-| Feature | Scope | Notes |
-|---------|-------|-------|
-| Virtual waiting room | Core | Absorbs traffic spike before backend |
-| Queue management | Core | FIFO admission with position tracking |
-| Inventory reservation | Core | Atomic decrement, no overselling |
-| Order placement | Core | Async processing with durability |
-| Bot detection | Core | Multi-layer defense |
-| Payment processing | Core | Idempotent, timeout-aware |
-| Order confirmation | Core | Email/push notification |
-| Purchase limits | Extended | 1-2 units per customer |
-| VIP early access | Extended | Tiered queue priority |
-| Real-time inventory display | Extended | Eventually consistent display |
+| Feature                     | Scope    | Notes                                 |
+| --------------------------- | -------- | ------------------------------------- |
+| Virtual waiting room        | Core     | Absorbs traffic spike before backend  |
+| Queue management            | Core     | FIFO admission with position tracking |
+| Inventory reservation       | Core     | Atomic decrement, no overselling      |
+| Order placement             | Core     | Async processing with durability      |
+| Bot detection               | Core     | Multi-layer defense                   |
+| Payment processing          | Core     | Idempotent, timeout-aware             |
+| Order confirmation          | Core     | Email/push notification               |
+| Purchase limits             | Extended | 1-2 units per customer                |
+| VIP early access            | Extended | Tiered queue priority                 |
+| Real-time inventory display | Extended | Eventually consistent display         |
 
 ### Non-Functional Requirements
 
-| Requirement | Target | Rationale |
-|-------------|--------|-----------|
-| Availability | 99.99% | Revenue impact; Alibaba achieved "zero downtime" during Singles Day |
-| Waiting room latency | < 100ms | Static CDN, must feel instant |
-| Inventory check latency | < 50ms | Critical path, Redis required |
-| Checkout latency | < 5s | User-acceptable; async processing hides backend |
-| Queue position accuracy | Real-time | Trust requires visible progress |
-| Inventory accuracy | 100% | Zero tolerance for overselling |
-| Order durability | Zero loss | Queued orders must survive failures |
+| Requirement             | Target    | Rationale                                                           |
+| ----------------------- | --------- | ------------------------------------------------------------------- |
+| Availability            | 99.99%    | Revenue impact; Alibaba achieved "zero downtime" during Singles Day |
+| Waiting room latency    | < 100ms   | Static CDN, must feel instant                                       |
+| Inventory check latency | < 50ms    | Critical path, Redis required                                       |
+| Checkout latency        | < 5s      | User-acceptable; async processing hides backend                     |
+| Queue position accuracy | Real-time | Trust requires visible progress                                     |
+| Inventory accuracy      | 100%      | Zero tolerance for overselling                                      |
+| Order durability        | Zero loss | Queued orders must survive failures                                 |
 
 ### Scale Estimation
 
 **Traffic Profile:**
 
-| Metric | Normal | Flash Sale Peak | Multiplier |
-|--------|--------|-----------------|------------|
-| Concurrent users | 100K | 10M | 100x |
-| Page requests/sec | 10K RPS | 1M RPS | 100x |
-| Inventory checks/sec | 1K RPS | 500K RPS | 500x |
-| Orders/sec | 100 TPS | 10K TPS | 100x |
+| Metric               | Normal  | Flash Sale Peak | Multiplier |
+| -------------------- | ------- | --------------- | ---------- |
+| Concurrent users     | 100K    | 10M             | 100x       |
+| Page requests/sec    | 10K RPS | 1M RPS          | 100x       |
+| Inventory checks/sec | 1K RPS  | 500K RPS        | 500x       |
+| Orders/sec           | 100 TPS | 10K TPS         | 100x       |
 
 **Back-of-envelope (1M users, 10K inventory):**
 
@@ -126,6 +126,7 @@ Event logs: 10M events × 200 bytes = 2GB/sale
 ### Path A: Pre-Allocation Model (Token-Based)
 
 **Best when:**
+
 - Fixed, known inventory quantity
 - Fairness is paramount (ticketing, limited editions)
 - High-value items where overselling is catastrophic
@@ -148,12 +149,14 @@ flowchart LR
 ```
 
 **Key characteristics:**
+
 - Tokens generated equal to inventory before sale starts
 - Each admitted user receives one token
 - Token guarantees checkout opportunity (not purchase—user may abandon)
 - Token expires if unused (returns to pool)
 
 **Trade-offs:**
+
 - :white_check_mark: Zero overselling by construction
 - :white_check_mark: Predictable admission rate
 - :white_check_mark: Fair (FIFO or randomized entry)
@@ -166,6 +169,7 @@ flowchart LR
 ### Path B: Real-Time Inventory Model (Counter-Based)
 
 **Best when:**
+
 - Dynamic inventory (multiple warehouses, restocking)
 - E-commerce flash sales with variable stock
 - Lower-stakes items where occasional overselling is recoverable
@@ -184,12 +188,14 @@ flowchart LR
 ```
 
 **Key characteristics:**
+
 - No pre-allocation; inventory checked in real-time
 - Atomic decrement at checkout (not admission)
 - Rate limiting protects backend; doesn't guarantee purchase
 - Inventory can be restocked mid-sale
 
 **Trade-offs:**
+
 - :white_check_mark: Handles dynamic inventory
 - :white_check_mark: Simpler pre-sale setup
 - :white_check_mark: Can restock mid-sale
@@ -201,18 +207,19 @@ flowchart LR
 
 ### Path Comparison
 
-| Factor | Path A (Token) | Path B (Counter) |
-|--------|----------------|------------------|
-| Overselling risk | Zero | Low (with proper atomicity) |
-| Setup complexity | Higher | Lower |
-| Dynamic inventory | Difficult | Native |
-| User expectation | Guaranteed opportunity | Best effort |
-| Fairness | Explicit (token order) | Implicit (first to checkout) |
-| Best for | Ticketing, limited releases | E-commerce, restockable goods |
+| Factor            | Path A (Token)              | Path B (Counter)              |
+| ----------------- | --------------------------- | ----------------------------- |
+| Overselling risk  | Zero                        | Low (with proper atomicity)   |
+| Setup complexity  | Higher                      | Lower                         |
+| Dynamic inventory | Difficult                   | Native                        |
+| User expectation  | Guaranteed opportunity      | Best effort                   |
+| Fairness          | Explicit (token order)      | Implicit (first to checkout)  |
+| Best for          | Ticketing, limited releases | E-commerce, restockable goods |
 
 ### This Article's Focus
 
 This article implements **Path A (Token-Based)** for the core flow because:
+
 1. Flash sales typically have fixed, high-value inventory
 2. Fairness is a differentiator (users accept waiting if fair)
 3. Zero overselling is non-negotiable for most use cases
@@ -223,15 +230,15 @@ Path B implementation details are covered in the [Variations](#variations) secti
 
 ### Component Overview
 
-| Component | Responsibility | Technology |
-|-----------|---------------|------------|
-| Virtual Waiting Room | Absorb traffic spike, display queue position | Static HTML on CDN |
-| Queue Service | Manage admission, assign tokens | Lambda + DynamoDB |
-| Inventory Service | Atomic inventory operations | Redis Cluster |
-| Order Service | Process orders asynchronously | ECS + SQS |
-| Payment Service | Handle payments idempotently | Stripe/Adyen integration |
-| Notification Service | Send confirmations | SES + SNS |
-| Bot Detection | Filter non-human traffic | WAF + Custom rules |
+| Component            | Responsibility                               | Technology               |
+| -------------------- | -------------------------------------------- | ------------------------ |
+| Virtual Waiting Room | Absorb traffic spike, display queue position | Static HTML on CDN       |
+| Queue Service        | Manage admission, assign tokens              | Lambda + DynamoDB        |
+| Inventory Service    | Atomic inventory operations                  | Redis Cluster            |
+| Order Service        | Process orders asynchronously                | ECS + SQS                |
+| Payment Service      | Handle payments idempotently                 | Stripe/Adyen integration |
+| Notification Service | Send confirmations                           | SES + SNS                |
+| Bot Detection        | Filter non-human traffic                     | WAF + Custom rules       |
 
 ### Request Flow
 
@@ -295,6 +302,7 @@ X-Device-Fingerprint: {fingerprint}
 ```
 
 **Error responses:**
+
 - `400 Bad Request`: Invalid sale_id or product not in flash sale
 - `403 Forbidden`: Bot detected or user already in queue
 - `429 Too Many Requests`: Rate limit exceeded
@@ -318,6 +326,7 @@ GET /api/v1/queue/status/{queue_ticket}
 ```
 
 **Status values:**
+
 - `waiting`: In queue, not yet admitted
 - `admitted`: Token assigned, can proceed to checkout
 - `expired`: Waited too long, removed from queue
@@ -361,7 +370,7 @@ Authorization: Bearer {user_token}
   "product": {
     "id": "sku-001",
     "name": "Limited Edition Sneaker",
-    "price": 299.00,
+    "price": 299.0,
     "currency": "USD"
   },
   "next_step": "payment"
@@ -369,6 +378,7 @@ Authorization: Bearer {user_token}
 ```
 
 **Error responses:**
+
 - `400 Bad Request`: Invalid token or product
 - `409 Conflict`: Token already used
 - `410 Gone`: Token expired
@@ -517,20 +527,21 @@ CREATE INDEX idx_orders_payment ON orders(payment_intent_id);
 
 ### Database Selection Matrix
 
-| Data | Store | Rationale |
-|------|-------|-----------|
-| Queue state | DynamoDB | Single-digit ms latency, auto-scale, TTL |
-| Inventory counters | Redis Cluster | Sub-ms atomic operations |
-| Tokens | Redis | TTL, fast lookup |
-| Orders | PostgreSQL | ACID, complex queries, durability |
-| Event logs | Kinesis → S3 | High throughput, analytics |
-| User sessions | Redis | Fast auth checks |
+| Data               | Store         | Rationale                                |
+| ------------------ | ------------- | ---------------------------------------- |
+| Queue state        | DynamoDB      | Single-digit ms latency, auto-scale, TTL |
+| Inventory counters | Redis Cluster | Sub-ms atomic operations                 |
+| Tokens             | Redis         | TTL, fast lookup                         |
+| Orders             | PostgreSQL    | ACID, complex queries, durability        |
+| Event logs         | Kinesis → S3  | High throughput, analytics               |
+| User sessions      | Redis         | Fast auth checks                         |
 
 ## Low-Level Design
 
 ### Virtual Waiting Room
 
 The waiting room is the first line of defense. It must:
+
 1. Absorb millions of requests without backend load
 2. Provide fair queue positioning
 3. Communicate progress transparently
@@ -562,30 +573,28 @@ flowchart TB
 ```html collapse={1-10, 25-30}
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Flash Sale - Please Wait</title>
-    <meta http-equiv="Cache-Control" content="no-cache">
-</head>
-<body>
+    <meta http-equiv="Cache-Control" content="no-cache" />
+  </head>
+  <body>
     <div id="waiting-room">
-        <h1>You're in the queue</h1>
+      <h1>You're in the queue</h1>
 
-        <!-- Key UI elements -->
-        <div id="position">Position: <span id="pos-number">--</span></div>
-        <div id="estimate">Estimated wait: <span id="wait-time">--</span></div>
-        <div id="progress-bar">
-            <div id="progress-fill" style="width: 0%"></div>
-        </div>
+      <!-- Key UI elements -->
+      <div id="position">Position: <span id="pos-number">--</span></div>
+      <div id="estimate">Estimated wait: <span id="wait-time">--</span></div>
+      <div id="progress-bar">
+        <div id="progress-fill" style="width: 0%"></div>
+      </div>
 
-        <!-- Status messages -->
-        <div id="status-message">Please keep this tab open</div>
-        <div id="redirect-notice" style="display:none">
-            Redirecting to checkout...
-        </div>
+      <!-- Status messages -->
+      <div id="status-message">Please keep this tab open</div>
+      <div id="redirect-notice" style="display:none">Redirecting to checkout...</div>
     </div>
 
     <script src="/queue-client.js"></script>
-</body>
+  </body>
 </html>
 ```
 
@@ -594,54 +603,54 @@ flowchart TB
 ```typescript collapse={1-8, 40-50}
 // queue-client.ts
 interface QueueStatus {
-  status: 'waiting' | 'admitted' | 'expired';
-  position?: number;
-  estimated_wait_seconds?: number;
-  checkout_url?: string;
-  poll_interval_seconds: number;
+  status: "waiting" | "admitted" | "expired"
+  position?: number
+  estimated_wait_seconds?: number
+  checkout_url?: string
+  poll_interval_seconds: number
 }
 
 async function pollQueueStatus(ticket: string): Promise<void> {
-  const response = await fetch(`/api/v1/queue/status/${ticket}`);
-  const status: QueueStatus = await response.json();
+  const response = await fetch(`/api/v1/queue/status/${ticket}`)
+  const status: QueueStatus = await response.json()
 
   switch (status.status) {
-    case 'waiting':
-      updateUI(status.position, status.estimated_wait_seconds);
+    case "waiting":
+      updateUI(status.position, status.estimated_wait_seconds)
       // Exponential backoff near front of queue
-      const interval = status.poll_interval_seconds * 1000;
-      setTimeout(() => pollQueueStatus(ticket), interval);
-      break;
+      const interval = status.poll_interval_seconds * 1000
+      setTimeout(() => pollQueueStatus(ticket), interval)
+      break
 
-    case 'admitted':
-      showRedirectNotice();
+    case "admitted":
+      showRedirectNotice()
       // Small delay for user to see the message
       setTimeout(() => {
-        window.location.href = status.checkout_url;
-      }, 1500);
-      break;
+        window.location.href = status.checkout_url
+      }, 1500)
+      break
 
-    case 'expired':
-      showExpiredMessage();
-      break;
+    case "expired":
+      showExpiredMessage()
+      break
   }
 }
 
 // Start polling on page load
-const ticket = new URLSearchParams(window.location.search).get('ticket');
+const ticket = new URLSearchParams(window.location.search).get("ticket")
 if (ticket) {
-  pollQueueStatus(ticket);
+  pollQueueStatus(ticket)
 }
 ```
 
 **Design decisions:**
 
-| Decision | Rationale |
-|----------|-----------|
-| Static HTML on CDN | Millions of users hitting origin would saturate it; CDN absorbs at edge |
-| Client-side polling | Push (WebSocket) at this scale requires massive connection management |
-| Exponential backoff | Users near front poll more frequently; reduces total requests |
-| No refresh needed | Single-page polling prevents users from losing position by refreshing |
+| Decision            | Rationale                                                               |
+| ------------------- | ----------------------------------------------------------------------- |
+| Static HTML on CDN  | Millions of users hitting origin would saturate it; CDN absorbs at edge |
+| Client-side polling | Push (WebSocket) at this scale requires massive connection management   |
+| Exponential backoff | Users near front poll more frequently; reduces total requests           |
+| No refresh needed   | Single-page polling prevents users from losing position by refreshing   |
 
 ### Queue Service (Token Management)
 
@@ -651,53 +660,52 @@ The queue service manages the FIFO queue and token assignment.
 
 ```typescript collapse={1-15, 60-75}
 // queue-service.ts
-import { DynamoDB } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
+import { DynamoDB } from "@aws-sdk/client-dynamodb"
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb"
 
-const ddb = DynamoDBDocument.from(new DynamoDB({}));
+const ddb = DynamoDBDocument.from(new DynamoDB({}))
 
 interface QueueEntry {
-  sale_id: string;
-  queue_ticket: string;
-  user_id: string;
-  position: number;
-  status: 'waiting' | 'admitted' | 'expired' | 'completed';
-  checkout_token?: string;
+  sale_id: string
+  queue_ticket: string
+  user_id: string
+  position: number
+  status: "waiting" | "admitted" | "expired" | "completed"
+  checkout_token?: string
 }
 
 export async function joinQueue(
   saleId: string,
   userId: string,
-  deviceFingerprint: string
+  deviceFingerprint: string,
 ): Promise<{ ticket: string; position: number }> {
-
   // Check if user already in queue
-  const existing = await findUserInQueue(saleId, userId);
+  const existing = await findUserInQueue(saleId, userId)
   if (existing) {
-    return { ticket: existing.queue_ticket, position: existing.position };
+    return { ticket: existing.queue_ticket, position: existing.position }
   }
 
   // Get current queue length (approximate, for position)
-  const position = await getNextPosition(saleId);
+  const position = await getNextPosition(saleId)
 
-  const ticket = generateTicket();
+  const ticket = generateTicket()
 
   await ddb.put({
-    TableName: 'FlashSaleQueue',
+    TableName: "FlashSaleQueue",
     Item: {
       sale_id: saleId,
       queue_ticket: ticket,
       user_id: userId,
       position: position,
-      status: 'waiting',
+      status: "waiting",
       joined_at: new Date().toISOString(),
       device_fingerprint: deviceFingerprint,
-      ttl: Math.floor(Date.now() / 1000) + 3600 // 1 hour TTL
+      ttl: Math.floor(Date.now() / 1000) + 3600, // 1 hour TTL
     },
-    ConditionExpression: 'attribute_not_exists(queue_ticket)'
-  });
+    ConditionExpression: "attribute_not_exists(queue_ticket)",
+  })
 
-  return { ticket, position };
+  return { ticket, position }
 }
 
 export async function admitNextUsers(saleId: string, count: number): Promise<void> {
@@ -705,42 +713,42 @@ export async function admitNextUsers(saleId: string, count: number): Promise<voi
   // Admits 'count' users from front of queue
 
   const waiting = await ddb.query({
-    TableName: 'FlashSaleQueue',
-    IndexName: 'sale_id-position-index',
-    KeyConditionExpression: 'sale_id = :sid',
-    FilterExpression: '#status = :waiting',
-    ExpressionAttributeNames: { '#status': 'status' },
+    TableName: "FlashSaleQueue",
+    IndexName: "sale_id-position-index",
+    KeyConditionExpression: "sale_id = :sid",
+    FilterExpression: "#status = :waiting",
+    ExpressionAttributeNames: { "#status": "status" },
     ExpressionAttributeValues: {
-      ':sid': saleId,
-      ':waiting': 'waiting'
+      ":sid": saleId,
+      ":waiting": "waiting",
     },
     Limit: count,
-    ScanIndexForward: true // Ascending by position (FIFO)
-  });
+    ScanIndexForward: true, // Ascending by position (FIFO)
+  })
 
   for (const entry of waiting.Items || []) {
-    await admitUser(entry as QueueEntry);
+    await admitUser(entry as QueueEntry)
   }
 }
 
 async function admitUser(entry: QueueEntry): Promise<void> {
-  const token = generateCheckoutToken();
-  const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+  const token = generateCheckoutToken()
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000) // 5 min
 
   await ddb.update({
-    TableName: 'FlashSaleQueue',
+    TableName: "FlashSaleQueue",
     Key: { sale_id: entry.sale_id, queue_ticket: entry.queue_ticket },
-    UpdateExpression: 'SET #status = :admitted, checkout_token = :token, token_expires_at = :exp',
-    ExpressionAttributeNames: { '#status': 'status' },
+    UpdateExpression: "SET #status = :admitted, checkout_token = :token, token_expires_at = :exp",
+    ExpressionAttributeNames: { "#status": "status" },
     ExpressionAttributeValues: {
-      ':admitted': 'admitted',
-      ':token': token,
-      ':exp': expiresAt.toISOString()
-    }
-  });
+      ":admitted": "admitted",
+      ":token": token,
+      ":exp": expiresAt.toISOString(),
+    },
+  })
 
   // Also store token in Redis for fast lookup during checkout
-  await redis.setex(`token:${token}`, 300, entry.user_id);
+  await redis.setex(`token:${token}`, 300, entry.user_id)
 }
 ```
 
@@ -760,11 +768,11 @@ Example:
 
 **Design decisions:**
 
-| Decision | Rationale |
-|----------|-----------|
-| DynamoDB for queue | Handles millions of entries with single-digit ms latency |
-| Position as GSI | Enables efficient "next N users" query |
-| EventBridge for admission | Decouples admission rate from user requests |
+| Decision                  | Rationale                                                   |
+| ------------------------- | ----------------------------------------------------------- |
+| DynamoDB for queue        | Handles millions of entries with single-digit ms latency    |
+| Position as GSI           | Enables efficient "next N users" query                      |
+| EventBridge for admission | Decouples admission rate from user requests                 |
 | Token in Redis + DynamoDB | Redis for fast checkout validation; DynamoDB for durability |
 
 ### Inventory Service (Atomic Counters)
@@ -817,34 +825,33 @@ return { ok = true, remaining = new_count, reservation_id = reservation_id }
 
 ```typescript collapse={1-12, 50-65}
 // inventory-service.ts
-import Redis from 'ioredis';
-import { readFileSync } from 'fs';
+import Redis from "ioredis"
+import { readFileSync } from "fs"
 
 const redis = new Redis.Cluster([
-  { host: 'redis-1.example.com', port: 6379 },
-  { host: 'redis-2.example.com', port: 6379 },
-  { host: 'redis-3.example.com', port: 6379 }
-]);
+  { host: "redis-1.example.com", port: 6379 },
+  { host: "redis-2.example.com", port: 6379 },
+  { host: "redis-3.example.com", port: 6379 },
+])
 
-const reserveScript = readFileSync('./reserve_inventory.lua', 'utf-8');
+const reserveScript = readFileSync("./reserve_inventory.lua", "utf-8")
 
 interface ReservationResult {
-  success: boolean;
-  reservation_id?: string;
-  remaining?: number;
-  error?: string;
+  success: boolean
+  reservation_id?: string
+  remaining?: number
+  error?: string
 }
 
 export async function reserveInventory(
   productId: string,
   userId: string,
   quantity: number,
-  ttlSeconds: number = 300
+  ttlSeconds: number = 300,
 ): Promise<ReservationResult> {
+  const reservationId = `res_${Date.now()}_${userId}`
 
-  const reservationId = `res_${Date.now()}_${userId}`;
-
-  const result = await redis.eval(
+  const result = (await redis.eval(
     reserveScript,
     2, // number of keys
     `inventory:${productId}`,
@@ -852,39 +859,33 @@ export async function reserveInventory(
     userId,
     quantity.toString(),
     reservationId,
-    ttlSeconds.toString()
-  ) as any;
+    ttlSeconds.toString(),
+  )) as any
 
   if (result.err) {
-    return { success: false, error: result.err };
+    return { success: false, error: result.err }
   }
 
   return {
     success: true,
     reservation_id: reservationId,
-    remaining: result.remaining
-  };
-}
-
-export async function releaseReservation(
-  productId: string,
-  reservationId: string
-): Promise<void> {
-  // Called when checkout times out or user abandons
-  const reserved = await redis.hget(`reserved:${productId}`, reservationId);
-  if (reserved) {
-    const { quantity } = JSON.parse(reserved);
-    await redis.incrby(`inventory:${productId}`, quantity);
-    await redis.hdel(`reserved:${productId}`, reservationId);
+    remaining: result.remaining,
   }
 }
 
-export async function confirmReservation(
-  productId: string,
-  reservationId: string
-): Promise<void> {
+export async function releaseReservation(productId: string, reservationId: string): Promise<void> {
+  // Called when checkout times out or user abandons
+  const reserved = await redis.hget(`reserved:${productId}`, reservationId)
+  if (reserved) {
+    const { quantity } = JSON.parse(reserved)
+    await redis.incrby(`inventory:${productId}`, quantity)
+    await redis.hdel(`reserved:${productId}`, reservationId)
+  }
+}
+
+export async function confirmReservation(productId: string, reservationId: string): Promise<void> {
   // Called after successful payment - just remove from reserved set
-  await redis.hdel(`reserved:${productId}`, reservationId);
+  await redis.hdel(`reserved:${productId}`, reservationId)
 }
 ```
 
@@ -901,12 +902,12 @@ stateDiagram-v2
 
 **Design decisions:**
 
-| Decision | Rationale |
-|----------|-----------|
-| Lua script | Atomic read-check-decrement prevents race conditions |
-| Redis Cluster | Horizontal scaling for high throughput |
-| Reservation with TTL | Prevents inventory lock-up from abandoned checkouts |
-| Hash for reservations | O(1) lookup/delete by reservation ID |
+| Decision              | Rationale                                            |
+| --------------------- | ---------------------------------------------------- |
+| Lua script            | Atomic read-check-decrement prevents race conditions |
+| Redis Cluster         | Horizontal scaling for high throughput               |
+| Reservation with TTL  | Prevents inventory lock-up from abandoned checkouts  |
+| Hash for reservations | O(1) lookup/delete by reservation ID                 |
 
 ### Order Processing (Async Queue)
 
@@ -916,29 +917,29 @@ Orders are placed on a durable queue for async processing. This decouples order 
 
 ```typescript collapse={1-10, 55-70}
 // order-service.ts
-import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
-import { v4 as uuid } from 'uuid';
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs"
+import { v4 as uuid } from "uuid"
 
-const sqs = new SQSClient({});
-const ORDER_QUEUE_URL = process.env.ORDER_QUEUE_URL!;
+const sqs = new SQSClient({})
+const ORDER_QUEUE_URL = process.env.ORDER_QUEUE_URL!
 
 interface OrderRequest {
-  session_id: string;
-  user_id: string;
-  product_id: string;
-  quantity: number;
-  shipping_address: Address;
-  payment_method_id: string;
+  session_id: string
+  user_id: string
+  product_id: string
+  quantity: number
+  shipping_address: Address
+  payment_method_id: string
 }
 
 export async function submitOrder(request: OrderRequest): Promise<{ order_id: string }> {
-  const orderId = uuid();
-  const idempotencyKey = `${request.user_id}:${request.session_id}`;
+  const orderId = uuid()
+  const idempotencyKey = `${request.user_id}:${request.session_id}`
 
   // Check for duplicate submission
-  const existing = await db.orders.findOne({ idempotency_key: idempotencyKey });
+  const existing = await db.orders.findOne({ idempotency_key: idempotencyKey })
   if (existing) {
-    return { order_id: existing.id };
+    return { order_id: existing.id }
   }
 
   // Create order record in pending state
@@ -947,23 +948,25 @@ export async function submitOrder(request: OrderRequest): Promise<{ order_id: st
     user_id: request.user_id,
     product_id: request.product_id,
     quantity: request.quantity,
-    status: 'pending',
+    status: "pending",
     idempotency_key: idempotencyKey,
-    created_at: new Date()
-  });
+    created_at: new Date(),
+  })
 
   // Queue for async processing
-  await sqs.send(new SendMessageCommand({
-    QueueUrl: ORDER_QUEUE_URL,
-    MessageBody: JSON.stringify({
-      order_id: orderId,
-      ...request
+  await sqs.send(
+    new SendMessageCommand({
+      QueueUrl: ORDER_QUEUE_URL,
+      MessageBody: JSON.stringify({
+        order_id: orderId,
+        ...request,
+      }),
+      MessageDeduplicationId: idempotencyKey,
+      MessageGroupId: request.user_id, // Ensures per-user ordering
     }),
-    MessageDeduplicationId: idempotencyKey,
-    MessageGroupId: request.user_id // Ensures per-user ordering
-  }));
+  )
 
-  return { order_id: orderId };
+  return { order_id: orderId }
 }
 ```
 
@@ -971,80 +974,79 @@ export async function submitOrder(request: OrderRequest): Promise<{ order_id: st
 
 ```typescript collapse={1-15, 70-85}
 // order-processor.ts
-import { SQSEvent, SQSRecord } from 'aws-lambda';
-import Stripe from 'stripe';
+import { SQSEvent, SQSRecord } from "aws-lambda"
+import Stripe from "stripe"
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 interface OrderMessage {
-  order_id: string;
-  user_id: string;
-  product_id: string;
-  quantity: number;
-  shipping_address: Address;
-  payment_method_id: string;
-  session_id: string;
+  order_id: string
+  user_id: string
+  product_id: string
+  quantity: number
+  shipping_address: Address
+  payment_method_id: string
+  session_id: string
 }
 
 export async function handler(event: SQSEvent): Promise<void> {
   for (const record of event.Records) {
-    await processOrder(record);
+    await processOrder(record)
   }
 }
 
 async function processOrder(record: SQSRecord): Promise<void> {
-  const message: OrderMessage = JSON.parse(record.body);
+  const message: OrderMessage = JSON.parse(record.body)
 
   try {
     // 1. Verify reservation still valid
-    const reservation = await getReservation(message.product_id, message.session_id);
+    const reservation = await getReservation(message.product_id, message.session_id)
     if (!reservation) {
-      await markOrderFailed(message.order_id, 'reservation_expired');
-      return;
+      await markOrderFailed(message.order_id, "reservation_expired")
+      return
     }
 
     // 2. Process payment
     const paymentIntent = await stripe.paymentIntents.create({
       amount: calculateTotal(message.product_id, message.quantity),
-      currency: 'usd',
+      currency: "usd",
       payment_method: message.payment_method_id,
       confirm: true,
-      idempotency_key: `payment_${message.order_id}`
-    });
+      idempotency_key: `payment_${message.order_id}`,
+    })
 
-    if (paymentIntent.status !== 'succeeded') {
-      await releaseReservation(message.product_id, message.session_id);
-      await markOrderFailed(message.order_id, 'payment_failed');
-      return;
+    if (paymentIntent.status !== "succeeded") {
+      await releaseReservation(message.product_id, message.session_id)
+      await markOrderFailed(message.order_id, "payment_failed")
+      return
     }
 
     // 3. Confirm inventory (remove from reserved set)
-    await confirmReservation(message.product_id, message.session_id);
+    await confirmReservation(message.product_id, message.session_id)
 
     // 4. Update order status
     await db.orders.update(message.order_id, {
-      status: 'confirmed',
+      status: "confirmed",
       payment_intent_id: paymentIntent.id,
-      confirmed_at: new Date()
-    });
+      confirmed_at: new Date(),
+    })
 
     // 5. Send confirmation
-    await sendOrderConfirmation(message.order_id);
-
+    await sendOrderConfirmation(message.order_id)
   } catch (error) {
     // Let SQS retry with exponential backoff
-    throw error;
+    throw error
   }
 }
 
 async function markOrderFailed(orderId: string, reason: string): Promise<void> {
   await db.orders.update(orderId, {
-    status: 'failed',
-    failure_reason: reason
-  });
+    status: "failed",
+    failure_reason: reason,
+  })
 
   // Notify user
-  await sendOrderFailureNotification(orderId, reason);
+  await sendOrderFailureNotification(orderId, reason)
 }
 ```
 
@@ -1055,34 +1057,34 @@ Orders that fail after max retries go to a Dead Letter Queue (DLQ) for manual re
 ```typescript
 // dlq-processor.ts
 export async function handleDeadLetter(record: SQSRecord): Promise<void> {
-  const message = JSON.parse(record.body);
+  const message = JSON.parse(record.body)
 
   // Log for investigation
-  console.error('Order failed permanently', {
+  console.error("Order failed permanently", {
     order_id: message.order_id,
     attempts: record.attributes.ApproximateReceiveCount,
-    error: record.attributes.DeadLetterQueueSourceArn
-  });
+    error: record.attributes.DeadLetterQueueSourceArn,
+  })
 
   // Alert ops team
   await pagerduty.createIncident({
     title: `Flash sale order failed: ${message.order_id}`,
-    severity: 'high'
-  });
+    severity: "high",
+  })
 
   // Release inventory back to pool
-  await releaseReservation(message.product_id, message.session_id);
+  await releaseReservation(message.product_id, message.session_id)
 }
 ```
 
 **Design decisions:**
 
-| Decision | Rationale |
-|----------|-----------|
-| SQS FIFO queue | Exactly-once processing, per-user ordering |
-| Idempotency key | Prevents duplicate orders on retry |
+| Decision                    | Rationale                                          |
+| --------------------------- | -------------------------------------------------- |
+| SQS FIFO queue              | Exactly-once processing, per-user ordering         |
+| Idempotency key             | Prevents duplicate orders on retry                 |
 | Payment before confirmation | Never confirm inventory without successful payment |
-| DLQ for failures | Ensures no order is silently lost |
+| DLQ for failures            | Ensures no order is silently lost                  |
 
 ## Bot Detection and Fairness
 
@@ -1123,7 +1125,7 @@ Rules:
     Action: Block
     Statement:
       RateBasedStatement:
-        Limit: 100  # requests per 5 minutes per IP
+        Limit: 100 # requests per 5 minutes per IP
         AggregateKeyType: IP
 
   - Name: BlockKnownBots
@@ -1138,7 +1140,7 @@ Rules:
       NotStatement:
         Statement:
           GeoMatchStatement:
-            CountryCodes: [US, CA, GB, DE]  # Allowed countries
+            CountryCodes: [US, CA, GB, DE] # Allowed countries
 ```
 
 **Layer 2: Application-level detection**
@@ -1146,52 +1148,53 @@ Rules:
 ```typescript collapse={1-5, 35-45}
 // bot-detection.ts
 interface BotSignals {
-  score: number;
-  signals: string[];
+  score: number
+  signals: string[]
 }
 
 export function detectBot(request: Request): BotSignals {
-  const signals: string[] = [];
-  let score = 0;
+  const signals: string[] = []
+  let score = 0
 
   // Device fingerprint consistency
-  const fp = request.headers.get('x-device-fingerprint');
+  const fp = request.headers.get("x-device-fingerprint")
   if (!fp || fp.length < 32) {
-    signals.push('missing_fingerprint');
-    score += 30;
+    signals.push("missing_fingerprint")
+    score += 30
   }
 
   // Behavioral signals
-  const timing = parseTimingHeader(request);
-  if (timing.pageLoadToAction < 500) { // < 500ms is suspicious
-    signals.push('fast_interaction');
-    score += 25;
+  const timing = parseTimingHeader(request)
+  if (timing.pageLoadToAction < 500) {
+    // < 500ms is suspicious
+    signals.push("fast_interaction")
+    score += 25
   }
 
   // Browser consistency
-  const ua = request.headers.get('user-agent');
-  const acceptLang = request.headers.get('accept-language');
+  const ua = request.headers.get("user-agent")
+  const acceptLang = request.headers.get("accept-language")
   if (isHeadlessBrowser(ua) || !acceptLang) {
-    signals.push('headless_indicators');
-    score += 40;
+    signals.push("headless_indicators")
+    score += 40
   }
 
   // Known residential proxy detection
-  const ip = getClientIP(request);
+  const ip = getClientIP(request)
   if (await isResidentialProxy(ip)) {
-    signals.push('residential_proxy');
-    score += 20;
+    signals.push("residential_proxy")
+    score += 20
   }
 
-  return { score, signals };
+  return { score, signals }
 }
 
 export function shouldChallenge(signals: BotSignals): boolean {
-  return signals.score >= 50;
+  return signals.score >= 50
 }
 
 export function shouldBlock(signals: BotSignals): boolean {
-  return signals.score >= 80;
+  return signals.score >= 80
 }
 ```
 
@@ -1202,28 +1205,27 @@ export function shouldBlock(signals: BotSignals): boolean {
 export async function validateQueueJoin(
   userId: string,
   deviceFingerprint: string,
-  saleId: string
+  saleId: string,
 ): Promise<{ allowed: boolean; reason?: string }> {
-
   // Check for duplicate user
-  const existingEntry = await findUserInQueue(saleId, userId);
+  const existingEntry = await findUserInQueue(saleId, userId)
   if (existingEntry) {
-    return { allowed: false, reason: 'already_in_queue' };
+    return { allowed: false, reason: "already_in_queue" }
   }
 
   // Check for fingerprint reuse (same device, different accounts)
-  const fpCount = await countFingerprintInQueue(saleId, deviceFingerprint);
+  const fpCount = await countFingerprintInQueue(saleId, deviceFingerprint)
   if (fpCount >= 2) {
-    return { allowed: false, reason: 'device_limit_exceeded' };
+    return { allowed: false, reason: "device_limit_exceeded" }
   }
 
   // Velocity check: how many queues has this user joined recently?
-  const recentJoins = await countRecentQueueJoins(userId, 3600); // last hour
+  const recentJoins = await countRecentQueueJoins(userId, 3600) // last hour
   if (recentJoins >= 5) {
-    return { allowed: false, reason: 'velocity_exceeded' };
+    return { allowed: false, reason: "velocity_exceeded" }
   }
 
-  return { allowed: true };
+  return { allowed: true }
 }
 ```
 
@@ -1236,14 +1238,14 @@ Users who arrive before sale start are randomized when the sale begins (prevents
 ```typescript
 export async function openSaleQueue(saleId: string): Promise<void> {
   // Get all users who arrived in pre-sale window (e.g., last 15 minutes)
-  const earlyArrivals = await getEarlyArrivals(saleId);
+  const earlyArrivals = await getEarlyArrivals(saleId)
 
   // Shuffle positions randomly
-  const shuffled = shuffleArray(earlyArrivals);
+  const shuffled = shuffleArray(earlyArrivals)
 
   // Assign positions 1, 2, 3, ...
   for (let i = 0; i < shuffled.length; i++) {
-    await updatePosition(shuffled[i].queue_ticket, i + 1);
+    await updatePosition(shuffled[i].queue_ticket, i + 1)
   }
 
   // Users arriving after sale start get position = current_max + 1 (true FIFO)
@@ -1253,19 +1255,15 @@ export async function openSaleQueue(saleId: string): Promise<void> {
 **2. Per-customer purchase limits**
 
 ```typescript
-export async function validatePurchaseLimit(
-  userId: string,
-  productId: string,
-  quantity: number
-): Promise<boolean> {
+export async function validatePurchaseLimit(userId: string, productId: string, quantity: number): Promise<boolean> {
   const existingOrders = await db.orders.count({
     user_id: userId,
     product_id: productId,
-    status: { $in: ['confirmed', 'pending'] }
-  });
+    status: { $in: ["confirmed", "pending"] },
+  })
 
-  const LIMIT_PER_USER = 2;
-  return existingOrders + quantity <= LIMIT_PER_USER;
+  const LIMIT_PER_USER = 2
+  return existingOrders + quantity <= LIMIT_PER_USER
 }
 ```
 
@@ -1275,12 +1273,12 @@ export async function validatePurchaseLimit(
 
 **Critical UX decisions:**
 
-| Decision | Implementation | Rationale |
-|----------|----------------|-----------|
-| Progress indicator | Position + estimated time + progress bar | Reduces anxiety; users know they're progressing |
-| No refresh needed | SPA with polling | Prevents users from losing position |
-| Transparent communication | Show exact position | Trust requires honesty |
-| Graceful degradation | Static HTML | Must work even if JS fails |
+| Decision                  | Implementation                           | Rationale                                       |
+| ------------------------- | ---------------------------------------- | ----------------------------------------------- |
+| Progress indicator        | Position + estimated time + progress bar | Reduces anxiety; users know they're progressing |
+| No refresh needed         | SPA with polling                         | Prevents users from losing position             |
+| Transparent communication | Show exact position                      | Trust requires honesty                          |
+| Graceful degradation      | Static HTML                              | Must work even if JS fails                      |
 
 **Optimistic UI for checkout:**
 
@@ -1288,27 +1286,26 @@ export async function validatePurchaseLimit(
 // checkout-ui.ts
 async function submitOrder(orderData: OrderData): Promise<void> {
   // Optimistic: show "Processing..." immediately
-  setOrderStatus('processing');
-  showConfirmationPreview(orderData);
+  setOrderStatus("processing")
+  showConfirmationPreview(orderData)
 
   try {
-    const { order_id } = await api.submitOrder(orderData);
+    const { order_id } = await api.submitOrder(orderData)
 
     // Poll for confirmation (async processing)
     pollOrderStatus(order_id, (status) => {
-      if (status === 'confirmed') {
-        setOrderStatus('confirmed');
-        showSuccessAnimation();
-      } else if (status === 'failed') {
-        setOrderStatus('failed');
-        showRetryOption();
+      if (status === "confirmed") {
+        setOrderStatus("confirmed")
+        showSuccessAnimation()
+      } else if (status === "failed") {
+        setOrderStatus("failed")
+        showRetryOption()
       }
-    });
-
+    })
   } catch (error) {
     // Revert optimistic UI
-    setOrderStatus('error');
-    showErrorMessage(error);
+    setOrderStatus("error")
+    showErrorMessage(error)
   }
 }
 ```
@@ -1317,23 +1314,23 @@ async function submitOrder(orderData: OrderData): Promise<void> {
 
 **Polling vs WebSocket decision:**
 
-| Factor | Polling | WebSocket |
-|--------|---------|-----------|
-| Scale | Easy (stateless) | Hard (connection management) |
-| Latency | 5-10s | Sub-second |
-| Infrastructure | Simple | Complex |
-| Battery impact | Higher | Lower |
+| Factor         | Polling          | WebSocket                    |
+| -------------- | ---------------- | ---------------------------- |
+| Scale          | Easy (stateless) | Hard (connection management) |
+| Latency        | 5-10s            | Sub-second                   |
+| Infrastructure | Simple           | Complex                      |
+| Battery impact | Higher           | Lower                        |
 
 **Chosen: Adaptive polling** — Poll every 5s when far from front; every 1s when close.
 
 ```typescript
 function calculatePollInterval(position: number, totalAhead: number): number {
-  const progressPercent = 1 - (position / totalAhead);
+  const progressPercent = 1 - position / totalAhead
 
-  if (progressPercent > 0.9) return 1000;  // Top 10%: 1s
-  if (progressPercent > 0.7) return 2000;  // Top 30%: 2s
-  if (progressPercent > 0.5) return 3000;  // Top 50%: 3s
-  return 5000;                              // Back 50%: 5s
+  if (progressPercent > 0.9) return 1000 // Top 10%: 1s
+  if (progressPercent > 0.7) return 2000 // Top 30%: 2s
+  if (progressPercent > 0.5) return 3000 // Top 50%: 3s
+  return 5000 // Back 50%: 5s
 }
 ```
 
@@ -1343,38 +1340,38 @@ function calculatePollInterval(position: number, totalAhead: number): number {
 // flash-sale-state.ts
 interface FlashSaleState {
   // Queue state
-  queueTicket: string | null;
-  position: number | null;
-  status: 'idle' | 'queued' | 'admitted' | 'checkout' | 'completed' | 'expired';
+  queueTicket: string | null
+  position: number | null
+  status: "idle" | "queued" | "admitted" | "checkout" | "completed" | "expired"
 
   // Checkout state
-  checkoutToken: string | null;
-  checkoutExpiresAt: Date | null;
-  reservationId: string | null;
+  checkoutToken: string | null
+  checkoutExpiresAt: Date | null
+  reservationId: string | null
 
   // Order state
-  orderId: string | null;
-  orderStatus: 'pending' | 'processing' | 'confirmed' | 'failed' | null;
+  orderId: string | null
+  orderStatus: "pending" | "processing" | "confirmed" | "failed" | null
 }
 
 // State persisted to localStorage for tab recovery
 function persistState(state: FlashSaleState): void {
-  localStorage.setItem('flash-sale-state', JSON.stringify(state));
+  localStorage.setItem("flash-sale-state", JSON.stringify(state))
 }
 
 // Restore on page load (handles accidental tab close)
 function restoreState(): FlashSaleState | null {
-  const saved = localStorage.getItem('flash-sale-state');
-  if (!saved) return null;
+  const saved = localStorage.getItem("flash-sale-state")
+  if (!saved) return null
 
-  const state = JSON.parse(saved);
+  const state = JSON.parse(saved)
 
   // Check if checkout token is still valid
   if (state.checkoutExpiresAt && new Date(state.checkoutExpiresAt) < new Date()) {
-    return null; // Expired, start fresh
+    return null // Expired, start fresh
   }
 
-  return state;
+  return state
 }
 ```
 
@@ -1382,14 +1379,14 @@ function restoreState(): FlashSaleState | null {
 
 ### Cloud-Agnostic Components
 
-| Component | Purpose | Requirements |
-|-----------|---------|--------------|
-| CDN | Waiting room, static assets | Edge caching, high throughput |
-| Serverless compute | Queue service, APIs | Auto-scale, pay-per-use |
-| Key-value store | Inventory counters, tokens | Sub-ms latency, atomic operations |
-| Document store | Queue state | Single-digit ms, auto-scale |
-| Message queue | Order processing | Durability, exactly-once |
-| Relational DB | Orders, users | ACID, complex queries |
+| Component          | Purpose                     | Requirements                      |
+| ------------------ | --------------------------- | --------------------------------- |
+| CDN                | Waiting room, static assets | Edge caching, high throughput     |
+| Serverless compute | Queue service, APIs         | Auto-scale, pay-per-use           |
+| Key-value store    | Inventory counters, tokens  | Sub-ms latency, atomic operations |
+| Document store     | Queue state                 | Single-digit ms, auto-scale       |
+| Message queue      | Order processing            | Durability, exactly-once          |
+| Relational DB      | Orders, users               | ACID, complex queries             |
 
 ### AWS Reference Architecture
 
@@ -1432,24 +1429,24 @@ graph TB
 
 **Service configuration:**
 
-| Service | Configuration | Rationale |
-|---------|--------------|-----------|
-| CloudFront | Origin: S3 (static), Cache: 1 year | Waiting room must survive origin failure |
-| API Gateway | Throttling: 10K RPS, Burst: 5K | Protects backend during spike |
-| Lambda | Memory: 1024MB, Timeout: 30s, Reserved: 1000 | Predictable latency under load |
-| ElastiCache | Redis Cluster, 3 nodes, r6g.large | Sub-ms latency, failover |
-| DynamoDB | On-demand, Auto-scaling | Handles unpredictable load |
-| SQS FIFO | 3000 msg/sec, 14-day retention | Order durability |
-| RDS | Multi-AZ, db.r6g.xlarge, Read replicas | ACID + read scaling |
+| Service     | Configuration                                | Rationale                                |
+| ----------- | -------------------------------------------- | ---------------------------------------- |
+| CloudFront  | Origin: S3 (static), Cache: 1 year           | Waiting room must survive origin failure |
+| API Gateway | Throttling: 10K RPS, Burst: 5K               | Protects backend during spike            |
+| Lambda      | Memory: 1024MB, Timeout: 30s, Reserved: 1000 | Predictable latency under load           |
+| ElastiCache | Redis Cluster, 3 nodes, r6g.large            | Sub-ms latency, failover                 |
+| DynamoDB    | On-demand, Auto-scaling                      | Handles unpredictable load               |
+| SQS FIFO    | 3000 msg/sec, 14-day retention               | Order durability                         |
+| RDS         | Multi-AZ, db.r6g.xlarge, Read replicas       | ACID + read scaling                      |
 
 ### Self-Hosted Alternatives
 
-| Managed Service | Self-Hosted Option | Trade-off |
-|-----------------|-------------------|-----------|
-| ElastiCache | Redis Cluster on EC2 | More control, operational burden |
-| DynamoDB | Cassandra/ScyllaDB | Cost at scale, complexity |
-| SQS FIFO | Kafka | Higher throughput, operational complexity |
-| Lambda | Kubernetes + KEDA | Fine-grained control, cold starts |
+| Managed Service | Self-Hosted Option   | Trade-off                                 |
+| --------------- | -------------------- | ----------------------------------------- |
+| ElastiCache     | Redis Cluster on EC2 | More control, operational burden          |
+| DynamoDB        | Cassandra/ScyllaDB   | Cost at scale, complexity                 |
+| SQS FIFO        | Kafka                | Higher throughput, operational complexity |
+| Lambda          | Kubernetes + KEDA    | Fine-grained control, cold starts         |
 
 ## Variations
 
@@ -1462,32 +1459,36 @@ For e-commerce with dynamic inventory, replace token-based admission with real-t
 export async function attemptPurchase(
   productId: string,
   userId: string,
-  quantity: number
+  quantity: number,
 ): Promise<{ success: boolean; orderId?: string }> {
-
   // Rate limit first (protect backend)
-  const allowed = await rateLimiter.check(userId, 'purchase');
+  const allowed = await rateLimiter.check(userId, "purchase")
   if (!allowed) {
-    return { success: false };
+    return { success: false }
   }
 
   // Atomic inventory check + decrement
-  const result = await redis.eval(`
+  const result = await redis.eval(
+    `
     local count = redis.call('GET', KEYS[1])
     if tonumber(count) >= tonumber(ARGV[1]) then
       return redis.call('DECRBY', KEYS[1], ARGV[1])
     else
       return -1
     end
-  `, 1, `inventory:${productId}`, quantity);
+  `,
+    1,
+    `inventory:${productId}`,
+    quantity,
+  )
 
   if (result < 0) {
-    return { success: false }; // Sold out
+    return { success: false } // Sold out
   }
 
   // Proceed to order (inventory already decremented)
-  const orderId = await createOrder(productId, userId, quantity);
-  return { success: true, orderId };
+  const orderId = await createOrder(productId, userId, quantity)
+  return { success: true, orderId }
 }
 ```
 
@@ -1501,23 +1502,23 @@ Add priority tiers to queue service:
 // vip-queue.ts
 interface QueueEntry {
   // ... existing fields
-  tier: 'vip' | 'member' | 'standard';
-  tierJoinedAt: Date;
+  tier: "vip" | "member" | "standard"
+  tierJoinedAt: Date
 }
 
 export async function getNextPosition(saleId: string, tier: string): Promise<number> {
   // VIPs get positions 1-1000, members 1001-10000, standard 10001+
-  const tierOffsets = { vip: 0, member: 1000, standard: 10000 };
-  const offset = tierOffsets[tier];
+  const tierOffsets = { vip: 0, member: 1000, standard: 10000 }
+  const offset = tierOffsets[tier]
 
   const countInTier = await ddb.query({
-    TableName: 'FlashSaleQueue',
-    KeyConditionExpression: 'sale_id = :sid',
-    FilterExpression: 'tier = :tier',
-    ExpressionAttributeValues: { ':sid': saleId, ':tier': tier }
-  });
+    TableName: "FlashSaleQueue",
+    KeyConditionExpression: "sale_id = :sid",
+    FilterExpression: "tier = :tier",
+    ExpressionAttributeValues: { ":sid": saleId, ":tier": tier },
+  })
 
-  return offset + (countInTier.Count || 0) + 1;
+  return offset + (countInTier.Count || 0) + 1
 }
 ```
 
@@ -1530,30 +1531,30 @@ For extremely limited inventory (e.g., 100 items, 1M users), replace queue with 
 export async function enterRaffle(saleId: string, userId: string): Promise<void> {
   // Entry window: 1 hour before draw
   await ddb.put({
-    TableName: 'FlashSaleRaffle',
+    TableName: "FlashSaleRaffle",
     Item: {
       sale_id: saleId,
       user_id: userId,
       entry_id: uuid(),
-      entered_at: new Date().toISOString()
-    }
-  });
+      entered_at: new Date().toISOString(),
+    },
+  })
 }
 
 export async function drawWinners(saleId: string, count: number): Promise<string[]> {
   // Get all entries
-  const entries = await getAllEntries(saleId);
+  const entries = await getAllEntries(saleId)
 
   // Cryptographically random selection
-  const shuffled = cryptoShuffle(entries);
-  const winners = shuffled.slice(0, count);
+  const shuffled = cryptoShuffle(entries)
+  const winners = shuffled.slice(0, count)
 
   // Grant checkout tokens to winners
   for (const winner of winners) {
-    await grantCheckoutToken(winner.user_id, saleId);
+    await grantCheckoutToken(winner.user_id, saleId)
   }
 
-  return winners.map(w => w.user_id);
+  return winners.map((w) => w.user_id)
 }
 ```
 
@@ -1572,17 +1573,20 @@ Flash sale systems require coordinated defense at every layer:
 5. **Bot defense**: Multi-layer detection (WAF → behavioral → queue-level) raises the bar for attackers without blocking legitimate users.
 
 **What this design optimizes for:**
+
 - Zero overselling (100% inventory accuracy)
 - Fairness (transparent queue position)
 - Durability (no lost orders)
 - Scalability (1M+ concurrent users)
 
 **What it sacrifices:**
+
 - Latency (queue wait time)
 - Simplicity (multiple coordinated services)
 - Dynamic inventory (pre-allocation model)
 
 **Known limitations:**
+
 - Token expiration requires careful tuning (too short: frustrated users; too long: wasted inventory)
 - Sophisticated bots with residential proxies remain challenging
 - VIP tiers can feel unfair to standard users

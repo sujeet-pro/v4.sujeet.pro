@@ -50,13 +50,14 @@ The mental model: **sharding solves capacity, replication solves availability**.
 
 **These are independent design axes:**
 
-| Axis | Options | Determines |
-|------|---------|------------|
-| **Sharding strategy** | Hash, range, consistent hash, directory | Data distribution, query efficiency |
-| **Replication model** | Single-leader, multi-leader, leaderless | Consistency guarantees, write availability |
-| **Replication timing** | Sync, async, semi-sync | Durability vs. latency |
+| Axis                   | Options                                 | Determines                                 |
+| ---------------------- | --------------------------------------- | ------------------------------------------ |
+| **Sharding strategy**  | Hash, range, consistent hash, directory | Data distribution, query efficiency        |
+| **Replication model**  | Single-leader, multi-leader, leaderless | Consistency guarantees, write availability |
+| **Replication timing** | Sync, async, semi-sync                  | Durability vs. latency                     |
 
 Every combination is valid:
+
 - **CockroachDB** (v24.x): Range partitioning + Multi-Raft consensus—each 64MB range is an independent Raft group
 - **Cassandra/ScyllaDB**: Consistent hashing + leaderless replication—vnodes or tablets for load distribution
 - **DynamoDB**: Hash partitioning + quorum-based replication—partition key determines data placement
@@ -75,11 +76,13 @@ Apply a hash function to the shard key; the hash value determines the target sha
 **Mechanism**: `shard_id = hash(key) % num_shards`. Uniform hash functions distribute keys evenly regardless of key distribution.
 
 **When to use**:
+
 - Random point reads/writes (e.g., user profiles by user ID)
 - Write-heavy workloads needing even distribution
 - No range query requirements
 
 **Trade-offs**:
+
 - ✅ Even distribution with good hash function—prevents hot shards from skewed key distribution
 - ✅ Simple routing logic
 - ❌ Range queries require scatter-gather across all shards
@@ -94,11 +97,13 @@ Assign contiguous key ranges to each shard. Adjacent keys live on the same shard
 **Mechanism**: Define split points (e.g., `[A-M] → Shard 1, [N-Z] → Shard 2`). Keys within a range route to the same shard.
 
 **When to use**:
+
 - Time-series data (partition by time bucket)
 - Range scan requirements (e.g., "all orders from last week")
 - Data archival (drop old partitions)
 
 **Trade-offs**:
+
 - ✅ Efficient range queries—single shard scan instead of scatter-gather
 - ✅ Natural data locality for sequential access patterns
 - ✅ Easy archival—drop partitions for old time ranges
@@ -118,6 +123,7 @@ Hash both keys and nodes onto a virtual ring. Keys route to the next node clockw
 **Why it exists**: Standard hash partitioning (`hash % N`) remaps nearly all keys when N changes. Consistent hashing minimizes disruption during scaling.
 
 **Virtual nodes (vnodes)**: Each physical node claims multiple positions on the ring. Benefits:
+
 - Smoother load distribution (more tokens = finer granularity)
 - Faster rebalancing when nodes join/leave
 - Better utilization of heterogeneous hardware (more vnodes for beefier machines)
@@ -129,6 +135,7 @@ Cassandra historically recommended 256 vnodes per node, later reduced to 16-32 f
 **ScyllaDB Tablets (2024)**: ScyllaDB's new replication architecture replaces legacy vnodes with "tablets"—dynamically redistributed data units. This achieves **30x faster** scaling operations and **50% reduction** in network costs compared to traditional vnode-based consistent hashing.
 
 **Trade-offs**:
+
 - ✅ Minimal key remapping during scaling (only ~1/N keys move)
 - ✅ Natural load balancing with vnodes
 - ❌ Ring management adds operational complexity
@@ -144,11 +151,13 @@ A lookup service maps keys to shard locations. Maximum flexibility at the cost o
 **Mechanism**: Every read/write first queries the directory service to find the target shard. The directory can implement any mapping logic—hash, range, or custom rules.
 
 **When to use**:
+
 - Custom shard placement rules (e.g., isolate high-traffic tenants)
 - Gradual migration between sharding schemes
 - Regulatory requirements (data residency)
 
 **Trade-offs**:
+
 - ✅ Maximum flexibility—any mapping logic, any rebalancing strategy
 - ✅ Can move individual keys without full resharding
 - ❌ Directory becomes SPOF and latency bottleneck
@@ -163,14 +172,14 @@ Vitess (used by YouTube since 2011, Slack, Pinterest, Square) maintains a topolo
 
 ### Sharding Strategy Decision Matrix
 
-| Factor | Hash | Range | Consistent Hash | Directory |
-|--------|------|-------|-----------------|-----------|
-| Point queries | ✅ Single shard | ✅ Single shard | ✅ Single shard | ✅ Single shard |
-| Range queries | ❌ Scatter-gather | ✅ Single shard | ❌ Scatter-gather | Depends on mapping |
-| Write distribution | ✅ Even | ❌ Hot spots likely | ✅ Even with vnodes | Configurable |
-| Adding nodes | ❌ Full rehash | Manual split | ✅ Minimal remapping | Manual |
-| Operational complexity | Low | Medium | Medium | High |
-| Flexibility | Low | Medium | Low | High |
+| Factor                 | Hash              | Range               | Consistent Hash      | Directory          |
+| ---------------------- | ----------------- | ------------------- | -------------------- | ------------------ |
+| Point queries          | ✅ Single shard   | ✅ Single shard     | ✅ Single shard      | ✅ Single shard    |
+| Range queries          | ❌ Scatter-gather | ✅ Single shard     | ❌ Scatter-gather    | Depends on mapping |
+| Write distribution     | ✅ Even           | ❌ Hot spots likely | ✅ Even with vnodes  | Configurable       |
+| Adding nodes           | ❌ Full rehash    | Manual split        | ✅ Minimal remapping | Manual             |
+| Operational complexity | Low               | Medium              | Medium               | High               |
+| Flexibility            | Low               | Medium              | Low                  | High               |
 
 ## Replication Models
 
@@ -185,11 +194,13 @@ One node (leader) accepts all writes; followers replicate from the leader and se
 **Why it exists**: Simplest model to reason about. No conflict resolution needed—all writes serialize through one node.
 
 **When to use**:
+
 - Strong consistency requirements
 - Moderate write throughput (single leader is bottleneck)
 - Simpler operational model preferred
 
 **Trade-offs**:
+
 - ✅ No write conflicts—single serialization point
 - ✅ Simpler to reason about and debug
 - ✅ Strong consistency achievable (read from leader)
@@ -210,16 +221,19 @@ Multiple nodes accept writes independently, then replicate to each other.
 **Why it exists**: Single-leader can't scale writes or survive leader datacenter failure. Multi-leader allows writes in every region with local latency.
 
 **Conflict resolution strategies**:
+
 - **Last-write-wins (LWW)**: Timestamp determines winner. Simple but loses data.
 - **Merge**: Application-specific logic combines conflicting values (e.g., union of sets).
 - **Custom resolution**: Application callback decides winner.
 
 **When to use**:
+
 - Multi-region deployments needing local write latency
 - Offline-capable clients (each client is a "leader")
 - High write availability requirements
 
 **Trade-offs**:
+
 - ✅ Local write latency in each region
 - ✅ Survives datacenter failures without failover
 - ✅ Higher write throughput (multiple leaders)
@@ -238,6 +252,7 @@ Any node accepts reads and writes. Clients contact multiple nodes; quorum determ
 **Why it exists**: No leader means no single point of failure and no failover. Any node can serve any request.
 
 **Quorum configurations**:
+
 - `N=3, W=2, R=2`: Balanced reads/writes, tolerates 1 failure
 - `N=3, W=3, R=1`: Fast reads, slow writes, no write tolerance
 - `N=3, W=1, R=3`: Fast writes, slow reads, no read tolerance
@@ -245,11 +260,13 @@ Any node accepts reads and writes. Clients contact multiple nodes; quorum determ
 **Read repair and anti-entropy**: Stale replicas are updated during reads (read repair) or background synchronization (anti-entropy/Merkle trees).
 
 **When to use**:
+
 - High availability requirements
 - Can tolerate eventual consistency
 - No single point of failure acceptable
 
 **Trade-offs**:
+
 - ✅ No leader = no failover needed
 - ✅ High availability (any quorum serves requests)
 - ✅ Tunable consistency via quorum settings
@@ -260,6 +277,7 @@ Any node accepts reads and writes. Clients contact multiple nodes; quorum determ
 **Real-world**: Amazon DynamoDB, Apache Cassandra, Riak. DynamoDB's original paper (2007) introduced the quorum model that influenced a generation of databases.
 
 **Discord's ScyllaDB migration (2023)** results:
+
 - p99 read latency: **15ms** (vs. 40-125ms on Cassandra)
 - p99 write latency: **5ms** (vs. 5-70ms on Cassandra)
 - **50% fewer nodes** due to higher storage density
@@ -267,14 +285,14 @@ Any node accepts reads and writes. Clients contact multiple nodes; quorum determ
 
 ### Replication Model Decision Matrix
 
-| Factor | Single-Leader | Multi-Leader | Leaderless |
-|--------|---------------|--------------|------------|
-| Write consistency | ✅ Strong (via leader) | ❌ Conflicts possible | ❌ Eventual |
-| Write availability | ❌ Leader SPOF | ✅ Any leader | ✅ Any quorum |
-| Write throughput | ❌ Single bottleneck | ✅ Scales with leaders | ✅ Scales with W |
-| Read consistency | Configurable | ❌ Eventual | Configurable via R |
-| Operational complexity | Low | High (conflicts) | Medium |
-| Failover needed | Yes | No | No |
+| Factor                 | Single-Leader          | Multi-Leader           | Leaderless         |
+| ---------------------- | ---------------------- | ---------------------- | ------------------ |
+| Write consistency      | ✅ Strong (via leader) | ❌ Conflicts possible  | ❌ Eventual        |
+| Write availability     | ❌ Leader SPOF         | ✅ Any leader          | ✅ Any quorum      |
+| Write throughput       | ❌ Single bottleneck   | ✅ Scales with leaders | ✅ Scales with W   |
+| Read consistency       | Configurable           | ❌ Eventual            | Configurable via R |
+| Operational complexity | Low                    | High (conflicts)       | Medium             |
+| Failover needed        | Yes                    | No                     | No                 |
 
 ## Synchronous vs. Asynchronous Replication
 
@@ -323,6 +341,7 @@ How clients find the right node for their request.
 ### Write Routing
 
 Writes must reach nodes that accept writes:
+
 - **Single-leader**: Route to leader (failover-aware routing)
 - **Multi-leader**: Route to local leader (region-aware routing)
 - **Leaderless**: Route to W replicas (any W of N)
@@ -332,6 +351,7 @@ Writes must reach nodes that accept writes:
 **Read-your-writes consistency**: After a write, subsequent reads see that write.
 
 Implementation options:
+
 1. **Read from leader**: Guarantees consistency but doesn't scale
 2. **Sticky sessions**: Client always reads from same replica
 3. **Version tracking**: Client tracks last write version; read waits for replica to catch up
@@ -368,6 +388,7 @@ Replication lag is the delay between a write on the leader and its visibility on
 ### Monitoring Lag
 
 Essential metrics:
+
 - **Replication lag (seconds)**: Primary indicator of follower freshness
 - **Lag percentiles (P50, P99)**: Average lag hides spikes
 - **Lag by replica**: Identifies problematic followers
@@ -385,45 +406,45 @@ Choosing sharding and replication strategies requires analyzing your specific re
 
 #### 1. Access Patterns
 
-| Pattern | Recommended Sharding | Rationale |
-|---------|---------------------|-----------|
-| Random point reads/writes | Hash partitioning | Even distribution regardless of key patterns |
-| Range scans (time-series, logs) | Range partitioning | Sequential data on same shard |
-| Mixed point + range queries | Range with secondary hash indexes | Trade-off: range efficiency with some distribution |
-| Hot keys (celebrity users, viral posts) | Hash + write sharding or dedicated partitions | Spread load across multiple partitions |
-| Multi-tenant with isolation | Directory-based | Per-tenant shard placement control |
+| Pattern                                 | Recommended Sharding                          | Rationale                                          |
+| --------------------------------------- | --------------------------------------------- | -------------------------------------------------- |
+| Random point reads/writes               | Hash partitioning                             | Even distribution regardless of key patterns       |
+| Range scans (time-series, logs)         | Range partitioning                            | Sequential data on same shard                      |
+| Mixed point + range queries             | Range with secondary hash indexes             | Trade-off: range efficiency with some distribution |
+| Hot keys (celebrity users, viral posts) | Hash + write sharding or dedicated partitions | Spread load across multiple partitions             |
+| Multi-tenant with isolation             | Directory-based                               | Per-tenant shard placement control                 |
 
 #### 2. Consistency Requirements
 
-| Requirement | Replication Model | Replication Timing | Example Use Case |
-|-------------|-------------------|-------------------|------------------|
-| Strong consistency, serializable | Single-leader | Synchronous | Financial transactions, inventory |
-| Strong consistency, linearizable | Raft/Paxos consensus | Synchronous | Coordination services (etcd, ZooKeeper) |
-| Read-your-writes | Single-leader | Any (with version tracking) | User-facing CRUD operations |
-| Eventual (seconds OK) | Multi-leader or leaderless | Asynchronous | Social feeds, analytics |
-| Eventual (minutes OK) | Leaderless | Asynchronous | DNS, config distribution, logging |
+| Requirement                      | Replication Model          | Replication Timing          | Example Use Case                        |
+| -------------------------------- | -------------------------- | --------------------------- | --------------------------------------- |
+| Strong consistency, serializable | Single-leader              | Synchronous                 | Financial transactions, inventory       |
+| Strong consistency, linearizable | Raft/Paxos consensus       | Synchronous                 | Coordination services (etcd, ZooKeeper) |
+| Read-your-writes                 | Single-leader              | Any (with version tracking) | User-facing CRUD operations             |
+| Eventual (seconds OK)            | Multi-leader or leaderless | Asynchronous                | Social feeds, analytics                 |
+| Eventual (minutes OK)            | Leaderless                 | Asynchronous                | DNS, config distribution, logging       |
 
 #### 3. Scale Thresholds
 
-| Scale Factor | Threshold | Recommended Approach |
-|--------------|-----------|---------------------|
-| Operations/sec | < 10K | Single node with read replicas may suffice |
-| Operations/sec | 10K-100K | Replication + connection pooling + caching |
-| Operations/sec | > 100K | Sharding required |
-| Data size | < 100GB | Single node (with backups) |
-| Data size | 100GB-1TB | Replication for availability |
-| Data size | > 1TB | Sharding required |
-| Write:read ratio | > 1:10 | Single-leader often sufficient |
-| Write:read ratio | > 1:1 | Consider multi-leader or leaderless |
+| Scale Factor     | Threshold | Recommended Approach                       |
+| ---------------- | --------- | ------------------------------------------ |
+| Operations/sec   | < 10K     | Single node with read replicas may suffice |
+| Operations/sec   | 10K-100K  | Replication + connection pooling + caching |
+| Operations/sec   | > 100K    | Sharding required                          |
+| Data size        | < 100GB   | Single node (with backups)                 |
+| Data size        | 100GB-1TB | Replication for availability               |
+| Data size        | > 1TB     | Sharding required                          |
+| Write:read ratio | > 1:10    | Single-leader often sufficient             |
+| Write:read ratio | > 1:1     | Consider multi-leader or leaderless        |
 
 #### 4. Operational Capacity
 
-| Team Capability | Recommended Approach |
-|-----------------|---------------------|
-| No dedicated database team | Managed services (RDS, DynamoDB, Cloud Spanner) |
-| Small SRE team | Simpler replication (single-leader), managed sharding |
-| Large platform team | Self-hosted with custom tooling (Vitess, CockroachDB) |
-| Global operations | Multi-region with automated failover |
+| Team Capability            | Recommended Approach                                  |
+| -------------------------- | ----------------------------------------------------- |
+| No dedicated database team | Managed services (RDS, DynamoDB, Cloud Spanner)       |
+| Small SRE team             | Simpler replication (single-leader), managed sharding |
+| Large platform team        | Self-hosted with custom tooling (Vitess, CockroachDB) |
+| Global operations          | Multi-region with automated failover                  |
 
 ### Decision Tree
 
@@ -453,13 +474,13 @@ Start: What's your primary bottleneck?
 
 Reference points from production systems (as of 2024):
 
-| System | QPS | Latency | Scale | Architecture |
-|--------|-----|---------|-------|--------------|
-| Slack (Vitess) | 2.3M peak | 2ms p50, 11ms p99 | - | Directory + single-leader |
-| Stripe DocDB | 5M | - | 2,000+ shards, PB data | Directory + custom replication |
-| Uber Docstore | 40M+ reads/sec | - | Tens of PB | Partitioned + Raft |
-| Discord (ScyllaDB) | - | 15ms p99 read | Trillions of messages | Consistent hash + leaderless |
-| Netflix (Cassandra) | Millions/sec | - | PB data, 10K+ nodes | Consistent hash + leaderless |
+| System              | QPS            | Latency           | Scale                  | Architecture                   |
+| ------------------- | -------------- | ----------------- | ---------------------- | ------------------------------ |
+| Slack (Vitess)      | 2.3M peak      | 2ms p50, 11ms p99 | -                      | Directory + single-leader      |
+| Stripe DocDB        | 5M             | -                 | 2,000+ shards, PB data | Directory + custom replication |
+| Uber Docstore       | 40M+ reads/sec | -                 | Tens of PB             | Partitioned + Raft             |
+| Discord (ScyllaDB)  | -              | 15ms p99 read     | Trillions of messages  | Consistent hash + leaderless   |
+| Netflix (Cassandra) | Millions/sec   | -                 | PB data, 10K+ nodes    | Consistent hash + leaderless   |
 
 ## Resharding and Data Migration
 
@@ -477,30 +498,36 @@ As data grows, shards need to split. As traffic patterns change, shards need to 
 Stripe's DocDB (custom MongoDB-based system) serves **5 million QPS** across **2,000+ shards** and petabytes of data. Their Data Movement Platform enables zero-downtime migrations:
 
 **Phase 1 - Setup**:
+
 - Register migration intent in coordination service
 - Build indexes on destination shard
 - Set up Change Data Capture (CDC) from source
 
 **Phase 2 - Bulk Copy**:
+
 - Snapshot source shard at point-in-time
 - Bulk load to destination in sort order (B-tree friendly insertion)
 - CDC captures writes during bulk copy
 
 **Phase 3 - Catch-up**:
+
 - Apply CDC changes to destination
 - Repeat until lag is minimal (seconds)
 
 **Phase 4 - Cutover**:
+
 - Brief write pause (<2 seconds)
 - Apply final CDC batch
 - Update routing to point to destination
 - Resume writes
 
 **Phase 5 - Verification**:
+
 - Point-in-time comparison between source and destination
 - Reconcile any discrepancies (automatic rollback if issues detected)
 
 **Phase 6 - Cleanup**:
+
 - Mark migration complete
 - Tombstone source data
 - Remove CDC pipeline
@@ -528,9 +555,10 @@ Raft powers etcd, CockroachDB, TiDB, and is the most widely-deployed consensus i
 **Core mechanism**: Leader election + log replication. One node is elected leader; all writes go through the leader; the leader replicates log entries to followers and commits when a majority acknowledges.
 
 **Key extensions in production:**
-- **PreVote**: Prevents disruptive elections when a rejoining node (with outdated log) tries to start an election. The node first checks if it *could* win before incrementing its term.
+
+- **PreVote**: Prevents disruptive elections when a rejoining node (with outdated log) tries to start an election. The node first checks if it _could_ win before incrementing its term.
 - **Leadership transfer**: Orderly handoff during planned maintenance or when a better leader candidate exists.
-- **Membership changes**: One node at a time, taking effect when the configuration entry is *applied* (not just added to log).
+- **Membership changes**: One node at a time, taking effect when the configuration entry is _applied_ (not just added to log).
 
 **Why odd node counts**: 3 nodes tolerate 1 failure; 4 nodes also tolerate only 1 failure (need majority). Adding nodes doesn't always improve fault tolerance.
 
@@ -571,11 +599,13 @@ Node failures, network partitions, and split-brain scenarios require careful han
 **Promotion**: New leader starts accepting writes. Old leader (if still alive) must step down.
 
 **Risks**:
+
 - **Split-brain**: Old leader doesn't know it's been replaced, accepts writes → data divergence
 - **Data loss**: Async replication means new leader may miss recent writes
 - **Cascading failures**: Failover load causes new leader to fail
 
 **Fencing**: Prevent split-brain by ensuring old leader can't accept writes:
+
 - **STONITH (Shoot The Other Node In The Head)**: Power off the old leader
 - **Fencing tokens**: Monotonically increasing tokens; storage rejects old tokens
 - **Lease expiration**: Leader's write permission expires; must reacquire
@@ -607,45 +637,51 @@ Operating sharded, replicated systems requires comprehensive observability.
 ### Essential Metrics
 
 **Per-shard metrics**:
+
 - Query throughput (reads/writes per second)
 - Query latency (P50, P95, P99)
 - Data size and growth rate
 - Connection count
 
 **Replication metrics**:
+
 - Replication lag (seconds behind leader)
 - Replication throughput (bytes/second)
 - Follower health status
 
 **Cluster-wide metrics**:
+
 - Shard balance (data distribution skew)
 - Hot shard detection (throughput imbalance)
 - Cross-shard query rate (indicator of shard key problems)
 
 ### Alerting Thresholds
 
-| Metric | Warning | Critical | Action |
-|--------|---------|----------|--------|
-| Replication lag | > 10s | > 60s | Investigate follower load; consider failover |
-| Shard size imbalance | > 20% | > 50% | Rebalance or reshard |
-| Query latency P99 | > 2x baseline | > 5x baseline | Check for hot partitions, compaction |
-| Cross-shard query rate | > 10% | > 25% | Review shard key design |
+| Metric                 | Warning       | Critical      | Action                                       |
+| ---------------------- | ------------- | ------------- | -------------------------------------------- |
+| Replication lag        | > 10s         | > 60s         | Investigate follower load; consider failover |
+| Shard size imbalance   | > 20%         | > 50%         | Rebalance or reshard                         |
+| Query latency P99      | > 2x baseline | > 5x baseline | Check for hot partitions, compaction         |
+| Cross-shard query rate | > 10%         | > 25%         | Review shard key design                      |
 
 ### Operational Runbooks
 
 **Replication lag spike**:
+
 1. Check follower CPU/IO—is it keeping up with apply?
 2. Check network between leader and follower
 3. Check for long-running transactions blocking replication
 4. Consider promoting a less-lagged replica if lag is critical
 
 **Hot shard detected**:
+
 1. Identify hot keys (query logs, slow query analysis)
 2. Short-term: Add caching layer for hot data
 3. Medium-term: Add read replicas for hot shard
 4. Long-term: Reshard to split hot partition
 
 **Split-brain suspected**:
+
 1. Check network connectivity between nodes
 2. Verify quorum state on each partition
 3. If confirmed split-brain: isolate the minority partition (network block)
@@ -706,12 +742,14 @@ Operating sharded, replicated systems requires comprehensive observability.
 Sharding and replication are independent design axes with distinct trade-offs:
 
 **Sharding strategy** determines data distribution and query efficiency:
+
 - **Hash partitioning**: Even distribution, but range queries require scatter-gather
 - **Range partitioning**: Efficient scans, but hot spots on recent/popular data
 - **Consistent hashing**: Minimal disruption during scaling, but resharding costs remain high
 - **Directory-based**: Maximum flexibility, but adds operational complexity and SPOF risk
 
 **Replication model** determines consistency and availability:
+
 - **Single-leader**: Simplest to reason about, but leader is SPOF and write bottleneck
 - **Multi-leader**: Multi-region writes with local latency, but requires conflict resolution
 - **Leaderless**: No SPOF, highly available, but eventual consistency only
@@ -719,6 +757,7 @@ Sharding and replication are independent design axes with distinct trade-offs:
 **Consensus protocols** (Raft, Paxos) enable strong consistency with replication. Multi-Raft scales to hundreds of thousands of consensus groups per cluster.
 
 **Production patterns (2024)**:
+
 - **Slack** (Vitess, 2.3M QPS): Directory-based sharding + single-leader MySQL
 - **Discord** (ScyllaDB): Consistent hashing with tablets + leaderless replication
 - **Stripe** (DocDB, 5M QPS): Directory-based sharding + custom replication

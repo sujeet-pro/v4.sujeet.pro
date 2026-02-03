@@ -120,11 +120,11 @@ $$
 
 Research from the Knapsack ROI Report (2025) and Zeroheight Design Systems Report indicates typical efficiency gains:
 
-| Team Type         | Efficiency Gain Range | Average | Source                  |
-| ----------------- | --------------------- | ------- | ----------------------- |
-| Design Teams      | 31-50%                | ~38%    | Knapsack ROI Report     |
-| Development Teams | 20-47%                | ~31%    | Knapsack ROI Report     |
-| Combined (Mature) | 50-75%                | ~60%    | Zeroheight 2025 Survey  |
+| Team Type         | Efficiency Gain Range | Average | Source                 |
+| ----------------- | --------------------- | ------- | ---------------------- |
+| Design Teams      | 31-50%                | ~38%    | Knapsack ROI Report    |
+| Development Teams | 20-47%                | ~31%    | Knapsack ROI Report    |
+| Combined (Mature) | 50-75%                | ~60%    | Zeroheight 2025 Survey |
 
 Notable case studies: Salesforce Lightning achieved 60% productivity increase with 70% CSS reduction; IBM Carbon reported 75% design cost reduction and 66% development cost reduction. These represent mature systems with 3+ years of investment.
 
@@ -276,13 +276,13 @@ Establish the governance framework before component development begins—retrofi
 
 **Governance Failure Modes**
 
-| Failure Mode                   | Symptoms                                                          | Recovery                                                      |
-| ------------------------------ | ----------------------------------------------------------------- | ------------------------------------------------------------- |
-| **Bottleneck governance**      | Decision queue grows; teams build workarounds; adoption stalls    | Delegate categories; add async approval paths; SLA guarantees |
-| **Absent governance**          | Component drift; inconsistent patterns; "design system" in name   | Introduce lightweight review; define canonical patterns       |
-| **Hostile governance**         | Teams perceive system as obstacle; detachment rate climbs         | Survey friction points; simplify contribution; quick wins     |
-| **Scope creep**                | System tries to solve every problem; quality degrades             | Define explicit boundaries; say no to edge cases              |
-| **Zombie governance**          | Documented processes exist but aren't followed; reviews are       | Enforce or remove; dead rules erode trust                     |
+| Failure Mode              | Symptoms                                                        | Recovery                                                      |
+| ------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------- |
+| **Bottleneck governance** | Decision queue grows; teams build workarounds; adoption stalls  | Delegate categories; add async approval paths; SLA guarantees |
+| **Absent governance**     | Component drift; inconsistent patterns; "design system" in name | Introduce lightweight review; define canonical patterns       |
+| **Hostile governance**    | Teams perceive system as obstacle; detachment rate climbs       | Survey friction points; simplify contribution; quick wins     |
+| **Scope creep**           | System tries to solve every problem; quality degrades           | Define explicit boundaries; say no to edge cases              |
+| **Zombie governance**     | Documented processes exist but aren't followed; reviews are     | Enforce or remove; dead rules erode trust                     |
 
 The most common failure is bottleneck governance—centralized teams that can't keep pace with demand. The solution isn't removing governance but creating tiered approval: trivial changes self-serve, significant changes need review, breaking changes need RFC. Brad Frost describes this as treating the design system as a product with different support tiers.
 
@@ -307,19 +307,19 @@ Design system adoption succeeds or fails at the organizational layer, not the te
 
 ### Terminology
 
-| Term                              | Definition                                                                                                                             |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Design Token**                  | A named value representing a design decision (color, spacing, typography) in a platform-agnostic format                                |
-| **DTCG**                          | Design Tokens Community Group—W3C community group defining the interoperable token specification                                       |
-| **Federated Governance**          | A model where design system decisions are distributed across product teams with coordination from a small core team                    |
-| **Strangler Fig Pattern**         | A migration strategy where new functionality is built with the new system while legacy is incrementally replaced                       |
-| **Champion Program**              | A network of advocates embedded in product teams who drive adoption and provide feedback                                               |
-| **Headless Component Library**    | UI components providing behavior and accessibility without styling, allowing consuming teams to apply their own visual design          |
-| **RSC (React Server Components)** | A React architecture where components can render on the server, reducing client bundle size                                            |
-| **Changesets**                    | A versioning tool for monorepos that tracks changes at PR time and automates version bumps and changelog generation                    |
-| **Codemod**                       | An automated code transformation script (typically using jscodeshift) that migrates code between API versions                          |
-| **Detachment Rate**               | The percentage of component instances where teams have overridden or disconnected from the design system version                       |
-| **ROI (Return on Investment)**    | The ratio of net benefits (time savings + quality improvements - maintenance costs) to maintenance costs, expressed as a percentage    |
+| Term                              | Definition                                                                                                                          |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Design Token**                  | A named value representing a design decision (color, spacing, typography) in a platform-agnostic format                             |
+| **DTCG**                          | Design Tokens Community Group—W3C community group defining the interoperable token specification                                    |
+| **Federated Governance**          | A model where design system decisions are distributed across product teams with coordination from a small core team                 |
+| **Strangler Fig Pattern**         | A migration strategy where new functionality is built with the new system while legacy is incrementally replaced                    |
+| **Champion Program**              | A network of advocates embedded in product teams who drive adoption and provide feedback                                            |
+| **Headless Component Library**    | UI components providing behavior and accessibility without styling, allowing consuming teams to apply their own visual design       |
+| **RSC (React Server Components)** | A React architecture where components can render on the server, reducing client bundle size                                         |
+| **Changesets**                    | A versioning tool for monorepos that tracks changes at PR time and automates version bumps and changelog generation                 |
+| **Codemod**                       | An automated code transformation script (typically using jscodeshift) that migrates code between API versions                       |
+| **Detachment Rate**               | The percentage of component instances where teams have overridden or disconnected from the design system version                    |
+| **ROI (Return on Investment)**    | The ratio of net benefits (time savings + quality improvements - maintenance costs) to maintenance costs, expressed as a percentage |
 
 ### Summary
 
@@ -353,6 +353,5 @@ Design system adoption succeeds or fails at the organizational layer, not the te
 **Tools and Libraries**
 
 - [Radix Primitives](https://www.radix-ui.com/) - Headless component library with 32+ primitives
-- [React Aria Components](https://react-aria-components.adobe.com/) - Adobe's accessible React hooks library (40+ components)
 - [Changesets Documentation](https://github.com/changesets/changesets) - Monorepo versioning and changelog automation
 - [Vista SWAN Design System](https://vista.design/swan/) - Enterprise design system case study referenced in governance models

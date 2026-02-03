@@ -66,13 +66,13 @@ Rich text editors reduce to three core design decisions:
 
 The decision matrix:
 
-| Factor | Linear + contentEditable | Hierarchical + Custom |
-|--------|-------------------------|----------------------|
-| Implementation complexity | Low | High |
-| Browser consistency | Poor | Excellent |
-| Complex nesting (tables, nested lists) | Limited | Full support |
-| Collaboration integration | OT-friendly | OT or CRDT |
-| Bundle size | ~15KB (Quill) | ~22KB (Lexical), ~40KB (ProseMirror) |
+| Factor                                 | Linear + contentEditable | Hierarchical + Custom                |
+| -------------------------------------- | ------------------------ | ------------------------------------ |
+| Implementation complexity              | Low                      | High                                 |
+| Browser consistency                    | Poor                     | Excellent                            |
+| Complex nesting (tables, nested lists) | Limited                  | Full support                         |
+| Collaboration integration              | OT-friendly              | OT or CRDT                           |
+| Bundle size                            | ~15KB (Quill)            | ~22KB (Lexical), ~40KB (ProseMirror) |
 
 ## The Challenge
 
@@ -87,21 +87,21 @@ Browser text editing was designed for simple forms, not document authoring. The 
 
 ### Browser Constraints
 
-| Constraint | Impact | Mitigation |
-|-----------|--------|------------|
-| Main thread budget (16ms for 60fps) | Heavy DOM operations block typing | Transaction batching, incremental rendering |
-| DOM mutation overhead | Frequent updates cause layout thrashing | Virtual DOM or custom reconciler |
-| Selection API limitations | Can't programmatically set selection in some states | Shadow selection tracking |
-| `execCommand` deprecation | No standard API for formatting | Custom command implementations |
+| Constraint                          | Impact                                              | Mitigation                                  |
+| ----------------------------------- | --------------------------------------------------- | ------------------------------------------- |
+| Main thread budget (16ms for 60fps) | Heavy DOM operations block typing                   | Transaction batching, incremental rendering |
+| DOM mutation overhead               | Frequent updates cause layout thrashing             | Virtual DOM or custom reconciler            |
+| Selection API limitations           | Can't programmatically set selection in some states | Shadow selection tracking                   |
+| `execCommand` deprecation           | No standard API for formatting                      | Custom command implementations              |
 
 ### Scale Factors
 
-| Factor | Small Scale | Large Scale |
-|--------|-------------|-------------|
-| Document size | < 1,000 words | > 100,000 words |
-| Concurrent editors | 1-2 | 50+ |
-| Nesting depth | 2-3 levels | Unlimited (outliners, nested tables) |
-| Update frequency | < 1/sec | > 10/sec per user |
+| Factor             | Small Scale   | Large Scale                          |
+| ------------------ | ------------- | ------------------------------------ |
+| Document size      | < 1,000 words | > 100,000 words                      |
+| Concurrent editors | 1-2           | 50+                                  |
+| Nesting depth      | 2-3 levels    | Unlimited (outliners, nested tables) |
+| Update frequency   | < 1/sec       | > 10/sec per user                    |
 
 Large-scale documents require virtualization (rendering only visible blocks) and efficient position mapping. High concurrency demands robust conflict resolution.
 
@@ -121,23 +121,16 @@ Leverage browser's native editing. Observe mutations, extract operations, update
 
 ```typescript title="quill-delta-example.ts" collapse={1-2}
 // Quill Delta: linear sequence of operations
-import Quill from 'quill';
+import Quill from "quill"
 
 const delta = {
-  ops: [
-    { insert: 'Hello ' },
-    { insert: 'World', attributes: { bold: true } },
-    { insert: '\n' }
-  ]
-};
+  ops: [{ insert: "Hello " }, { insert: "World", attributes: { bold: true } }, { insert: "\n" }],
+}
 
 // Apply formatting: retain 6, apply bold to next 5 chars
 const formatBold = {
-  ops: [
-    { retain: 6 },
-    { retain: 5, attributes: { bold: true } }
-  ]
-};
+  ops: [{ retain: 6 }, { retain: 5, attributes: { bold: true } }],
+}
 ```
 
 **Best for:**
@@ -153,12 +146,12 @@ const formatBold = {
 
 **Implementation complexity:**
 
-| Aspect | Effort |
-|--------|--------|
-| Initial setup | Low |
-| Basic formatting | Low |
-| Complex nesting | High (fighting contentEditable) |
-| Collaboration | Medium (Delta is OT-friendly) |
+| Aspect           | Effort                          |
+| ---------------- | ------------------------------- |
+| Initial setup    | Low                             |
+| Basic formatting | Low                             |
+| Complex nesting  | High (fighting contentEditable) |
+| Collaboration    | Medium (Delta is OT-friendly)   |
 
 **Real-world example:**
 
@@ -188,60 +181,60 @@ Quill powers Slack's message composer. Linear Delta format suits chat where mess
 Define a schema specifying valid document structures. All changes flow through transactions that produce new immutable state. A reconciler syncs state to DOM. ProseMirror and Tiptap use this approach.
 
 ```typescript title="prosemirror-schema.ts" collapse={1-4, 25-30}
-import { Schema, NodeSpec, MarkSpec } from 'prosemirror-model';
+import { Schema, NodeSpec, MarkSpec } from "prosemirror-model"
 
 // Schema defines valid document structure
 const nodes: Record<string, NodeSpec> = {
-  doc: { content: 'block+' },
+  doc: { content: "block+" },
   paragraph: {
-    content: 'inline*',
-    group: 'block',
-    parseDOM: [{ tag: 'p' }],
-    toDOM: () => ['p', 0]
+    content: "inline*",
+    group: "block",
+    parseDOM: [{ tag: "p" }],
+    toDOM: () => ["p", 0],
   },
   heading: {
     attrs: { level: { default: 1 } },
-    content: 'inline*',
-    group: 'block',
-    parseDOM: [1, 2, 3, 4, 5, 6].map(level => ({
+    content: "inline*",
+    group: "block",
+    parseDOM: [1, 2, 3, 4, 5, 6].map((level) => ({
       tag: `h${level}`,
-      attrs: { level }
+      attrs: { level },
     })),
-    toDOM: node => [`h${node.attrs.level}`, 0]
+    toDOM: (node) => [`h${node.attrs.level}`, 0],
   },
-  text: { group: 'inline' }
-};
+  text: { group: "inline" },
+}
 
 const marks: Record<string, MarkSpec> = {
   bold: {
-    parseDOM: [{ tag: 'strong' }, { tag: 'b' }],
-    toDOM: () => ['strong', 0]
+    parseDOM: [{ tag: "strong" }, { tag: "b" }],
+    toDOM: () => ["strong", 0],
   },
   link: {
     attrs: { href: {} },
-    parseDOM: [{ tag: 'a[href]', getAttrs: dom => ({ href: (dom as HTMLElement).getAttribute('href') }) }],
-    toDOM: node => ['a', { href: node.attrs.href }, 0]
-  }
-};
+    parseDOM: [{ tag: "a[href]", getAttrs: (dom) => ({ href: (dom as HTMLElement).getAttribute("href") }) }],
+    toDOM: (node) => ["a", { href: node.attrs.href }, 0],
+  },
+}
 
-const schema = new Schema({ nodes, marks });
+const schema = new Schema({ nodes, marks })
 ```
 
 **Transaction-based state management:**
 
 ```typescript title="prosemirror-transaction.ts" collapse={1-3}
-import { EditorState, Transaction } from 'prosemirror-state';
-import { toggleMark } from 'prosemirror-commands';
+import { EditorState, Transaction } from "prosemirror-state"
+import { toggleMark } from "prosemirror-commands"
 
 // Every change creates a transaction
 function applyBold(state: EditorState): Transaction {
-  const { from, to } = state.selection;
-  const tr = state.tr.addMark(from, to, schema.marks.bold.create());
-  return tr;
+  const { from, to } = state.selection
+  const tr = state.tr.addMark(from, to, schema.marks.bold.create())
+  return tr
 }
 
 // State is immutable—applying transaction creates new state
-const newState = state.apply(transaction);
+const newState = state.apply(transaction)
 ```
 
 **Best for:**
@@ -257,13 +250,13 @@ const newState = state.apply(transaction);
 
 **Implementation complexity:**
 
-| Aspect | Effort |
-|--------|--------|
-| Initial setup | Medium |
-| Schema definition | Medium |
-| Custom node types | Medium |
-| Collaboration (via prosemirror-collab) | Medium |
-| Undo/redo | Low (built-in) |
+| Aspect                                 | Effort         |
+| -------------------------------------- | -------------- |
+| Initial setup                          | Medium         |
+| Schema definition                      | Medium         |
+| Custom node types                      | Medium         |
+| Collaboration (via prosemirror-collab) | Medium         |
+| Undo/redo                              | Low (built-in) |
 
 **Real-world example:**
 
@@ -294,25 +287,25 @@ The New York Times uses ProseMirror (via Tiptap wrapper) for article authoring. 
 Abandon contentEditable entirely. Capture input via hidden textarea or synthetic event handling. Maintain virtual selection state. Render document with complete control. Lexical (Meta) and modern Slate versions use this approach.
 
 ```typescript title="lexical-state.ts" collapse={1-4}
-import { $getRoot, $createParagraphNode, $createTextNode } from 'lexical';
-import { LexicalEditor } from 'lexical';
+import { $getRoot, $createParagraphNode, $createTextNode } from "lexical"
+import { LexicalEditor } from "lexical"
 
 // Lexical: All mutations happen in update callbacks
 editor.update(() => {
-  const root = $getRoot();
-  const paragraph = $createParagraphNode();
-  const text = $createTextNode('Hello World');
+  const root = $getRoot()
+  const paragraph = $createParagraphNode()
+  const text = $createTextNode("Hello World")
 
-  paragraph.append(text);
-  root.append(paragraph);
-});
+  paragraph.append(text)
+  root.append(paragraph)
+})
 
 // Read state in read callbacks
 editor.getEditorState().read(() => {
-  const root = $getRoot();
-  const textContent = root.getTextContent();
-  console.log(textContent); // "Hello World"
-});
+  const root = $getRoot()
+  const textContent = root.getTextContent()
+  console.log(textContent) // "Hello World"
+})
 ```
 
 **The `$` convention:**
@@ -332,13 +325,13 @@ Lexical uses `$`-prefixed functions (like `$getRoot()`, `$getSelection()`) that 
 
 **Implementation complexity:**
 
-| Aspect | Effort |
-|--------|--------|
-| Initial setup | High |
-| IME support | High |
-| Accessibility | High (must implement ARIA manually) |
+| Aspect                   | Effort                                    |
+| ------------------------ | ----------------------------------------- |
+| Initial setup            | High                                      |
+| IME support              | High                                      |
+| Accessibility            | High (must implement ARIA manually)       |
 | Performance optimization | Medium (framework handles reconciliation) |
-| Collaboration | Medium (integrates with Yjs) |
+| Collaboration            | Medium (integrates with Yjs)              |
 
 **Real-world example:**
 
@@ -356,16 +349,16 @@ Meta uses Lexical for Facebook and Instagram post composers. Custom rendering en
 
 ### Decision Matrix
 
-| Factor | Quill (contentEditable) | ProseMirror (Controlled) | Lexical (Custom) |
-|--------|------------------------|-------------------------|------------------|
-| Bundle size | 15KB | 40KB | 22KB |
-| Browser consistency | Poor | Good | Excellent |
-| Complex structures | Limited | Full | Full |
-| IME handling | Native | Native | Manual |
-| Accessibility | Native | Native + ARIA | Manual |
-| Learning curve | Low | Medium | Medium-High |
-| Collaboration | OT (Delta) | OT (prosemirror-collab) | CRDT (Yjs) |
-| Extensibility | Plugins | Schema + Plugins | Nodes + Commands |
+| Factor              | Quill (contentEditable) | ProseMirror (Controlled) | Lexical (Custom) |
+| ------------------- | ----------------------- | ------------------------ | ---------------- |
+| Bundle size         | 15KB                    | 40KB                     | 22KB             |
+| Browser consistency | Poor                    | Good                     | Excellent        |
+| Complex structures  | Limited                 | Full                     | Full             |
+| IME handling        | Native                  | Native                   | Manual           |
+| Accessibility       | Native                  | Native + ARIA            | Manual           |
+| Learning curve      | Low                     | Medium                   | Medium-High      |
+| Collaboration       | OT (Delta)              | OT (prosemirror-collab)  | CRDT (Yjs)       |
+| Extensibility       | Plugins                 | Schema + Plugins         | Nodes + Commands |
 
 ## Document Models Deep Dive
 
@@ -385,10 +378,10 @@ ProseMirror's document model is a tree of nodes, where the schema strictly defin
 // Positions: 0=before doc, 1=before "Hello", 6=after "Hello", 7=between paragraphs...
 
 // When inserting at position 3, all positions ≥3 shift
-import { Mapping, StepMap } from 'prosemirror-transform';
+import { Mapping, StepMap } from "prosemirror-transform"
 
-const map = new StepMap([3, 0, 5]); // At pos 3, delete 0, insert 5
-const newPos = map.map(10); // Position 10 becomes 15
+const map = new StepMap([3, 0, 5]) // At pos 3, delete 0, insert 5
+const newPos = map.map(10) // Position 10 becomes 15
 ```
 
 **Why flat marks instead of nested elements?**
@@ -406,27 +399,27 @@ Slate takes the opposite approach—no schema by default. The document is a recu
 **Core principles:**
 
 ```typescript title="slate-normalizer.ts" collapse={1-3}
-import { Editor, Transforms, Element, Node } from 'slate';
+import { Editor, Transforms, Element, Node } from "slate"
 
 // Custom normalizer: ensure paragraphs contain only text/inline elements
 const withParagraphsNormalized = (editor: Editor): Editor => {
-  const { normalizeNode } = editor;
+  const { normalizeNode } = editor
 
   editor.normalizeNode = ([node, path]) => {
-    if (Element.isElement(node) && node.type === 'paragraph') {
+    if (Element.isElement(node) && node.type === "paragraph") {
       for (const [child, childPath] of Node.children(editor, path)) {
         // If paragraph contains a block element, unwrap it
         if (Element.isElement(child) && !editor.isInline(child)) {
-          Transforms.unwrapNodes(editor, { at: childPath });
-          return; // Normalization is recursive—return after one fix
+          Transforms.unwrapNodes(editor, { at: childPath })
+          return // Normalization is recursive—return after one fix
         }
       }
     }
-    normalizeNode([node, path]);
-  };
+    normalizeNode([node, path])
+  }
 
-  return editor;
-};
+  return editor
+}
 ```
 
 **Why return after one fix?**
@@ -440,20 +433,16 @@ Delta represents documents as a sequence of operations applied to an empty docum
 ```typescript title="quill-delta-operations.ts"
 // Document: "Hello World" with "World" bold
 const doc = {
-  ops: [
-    { insert: 'Hello ' },
-    { insert: 'World', attributes: { bold: true } },
-    { insert: '\n' }
-  ]
-};
+  ops: [{ insert: "Hello " }, { insert: "World", attributes: { bold: true } }, { insert: "\n" }],
+}
 
 // Edit: Insert "Beautiful " before "World"
 const edit = {
   ops: [
-    { retain: 6 },           // Keep "Hello "
-    { insert: 'Beautiful ' }, // Insert new text
-  ]
-};
+    { retain: 6 }, // Keep "Hello "
+    { insert: "Beautiful " }, // Insert new text
+  ],
+}
 
 // Composed result: "Hello Beautiful World\n"
 ```
@@ -544,87 +533,87 @@ export class MentionNode extends DecoratorNode<JSX.Element> {
 The `beforeinput` event (W3C Input Events Level 2) fires before the browser modifies the DOM. This is the interception point for custom editors.
 
 ```typescript title="beforeinput-handling.ts"
-element.addEventListener('beforeinput', (e: InputEvent) => {
+element.addEventListener("beforeinput", (e: InputEvent) => {
   // inputType describes the editing action
   switch (e.inputType) {
-    case 'insertText':
-      e.preventDefault();
-      insertText(e.data!); // e.data contains the text
-      break;
+    case "insertText":
+      e.preventDefault()
+      insertText(e.data!) // e.data contains the text
+      break
 
-    case 'insertParagraph':
-      e.preventDefault();
-      insertParagraph();
-      break;
+    case "insertParagraph":
+      e.preventDefault()
+      insertParagraph()
+      break
 
-    case 'deleteContentBackward': // Backspace
-      e.preventDefault();
-      deleteBackward();
-      break;
+    case "deleteContentBackward": // Backspace
+      e.preventDefault()
+      deleteBackward()
+      break
 
-    case 'insertFromPaste':
-      e.preventDefault();
-      const html = e.dataTransfer?.getData('text/html');
-      const text = e.dataTransfer?.getData('text/plain');
-      handlePaste(html || text);
-      break;
+    case "insertFromPaste":
+      e.preventDefault()
+      const html = e.dataTransfer?.getData("text/html")
+      const text = e.dataTransfer?.getData("text/plain")
+      handlePaste(html || text)
+      break
 
-    case 'insertCompositionText':
+    case "insertCompositionText":
       // IME composition—cannot preventDefault during composition
       // Handle in compositionend instead
-      break;
+      break
   }
-});
+})
 ```
 
 **Key `inputType` values:**
 
-| inputType | Trigger | Cancelable |
-|-----------|---------|------------|
-| `insertText` | Typing | Yes |
-| `insertParagraph` | Enter | Yes |
-| `insertLineBreak` | Shift+Enter | Yes |
-| `deleteContentBackward` | Backspace | Yes |
-| `deleteContentForward` | Delete | Yes |
-| `insertFromPaste` | Ctrl+V | Yes |
-| `insertCompositionText` | IME | No (during composition) |
-| `historyUndo` | Ctrl+Z | Yes |
-| `historyRedo` | Ctrl+Y | Yes |
+| inputType               | Trigger     | Cancelable              |
+| ----------------------- | ----------- | ----------------------- |
+| `insertText`            | Typing      | Yes                     |
+| `insertParagraph`       | Enter       | Yes                     |
+| `insertLineBreak`       | Shift+Enter | Yes                     |
+| `deleteContentBackward` | Backspace   | Yes                     |
+| `deleteContentForward`  | Delete      | Yes                     |
+| `insertFromPaste`       | Ctrl+V      | Yes                     |
+| `insertCompositionText` | IME         | No (during composition) |
+| `historyUndo`           | Ctrl+Z      | Yes                     |
+| `historyRedo`           | Ctrl+Y      | Yes                     |
 
 ### IME Composition Handling
 
 Input Method Editors (IME) for CJK languages compose characters before committing. During composition, the text is provisional.
 
 ```typescript title="ime-handling.ts"
-let isComposing = false;
+let isComposing = false
 
-element.addEventListener('compositionstart', () => {
-  isComposing = true;
+element.addEventListener("compositionstart", () => {
+  isComposing = true
   // Store current selection for restoration if composition is cancelled
-});
+})
 
-element.addEventListener('compositionupdate', (e: CompositionEvent) => {
+element.addEventListener("compositionupdate", (e: CompositionEvent) => {
   // e.data contains the current composition string
   // Update preview but don't commit to document state
-  showCompositionPreview(e.data);
-});
+  showCompositionPreview(e.data)
+})
 
-element.addEventListener('compositionend', (e: CompositionEvent) => {
-  isComposing = false;
+element.addEventListener("compositionend", (e: CompositionEvent) => {
+  isComposing = false
   // e.data contains the final committed text
-  commitText(e.data);
-  clearCompositionPreview();
-});
+  commitText(e.data)
+  clearCompositionPreview()
+})
 
 // In beforeinput handler:
-element.addEventListener('beforeinput', (e: InputEvent) => {
-  if (e.inputType === 'insertCompositionText') {
+element.addEventListener("beforeinput", (e: InputEvent) => {
+  if (e.inputType === "insertCompositionText") {
     // Cannot preventDefault during IME composition
     // Let the browser handle it, sync state in compositionend
-    return;
+    return
   }
   // Handle other input types...
-});
+})
 ```
 
 **Why can't we preventDefault IME input?**
@@ -639,27 +628,27 @@ The IME is a system component outside browser control. Preventing default would 
 
 ```typescript title="selection-management.ts"
 // Get current selection
-const selection = window.getSelection();
-if (!selection || selection.rangeCount === 0) return;
+const selection = window.getSelection()
+if (!selection || selection.rangeCount === 0) return
 
-const range = selection.getRangeAt(0);
+const range = selection.getRangeAt(0)
 
 // Range boundaries
-const { startContainer, startOffset, endContainer, endOffset } = range;
+const { startContainer, startOffset, endContainer, endOffset } = range
 
 // Check if selection is collapsed (cursor, no selection)
-const isCollapsed = range.collapsed;
+const isCollapsed = range.collapsed
 
 // Get bounding rect for positioning UI (e.g., formatting toolbar)
-const rect = range.getBoundingClientRect();
-positionToolbar(rect.left, rect.top - 40);
+const rect = range.getBoundingClientRect()
+positionToolbar(rect.left, rect.top - 40)
 
 // Programmatically set selection
-const newRange = document.createRange();
-newRange.setStart(textNode, 5);
-newRange.setEnd(textNode, 10);
-selection.removeAllRanges();
-selection.addRange(newRange);
+const newRange = document.createRange()
+newRange.setStart(textNode, 5)
+newRange.setEnd(textNode, 10)
+selection.removeAllRanges()
+selection.addRange(newRange)
 ```
 
 **Edge case: Selection across block boundaries**
@@ -683,31 +672,30 @@ Timeline:
 **Transform function example:**
 
 ```typescript title="ot-transform.ts"
-type Op = { type: 'insert'; pos: number; text: string }
-        | { type: 'delete'; pos: number; len: number };
+type Op = { type: "insert"; pos: number; text: string } | { type: "delete"; pos: number; len: number }
 
 function transform(op1: Op, op2: Op): Op {
   // Transform op1 assuming op2 has already been applied
-  if (op1.type === 'insert' && op2.type === 'insert') {
+  if (op1.type === "insert" && op2.type === "insert") {
     if (op1.pos <= op2.pos) {
-      return op1; // op1 is before op2, no change
+      return op1 // op1 is before op2, no change
     }
-    return { ...op1, pos: op1.pos + op2.text.length };
+    return { ...op1, pos: op1.pos + op2.text.length }
   }
 
-  if (op1.type === 'insert' && op2.type === 'delete') {
+  if (op1.type === "insert" && op2.type === "delete") {
     if (op1.pos <= op2.pos) {
-      return op1;
+      return op1
     }
     if (op1.pos >= op2.pos + op2.len) {
-      return { ...op1, pos: op1.pos - op2.len };
+      return { ...op1, pos: op1.pos - op2.len }
     }
     // Insert is within deleted range—complex case
-    return { ...op1, pos: op2.pos };
+    return { ...op1, pos: op2.pos }
   }
 
   // ... handle all operation type combinations
-  return op1;
+  return op1
 }
 ```
 
@@ -716,22 +704,22 @@ function transform(op1: Op, op2: Op): Op {
 Instead of transforming operations against operations, ProseMirror transforms positions through position maps:
 
 ```typescript title="prosemirror-collab.ts" collapse={1-2}
-import { collab, sendableSteps, receiveTransaction } from 'prosemirror-collab';
+import { collab, sendableSteps, receiveTransaction } from "prosemirror-collab"
 
 // Server sends: { version: 5, steps: [...], clientIDs: [...] }
 
 // Apply remote steps
-const tr = receiveTransaction(state, steps, clientIDs);
-const newState = state.apply(tr);
+const tr = receiveTransaction(state, steps, clientIDs)
+const newState = state.apply(tr)
 
 // Send local steps
-const sendable = sendableSteps(state);
+const sendable = sendableSteps(state)
 if (sendable) {
   socket.send({
     version: sendable.version,
-    steps: sendable.steps.map(s => s.toJSON()),
-    clientID: sendable.clientID
-  });
+    steps: sendable.steps.map((s) => s.toJSON()),
+    clientID: sendable.clientID,
+  })
 }
 ```
 
@@ -749,31 +737,23 @@ if (sendable) {
 CRDTs embed metadata in the data structure itself, enabling automatic conflict-free merging without coordination.
 
 ```typescript title="yjs-integration.ts" collapse={1-4}
-import * as Y from 'yjs';
-import { yXmlFragment } from 'y-prosemirror';
-import { WebsocketProvider } from 'y-websocket';
+import * as Y from "yjs"
+import { yXmlFragment } from "y-prosemirror"
+import { WebsocketProvider } from "y-websocket"
 
 // Create shared document
-const ydoc = new Y.Doc();
+const ydoc = new Y.Doc()
 
 // Create WebSocket provider for sync
-const provider = new WebsocketProvider(
-  'wss://your-server.com',
-  'document-room',
-  ydoc
-);
+const provider = new WebsocketProvider("wss://your-server.com", "document-room", ydoc)
 
 // Get shared XML fragment for ProseMirror
-const yXmlFragment = ydoc.getXmlFragment('prosemirror');
+const yXmlFragment = ydoc.getXmlFragment("prosemirror")
 
 // Use in ProseMirror
-import { ySyncPlugin, yCursorPlugin, yUndoPlugin } from 'y-prosemirror';
+import { ySyncPlugin, yCursorPlugin, yUndoPlugin } from "y-prosemirror"
 
-const plugins = [
-  ySyncPlugin(yXmlFragment),
-  yCursorPlugin(provider.awareness),
-  yUndoPlugin()
-];
+const plugins = [ySyncPlugin(yXmlFragment), yCursorPlugin(provider.awareness), yUndoPlugin()]
 ```
 
 **How Yjs handles text:**
@@ -805,12 +785,12 @@ Result: "HelXo"
 
 ### Real-World Collaboration Implementations
 
-| Product | Approach | Reason |
-|---------|----------|--------|
-| Google Docs | OT | Proven at scale, team expertise |
-| Figma | CRDT (migrated from OT) | OT was "overkill" for design objects |
-| Notion | OT-like (proprietary) | Block-based operations are simpler than text OT |
-| Linear | Yjs (CRDT) | Offline-first architecture |
+| Product     | Approach                | Reason                                          |
+| ----------- | ----------------------- | ----------------------------------------------- |
+| Google Docs | OT                      | Proven at scale, team expertise                 |
+| Figma       | CRDT (migrated from OT) | OT was "overkill" for design objects            |
+| Notion      | OT-like (proprietary)   | Block-based operations are simpler than text OT |
+| Linear      | Yjs (CRDT)              | Offline-first architecture                      |
 
 Figma's CTO wrote: "For text, we still use OT because character-by-character sync benefits from its precision. For design objects, CRDT's simpler model is sufficient."
 
@@ -821,39 +801,41 @@ Figma's CTO wrote: "For text, we still use OT because character-by-character syn
 Documents with 100K+ words need virtualization—render only visible blocks.
 
 ```typescript title="virtual-document.ts" collapse={1-5}
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from "react"
 
-interface Block { id: string; type: string; content: string; }
+interface Block {
+  id: string
+  type: string
+  content: string
+}
 
 function useVirtualBlocks(blocks: Block[], containerRef: React.RefObject<HTMLElement>) {
-  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 20 });
+  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 20 })
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const container = containerRef.current
+    if (!container) return
 
     const observer = new IntersectionObserver(
       (entries) => {
         // Update visible range based on intersecting blocks
-        const visible = entries
-          .filter(e => e.isIntersecting)
-          .map(e => parseInt(e.target.dataset.index!, 10));
+        const visible = entries.filter((e) => e.isIntersecting).map((e) => parseInt(e.target.dataset.index!, 10))
 
         if (visible.length > 0) {
           setVisibleRange({
             start: Math.max(0, Math.min(...visible) - 5),
-            end: Math.min(blocks.length, Math.max(...visible) + 5)
-          });
+            end: Math.min(blocks.length, Math.max(...visible) + 5),
+          })
         }
       },
-      { root: container, threshold: 0 }
-    );
+      { root: container, threshold: 0 },
+    )
 
     // Observe sentinel elements at block positions
-    return () => observer.disconnect();
-  }, [blocks.length]);
+    return () => observer.disconnect()
+  }, [blocks.length])
 
-  return blocks.slice(visibleRange.start, visibleRange.end);
+  return blocks.slice(visibleRange.start, visibleRange.end)
 }
 ```
 
@@ -866,18 +848,18 @@ Notion renders blocks in visible viewport plus buffer. Each block type has an es
 Slate can split large node children into memoized "chunks" for 10x rendering speedup:
 
 ```typescript title="slate-chunking.ts" collapse={1-4}
-import { Editor, Element, Node } from 'slate';
+import { Editor, Element, Node } from "slate"
 
 // Enable chunking for large lists
 const withChunking = (editor: Editor): Editor => {
   editor.getChunkSize = (node: Node) => {
     if (Element.isElement(node) && node.children.length > 100) {
-      return 50; // Chunk into groups of 50
+      return 50 // Chunk into groups of 50
     }
-    return 0; // No chunking for small nodes
-  };
-  return editor;
-};
+    return 0 // No chunking for small nodes
+  }
+  return editor
+}
 ```
 
 Combine with CSS `content-visibility: auto` to skip painting off-screen chunks.
@@ -886,12 +868,12 @@ Combine with CSS `content-visibility: auto` to skip painting off-screen chunks.
 
 For very large documents:
 
-| Technique | Use Case | Trade-off |
-|-----------|----------|-----------|
-| Piece tables | Text-heavy documents | Complexity for queries |
-| Lazy node loading | Outline views | Latency on expand |
-| WeakMap caches | Computed values | GC unpredictability |
-| LRU eviction | Undo history | Lost undo steps |
+| Technique         | Use Case             | Trade-off              |
+| ----------------- | -------------------- | ---------------------- |
+| Piece tables      | Text-heavy documents | Complexity for queries |
+| Lazy node loading | Outline views        | Latency on expand      |
+| WeakMap caches    | Computed values      | GC unpredictability    |
+| LRU eviction      | Undo history         | Lost undo steps        |
 
 ## Accessibility
 
@@ -900,12 +882,7 @@ For very large documents:
 Rich text editors must announce their role and state to assistive technologies:
 
 ```html title="aria-editor.html"
-<div
-  role="textbox"
-  aria-multiline="true"
-  aria-label="Document editor"
-  contenteditable="true"
->
+<div role="textbox" aria-multiline="true" aria-label="Document editor" contenteditable="true">
   <!-- Content -->
 </div>
 ```
@@ -914,11 +891,7 @@ For custom rendering (non-contentEditable):
 
 ```html title="aria-custom-editor.html"
 <!-- Hidden textarea for screen reader announcements -->
-<textarea
-  aria-label="Document editor"
-  class="sr-only"
-  readonly
-></textarea>
+<textarea aria-label="Document editor" class="sr-only" readonly></textarea>
 
 <!-- Visual rendering -->
 <div role="application" aria-label="Rich text editor">
@@ -932,26 +905,26 @@ For custom rendering (non-contentEditable):
 
 Required keyboard support:
 
-| Key | Action |
-|-----|--------|
-| Arrow keys | Move cursor |
-| Shift + Arrow | Extend selection |
-| Ctrl/Cmd + A | Select all |
-| Ctrl/Cmd + Z/Y | Undo/redo |
-| Ctrl/Cmd + B/I/U | Bold/italic/underline |
-| Tab | Indent (in lists) or focus next element |
-| Escape | Exit formatting mode or nested block |
+| Key              | Action                                  |
+| ---------------- | --------------------------------------- |
+| Arrow keys       | Move cursor                             |
+| Shift + Arrow    | Extend selection                        |
+| Ctrl/Cmd + A     | Select all                              |
+| Ctrl/Cmd + Z/Y   | Undo/redo                               |
+| Ctrl/Cmd + B/I/U | Bold/italic/underline                   |
+| Tab              | Indent (in lists) or focus next element |
+| Escape           | Exit formatting mode or nested block    |
 
 ### Screen Reader Testing
 
 Test with actual screen readers:
 
-| Screen Reader | Browser | Platform |
-|--------------|---------|----------|
-| NVDA | Firefox, Chrome | Windows |
-| JAWS | Chrome, Edge | Windows |
-| VoiceOver | Safari | macOS, iOS |
-| TalkBack | Chrome | Android |
+| Screen Reader | Browser         | Platform   |
+| ------------- | --------------- | ---------- |
+| NVDA          | Firefox, Chrome | Windows    |
+| JAWS          | Chrome, Edge    | Windows    |
+| VoiceOver     | Safari          | macOS, iOS |
+| TalkBack      | Chrome          | Android    |
 
 Known issue: JAWS 17 with Firefox doesn't recognize some contentEditable structures as editable. Always test combinations.
 
@@ -980,19 +953,19 @@ Known issue: JAWS 17 with Firefox doesn't recognize some contentEditable structu
 **Solution**: Debounce undo checkpoints. Group consecutive typing into single undo entries. Separate formatting changes from content changes.
 
 ```typescript title="undo-debounce.ts"
-let undoTimeout: number | null = null;
+let undoTimeout: number | null = null
 
 function onInput() {
-  if (undoTimeout) clearTimeout(undoTimeout);
+  if (undoTimeout) clearTimeout(undoTimeout)
 
   // Don't create undo entry yet
-  applyChangeWithoutUndoEntry();
+  applyChangeWithoutUndoEntry()
 
   // Create undo entry after 500ms of no input
   undoTimeout = window.setTimeout(() => {
-    createUndoEntry();
-    undoTimeout = null;
-  }, 500);
+    createUndoEntry()
+    undoTimeout = null
+  }, 500)
 }
 ```
 
@@ -1017,18 +990,18 @@ function onInput() {
 ```typescript title="selection-restoration.ts"
 async function handlePaste(html: string) {
   // Capture current selection
-  const savedSelection = editor.selection;
+  const savedSelection = editor.selection
 
   // Async processing
-  const processed = await processHtml(html);
+  const processed = await processHtml(html)
 
   // Restore selection before applying
   editor.withoutNormalizing(() => {
     if (savedSelection) {
-      Transforms.select(editor, savedSelection);
+      Transforms.select(editor, savedSelection)
     }
-    Transforms.insertFragment(editor, processed);
-  });
+    Transforms.insertFragment(editor, processed)
+  })
 }
 ```
 
@@ -1104,18 +1077,18 @@ No editor framework solves all problems. The best choice depends on your documen
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **contentEditable** | Browser attribute enabling native text editing in any element |
-| **IME** | Input Method Editor—system component for composing characters in CJK and other languages |
-| **OT** | Operational Transform—algorithm for transforming concurrent operations to maintain consistency |
-| **CRDT** | Conflict-free Replicated Data Type—data structure enabling automatic merge without coordination |
-| **Transaction** | Atomic unit of change in ProseMirror/Lexical; contains operations and metadata |
-| **Schema** | Definition of valid document structure (nodes, marks, constraints) |
-| **Mark** | Inline annotation (bold, italic, link) applied to text without changing structure |
-| **Node** | Structural element in document tree (paragraph, heading, list item) |
-| **Position mapping** | Translating document positions across changes (critical for collaboration) |
-| **Tombstone** | Marker for deleted items in CRDTs (enables merge but accumulates memory) |
+| Term                 | Definition                                                                                      |
+| -------------------- | ----------------------------------------------------------------------------------------------- |
+| **contentEditable**  | Browser attribute enabling native text editing in any element                                   |
+| **IME**              | Input Method Editor—system component for composing characters in CJK and other languages        |
+| **OT**               | Operational Transform—algorithm for transforming concurrent operations to maintain consistency  |
+| **CRDT**             | Conflict-free Replicated Data Type—data structure enabling automatic merge without coordination |
+| **Transaction**      | Atomic unit of change in ProseMirror/Lexical; contains operations and metadata                  |
+| **Schema**           | Definition of valid document structure (nodes, marks, constraints)                              |
+| **Mark**             | Inline annotation (bold, italic, link) applied to text without changing structure               |
+| **Node**             | Structural element in document tree (paragraph, heading, list item)                             |
+| **Position mapping** | Translating document positions across changes (critical for collaboration)                      |
+| **Tombstone**        | Marker for deleted items in CRDTs (enables merge but accumulates memory)                        |
 
 ### Summary
 

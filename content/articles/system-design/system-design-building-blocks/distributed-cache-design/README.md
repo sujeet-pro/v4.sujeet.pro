@@ -128,16 +128,16 @@ The fundamental trade-off: **consistency vs. availability vs. partition toleranc
 
 ### Decision Matrix
 
-| Factor                | Embedded       | Client-Server   | Distributed Cluster |
-| --------------------- | -------------- | --------------- | ------------------- |
-| Latency               | ~100ns         | ~100-500μs      | ~100-500μs          |
-| Dataset size          | < 1GB          | < 100GB         | Terabytes+          |
-| Throughput            | Process-bound  | 1M+ ops/sec     | 10M+ ops/sec        |
-| Consistency           | Per-instance   | Single instance | Eventual            |
-| Operational overhead  | None           | Low-Medium      | Medium-High         |
-| Failure blast radius  | Single process | All clients     | Partial (replicas)  |
-| Cross-app sharing     | No             | Yes             | Yes                 |
-| Memory efficiency     | Duplicated     | Shared          | Shared + replicated |
+| Factor               | Embedded       | Client-Server   | Distributed Cluster |
+| -------------------- | -------------- | --------------- | ------------------- |
+| Latency              | ~100ns         | ~100-500μs      | ~100-500μs          |
+| Dataset size         | < 1GB          | < 100GB         | Terabytes+          |
+| Throughput           | Process-bound  | 1M+ ops/sec     | 10M+ ops/sec        |
+| Consistency          | Per-instance   | Single instance | Eventual            |
+| Operational overhead | None           | Low-Medium      | Medium-High         |
+| Failure blast radius | Single process | All clients     | Partial (replicas)  |
+| Cross-app sharing    | No             | Yes             | Yes                 |
+| Memory efficiency    | Duplicated     | Shared          | Shared + replicated |
 
 ### Hybrid Architecture: L1 + L2
 
@@ -349,13 +349,13 @@ int32_t JumpConsistentHash(uint64_t key, int32_t num_buckets) {
 
 ### Redis Hash Slots vs. Consistent Hashing
 
-| Aspect           | Consistent Hashing       | Hash Slots (Redis)       |
-| ---------------- | ------------------------ | ------------------------ |
-| Granularity      | Continuous ring          | 16,384 discrete slots    |
-| Rebalancing      | Key-by-key               | Slot-by-slot             |
-| Metadata size    | O(virtual nodes)         | Fixed 2KB bitmap         |
-| Implementation   | Client library           | Cluster protocol         |
-| Partial migration| Not native               | Native (MIGRATING slots) |
+| Aspect            | Consistent Hashing | Hash Slots (Redis)       |
+| ----------------- | ------------------ | ------------------------ |
+| Granularity       | Continuous ring    | 16,384 discrete slots    |
+| Rebalancing       | Key-by-key         | Slot-by-slot             |
+| Metadata size     | O(virtual nodes)   | Fixed 2KB bitmap         |
+| Implementation    | Client library     | Cluster protocol         |
+| Partial migration | Not native         | Native (MIGRATING slots) |
 
 **Design reasoning:** Hash slots simplify cluster coordination. Instead of agreeing on ring positions, nodes agree on slot ownership. Slot migration is atomic—clients redirect mid-migration without losing requests.
 

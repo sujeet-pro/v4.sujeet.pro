@@ -51,12 +51,12 @@ Transactions wrap multiple operations into a logical unit with specific guarante
 
 **ACID is not monolithic**—each property addresses a distinct failure mode:
 
-| Property | Failure Addressed | Implementation Mechanism |
-|----------|-------------------|--------------------------|
-| **Atomicity** | Partial failures (crash mid-operation) | Write-Ahead Logging, shadow paging |
-| **Consistency** | Invariant violations | Application logic + constraints |
-| **Isolation** | Concurrent access anomalies | MVCC, locking, SSI |
-| **Durability** | Data loss after commit | fsync, replication |
+| Property        | Failure Addressed                      | Implementation Mechanism           |
+| --------------- | -------------------------------------- | ---------------------------------- |
+| **Atomicity**   | Partial failures (crash mid-operation) | Write-Ahead Logging, shadow paging |
+| **Consistency** | Invariant violations                   | Application logic + constraints    |
+| **Isolation**   | Concurrent access anomalies            | MVCC, locking, SSI                 |
+| **Durability**  | Data loss after commit                 | fsync, replication                 |
 
 **Isolation is the complex one**—it's a spectrum, not binary:
 
@@ -90,13 +90,13 @@ WAL is the dominant atomicity mechanism in modern databases. The principle: log 
 ```ts title="wal-concept.ts" collapse={1-4, 18-25}
 // Conceptual WAL implementation
 interface LogRecord {
-  lsn: number;           // Log Sequence Number
-  transactionId: string;
-  operation: 'INSERT' | 'UPDATE' | 'DELETE';
-  table: string;
-  beforeImage: any;      // For undo (rollback)
-  afterImage: any;       // For redo (recovery)
-  prevLsn: number;       // Previous record in same transaction
+  lsn: number // Log Sequence Number
+  transactionId: string
+  operation: "INSERT" | "UPDATE" | "DELETE"
+  table: string
+  beforeImage: any // For undo (rollback)
+  afterImage: any // For redo (recovery)
+  prevLsn: number // Previous record in same transaction
 }
 
 // WAL guarantees:
@@ -190,13 +190,13 @@ Isolation determines what concurrent transactions see of each other's changes. I
 
 Understanding anomalies is key to choosing isolation levels:
 
-| Anomaly | Description | Example |
-|---------|-------------|---------|
-| **Dirty Read** | Reading uncommitted data | T1 writes, T2 reads, T1 aborts → T2 saw data that never existed |
-| **Non-Repeatable Read** | Same query, different results | T1 reads row, T2 updates and commits, T1 re-reads → different value |
-| **Phantom Read** | New rows appear in range query | T1 queries range, T2 inserts row in range, T1 re-queries → extra row |
-| **Lost Update** | Concurrent updates overwrite each other | T1 and T2 read balance=100, both update to balance+10 → balance=110 (should be 120) |
-| **Write Skew** | Constraint violated by concurrent non-overlapping writes | Two doctors both check "≥1 on call", both remove themselves → zero on call |
+| Anomaly                 | Description                                              | Example                                                                             |
+| ----------------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| **Dirty Read**          | Reading uncommitted data                                 | T1 writes, T2 reads, T1 aborts → T2 saw data that never existed                     |
+| **Non-Repeatable Read** | Same query, different results                            | T1 reads row, T2 updates and commits, T1 re-reads → different value                 |
+| **Phantom Read**        | New rows appear in range query                           | T1 queries range, T2 inserts row in range, T1 re-queries → extra row                |
+| **Lost Update**         | Concurrent updates overwrite each other                  | T1 and T2 read balance=100, both update to balance+10 → balance=110 (should be 120) |
+| **Write Skew**          | Constraint violated by concurrent non-overlapping writes | Two doctors both check "≥1 on call", both remove themselves → zero on call          |
 
 **Write skew** is particularly insidious because each transaction individually maintains the invariant, but together they violate it. Martin Kleppmann's "Designing Data-Intensive Applications" popularized the doctors on-call example:
 
@@ -219,14 +219,14 @@ COMMIT;
 
 The SQL-92 standard defines four isolation levels by which anomalies they permit:
 
-| Level | Dirty Read | Non-Repeatable Read | Phantom Read |
-|-------|------------|---------------------|--------------|
-| Read Uncommitted | Possible | Possible | Possible |
-| Read Committed | Not possible | Possible | Possible |
-| Repeatable Read | Not possible | Not possible | Possible |
-| Serializable | Not possible | Not possible | Not possible |
+| Level            | Dirty Read   | Non-Repeatable Read | Phantom Read |
+| ---------------- | ------------ | ------------------- | ------------ |
+| Read Uncommitted | Possible     | Possible            | Possible     |
+| Read Committed   | Not possible | Possible            | Possible     |
+| Repeatable Read  | Not possible | Not possible        | Possible     |
+| Serializable     | Not possible | Not possible        | Not possible |
 
-**Critical caveat**: The SQL standard defines these levels only by which anomalies are *permitted*, not by which must *occur*. Databases can (and do) provide stronger guarantees than required.
+**Critical caveat**: The SQL standard defines these levels only by which anomalies are _permitted_, not by which must _occur_. Databases can (and do) provide stronger guarantees than required.
 
 ### Durability: Surviving Crashes
 
@@ -269,11 +269,11 @@ PostgreSQL's `commit_delay` and `commit_siblings` control grouping. Under high c
 
 #### Durability vs. Performance
 
-| Setting | Durability | Performance | Use Case |
-|---------|------------|-------------|----------|
-| fsync=on, sync_commit=on | Full | Baseline | Financial, audit |
-| fsync=on, sync_commit=off | WAL sync delay | ~3x faster commits | Most OLTP |
-| fsync=off | None (corruption risk) | Maximum | Development only |
+| Setting                   | Durability             | Performance        | Use Case         |
+| ------------------------- | ---------------------- | ------------------ | ---------------- |
+| fsync=on, sync_commit=on  | Full                   | Baseline           | Financial, audit |
+| fsync=on, sync_commit=off | WAL sync delay         | ~3x faster commits | Most OLTP        |
+| fsync=off                 | None (corruption risk) | Maximum            | Development only |
 
 **Real-world benchmark**: Disabling fsync shows ~58% TPS improvement in PostgreSQL benchmarks, but risks unrecoverable corruption. Disabling synchronous_commit shows ~3.5% improvement with only bounded data loss risk (no corruption).
 
@@ -316,11 +316,11 @@ PostgreSQL uses MVCC with full tuple versioning:
 
 **Snapshot timing by isolation level**:
 
-| Level | Snapshot Taken | Effect |
-|-------|----------------|--------|
-| Read Committed | Each statement | Sees all commits before statement |
-| Repeatable Read | Transaction start | Sees all commits before BEGIN |
-| Serializable | Transaction start | Plus SSI conflict detection |
+| Level           | Snapshot Taken    | Effect                            |
+| --------------- | ----------------- | --------------------------------- |
+| Read Committed  | Each statement    | Sees all commits before statement |
+| Repeatable Read | Transaction start | Sees all commits before BEGIN     |
+| Serializable    | Transaction start | Plus SSI conflict detection       |
 
 **PostgreSQL exceeds SQL standard**: Repeatable Read in PostgreSQL prevents phantom reads (standard only requires this at Serializable). PostgreSQL's Read Uncommitted behaves like Read Committed—it never allows dirty reads.
 
@@ -347,12 +347,12 @@ InnoDB uses MVCC with undo logs:
 
 **Isolation level behavior**:
 
-| Level | Read Behavior | Write Behavior |
-|-------|---------------|----------------|
-| Read Uncommitted | Current data (no MVCC) | Standard locks |
-| Read Committed | Fresh snapshot per statement | Record locks |
-| Repeatable Read (default) | Transaction-start snapshot | Gap locks + record locks |
-| Serializable | Same as RR | All reads acquire shared locks |
+| Level                     | Read Behavior                | Write Behavior                 |
+| ------------------------- | ---------------------------- | ------------------------------ |
+| Read Uncommitted          | Current data (no MVCC)       | Standard locks                 |
+| Read Committed            | Fresh snapshot per statement | Record locks                   |
+| Repeatable Read (default) | Transaction-start snapshot   | Gap locks + record locks       |
+| Serializable              | Same as RR                   | All reads acquire shared locks |
 
 **Gap locking and next-key locking**: InnoDB prevents phantoms at Repeatable Read using gap locks:
 
@@ -392,14 +392,14 @@ ALTER DATABASE MyDB SET READ_COMMITTED_SNAPSHOT ON;
 
 ### Isolation Level Comparison Matrix
 
-| Aspect | PostgreSQL | MySQL/InnoDB | SQL Server |
-|--------|------------|--------------|------------|
-| Default level | Read Committed | Repeatable Read | Read Committed |
-| MVCC storage | Heap (in-table) | Undo logs | tempdb |
-| Cleanup | VACUUM | Purge threads | Version store cleanup |
-| Phantom prevention | SSI at Serializable | Gap locks at RR | Locks or MVCC |
-| Read Uncommitted | = Read Committed | True dirty reads | True dirty reads |
-| Serializable approach | SSI (optimistic) | 2PL (pessimistic) | 2PL (pessimistic) |
+| Aspect                | PostgreSQL          | MySQL/InnoDB      | SQL Server            |
+| --------------------- | ------------------- | ----------------- | --------------------- |
+| Default level         | Read Committed      | Repeatable Read   | Read Committed        |
+| MVCC storage          | Heap (in-table)     | Undo logs         | tempdb                |
+| Cleanup               | VACUUM              | Purge threads     | Version store cleanup |
+| Phantom prevention    | SSI at Serializable | Gap locks at RR   | Locks or MVCC         |
+| Read Uncommitted      | = Read Committed    | True dirty reads  | True dirty reads      |
+| Serializable approach | SSI (optimistic)    | 2PL (pessimistic) | 2PL (pessimistic)     |
 
 ## Distributed Transactions
 
@@ -686,23 +686,23 @@ Idempotency-Key: "order-123-attempt-1"
 
 ### Decision Framework
 
-| Requirement | Solution |
-|-------------|----------|
-| Single database, strong consistency | Use highest isolation level needed (often Serializable for financial) |
-| Single database, high throughput | Read Committed + application-level conflict handling |
-| Cross-service atomicity, low latency tolerance | Saga pattern with idempotent compensations |
-| Database + message broker atomicity | Transactional outbox + CDC |
-| Global strong consistency, can invest in infrastructure | Spanner or CockroachDB |
-| Eventual consistency acceptable | Leaderless replication (Cassandra, DynamoDB) |
+| Requirement                                             | Solution                                                              |
+| ------------------------------------------------------- | --------------------------------------------------------------------- |
+| Single database, strong consistency                     | Use highest isolation level needed (often Serializable for financial) |
+| Single database, high throughput                        | Read Committed + application-level conflict handling                  |
+| Cross-service atomicity, low latency tolerance          | Saga pattern with idempotent compensations                            |
+| Database + message broker atomicity                     | Transactional outbox + CDC                                            |
+| Global strong consistency, can invest in infrastructure | Spanner or CockroachDB                                                |
+| Eventual consistency acceptable                         | Leaderless replication (Cassandra, DynamoDB)                          |
 
 ### Isolation Level Selection Guide
 
-| Anomaly Risk | Minimum Level | Notes |
-|--------------|---------------|-------|
-| Dirty reads unacceptable | Read Committed | Almost always—dirty reads cause application bugs |
-| Non-repeatable reads problematic | Repeatable Read | Analytics, reports, multi-step reads |
-| Phantoms problematic | Serializable (PostgreSQL RR prevents phantoms) | Aggregations, existence checks |
-| Write skew possible | Serializable | Any read-then-write pattern with constraints |
+| Anomaly Risk                     | Minimum Level                                  | Notes                                            |
+| -------------------------------- | ---------------------------------------------- | ------------------------------------------------ |
+| Dirty reads unacceptable         | Read Committed                                 | Almost always—dirty reads cause application bugs |
+| Non-repeatable reads problematic | Repeatable Read                                | Analytics, reports, multi-step reads             |
+| Phantoms problematic             | Serializable (PostgreSQL RR prevents phantoms) | Aggregations, existence checks                   |
+| Write skew possible              | Serializable                                   | Any read-then-write pattern with constraints     |
 
 ### Performance Considerations
 
@@ -769,21 +769,25 @@ Idempotency-Key: "order-123-attempt-1"
 Transactions provide essential guarantees for reliable data operations, but those guarantees come with trade-offs:
 
 **Single-node ACID** is well-understood:
+
 - WAL provides atomicity and durability with excellent performance
 - MVCC enables high concurrency without read/write blocking
 - Isolation levels trade consistency for throughput—choose based on anomaly risk
 
 **Distributed transactions** are expensive:
+
 - 2PC adds latency and blocks on coordinator failure
 - 3PC doesn't solve network partition problems
 - Spanner's TrueTime achieves external consistency but requires specialized infrastructure
 
 **Practical alternatives** often suffice:
+
 - Sagas provide eventual atomicity for microservices
 - Outbox pattern solves dual-write reliably
 - Idempotency keys enable safe retries without distributed coordination
 
 The right choice depends on:
+
 1. **Consistency requirements**: What's the cost of anomalies?
 2. **Latency budget**: How much coordination overhead is acceptable?
 3. **Failure tolerance**: Can the system block waiting for recovery?

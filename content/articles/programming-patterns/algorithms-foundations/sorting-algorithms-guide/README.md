@@ -290,12 +290,12 @@ function partition(arr: number[], low: number, high: number): number {
 
 **Pivot selection strategies and their trade-offs**:
 
-| Strategy          | Worst Case Trigger       | Overhead | Use When                    |
-| ----------------- | ------------------------ | -------- | --------------------------- |
-| First/Last        | Sorted/reverse input     | O(1)     | Never in production         |
-| Random            | Astronomically unlikely  | O(1)     | Default choice              |
-| Median-of-three   | Crafted adversarial      | O(1)     | Known random input          |
-| Median-of-medians | None (guaranteed O(n lg n)) | O(n)     | Adversarial input possible  |
+| Strategy          | Worst Case Trigger          | Overhead | Use When                   |
+| ----------------- | --------------------------- | -------- | -------------------------- |
+| First/Last        | Sorted/reverse input        | O(1)     | Never in production        |
+| Random            | Astronomically unlikely     | O(1)     | Default choice             |
+| Median-of-three   | Crafted adversarial         | O(1)     | Known random input         |
+| Median-of-medians | None (guaranteed O(n lg n)) | O(n)     | Adversarial input possible |
 
 **3-Way Partition (Dutch National Flag Problem)**: Essential for arrays with many duplicates. Standard 2-way partition degrades to O(n²) when all elements are equal; 3-way partition handles this in O(n) by grouping equal elements in the middle.
 
@@ -303,8 +303,8 @@ function partition(arr: number[], low: number, high: number): number {
 function quickSort3Way(arr: number[], low: number, high: number): void {
   if (low >= high) return
 
-  let lt = low    // arr[low..lt-1] < pivot
-  let gt = high   // arr[gt+1..high] > pivot
+  let lt = low // arr[low..lt-1] < pivot
+  let gt = high // arr[gt+1..high] > pivot
   let i = low + 1
   const pivot = arr[low]
 
@@ -476,19 +476,19 @@ function countingSortByDigit(arr: number[], exp: number): void {
 }
 ```
 
-| Property | Value                            |
-| -------- | -------------------------------- |
-| Time     | O(d × (n + k)) where d = digits  |
-| Space    | O(n + k)                         |
-| Stable   | Yes                              |
-| Use case | Fixed-length integers, strings   |
+| Property | Value                           |
+| -------- | ------------------------------- |
+| Time     | O(d × (n + k)) where d = digits |
+| Space    | O(n + k)                        |
+| Stable   | Yes                             |
+| Use case | Fixed-length integers, strings  |
 
 **LSD vs MSD (Most Significant Digit)**:
 
-| Variant | Process Order     | Stability Required | Best For              |
-| ------- | ----------------- | ------------------ | --------------------- |
-| LSD     | Right → Left      | Yes (critical)     | Fixed-width integers  |
-| MSD     | Left → Right      | Not required       | Variable-length strings, early termination |
+| Variant | Process Order | Stability Required | Best For                                   |
+| ------- | ------------- | ------------------ | ------------------------------------------ |
+| LSD     | Right → Left  | Yes (critical)     | Fixed-width integers                       |
+| MSD     | Left → Right  | Not required       | Variable-length strings, early termination |
 
 **Why LSD needs stability**: After sorting by units digit, `[170, 45, 75, 90]` becomes `[170, 90, 45, 75]`. When sorting by tens digit, 170 and 75 both have tens digit 7. Stability ensures 170 stays before 75 (preserving the units-digit order).
 
@@ -549,9 +549,9 @@ function bucketSort(arr: number[], bucketCount: number = 10): number[] {
 | Heap Sort      | O(n log n) | O(n log n) | O(n log n) | O(1)     | No     | No       |
 | Counting Sort  | O(n + k)   | O(n + k)   | O(n + k)   | O(n + k) | Yes    | N/A      |
 | Radix Sort     | O(dn)      | O(dn)      | O(dn)      | O(n + k) | Yes    | N/A      |
-| Bucket Sort    | O(n)       | O(n)       | O(n²)      | O(n + k) | Yes*   | N/A      |
+| Bucket Sort    | O(n)       | O(n)       | O(n²)      | O(n + k) | Yes\*  | N/A      |
 
-*Bucket Sort stability depends on the per-bucket sorting algorithm used.
+\*Bucket Sort stability depends on the per-bucket sorting algorithm used.
 
 ### Decision Flowchart
 
@@ -763,14 +763,14 @@ pdqsort, created by Orson Peters, extends Introsort with pattern detection. It r
 
 ### Language Standard Library Implementations
 
-| Language   | Stable Sort           | Unstable Sort      | Notes                                                                 |
-| ---------- | --------------------- | ------------------ | --------------------------------------------------------------------- |
-| JavaScript | Tim Sort              | —                  | Stable required since ES2019 ([V8 blog](https://v8.dev/features/stable-sort)) |
-| Python     | Tim Sort              | —                  | `list.sort()` and `sorted()` both stable                              |
-| Java       | Tim Sort (Objects)    | Dual-pivot Quick Sort (primitives) | Objects need stability; primitives prioritize speed |
-| C++        | —                     | Introsort          | `std::stable_sort` uses Merge Sort; `std::sort` uses Introsort        |
-| Go         | —                     | pdqsort            | Since Go 1.19; `slices.Sort` in Go 1.22+                              |
-| Rust       | Tim Sort              | pdqsort            | `sort()` vs `sort_unstable()`                                         |
+| Language   | Stable Sort        | Unstable Sort                      | Notes                                                                         |
+| ---------- | ------------------ | ---------------------------------- | ----------------------------------------------------------------------------- |
+| JavaScript | Tim Sort           | —                                  | Stable required since ES2019 ([V8 blog](https://v8.dev/features/stable-sort)) |
+| Python     | Tim Sort           | —                                  | `list.sort()` and `sorted()` both stable                                      |
+| Java       | Tim Sort (Objects) | Dual-pivot Quick Sort (primitives) | Objects need stability; primitives prioritize speed                           |
+| C++        | —                  | Introsort                          | `std::stable_sort` uses Merge Sort; `std::sort` uses Introsort                |
+| Go         | —                  | pdqsort                            | Since Go 1.19; `slices.Sort` in Go 1.22+                                      |
+| Rust       | Tim Sort           | pdqsort                            | `sort()` vs `sort_unstable()`                                                 |
 
 **Key insight**: Every production implementation is a hybrid. The choice reflects trade-offs: stability (Tim Sort for objects), raw speed (pdqsort for unstable), or guaranteed worst-case (Introsort).
 

@@ -19,6 +19,7 @@ Case studies include:
 ### Specificity is Everything
 
 These articles must be **extremely specific**:
+
 - Exact tools, versions, and configurations
 - Actual numbers (requests/sec, latency percentiles, error rates)
 - Specific team sizes and timelines
@@ -28,6 +29,7 @@ These articles must be **extremely specific**:
 ### Learning-Focused Structure
 
 Each case study answers:
+
 1. **What was the situation?** - Context, scale, constraints
 2. **What was the problem/opportunity?** - The trigger for change
 3. **What options were considered?** - The decision-making process
@@ -55,6 +57,7 @@ Establish the situation before diving into details:
 ### The System
 
 [Company]'s [product/service] handles:
+
 - **Scale:** [specific numbers]
 - **Architecture:** [high-level description]
 - **Tech stack:** [specific technologies with versions]
@@ -89,6 +92,7 @@ Establish the situation before diving into details:
 [What users/operators observed]
 
 **Timeline of escalation:**
+
 - [Date]: [First signs]
 - [Date]: [Escalation]
 - [Date]: [Critical point]
@@ -96,15 +100,17 @@ Establish the situation before diving into details:
 ### Root Cause Analysis
 
 **Investigation process:**
+
 1. [What they checked first]
 2. [What they discovered]
 3. [The "aha" moment]
 
 **The actual root cause:**
 [Detailed technical explanation]
-
 ```
+
 [Diagram showing the failure mode / bottleneck]
+
 ```
 
 ### Why It Wasn't Obvious
@@ -126,10 +132,12 @@ Show the decision-making process:
 **Approach:** [Description]
 
 **Pros:**
+
 - [Advantage 1]
 - [Advantage 2]
 
 **Cons:**
+
 - [Disadvantage 1]
 - [Disadvantage 2]
 
@@ -146,10 +154,12 @@ Show the decision-making process:
 **Approach:** [Description]
 
 **Pros:**
+
 - [Advantage 1]
 - [Advantage 2]
 
 **Cons:**
+
 - [Disadvantage 1]
 - [Disadvantage 2]
 
@@ -157,12 +167,12 @@ Show the decision-making process:
 
 ### Decision Factors
 
-| Factor | Option 1 | Option 2 | Option 3 |
-|--------|----------|----------|----------|
-| Time to implement | 6 months | 3 months | 4 months |
-| Risk | Low | High | Medium |
-| Long-term maintainability | Good | Poor | Good |
-| Team expertise available | No | No | Yes |
+| Factor                    | Option 1 | Option 2 | Option 3 |
+| ------------------------- | -------- | -------- | -------- |
+| Time to implement         | 6 months | 3 months | 4 months |
+| Risk                      | Low      | High     | Medium   |
+| Long-term maintainability | Good     | Poor     | Good     |
+| Team expertise available  | No       | No       | Yes      |
 ```
 
 ### 5. Implementation Deep-Dive (The Core)
@@ -176,13 +186,17 @@ This is the heart of the article—be extremely specific:
 
 **Before:**
 ```
+
 [Diagram of previous architecture]
+
 ```
 
 **After:**
 ```
+
 [Diagram of new architecture]
-```
+
+````
 
 **Key differences:**
 1. [Change 1]: [Why it matters]
@@ -199,13 +213,15 @@ This is the heart of the article—be extremely specific:
 # Actual configuration (sanitized if needed)
 setting_1: value
 setting_2: value
-```
+````
 
 **Why this configuration:**
+
 - `setting_1: value` because [reason]
 - `setting_2: value` because [reason]
 
 **Code changes:**
+
 ```[language]
 // Before
 [old code]
@@ -226,6 +242,7 @@ setting_2: value
 **Approach:** [How they rolled this out]
 
 **Phases:**
+
 1. **Phase 1 (Week 1-2):** [What was done]
    - Risk mitigation: [How they reduced risk]
    - Rollback plan: [What they'd do if it failed]
@@ -233,19 +250,22 @@ setting_2: value
 2. **Phase 2 (Week 3-4):** [What was done]
 
 **Monitoring during migration:**
+
 - [Metric 1]: [Threshold for concern]
 - [Metric 2]: [Threshold for rollback]
 
 ### Challenges Encountered
 
 **Challenge 1:** [What went wrong]
+
 - **Impact:** [How bad it was]
 - **Resolution:** [How they fixed it]
 - **Time to resolve:** [Duration]
 
 **Challenge 2:** [What went wrong]
 [Same structure]
-```
+
+````
 
 ### 6. Outcome Section (Required)
 
@@ -278,7 +298,7 @@ Concrete, measurable results:
 
 - [What still isn't perfect]
 - [Future work planned]
-```
+````
 
 ### 7. Lessons Learned (Required)
 
@@ -294,10 +314,12 @@ Transferable insights:
 **The insight:** [Core takeaway]
 
 **How it applies elsewhere:**
+
 - [Application 1]
 - [Application 2]
 
 **Warning signs to watch for:**
+
 - [Sign that you might have this problem]
 
 #### 2. [Lesson Title]
@@ -328,6 +350,7 @@ Help readers apply insights to their own systems:
 ### When This Pattern Applies
 
 You might face similar challenges if:
+
 - [Condition 1]
 - [Condition 2]
 
@@ -340,6 +363,7 @@ You might face similar challenges if:
 ### Starting Points
 
 If you want to explore this approach:
+
 1. [First step to investigate]
 2. [Tool/technique to try]
 3. [Metric to measure]
@@ -360,6 +384,7 @@ Every case study must cite primary sources:
 ### Verification
 
 For each major claim:
+
 - Link to source
 - Quote relevant passage
 - Note any caveats or uncertainty
@@ -367,6 +392,7 @@ For each major claim:
 ### When Sources Are Limited
 
 If primary sources don't cover everything:
+
 ```markdown
 > **Note:** The following is reconstructed from [talk/blog] and may not reflect all implementation details. [Company] has not published specifics about [aspect].
 ```
@@ -376,6 +402,7 @@ If primary sources don't cover everything:
 ### Type 1: Outage/Incident Analysis
 
 Focus on:
+
 - Detailed timeline
 - Root cause chain
 - Why detection was delayed
@@ -383,15 +410,16 @@ Focus on:
 - Prevention mechanisms added
 
 Example structure addition:
+
 ```markdown
 ## Incident Timeline
 
-| Time (UTC) | Event | Action |
-|------------|-------|--------|
-| 14:00 | [Trigger] | - |
-| 14:05 | [First alert] | Team paged |
-| 14:15 | [Escalation] | [Response] |
-| ... | ... | ... |
+| Time (UTC) | Event         | Action     |
+| ---------- | ------------- | ---------- |
+| 14:00      | [Trigger]     | -          |
+| 14:05      | [First alert] | Team paged |
+| 14:15      | [Escalation]  | [Response] |
+| ...        | ...           | ...        |
 
 ## Detection Gap
 
@@ -399,6 +427,7 @@ Example structure addition:
 [Analysis of monitoring gaps]
 
 **Detection improvements made:**
+
 - [New alert 1]
 - [New dashboard 2]
 ```
@@ -406,6 +435,7 @@ Example structure addition:
 ### Type 2: Performance Breakthrough
 
 Focus on:
+
 - Before/after metrics
 - What enabled the breakthrough
 - Why it wasn't done earlier
@@ -414,6 +444,7 @@ Focus on:
 ### Type 3: Architecture Evolution
 
 Focus on:
+
 - Why the old architecture hit limits
 - What drove the new design
 - How migration was executed
@@ -422,6 +453,7 @@ Focus on:
 ### Type 4: Unconventional Solution
 
 Focus on:
+
 - Why conventional wisdom didn't apply
 - What insight led to the unconventional approach
 - How risk was managed
@@ -430,6 +462,7 @@ Focus on:
 ## Quality Checklist
 
 ### Specificity
+
 - [ ] Exact tools and versions named
 - [ ] Actual numbers throughout (not "millions" but "3.2 million")
 - [ ] Timelines with dates
@@ -437,12 +470,14 @@ Focus on:
 - [ ] Configuration snippets where relevant
 
 ### Sources
+
 - [ ] All major claims have primary sources
 - [ ] Links to engineering blogs/talks
 - [ ] Timestamps for video sources
 - [ ] Uncertainty explicitly noted where sources are limited
 
 ### Completeness
+
 - [ ] Context fully established (scale, constraints, trigger)
 - [ ] Options considered (not just chosen approach)
 - [ ] Implementation deep-dive (not high-level summary)
@@ -450,6 +485,7 @@ Focus on:
 - [ ] Lessons learned that apply beyond this case
 
 ### Learning Value
+
 - [ ] Transferable insights identified
 - [ ] Warning signs readers can watch for
 - [ ] When this approach does NOT apply
@@ -458,21 +494,25 @@ Focus on:
 ## Examples of Good Case Study Topics
 
 ### Incidents
+
 - **Facebook 2021 BGP outage** - DNS dependency, physical access
 - **AWS Kinesis 2020** - Metadata explosion, thundering herd
 - **GitLab 2017 database deletion** - Backup verification
 
 ### Performance Breakthroughs
+
 - **Discord Rust rewrite** - 10x latency improvement
 - **LinkedIn feed ranking optimization** - 50% latency reduction
 - **Cloudflare Pingora** - Replacing NGINX for 1M+ RPS
 
 ### Architecture Evolutions
+
 - **Netflix microservices migration** - Monolith to microservices
 - **Uber Schemaless to Docstore** - Database evolution
 - **Slack's channel-based sharding** - Scaling real-time messaging
 
 ### Unconventional Solutions
+
 - **Figma multiplayer CRDTs** - Not using OT
 - **Discord's Cassandra partition strategy** - Counter-intuitive keys
 - **Cloudflare's Quicksilver** - Replacing etcd with custom solution

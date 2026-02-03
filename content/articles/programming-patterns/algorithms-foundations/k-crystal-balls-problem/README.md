@@ -47,19 +47,20 @@ The K-crystal balls problem models **threshold detection with consumable test re
 
 The formula emerges from setting all phase costs equal and solving the resulting geometric sequence. This isn't arbitrary—it's the unique configuration where no phase can be improved without making another worse.
 
-| Resources (k) | Jump Pattern | Worst Case | Complexity |
-|---------------|--------------|------------|------------|
-| 1 | Linear only | n | O(n) |
-| 2 | √n → linear | 2√n | O(√n) |
-| 3 | n^(2/3) → n^(1/3) → linear | 3·∛n | O(∛n) |
-| k | n^((k-1)/k) → ... → n^(1/k) → 1 | k·n^(1/k) | O(n^(1/k)) |
-| log n | 2 → 2 → ... | 2·log n | O(log n) |
+| Resources (k) | Jump Pattern                    | Worst Case | Complexity |
+| ------------- | ------------------------------- | ---------- | ---------- |
+| 1             | Linear only                     | n          | O(n)       |
+| 2             | √n → linear                     | 2√n        | O(√n)      |
+| 3             | n^(2/3) → n^(1/3) → linear      | 3·∛n       | O(∛n)      |
+| k             | n^((k-1)/k) → ... → n^(1/k) → 1 | k·n^(1/k)  | O(n^(1/k)) |
+| log n         | 2 → 2 → ...                     | 2·log n    | O(log n)   |
 
 ## Problem Definition
 
 Given k identical crystal balls and a structure with n floors, find the exact threshold floor where balls start breaking using minimum drops in the **worst case**.
 
 **Formal model**:
+
 - Floors form a sorted boolean array: `[false, false, ..., false, true, true, ..., true]`
 - All floors below threshold are safe (false); threshold and above break (true)
 - A broken ball is permanently consumed
@@ -98,10 +99,12 @@ This establishes the baseline—with zero tolerance for resource loss, you canno
 With two balls, you can afford one "exploratory" break before falling back to linear search.
 
 **Strategy**:
+
 1. Jump by interval j with the first ball
 2. When it breaks at some floor, linear search the previous j floors with the second ball
 
 **Analysis**:
+
 - Number of jumps before break: at most ⌈n/j⌉
 - Linear search after break: at most j-1 steps
 - Total worst case: n/j + j (approximately)
@@ -125,11 +128,13 @@ Second derivative confirms minimum: $f''(j) = \frac{2n}{j^3} > 0$
 With three balls, you can partition twice before linear search.
 
 **Strategy**:
+
 1. Jump by j₁ with the first ball
 2. Within the broken segment, jump by j₂ with the second ball
 3. Linear search the final segment with the third ball
 
 **Analysis**:
+
 - Phase 1: n/j₁ jumps
 - Phase 2: j₁/j₂ jumps
 - Phase 3: j₂ linear steps
@@ -140,6 +145,7 @@ With three balls, you can partition twice before linear search.
 Set $\frac{n}{j_1} = \frac{j_1}{j_2} = j_2 = x$
 
 Working backwards:
+
 - $j_2 = x$
 - $j_1 = x \cdot j_2 = x^2$
 - $n = x \cdot j_1 = x \cdot x^2 = x^3$
@@ -147,6 +153,7 @@ Working backwards:
 Therefore: $x = n^{1/3}$
 
 **Jump sizes**:
+
 - $j_1 = x^2 = n^{2/3}$
 - $j_2 = x = n^{1/3}$
 
@@ -223,6 +230,7 @@ This is the **minimax principle** in action—minimizing the maximum cost across
 An alternative approach uses decreasing jumps (x, x-1, x-2, ...) to account for "wasted" successful drops. This yields slightly better constants:
 
 For k=2 and n=100:
+
 - Fixed √n jumps: worst case ≈ 20 drops
 - Decreasing jumps (14, 13, 12, ...): worst case = 14 drops
 
@@ -235,12 +243,12 @@ However, the fixed jump approach is simpler, has the same asymptotic complexity,
 Each additional resource reduces the exponent by 1/k(k+1):
 
 | Resources | n = 1,000,000 | Improvement Factor |
-|-----------|---------------|-------------------|
-| 1 | 1,000,000 | — |
-| 2 | 2,000 | 500× |
-| 3 | 300 | 6.7× |
-| 4 | 126 | 2.4× |
-| 5 | 79 | 1.6× |
+| --------- | ------------- | ------------------ |
+| 1         | 1,000,000     | —                  |
+| 2         | 2,000         | 500×               |
+| 3         | 300           | 6.7×               |
+| 4         | 126           | 2.4×               |
+| 5         | 79            | 1.6×               |
 
 The first few resources provide massive gains; subsequent ones help less. This matches intuition—once you can partition sufficiently, additional partitioning levels add diminishing value.
 
@@ -251,6 +259,7 @@ When k = log₂(n), the jump size becomes approximately 2, and you get near-bina
 With unlimited resources (k → ∞), pure binary search is optimal: O(log n).
 
 The K-crystal balls problem thus interpolates between:
+
 - **k=1**: Linear search, no structure exploitation
 - **k=∞**: Binary search, maximum structure exploitation
 
@@ -264,59 +273,59 @@ The K-crystal balls problem thus interpolates between:
  */
 
 function findBreakingFloor(floors: boolean[], k: number): number {
-  const n = floors.length;
-  if (n === 0) return -1;
-  if (k === 0) return -1; // No resources to test
+  const n = floors.length
+  if (n === 0) return -1
+  if (k === 0) return -1 // No resources to test
 
   // k=1: Must use linear search
   if (k === 1) {
     for (let i = 0; i < n; i++) {
-      if (floors[i]) return i;
+      if (floors[i]) return i
     }
-    return -1;
+    return -1
   }
 
   // General case: Jump by n^(1/k), recurse with k-1 resources
-  const jumpSize = Math.max(1, Math.floor(Math.pow(n, (k - 1) / k)));
+  const jumpSize = Math.max(1, Math.floor(Math.pow(n, (k - 1) / k)))
 
-  let lastSafe = 0;
-  let position = jumpSize;
+  let lastSafe = 0
+  let position = jumpSize
 
   // Phase 1: Jump search with first resource
   while (position < n && !floors[position]) {
-    lastSafe = position;
-    position += jumpSize;
+    lastSafe = position
+    position += jumpSize
   }
 
   // Found segment [lastSafe, min(position, n-1)] containing threshold
   // Recursively search with k-1 resources
-  const segmentStart = lastSafe;
-  const segmentEnd = Math.min(position, n - 1);
-  const segment = floors.slice(segmentStart, segmentEnd + 1);
+  const segmentStart = lastSafe
+  const segmentEnd = Math.min(position, n - 1)
+  const segment = floors.slice(segmentStart, segmentEnd + 1)
 
-  const relativeIndex = findBreakingFloor(segment, k - 1);
-  return relativeIndex === -1 ? -1 : segmentStart + relativeIndex;
+  const relativeIndex = findBreakingFloor(segment, k - 1)
+  return relativeIndex === -1 ? -1 : segmentStart + relativeIndex
 }
 
 // Iterative version for k=2 (most common case)
 function twoEggDrop(floors: boolean[]): number {
-  const n = floors.length;
-  const jump = Math.floor(Math.sqrt(n));
+  const n = floors.length
+  const jump = Math.floor(Math.sqrt(n))
 
-  let lastSafe = 0;
-  let pos = 0;
+  let lastSafe = 0
+  let pos = 0
 
   // Jump phase
   while (pos < n && !floors[pos]) {
-    lastSafe = pos;
-    pos += jump;
+    lastSafe = pos
+    pos += jump
   }
 
   // Linear phase
   for (let i = lastSafe; i < Math.min(pos + 1, n); i++) {
-    if (floors[i]) return i;
+    if (floors[i]) return i
   }
-  return -1;
+  return -1
 }
 ```
 
@@ -324,15 +333,15 @@ function twoEggDrop(floors: boolean[]): number {
 
 ### Edge Cases
 
-| Condition | Behavior |
-|-----------|----------|
-| k = 0 | Cannot determine threshold (no test resources) |
-| k > log₂(n) | Binary search suffices; extra resources unused |
-| n = 0 | No floors to test; return -1 |
-| n = 1 | Single test determines threshold |
-| All false | No breaking floor exists; return -1 |
-| All true | Threshold at floor 0 |
-| Threshold at floor 1 | First jump overshoots; linear search finds it |
+| Condition            | Behavior                                       |
+| -------------------- | ---------------------------------------------- |
+| k = 0                | Cannot determine threshold (no test resources) |
+| k > log₂(n)          | Binary search suffices; extra resources unused |
+| n = 0                | No floors to test; return -1                   |
+| n = 1                | Single test determines threshold               |
+| All false            | No breaking floor exists; return -1            |
+| All true             | Threshold at floor 0                           |
+| Threshold at floor 1 | First jump overshoots; linear search finds it  |
 
 ### Numerical Precision
 
@@ -346,6 +355,7 @@ For very large n, $n^{1/k}$ may have floating-point errors. Use integer-safe com
 ### Off-by-One Boundaries
 
 The jump search must handle:
+
 - Jumping past the array bounds (clamp to n-1)
 - Segment boundaries (inclusive vs exclusive)
 - The case where threshold is exactly at a jump position

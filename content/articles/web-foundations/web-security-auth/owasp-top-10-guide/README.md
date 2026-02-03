@@ -46,13 +46,13 @@ The OWASP Top 10 represents a data-driven consensus on application security prio
 
 **Core mental model:**
 
-| Category | Root Cause | Primary Control |
-|----------|------------|-----------------|
-| A01-A02 | Missing enforcement/configuration | Deny-by-default, secure defaults |
-| A03-A04 | Untrusted sources, weak crypto | Supply chain verification, modern algorithms |
-| A05-A06 | Untrusted input, design flaws | Parameterized queries, threat modeling |
-| A07-A08 | Identity/integrity assumptions | MFA, signed artifacts |
-| A09-A10 | Insufficient visibility/resilience | Centralized logging, fail-closed |
+| Category | Root Cause                         | Primary Control                              |
+| -------- | ---------------------------------- | -------------------------------------------- |
+| A01-A02  | Missing enforcement/configuration  | Deny-by-default, secure defaults             |
+| A03-A04  | Untrusted sources, weak crypto     | Supply chain verification, modern algorithms |
+| A05-A06  | Untrusted input, design flaws      | Parameterized queries, threat modeling       |
+| A07-A08  | Identity/integrity assumptions     | MFA, signed artifacts                        |
+| A09-A10  | Insufficient visibility/resilience | Centralized logging, fail-closed             |
 
 **Key shift in 2025:** Security Misconfiguration rose from #5 to #2, reflecting that 100% of tested applications had some form of misconfiguration. Supply chain attacks (SolarWinds, Log4Shell, npm worms) drove the addition of a dedicated category.
 
@@ -68,40 +68,40 @@ Access control enforces policy so users cannot act outside their intended permis
 
 ### Vulnerability Patterns
 
-| Pattern | Example | CWE |
-|---------|---------|-----|
-| Privilege escalation | Regular user accesses admin endpoints | CWE-269 |
-| IDOR (Insecure Direct Object Reference) | `/api/users/123` → `/api/users/456` | CWE-639 |
-| Missing function-level controls | POST/PUT/DELETE endpoints lack authz | CWE-285 |
-| CORS misconfiguration | Wildcard origin with credentials | CWE-942 |
-| SSRF (now consolidated here) | `http://169.254.169.254/` metadata access | CWE-918 |
-| Path traversal | `../../../etc/passwd` | CWE-22 |
+| Pattern                                 | Example                                   | CWE     |
+| --------------------------------------- | ----------------------------------------- | ------- |
+| Privilege escalation                    | Regular user accesses admin endpoints     | CWE-269 |
+| IDOR (Insecure Direct Object Reference) | `/api/users/123` → `/api/users/456`       | CWE-639 |
+| Missing function-level controls         | POST/PUT/DELETE endpoints lack authz      | CWE-285 |
+| CORS misconfiguration                   | Wildcard origin with credentials          | CWE-942 |
+| SSRF (now consolidated here)            | `http://169.254.169.254/` metadata access | CWE-918 |
+| Path traversal                          | `../../../etc/passwd`                     | CWE-22  |
 
 ### Prevention
 
 ```ts title="access-control.ts" collapse={1-4, 18-25}
-import { Request, Response, NextFunction } from "express";
-import { verify } from "jsonwebtoken";
-import { hasPermission } from "./rbac";
+import { Request, Response, NextFunction } from "express"
+import { verify } from "jsonwebtoken"
+import { hasPermission } from "./rbac"
 
 // Middleware: deny-by-default, explicit allow
 export function authorize(resource: string, action: string) {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization?.split(" ")[1];
-    if (!token) return res.status(401).json({ error: "No token" });
+    const token = req.headers.authorization?.split(" ")[1]
+    if (!token) return res.status(401).json({ error: "No token" })
 
-    const payload = verify(token, process.env.JWT_SECRET!);
-    const allowed = await hasPermission(payload.sub, resource, action);
+    const payload = verify(token, process.env.JWT_SECRET!)
+    const allowed = await hasPermission(payload.sub, resource, action)
 
-    if (!allowed) return res.status(403).json({ error: "Forbidden" });
-    next();
-  };
+    if (!allowed) return res.status(403).json({ error: "Forbidden" })
+    next()
+  }
 }
 
 // Route: explicit authorization on every endpoint
-app.get("/api/users/:id", authorize("users", "read"), getUser);
-app.put("/api/users/:id", authorize("users", "update"), updateUser);
-app.delete("/api/users/:id", authorize("users", "delete"), deleteUser);
+app.get("/api/users/:id", authorize("users", "read"), getUser)
+app.put("/api/users/:id", authorize("users", "update"), updateUser)
+app.delete("/api/users/:id", authorize("users", "delete"), deleteUser)
 ```
 
 **Critical controls:**
@@ -116,30 +116,30 @@ app.delete("/api/users/:id", authorize("users", "delete"), deleteUser);
 ### SSRF-Specific Prevention
 
 ```ts title="ssrf-prevention.ts" collapse={1-5, 20-25}
-import { URL } from "url";
-import dns from "dns/promises";
-import ipaddr from "ipaddr.js";
+import { URL } from "url"
+import dns from "dns/promises"
+import ipaddr from "ipaddr.js"
 
-const ALLOWED_HOSTS = ["api.example.com", "cdn.example.com"];
+const ALLOWED_HOSTS = ["api.example.com", "cdn.example.com"]
 
 async function fetchSafely(userUrl: string): Promise<Response> {
-  const url = new URL(userUrl);
+  const url = new URL(userUrl)
 
   // Protocol allowlist (no file://, gopher://, etc.)
   if (!["https:"].includes(url.protocol)) {
-    throw new Error("Only HTTPS allowed");
+    throw new Error("Only HTTPS allowed")
   }
 
   // DNS rebinding protection: resolve and check before fetch
-  const addresses = await dns.resolve4(url.hostname);
+  const addresses = await dns.resolve4(url.hostname)
   for (const addr of addresses) {
-    const parsed = ipaddr.parse(addr);
+    const parsed = ipaddr.parse(addr)
     if (parsed.range() !== "unicast") {
-      throw new Error("Private IP not allowed");
+      throw new Error("Private IP not allowed")
     }
   }
 
-  return fetch(url.toString(), { redirect: "error" });
+  return fetch(url.toString(), { redirect: "error" })
 }
 ```
 
@@ -155,15 +155,15 @@ Cloud infrastructure complexity multiplied configuration surfaces. XXE (XML Exte
 
 ### Common Misconfigurations
 
-| Layer | Misconfiguration | Impact |
-|-------|-----------------|--------|
-| Cloud | S3 bucket public by default | Data breach |
-| Container | Root user in Docker | Container escape |
-| Framework | Debug mode in production | Stack traces leak |
-| Server | Directory listing enabled | Source exposure |
-| Headers | Missing security headers | XSS, clickjacking |
-| Defaults | Unchanged admin credentials | Full compromise |
-| Parser | XXE enabled in XML parser | File disclosure, SSRF |
+| Layer     | Misconfiguration            | Impact                |
+| --------- | --------------------------- | --------------------- |
+| Cloud     | S3 bucket public by default | Data breach           |
+| Container | Root user in Docker         | Container escape      |
+| Framework | Debug mode in production    | Stack traces leak     |
+| Server    | Directory listing enabled   | Source exposure       |
+| Headers   | Missing security headers    | XSS, clickjacking     |
+| Defaults  | Unchanged admin credentials | Full compromise       |
+| Parser    | XXE enabled in XML parser   | File disclosure, SSRF |
 
 ### Security Headers
 
@@ -179,7 +179,7 @@ Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-{random}';
 ### Configuration Hardening
 
 ```ts title="xml-parser.ts" collapse={1-2}
-import { XMLParser } from "fast-xml-parser";
+import { XMLParser } from "fast-xml-parser"
 
 // SAFE: external entities disabled (default in modern parsers)
 const parser = new XMLParser({
@@ -187,7 +187,7 @@ const parser = new XMLParser({
   // These enable XXE - never enable without explicit need:
   // processEntities: true,
   // allowBooleanAttributes: true,
-});
+})
 ```
 
 **Hardening workflow:**
@@ -208,13 +208,13 @@ SolarWinds (18,000+ organizations compromised), Log4Shell (CVE-2021-44228 affect
 
 ### Supply Chain Risk Vectors
 
-| Risk | Example | Control |
-|------|---------|---------|
-| Known vulnerabilities | Log4Shell (CVE-2021-44228) | Dependency scanning |
-| Typosquatting | `lodahs` instead of `lodash` | Package verification |
-| Maintainer compromise | event-stream incident (2018) | Audit upstream changes |
-| Build system compromise | SolarWinds Orion | Signed builds, reproducibility |
-| Malicious packages | npm worms harvesting tokens | Private registry, allowlisting |
+| Risk                    | Example                      | Control                        |
+| ----------------------- | ---------------------------- | ------------------------------ |
+| Known vulnerabilities   | Log4Shell (CVE-2021-44228)   | Dependency scanning            |
+| Typosquatting           | `lodahs` instead of `lodash` | Package verification           |
+| Maintainer compromise   | event-stream incident (2018) | Audit upstream changes         |
+| Build system compromise | SolarWinds Orion             | Signed builds, reproducibility |
+| Malicious packages      | npm worms harvesting tokens  | Private registry, allowlisting |
 
 ### Dependency Management
 
@@ -263,18 +263,18 @@ Cryptographic Failures moved from #2 (2021) to #4 (2025), with 32 mapped CWEs an
 
 ### Vulnerability Patterns
 
-| Pattern | Weakness | Impact |
-|---------|----------|--------|
-| Cleartext transmission | No TLS, HTTP fallback | MITM credential theft |
-| Weak algorithms | MD5/SHA1 for passwords, DES | Offline cracking |
-| Insufficient entropy | Predictable tokens, weak PRNG | Session hijacking |
-| Hardcoded secrets | API keys in source | Credential compromise |
-| Missing authenticated encryption | AES-CBC without HMAC | Padding oracle |
+| Pattern                          | Weakness                      | Impact                |
+| -------------------------------- | ----------------------------- | --------------------- |
+| Cleartext transmission           | No TLS, HTTP fallback         | MITM credential theft |
+| Weak algorithms                  | MD5/SHA1 for passwords, DES   | Offline cracking      |
+| Insufficient entropy             | Predictable tokens, weak PRNG | Session hijacking     |
+| Hardcoded secrets                | API keys in source            | Credential compromise |
+| Missing authenticated encryption | AES-CBC without HMAC          | Padding oracle        |
 
 ### Password Storage
 
 ```ts title="password.ts" collapse={1-3}
-import { hash, verify } from "argon2";
+import { hash, verify } from "argon2"
 
 // Argon2id: OWASP-recommended for password hashing
 const PASSWORD_OPTIONS = {
@@ -282,17 +282,14 @@ const PASSWORD_OPTIONS = {
   memoryCost: 65536, // 64MB
   timeCost: 3,
   parallelism: 4,
-};
-
-export async function hashPassword(password: string): Promise<string> {
-  return hash(password, PASSWORD_OPTIONS);
 }
 
-export async function verifyPassword(
-  password: string,
-  stored: string
-): Promise<boolean> {
-  return verify(stored, password);
+export async function hashPassword(password: string): Promise<string> {
+  return hash(password, PASSWORD_OPTIONS)
+}
+
+export async function verifyPassword(password: string, stored: string): Promise<boolean> {
+  return verify(stored, password)
 }
 ```
 
@@ -312,36 +309,36 @@ Injection dropped from #3 (2021) to #5 (2025), but remains critical with 37 mapp
 
 ### Attack Surface
 
-| Injection Type | Entry Point | Prevention |
-|---------------|-------------|------------|
-| SQL | Database queries | Parameterized queries, ORM |
-| XSS | HTML output | Output encoding, CSP |
-| Command | OS shell calls | Avoid shell; use safe APIs |
-| NoSQL | Document queries | Schema validation |
-| Template | Server-side templates | Sandbox, restricted syntax |
-| LDAP | Directory queries | Escape special characters |
+| Injection Type | Entry Point           | Prevention                 |
+| -------------- | --------------------- | -------------------------- |
+| SQL            | Database queries      | Parameterized queries, ORM |
+| XSS            | HTML output           | Output encoding, CSP       |
+| Command        | OS shell calls        | Avoid shell; use safe APIs |
+| NoSQL          | Document queries      | Schema validation          |
+| Template       | Server-side templates | Sandbox, restricted syntax |
+| LDAP           | Directory queries     | Escape special characters  |
 
 ### SQL Injection Prevention
 
 ```ts title="query.ts" collapse={1-3, 18-22}
-import { Pool } from "pg";
+import { Pool } from "pg"
 
-const pool = new Pool();
+const pool = new Pool()
 
 // VULNERABLE: string concatenation
 async function getUserUnsafe(id: string) {
   // Attacker: "1; DROP TABLE users;--"
-  return pool.query(`SELECT * FROM accounts WHERE id = ${id}`);
+  return pool.query(`SELECT * FROM accounts WHERE id = ${id}`)
 }
 
 // SAFE: parameterized query
 async function getUserSafe(id: string) {
-  return pool.query("SELECT * FROM accounts WHERE id = $1", [id]);
+  return pool.query("SELECT * FROM accounts WHERE id = $1", [id])
 }
 
 // SAFE: ORM with typed parameters
 async function getUserORM(id: number) {
-  return prisma.user.findUnique({ where: { id } });
+  return prisma.user.findUnique({ where: { id } })
 }
 ```
 
@@ -369,12 +366,12 @@ Insecure Design dropped from #4 (2021) to #6 (2025), with 39 mapped CWEs. It tar
 
 ### Design vs Implementation
 
-| Insecure Design | Implementation Bug |
-|-----------------|-------------------|
-| No rate limiting on password reset | Rate limit bypassed via header |
-| Security questions for recovery | SQL injection in security handler |
-| Trust boundary violation | JWT validation missing on one endpoint |
-| No business logic validation | Off-by-one in quantity check |
+| Insecure Design                    | Implementation Bug                     |
+| ---------------------------------- | -------------------------------------- |
+| No rate limiting on password reset | Rate limit bypassed via header         |
+| Security questions for recovery    | SQL injection in security handler      |
+| Trust boundary violation           | JWT validation missing on one endpoint |
+| No business logic validation       | Off-by-one in quantity check           |
 
 ### Prevention
 
@@ -396,22 +393,22 @@ Authentication Failures maintains #7 with 36 mapped CWEs, 1.1M+ occurrences, and
 
 ### Vulnerability Patterns
 
-| Weakness | Exploitation | Control |
-|----------|-------------|---------|
-| Credential stuffing | Automated login with breached passwords | MFA, rate limiting |
-| Weak passwords | Dictionary attacks | Min 12 chars, breach check |
-| Session fixation | Attacker sets session ID pre-login | Regenerate on auth |
-| Missing logout | Sessions persist indefinitely | Server-side invalidation |
-| Exposed session IDs | IDs in URLs | Cookie-only, HttpOnly |
+| Weakness            | Exploitation                            | Control                    |
+| ------------------- | --------------------------------------- | -------------------------- |
+| Credential stuffing | Automated login with breached passwords | MFA, rate limiting         |
+| Weak passwords      | Dictionary attacks                      | Min 12 chars, breach check |
+| Session fixation    | Attacker sets session ID pre-login      | Regenerate on auth         |
+| Missing logout      | Sessions persist indefinitely           | Server-side invalidation   |
+| Exposed session IDs | IDs in URLs                             | Cookie-only, HttpOnly      |
 
 ### Session Management
 
 ```ts title="session.ts" collapse={1-5, 22-28}
-import session from "express-session";
-import RedisStore from "connect-redis";
-import { createClient } from "redis";
+import session from "express-session"
+import RedisStore from "connect-redis"
+import { createClient } from "redis"
 
-const redisClient = createClient();
+const redisClient = createClient()
 
 app.use(
   session({
@@ -426,17 +423,17 @@ app.use(
       sameSite: "strict", // CSRF protection
       maxAge: 15 * 60 * 1000, // 15 minutes
     },
-  })
-);
+  }),
+)
 
 // Regenerate session on login (prevent fixation)
 app.post("/login", async (req, res) => {
-  const user = await authenticate(req.body);
+  const user = await authenticate(req.body)
   req.session.regenerate(() => {
-    req.session.userId = user.id;
-    res.json({ success: true });
-  });
-});
+    req.session.userId = user.id
+    res.json({ success: true })
+  })
+})
 ```
 
 ### NIST 800-63B Guidelines
@@ -455,20 +452,20 @@ Software and Data Integrity Failures remains #8, addressing assumptions about up
 
 ### Integrity Patterns
 
-| Pattern | Example | Impact |
-|---------|---------|--------|
-| Unsigned updates | Auto-update without verification | Malicious code |
-| Insecure deserialization | Untrusted data → object instantiation | RCE |
-| CI/CD compromise | Build server access | Supply chain attack |
-| CDN modification | JavaScript changed at CDN | Client attacks |
+| Pattern                  | Example                               | Impact              |
+| ------------------------ | ------------------------------------- | ------------------- |
+| Unsigned updates         | Auto-update without verification      | Malicious code      |
+| Insecure deserialization | Untrusted data → object instantiation | RCE                 |
+| CI/CD compromise         | Build server access                   | Supply chain attack |
+| CDN modification         | JavaScript changed at CDN             | Client attacks      |
 
 ### Deserialization Safety
 
 ```ts title="deserialize.ts" collapse={1-3}
-import Ajv from "ajv";
+import Ajv from "ajv"
 
 // SAFE: schema validation before use
-const ajv = new Ajv();
+const ajv = new Ajv()
 const schema = {
   type: "object",
   properties: {
@@ -477,14 +474,14 @@ const schema = {
   },
   required: ["userId", "action"],
   additionalProperties: false,
-};
+}
 
-const validate = ajv.compile(schema);
+const validate = ajv.compile(schema)
 
 function processInput(untrusted: string) {
-  const data = JSON.parse(untrusted);
+  const data = JSON.parse(untrusted)
   if (!validate(data)) {
-    throw new Error("Invalid input schema");
+    throw new Error("Invalid input schema")
   }
   // Now safe to use data.userId, data.action
 }
@@ -504,27 +501,27 @@ Renamed from "Security Logging and Monitoring Failures" to emphasize alerting—
 
 ### What to Log
 
-| Event | Required Fields | Alert Threshold |
-|-------|-----------------|-----------------|
-| Login failure | User, IP, timestamp, user-agent | 5 failures/minute |
-| Access denied | User, resource, action | Any sensitive resource |
-| Input validation failure | Input (sanitized), endpoint | 10/minute same IP |
-| Admin action | User, action, target | All |
-| Rate limit triggered | IP, endpoint, count | All |
+| Event                    | Required Fields                 | Alert Threshold        |
+| ------------------------ | ------------------------------- | ---------------------- |
+| Login failure            | User, IP, timestamp, user-agent | 5 failures/minute      |
+| Access denied            | User, resource, action          | Any sensitive resource |
+| Input validation failure | Input (sanitized), endpoint     | 10/minute same IP      |
+| Admin action             | User, action, target            | All                    |
+| Rate limit triggered     | IP, endpoint, count             | All                    |
 
 ### Log Injection Prevention
 
 ```ts title="logging.ts" collapse={1-3}
-import pino from "pino";
+import pino from "pino"
 
 const logger = pino({
   formatters: {
     level: (label) => ({ level: label }),
   },
-});
+})
 
 // SAFE: structured logging (not string concatenation)
-logger.info({ userId: user.id, action: "login" }, "User authenticated");
+logger.info({ userId: user.id, action: "login" }, "User authenticated")
 
 // UNSAFE: user input in log string enables injection
 // logger.info(`User ${username} logged in`);
@@ -545,29 +542,29 @@ New in 2025, this category addresses failures to prevent, detect, and respond to
 
 ### Failure Modes
 
-| Failure | Example | Impact |
-|---------|---------|--------|
-| Resource exhaustion | Unhandled upload exception | DoS |
-| Data exposure | Database error reveals internals | Reconnaissance |
-| Fail-open | Exception bypasses auth check | Unauthorized access |
-| Incomplete transaction | Transfer interrupted mid-process | Financial fraud |
+| Failure                | Example                          | Impact              |
+| ---------------------- | -------------------------------- | ------------------- |
+| Resource exhaustion    | Unhandled upload exception       | DoS                 |
+| Data exposure          | Database error reveals internals | Reconnaissance      |
+| Fail-open              | Exception bypasses auth check    | Unauthorized access |
+| Incomplete transaction | Transfer interrupted mid-process | Financial fraud     |
 
 ### Prevention
 
 ```ts title="error-handling.ts" collapse={1-3}
-import { Transaction } from "sequelize";
+import { Transaction } from "sequelize"
 
 // SAFE: transactional rollback on any failure
 async function transferFunds(from: number, to: number, amount: number) {
-  const t = await sequelize.transaction();
+  const t = await sequelize.transaction()
   try {
-    await Account.decrement("balance", { by: amount, where: { id: from }, transaction: t });
-    await Account.increment("balance", { by: amount, where: { id: to }, transaction: t });
-    await t.commit();
+    await Account.decrement("balance", { by: amount, where: { id: from }, transaction: t })
+    await Account.increment("balance", { by: amount, where: { id: to }, transaction: t })
+    await t.commit()
   } catch (error) {
-    await t.rollback(); // Fail closed: no partial state
-    logger.error({ from, to, amount, error: error.message }, "Transfer failed");
-    throw new Error("Transfer failed"); // Don't leak internals
+    await t.rollback() // Fail closed: no partial state
+    logger.error({ from, to, amount, error: error.message }, "Transfer failed")
+    throw new Error("Transfer failed") // Don't leak internals
   }
 }
 ```

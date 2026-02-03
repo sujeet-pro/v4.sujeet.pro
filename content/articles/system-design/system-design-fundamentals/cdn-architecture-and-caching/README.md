@@ -118,13 +118,13 @@ Initial request goes to a central router that returns a 302 redirect to the opti
 
 ### Decision Matrix: Routing Mechanisms
 
-| Factor | DNS-Based | Anycast | HTTP Redirect |
-|--------|-----------|---------|---------------|
-| Failover speed | 30-60s (DNS TTL) | < 1s (BGP) | < 1s |
-| DDoS absorption | Per-PoP | Automatic distribution | N/A |
-| Implementation | Simple | Requires BGP/ASN | Simple |
-| User location accuracy | Moderate | High | High |
-| Connection persistence | Good | BGP flaps can reset | Good |
+| Factor                 | DNS-Based        | Anycast                | HTTP Redirect |
+| ---------------------- | ---------------- | ---------------------- | ------------- |
+| Failover speed         | 30-60s (DNS TTL) | < 1s (BGP)             | < 1s          |
+| DDoS absorption        | Per-PoP          | Automatic distribution | N/A           |
+| Implementation         | Simple           | Requires BGP/ASN       | Simple        |
+| User location accuracy | Moderate         | High                   | High          |
+| Connection persistence | Good             | BGP flaps can reset    | Good          |
 
 ## Cache Key Design
 
@@ -142,13 +142,13 @@ Two requests to `https://example.com/logo.png` and `https://cdn.example.com/logo
 
 ### Cache Key Customization Options
 
-| Component | Include | Exclude | Use Case |
-|-----------|---------|---------|----------|
-| Host | Multiple domains, different content | Multiple domains, same content | Multi-tenant vs. mirror domains |
-| Protocol | HTTP/HTTPS serve different content | Protocol-agnostic content | Legacy HTTP support vs. HTTPS-only |
-| Query string | Pagination, filters | Tracking params (`utm_*`, `fbclid`) | Dynamic vs. marketing URLs |
-| Headers | `Accept-Encoding`, `Accept-Language` | Non-varying headers | Content negotiation vs. hit ratio |
-| Cookies | Session-based content | Non-personalized content | Auth state vs. public content |
+| Component    | Include                              | Exclude                             | Use Case                           |
+| ------------ | ------------------------------------ | ----------------------------------- | ---------------------------------- |
+| Host         | Multiple domains, different content  | Multiple domains, same content      | Multi-tenant vs. mirror domains    |
+| Protocol     | HTTP/HTTPS serve different content   | Protocol-agnostic content           | Legacy HTTP support vs. HTTPS-only |
+| Query string | Pagination, filters                  | Tracking params (`utm_*`, `fbclid`) | Dynamic vs. marketing URLs         |
+| Headers      | `Accept-Encoding`, `Accept-Language` | Non-varying headers                 | Content negotiation vs. hit ratio  |
+| Cookies      | Session-based content                | Non-personalized content            | Auth state vs. public content      |
 
 ### Query String Strategies
 
@@ -172,6 +172,7 @@ Vary: Accept-Encoding
 ```
 
 This creates separate cache entries for:
+
 - `Accept-Encoding: gzip`
 - `Accept-Encoding: br`
 - `Accept-Encoding: identity`
@@ -205,13 +206,13 @@ Browser caches for 5 minutes. CDN caches for 1 hour. CDN serves stale-to-browser
 
 ### TTL Selection by Content Type
 
-| Content Type | Recommended TTL | Invalidation Strategy |
-|--------------|-----------------|----------------------|
-| Static assets (JS, CSS) | 1 year | Versioned URLs (fingerprinting) |
-| Images | 1-7 days | Versioned URLs or soft purge |
-| HTML pages | 5 min - 1 hour | Stale-while-revalidate |
-| API responses | 0-60 seconds | Short TTL + cache tags |
-| User-specific content | 0 (private) | No CDN caching |
+| Content Type            | Recommended TTL | Invalidation Strategy           |
+| ----------------------- | --------------- | ------------------------------- |
+| Static assets (JS, CSS) | 1 year          | Versioned URLs (fingerprinting) |
+| Images                  | 1-7 days        | Versioned URLs or soft purge    |
+| HTML pages              | 5 min - 1 hour  | Stale-while-revalidate          |
+| API responses           | 0-60 seconds    | Short TTL + cache tags          |
+| User-specific content   | 0 (private)     | No CDN caching                  |
 
 ### Layered TTL Strategy
 
@@ -306,7 +307,7 @@ Cache-Control: max-age=60, stale-while-revalidate=86400
 
 - 0-60 seconds: Fresh content served, no revalidation
 - 60-86460 seconds: Stale content served, background revalidation triggered
-- >86460 seconds: Cache miss, synchronous fetch from origin
+- > 86460 seconds: Cache miss, synchronous fetch from origin
 
 **Trade-offs:**
 
@@ -354,13 +355,13 @@ curl -X PURGE -H "Surrogate-Key: category-electronics" https://cdn.example.com/
 
 ### Decision Matrix: Invalidation Strategies
 
-| Strategy | Freshness | Origin Protection | Complexity | Use Case |
-|----------|-----------|-------------------|------------|----------|
-| Hard purge | Immediate | Poor | Low | Security incidents |
-| Soft purge | 30s-5min | Excellent | Low | Routine updates |
-| Versioned URLs | Instant | Excellent | Medium | Static assets |
-| Stale-while-revalidate | Eventual | Good | Low | HTML, API responses |
-| Cache tags | Variable | Variable | High | Complex content relationships |
+| Strategy               | Freshness | Origin Protection | Complexity | Use Case                      |
+| ---------------------- | --------- | ----------------- | ---------- | ----------------------------- |
+| Hard purge             | Immediate | Poor              | Low        | Security incidents            |
+| Soft purge             | 30s-5min  | Excellent         | Low        | Routine updates               |
+| Versioned URLs         | Instant   | Excellent         | Medium     | Static assets                 |
+| Stale-while-revalidate | Eventual  | Good              | Low        | HTML, API responses           |
+| Cache tags             | Variable  | Variable          | High       | Complex content relationships |
 
 ## Origin Shielding and Tiered Caching
 
@@ -369,15 +370,19 @@ Origin shielding adds an intermediate cache layer between edge PoPs and origin. 
 ### How Tiered Caching Works
 
 Without shielding (2-tier):
+
 ```
 User → Edge PoP → Origin
 ```
+
 100 PoPs × 100 misses = 10,000 origin requests
 
 With shielding (3-tier):
+
 ```
 User → Edge PoP → Origin Shield → Origin
 ```
+
 100 PoPs × 100 misses → 1 shield request → 1 origin request
 
 **Design rationale:** Cache misses from multiple edge PoPs converge at a single shield PoP. The shield absorbs duplicate requests before they reach origin.
@@ -393,6 +398,7 @@ Multiple simultaneous requests for the same uncached object are collapsed into a
 20 users request `/video/intro.mp4` simultaneously → 1 origin request, 19 users wait
 
 **Interaction with shielding:** Up to 4 levels of request consolidation:
+
 1. Browser cache (single user)
 2. Edge PoP collapsing (per-PoP)
 3. Shield collapsing (across PoPs)
@@ -401,6 +407,7 @@ Multiple simultaneous requests for the same uncached object are collapsed into a
 ### Real-World Tiered Architecture: Cloudflare
 
 **Regional Tiered Cache:**
+
 - Lower tier: User-facing edge PoPs (200+ cities)
 - Upper tier: Regional shield PoPs (fewer locations, higher cache capacity)
 - Origin: Customer infrastructure
@@ -409,19 +416,21 @@ Multiple simultaneous requests for the same uncached object are collapsed into a
 
 ### Google Media CDN Three-Layer Model
 
-| Layer | Location | Purpose |
-|-------|----------|---------|
-| Deep edge | ISP networks | Majority of traffic (popular content) |
-| Peering edge | Google network edge | Mid-tier, connected to thousands of ISPs |
+| Layer           | Location            | Purpose                                   |
+| --------------- | ------------------- | ----------------------------------------- |
+| Deep edge       | ISP networks        | Majority of traffic (popular content)     |
+| Peering edge    | Google network edge | Mid-tier, connected to thousands of ISPs  |
 | Long-tail cache | Google data centers | Origin shield for rarely-accessed content |
 
 ### Shield Location Selection
 
 **Geographic proximity to origin:**
+
 - Lower shield-to-origin latency
 - Faster cache fills
 
 **Network topology:**
+
 - Shield in same region as majority of users
 - Reduces inter-region traffic costs
 
@@ -439,14 +448,14 @@ Edge compute executes custom logic at CDN PoPs, enabling personalization and sec
 
 ### Platform Comparison
 
-| Characteristic | Cloudflare Workers | Lambda@Edge | Fastly Compute |
-|---------------|-------------------|-------------|----------------|
-| Runtime | V8 isolates | Node.js/Python | WebAssembly |
-| Cold start | 0ms | ~50ms | Microseconds |
-| Global PoPs | 200+ cities | 400+ locations | 60+ PoPs |
-| Memory limit | 128MB | 128MB (viewer), 10GB (origin) | 150MB |
-| Execution time | 30s (paid) | 5s (viewer), 30s (origin) | 120s |
-| Languages | JavaScript/TypeScript | JS, Python, Java, Go, C# | Rust, Go, JS, AssemblyScript |
+| Characteristic | Cloudflare Workers    | Lambda@Edge                   | Fastly Compute               |
+| -------------- | --------------------- | ----------------------------- | ---------------------------- |
+| Runtime        | V8 isolates           | Node.js/Python                | WebAssembly                  |
+| Cold start     | 0ms                   | ~50ms                         | Microseconds                 |
+| Global PoPs    | 200+ cities           | 400+ locations                | 60+ PoPs                     |
+| Memory limit   | 128MB                 | 128MB (viewer), 10GB (origin) | 150MB                        |
+| Execution time | 30s (paid)            | 5s (viewer), 30s (origin)     | 120s                         |
+| Languages      | JavaScript/TypeScript | JS, Python, Java, Go, C#      | Rust, Go, JS, AssemblyScript |
 
 ### Cold Start Implications
 
@@ -459,39 +468,43 @@ Edge compute executes custom logic at CDN PoPs, enabling personalization and sec
 ### Edge Compute Use Cases
 
 **A/B testing at edge:**
+
 ```javascript
 // Cloudflare Worker
-addEventListener('fetch', event => {
-  const bucket = Math.random() < 0.5 ? 'A' : 'B';
-  const url = new URL(event.request.url);
-  url.pathname = `/${bucket}${url.pathname}`;
-  event.respondWith(fetch(url));
-});
+addEventListener("fetch", (event) => {
+  const bucket = Math.random() < 0.5 ? "A" : "B"
+  const url = new URL(event.request.url)
+  url.pathname = `/${bucket}${url.pathname}`
+  event.respondWith(fetch(url))
+})
 ```
 
 No origin involvement—experiment assignment happens at edge.
 
 **Personalization:**
+
 - Geo-based content (currency, language)
 - Device-based optimization (image sizing)
 - User segment targeting (from cookie/header)
 
 **Security:**
+
 - Bot detection before origin
 - Request validation/sanitization
 - Rate limiting per client
 
 ### Trade-offs: Edge Compute vs. Origin Logic
 
-| Factor | Edge Compute | Origin Logic |
-|--------|--------------|--------------|
-| Latency | 10-30ms | 100-400ms |
-| State access | Limited (KV, Durable Objects) | Full database access |
-| Debugging | More complex (distributed) | Standard tooling |
-| Cost | Per-request pricing | Per-compute pricing |
-| Capabilities | Constrained runtime | Full language/framework |
+| Factor       | Edge Compute                  | Origin Logic            |
+| ------------ | ----------------------------- | ----------------------- |
+| Latency      | 10-30ms                       | 100-400ms               |
+| State access | Limited (KV, Durable Objects) | Full database access    |
+| Debugging    | More complex (distributed)    | Standard tooling        |
+| Cost         | Per-request pricing           | Per-compute pricing     |
+| Capabilities | Constrained runtime           | Full language/framework |
 
 **Decision guidance:**
+
 - Edge: Request routing, simple transformations, caching decisions
 - Origin: Business logic, database transactions, complex computations
 
@@ -502,6 +515,7 @@ Multi-CDN distributes traffic across multiple CDN providers for availability, pe
 ### Architecture Patterns
 
 **Primary/Backup:**
+
 ```
 Traffic → Primary CDN (100%) → Origin
                 ↓ (on failure)
@@ -509,12 +523,14 @@ Traffic → Primary CDN (100%) → Origin
 ```
 
 **Active-Active:**
+
 ```
 Traffic → Load Balancer → CDN A (50%)  → Origin
                        → CDN B (50%)
 ```
 
 **Performance-Based:**
+
 ```
 Traffic → DNS/Traffic Manager → Fastest CDN for user region → Origin
 ```
@@ -533,10 +549,10 @@ Multi-level health checks required:
 
 ### Failover Timing
 
-| Check Type | Failure Detection | Full Failover |
-|------------|------------------|---------------|
-| DNS-based | 30-60s (DNS TTL) | 1-5 minutes |
-| Anycast | <1s (BGP) | 10-30 seconds |
+| Check Type        | Failure Detection       | Full Failover |
+| ----------------- | ----------------------- | ------------- |
+| DNS-based         | 30-60s (DNS TTL)        | 1-5 minutes   |
+| Anycast           | <1s (BGP)               | 10-30 seconds |
 | Active monitoring | 10-30s (check interval) | 30-60 seconds |
 
 ### Trade-offs
@@ -557,6 +573,7 @@ Multi-level health checks required:
 **Scenario:** Cache entry expires. Thousands of simultaneous requests all experience cache miss. All hit origin simultaneously.
 
 **Real example (Shopify Black Friday 2019):**
+
 - Product recommendation cache expired at 2:47 AM
 - 47,000 concurrent requests hit primary database in 3 seconds
 - Database CPU spiked to 98%, response time: 20ms → 4,500ms
@@ -573,12 +590,14 @@ Multi-level health checks required:
 ### Cache Poisoning
 
 **Attack vector:**
+
 1. Attacker sends request with malicious headers/parameters
 2. Origin returns error or malformed response based on input
 3. CDN caches the poisoned response
 4. All subsequent users receive poisoned content
 
 **Cache-Poisoned Denial of Service (CPDoS):**
+
 - Attacker triggers 400/500 error with specific request
 - Error page cached (some CDNs cache error responses)
 - All users see error page until TTL expires or purge
@@ -595,6 +614,7 @@ Multi-level health checks required:
 **Scenario:** Global purge of popular content. All PoPs simultaneously request fresh content.
 
 **If normal cache hit ratio is 98%:**
+
 - 1,000,000 requests/minute normally
 - 20,000 reach origin (2% miss rate)
 - After purge: 1,000,000 requests hit origin
@@ -612,6 +632,7 @@ Multi-level health checks required:
 **Scenario:** BGP route oscillates between PoPs. User connections reset on each flip.
 
 **Impact:**
+
 - TCP connections interrupted
 - TLS sessions terminated
 - Long-lived connections (WebSocket, streaming) fail
@@ -630,6 +651,7 @@ Multi-level health checks required:
 **Scale:** 8,000+ custom appliances (OCAs) across 1,000+ ISPs globally.
 
 **Architecture:**
+
 - **Control plane:** Runs in AWS (metadata, routing decisions)
 - **Data plane:** OCAs in ISP networks (content delivery)
 
@@ -676,42 +698,46 @@ Multi-level health checks required:
 
 ### Comparison Summary
 
-| Aspect | Netflix Open Connect | Cloudflare | Akamai |
-|--------|---------------------|------------|--------|
-| Deployment model | ISP-embedded appliances | Anycast PoPs | ISP-embedded + PoPs |
-| Primary optimization | Bandwidth cost | Security + developer UX | Latency |
-| Caching model | Push (predictive) | Pull + tiered | Pull + DSA |
-| Edge compute | N/A | Workers (V8) | EdgeWorkers (JS) |
-| Content type | Video (single tenant) | General purpose | General purpose |
+| Aspect               | Netflix Open Connect    | Cloudflare              | Akamai              |
+| -------------------- | ----------------------- | ----------------------- | ------------------- |
+| Deployment model     | ISP-embedded appliances | Anycast PoPs            | ISP-embedded + PoPs |
+| Primary optimization | Bandwidth cost          | Security + developer UX | Latency             |
+| Caching model        | Push (predictive)       | Pull + tiered           | Pull + DSA          |
+| Edge compute         | N/A                     | Workers (V8)            | EdgeWorkers (JS)    |
+| Content type         | Video (single tenant)   | General purpose         | General purpose     |
 
 ## Monitoring and Observability
 
 ### Key Metrics
 
 **Cache Hit Ratio (CHR):**
+
 ```
 CHR = (Cache Hits) / (Cache Hits + Cache Misses) × 100
 ```
 
 **Target ranges:**
+
 - Static-heavy sites: 85-95%
 - Dynamic sites: 50-70%
 - API endpoints: 30-60% (if cacheable at all)
 
 **Warning:** "CHR" can be misleading. Clarify:
+
 - Edge hit ratio vs. shield hit ratio vs. origin hit ratio
 - Bytes vs. requests
 - Cacheable vs. all traffic
 
 **Time to First Byte (TTFB):**
 
-| Source | Typical Range | Target |
-|--------|---------------|--------|
-| Edge cache hit | 10-50ms | <50ms |
-| Shield cache hit | 50-150ms | <100ms |
-| Origin fetch | 200-500ms | <300ms |
+| Source           | Typical Range | Target |
+| ---------------- | ------------- | ------ |
+| Edge cache hit   | 10-50ms       | <50ms  |
+| Shield cache hit | 50-150ms      | <100ms |
+| Origin fetch     | 200-500ms     | <300ms |
 
 **Bandwidth Offload:**
+
 ```
 Offload = (Bytes served from cache) / (Total bytes served) × 100
 ```
@@ -720,12 +746,12 @@ Different from CHR—a single large video hit offloads more bandwidth than thous
 
 ### Alerting Thresholds
 
-| Metric | Warning | Critical |
-|--------|---------|----------|
-| CHR drop | >5% decrease | >15% decrease |
-| Origin 5xx rate | >0.1% | >1% |
-| Edge latency p95 | >100ms | >500ms |
-| Origin latency p95 | >500ms | >2s |
+| Metric             | Warning      | Critical      |
+| ------------------ | ------------ | ------------- |
+| CHR drop           | >5% decrease | >15% decrease |
+| Origin 5xx rate    | >0.1%        | >1%           |
+| Edge latency p95   | >100ms       | >500ms        |
+| Origin latency p95 | >500ms       | >2s           |
 
 ### Cache Key Debugging
 
@@ -770,7 +796,6 @@ The real-world implementations from Netflix, Cloudflare, and Akamai demonstrate 
 - [Cloudflare CDN Reference Architecture](https://developers.cloudflare.com/reference-architecture/architectures/cdn/) — Tiered caching, Cache Reserve design
 - [Fastly Caching Documentation](https://www.fastly.com/documentation/guides/concepts/edge-state/cache/) — Request collapsing, surrogate keys
 - [Netflix Open Connect Overview](https://openconnect.netflix.com/Open-Connect-Overview.pdf) — ISP embedding, predictive fill
-- [Akamai CDN Architecture](https://www.akamai.com/resources/reference-architecture/content-delivery-network) — Deep ISP deployment rationale
 - [Cloudflare Workers vs Lambda Performance](https://blog.cloudflare.com/serverless-performance-comparison-workers-lambda/) — Edge compute benchmarks
 - [Web Caching Explained (web.dev)](https://web.dev/articles/http-cache) — Browser caching interaction with CDN
 

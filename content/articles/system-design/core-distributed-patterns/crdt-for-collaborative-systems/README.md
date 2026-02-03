@@ -52,7 +52,7 @@ CRDTs guarantee convergence through **join-semilattice** properties: merge opera
 ```typescript
 // Naive LWW - seems simple
 function merge(a: { value: T; timestamp: number }, b: { value: T; timestamp: number }) {
-  return a.timestamp > b.timestamp ? a : b;
+  return a.timestamp > b.timestamp ? a : b
 }
 ```
 
@@ -92,11 +92,11 @@ CRDTs are built on **join-semilattices**—partially ordered sets where any two 
 
 **Formal requirements for merge function ⊔:**
 
-| Property | Definition | Why It Matters |
-|----------|------------|----------------|
-| Commutative | A ⊔ B = B ⊔ A | Order of receiving updates is irrelevant |
-| Associative | (A ⊔ B) ⊔ C = A ⊔ (B ⊔ C) | Grouping of merges is irrelevant |
-| Idempotent | A ⊔ A = A | Duplicate messages are harmless |
+| Property    | Definition                | Why It Matters                           |
+| ----------- | ------------------------- | ---------------------------------------- |
+| Commutative | A ⊔ B = B ⊔ A             | Order of receiving updates is irrelevant |
+| Associative | (A ⊔ B) ⊔ C = A ⊔ (B ⊔ C) | Grouping of merges is irrelevant         |
+| Idempotent  | A ⊔ A = A                 | Duplicate messages are harmless          |
 
 **Monotonicity constraint**: Updates must be **inflations**—they can only move "up" in the lattice ordering. You can never return to a previous state.
 
@@ -140,43 +140,40 @@ This is stronger than eventual consistency (which only guarantees convergence "e
 **G-Counter example (state-based):**
 
 ```typescript collapse={1-2}
-type NodeId = string;
+type NodeId = string
 
 interface GCounter {
-  counts: Map<NodeId, number>; // Each node tracks its own increment count
+  counts: Map<NodeId, number> // Each node tracks its own increment count
 }
 
 function increment(counter: GCounter, nodeId: NodeId): GCounter {
-  const newCounts = new Map(counter.counts);
-  newCounts.set(nodeId, (counter.counts.get(nodeId) ?? 0) + 1);
-  return { counts: newCounts };
+  const newCounts = new Map(counter.counts)
+  newCounts.set(nodeId, (counter.counts.get(nodeId) ?? 0) + 1)
+  return { counts: newCounts }
 }
 
 function merge(a: GCounter, b: GCounter): GCounter {
   // Pairwise maximum - satisfies all semilattice properties
-  const merged = new Map<NodeId, number>();
-  const allNodes = new Set([...a.counts.keys(), ...b.counts.keys()]);
+  const merged = new Map<NodeId, number>()
+  const allNodes = new Set([...a.counts.keys(), ...b.counts.keys()])
   for (const nodeId of allNodes) {
-    merged.set(nodeId, Math.max(
-      a.counts.get(nodeId) ?? 0,
-      b.counts.get(nodeId) ?? 0
-    ));
+    merged.set(nodeId, Math.max(a.counts.get(nodeId) ?? 0, b.counts.get(nodeId) ?? 0))
   }
-  return { counts: merged };
+  return { counts: merged }
 }
 
 function value(counter: GCounter): number {
-  return [...counter.counts.values()].reduce((sum, n) => sum + n, 0);
+  return [...counter.counts.values()].reduce((sum, n) => sum + n, 0)
 }
 ```
 
 **Trade-offs:**
 
-| Advantage | Disadvantage |
-|-----------|--------------|
-| Simple delivery—any order, duplicates OK | State transfer can be expensive |
+| Advantage                                     | Disadvantage                                     |
+| --------------------------------------------- | ------------------------------------------------ |
+| Simple delivery—any order, duplicates OK      | State transfer can be expensive                  |
 | Easy to reason about—state is self-describing | State can grow unbounded (actor IDs, tombstones) |
-| Works over unreliable networks | Merge computation on every sync |
+| Works over unreliable networks                | Merge computation on every sync                  |
 
 **Real-world: Riak** uses state-based CRDTs with delta optimization. They maintain full state but only transmit deltas when possible.
 
@@ -205,11 +202,11 @@ function value(counter: GCounter): number {
 **G-Counter example (operation-based):**
 
 ```typescript
-type Operation = { type: 'increment'; nodeId: string; amount: number };
+type Operation = { type: "increment"; nodeId: string; amount: number }
 
 function apply(counter: number, op: Operation): number {
   // Operations must be delivered exactly once, in causal order
-  return counter + op.amount;
+  return counter + op.amount
 }
 
 // The delivery layer must guarantee:
@@ -220,11 +217,11 @@ function apply(counter: number, op: Operation): number {
 
 **Trade-offs:**
 
-| Advantage | Disadvantage |
-|-----------|--------------|
-| Small messages (operations only) | Requires reliable causal delivery layer |
-| Immediate propagation possible | Must track history for late joiners |
-| Lower bandwidth | More complex reasoning about concurrency |
+| Advantage                        | Disadvantage                             |
+| -------------------------------- | ---------------------------------------- |
+| Small messages (operations only) | Requires reliable causal delivery layer  |
+| Immediate propagation possible   | Must track history for late joiners      |
+| Lower bandwidth                  | More complex reasoning about concurrency |
 
 **Real-world: Figma** uses operation-based approach with their own delivery layer. Server provides ordering and validation. They invested heavily in transport infrastructure to achieve low-latency sync.
 
@@ -250,24 +247,24 @@ function apply(counter: number, op: Operation): number {
 
 **Trade-offs:**
 
-| Advantage | Disadvantage |
-|-----------|--------------|
-| Small messages in common case | Must track sync state per peer |
-| Works over unreliable networks | Delta storage overhead |
-| Falls back gracefully to full state | More complex implementation |
+| Advantage                           | Disadvantage                   |
+| ----------------------------------- | ------------------------------ |
+| Small messages in common case       | Must track sync state per peer |
+| Works over unreliable networks      | Delta storage overhead         |
+| Falls back gracefully to full state | More complex implementation    |
 
 **Real-world: Yjs and Automerge** both use delta-state approaches with sophisticated compression.
 
 ### Comparison Matrix
 
-| Factor | State-Based | Operation-Based | Delta-State |
-|--------|-------------|-----------------|-------------|
-| Message size | Full state | Single operation | Incremental delta |
-| Delivery requirement | Any (gossip OK) | Exactly-once, causal | Any |
-| Late joiner handling | Send current state | Replay history | Send deltas or state |
-| Implementation complexity | In merge function | In delivery layer | In delta tracking |
-| Network partition tolerance | Excellent | Poor | Excellent |
-| Typical latency | Higher (batched) | Lower (immediate) | Medium |
+| Factor                      | State-Based        | Operation-Based      | Delta-State          |
+| --------------------------- | ------------------ | -------------------- | -------------------- |
+| Message size                | Full state         | Single operation     | Incremental delta    |
+| Delivery requirement        | Any (gossip OK)    | Exactly-once, causal | Any                  |
+| Late joiner handling        | Send current state | Replay history       | Send deltas or state |
+| Implementation complexity   | In merge function  | In delivery layer    | In delta tracking    |
+| Network partition tolerance | Excellent          | Poor                 | Excellent            |
+| Typical latency             | Higher (batched)   | Lower (immediate)    | Medium               |
 
 ### Decision Framework
 
@@ -293,27 +290,27 @@ flowchart TD
 
 ```typescript collapse={1-8}
 interface PNCounter {
-  P: GCounter; // Positive increments
-  N: GCounter; // Negative increments (decrements)
+  P: GCounter // Positive increments
+  N: GCounter // Negative increments (decrements)
 }
 
 function increment(counter: PNCounter, nodeId: string): PNCounter {
-  return { ...counter, P: GCounter.increment(counter.P, nodeId) };
+  return { ...counter, P: GCounter.increment(counter.P, nodeId) }
 }
 
 function decrement(counter: PNCounter, nodeId: string): PNCounter {
-  return { ...counter, N: GCounter.increment(counter.N, nodeId) };
+  return { ...counter, N: GCounter.increment(counter.N, nodeId) }
 }
 
 function value(counter: PNCounter): number {
-  return GCounter.value(counter.P) - GCounter.value(counter.N);
+  return GCounter.value(counter.P) - GCounter.value(counter.N)
 }
 
 function merge(a: PNCounter, b: PNCounter): PNCounter {
   return {
     P: GCounter.merge(a.P, b.P),
-    N: GCounter.merge(a.N, b.N)
-  };
+    N: GCounter.merge(a.N, b.N),
+  }
 }
 ```
 
@@ -323,16 +320,16 @@ function merge(a: PNCounter, b: PNCounter): PNCounter {
 
 ```typescript
 interface LWWRegister<T> {
-  value: T;
-  timestamp: number; // Lamport timestamp, NOT wall clock
-  nodeId: string;    // Tie-breaker for equal timestamps
+  value: T
+  timestamp: number // Lamport timestamp, NOT wall clock
+  nodeId: string // Tie-breaker for equal timestamps
 }
 
 function merge<T>(a: LWWRegister<T>, b: LWWRegister<T>): LWWRegister<T> {
-  if (a.timestamp > b.timestamp) return a;
-  if (b.timestamp > a.timestamp) return b;
+  if (a.timestamp > b.timestamp) return a
+  if (b.timestamp > a.timestamp) return b
   // Equal timestamps: deterministic tie-breaker
-  return a.nodeId > b.nodeId ? a : b;
+  return a.nodeId > b.nodeId ? a : b
 }
 ```
 
@@ -342,23 +339,23 @@ function merge<T>(a: LWWRegister<T>, b: LWWRegister<T>): LWWRegister<T> {
 
 ```typescript collapse={1-4}
 interface MVRegister<T> {
-  values: Map<VectorClock, T>; // All concurrent values
+  values: Map<VectorClock, T> // All concurrent values
 }
 
 function write<T>(reg: MVRegister<T>, value: T, clock: VectorClock): MVRegister<T> {
   // Remove all values that this write supersedes
-  const newValues = new Map<VectorClock, T>();
+  const newValues = new Map<VectorClock, T>()
   for (const [vc, v] of reg.values) {
     if (!clock.dominates(vc)) {
-      newValues.set(vc, v); // Keep concurrent values
+      newValues.set(vc, v) // Keep concurrent values
     }
   }
-  newValues.set(clock, value);
-  return { values: newValues };
+  newValues.set(clock, value)
+  return { values: newValues }
 }
 
 function read<T>(reg: MVRegister<T>): T[] {
-  return [...reg.values.values()]; // May return multiple values
+  return [...reg.values.values()] // May return multiple values
 }
 ```
 
@@ -375,43 +372,43 @@ function read<T>(reg: MVRegister<T>): T[] {
 **OR-Set (Observed-Remove):** Most practical set CRDT. Each element tagged with unique ID. Remove only affects observed tags.
 
 ```typescript collapse={1-6}
-type Tag = string; // Globally unique (e.g., UUID or nodeId + sequence)
+type Tag = string // Globally unique (e.g., UUID or nodeId + sequence)
 
 interface ORSet<T> {
-  elements: Map<T, Set<Tag>>; // Element -> set of tags
+  elements: Map<T, Set<Tag>> // Element -> set of tags
 }
 
 function add<T>(set: ORSet<T>, element: T, tag: Tag): ORSet<T> {
-  const tags = new Set(set.elements.get(element) ?? []);
-  tags.add(tag);
-  const newElements = new Map(set.elements);
-  newElements.set(element, tags);
-  return { elements: newElements };
+  const tags = new Set(set.elements.get(element) ?? [])
+  tags.add(tag)
+  const newElements = new Map(set.elements)
+  newElements.set(element, tags)
+  return { elements: newElements }
 }
 
 function remove<T>(set: ORSet<T>, element: T): ORSet<T> {
   // Remove only tags we've "observed" - concurrent adds survive
-  const newElements = new Map(set.elements);
-  newElements.delete(element);
-  return { elements: newElements };
+  const newElements = new Map(set.elements)
+  newElements.delete(element)
+  return { elements: newElements }
 }
 
 function merge<T>(a: ORSet<T>, b: ORSet<T>): ORSet<T> {
-  const merged = new Map<T, Set<Tag>>();
-  const allElements = new Set([...a.elements.keys(), ...b.elements.keys()]);
+  const merged = new Map<T, Set<Tag>>()
+  const allElements = new Set([...a.elements.keys(), ...b.elements.keys()])
   for (const element of allElements) {
-    const tagsA = a.elements.get(element) ?? new Set();
-    const tagsB = b.elements.get(element) ?? new Set();
-    const unionTags = new Set([...tagsA, ...tagsB]);
+    const tagsA = a.elements.get(element) ?? new Set()
+    const tagsB = b.elements.get(element) ?? new Set()
+    const unionTags = new Set([...tagsA, ...tagsB])
     if (unionTags.size > 0) {
-      merged.set(element, unionTags);
+      merged.set(element, unionTags)
     }
   }
-  return { elements: merged };
+  return { elements: merged }
 }
 
 function has<T>(set: ORSet<T>, element: T): boolean {
-  return (set.elements.get(element)?.size ?? 0) > 0;
+  return (set.elements.get(element)?.size ?? 0) > 0
 }
 ```
 
@@ -435,12 +432,12 @@ Correct:  "HellofoobarWorld" or "HellobarfooWorld"
 
 ### Major Algorithms
 
-| Algorithm | Approach | Interleaving | ID Growth | Notes |
-|-----------|----------|--------------|-----------|-------|
-| RGA | Linked list + timestamps | Can interleave | Linear | Good general performance |
-| Logoot/LSEQ | Fractional positions | Can interleave | Unbounded | Simple but IDs grow |
-| Fugue | Designed for non-interleaving | Minimal | Bounded | Proven maximal non-interleaving |
-| Eg-walker | Event graph replay | Minimal | Bounded | State-of-the-art performance |
+| Algorithm   | Approach                      | Interleaving   | ID Growth | Notes                           |
+| ----------- | ----------------------------- | -------------- | --------- | ------------------------------- |
+| RGA         | Linked list + timestamps      | Can interleave | Linear    | Good general performance        |
+| Logoot/LSEQ | Fractional positions          | Can interleave | Unbounded | Simple but IDs grow             |
+| Fugue       | Designed for non-interleaving | Minimal        | Bounded   | Proven maximal non-interleaving |
+| Eg-walker   | Event graph replay            | Minimal        | Bounded   | State-of-the-art performance    |
 
 **Fugue algorithm** (2023): Specifically designed to satisfy "maximal non-interleaving"—concurrent inserts at the same position are never interleaved.
 
@@ -596,14 +593,14 @@ flowchart TB
 
 ### Implementation Comparison
 
-| Aspect | Figma | Yjs | Automerge | Riak |
-|--------|-------|-----|-----------|------|
-| Variant | Op-based (server) | Delta-state | State-based | State + delta |
-| Architecture | Centralized | Any | P2P/local-first | Distributed DB |
-| Offline support | Limited | Excellent | Excellent | N/A (server) |
-| Rich text | Eg-walker | Native | Peritext | N/A |
-| Maturity | Production | Production | Production | Production |
-| Best for | Real-time SaaS | Editor libraries | Local-first apps | Key-value stores |
+| Aspect          | Figma             | Yjs              | Automerge        | Riak             |
+| --------------- | ----------------- | ---------------- | ---------------- | ---------------- |
+| Variant         | Op-based (server) | Delta-state      | State-based      | State + delta    |
+| Architecture    | Centralized       | Any              | P2P/local-first  | Distributed DB   |
+| Offline support | Limited           | Excellent        | Excellent        | N/A (server)     |
+| Rich text       | Eg-walker         | Native           | Peritext         | N/A              |
+| Maturity        | Production        | Production       | Production       | Production       |
+| Best for        | Real-time SaaS    | Editor libraries | Local-first apps | Key-value stores |
 
 ## Operational Concerns
 
@@ -615,12 +612,12 @@ flowchart TB
 
 **Strategies:**
 
-| Strategy | Mechanism | Trade-off |
-|----------|-----------|-----------|
-| Epoch-based | Split into live/compacted portions at version vector boundary | Requires version vector tracking |
-| Stability-based | Remove when update known to all replicas | Requires global knowledge |
-| Time-based | Remove after `gc_grace_seconds` (Cassandra) | May resurrect if replica rejoins late |
-| Consensus-based | Paxos/2PC to agree on removal | Defeats purpose of coordination-free |
+| Strategy        | Mechanism                                                     | Trade-off                             |
+| --------------- | ------------------------------------------------------------- | ------------------------------------- |
+| Epoch-based     | Split into live/compacted portions at version vector boundary | Requires version vector tracking      |
+| Stability-based | Remove when update known to all replicas                      | Requires global knowledge             |
+| Time-based      | Remove after `gc_grace_seconds` (Cassandra)                   | May resurrect if replica rejoins late |
+| Consensus-based | Paxos/2PC to agree on removal                                 | Defeats purpose of coordination-free  |
 
 **Production approach (Cassandra)**: `gc_grace_seconds` defaults to 10 days. Tombstones older than this are removed during compaction. Set based on expected node recovery time.
 
@@ -630,54 +627,54 @@ flowchart TB
 
 ```typescript
 // Lamport timestamp: increment on every event, max+1 on receive
-let clock = 0;
+let clock = 0
 
 function localEvent(): number {
-  return ++clock;
+  return ++clock
 }
 
 function receiveEvent(remoteTimestamp: number): number {
-  clock = Math.max(clock, remoteTimestamp) + 1;
-  return clock;
+  clock = Math.max(clock, remoteTimestamp) + 1
+  return clock
 }
 ```
 
 **Vector clocks**: Full causality tracking. Can determine happened-before, happened-after, or concurrent.
 
 ```typescript collapse={1-4}
-type VectorClock = Map<NodeId, number>;
+type VectorClock = Map<NodeId, number>
 
 function increment(vc: VectorClock, nodeId: NodeId): VectorClock {
-  const newVc = new Map(vc);
-  newVc.set(nodeId, (vc.get(nodeId) ?? 0) + 1);
-  return newVc;
+  const newVc = new Map(vc)
+  newVc.set(nodeId, (vc.get(nodeId) ?? 0) + 1)
+  return newVc
 }
 
 function merge(a: VectorClock, b: VectorClock): VectorClock {
-  const merged = new Map<NodeId, number>();
-  const allNodes = new Set([...a.keys(), ...b.keys()]);
+  const merged = new Map<NodeId, number>()
+  const allNodes = new Set([...a.keys(), ...b.keys()])
   for (const nodeId of allNodes) {
-    merged.set(nodeId, Math.max(a.get(nodeId) ?? 0, b.get(nodeId) ?? 0));
+    merged.set(nodeId, Math.max(a.get(nodeId) ?? 0, b.get(nodeId) ?? 0))
   }
-  return merged;
+  return merged
 }
 
 function happenedBefore(a: VectorClock, b: VectorClock): boolean {
   // a < b iff all entries in a <= corresponding entry in b, and at least one <
-  let hasLess = false;
+  let hasLess = false
   for (const [nodeId, aTime] of a) {
-    const bTime = b.get(nodeId) ?? 0;
-    if (aTime > bTime) return false;
-    if (aTime < bTime) hasLess = true;
+    const bTime = b.get(nodeId) ?? 0
+    if (aTime > bTime) return false
+    if (aTime < bTime) hasLess = true
   }
   for (const [nodeId, bTime] of b) {
-    if (!a.has(nodeId) && bTime > 0) hasLess = true;
+    if (!a.has(nodeId) && bTime > 0) hasLess = true
   }
-  return hasLess;
+  return hasLess
 }
 
 function concurrent(a: VectorClock, b: VectorClock): boolean {
-  return !happenedBefore(a, b) && !happenedBefore(b, a);
+  return !happenedBefore(a, b) && !happenedBefore(b, a)
 }
 ```
 
@@ -721,13 +718,13 @@ Result: determined by ID ordering, not transformation
 
 ### Comparison
 
-| Aspect | OT | CRDT |
-|--------|----|----- |
-| Architecture | Requires central server | Works P2P or centralized |
-| Offline support | Poor (needs server) | Excellent |
-| Intent preservation | Better (transforms designed for it) | Varies by algorithm |
-| Implementation complexity | High (transform functions error-prone) | Moderate |
-| Proven correctness | Difficult (many flawed algorithms published) | Mathematical proofs possible |
+| Aspect                    | OT                                           | CRDT                         |
+| ------------------------- | -------------------------------------------- | ---------------------------- |
+| Architecture              | Requires central server                      | Works P2P or centralized     |
+| Offline support           | Poor (needs server)                          | Excellent                    |
+| Intent preservation       | Better (transforms designed for it)          | Varies by algorithm          |
+| Implementation complexity | High (transform functions error-prone)       | Moderate                     |
+| Proven correctness        | Difficult (many flawed algorithms published) | Mathematical proofs possible |
 
 ### When to Choose Each
 
@@ -837,14 +834,14 @@ flowchart TD
 
 ### Library Recommendations
 
-| Library | Language | Best For | Maturity |
-|---------|----------|----------|----------|
-| Yjs | JS/TS | Collaborative editing | Production (900k+ weekly downloads) |
-| Automerge | JS/Rust | Local-first apps | Production |
-| Loro | Rust/JS | Rich text, moveable trees | Production |
-| Diamond Types | Rust | High-performance text | Production |
-| Akka Distributed Data | JVM | Actor-based systems | Production |
-| riak_dt | Erlang | Key-value stores | Production |
+| Library               | Language | Best For                  | Maturity                            |
+| --------------------- | -------- | ------------------------- | ----------------------------------- |
+| Yjs                   | JS/TS    | Collaborative editing     | Production (900k+ weekly downloads) |
+| Automerge             | JS/Rust  | Local-first apps          | Production                          |
+| Loro                  | Rust/JS  | Rich text, moveable trees | Production                          |
+| Diamond Types         | Rust     | High-performance text     | Production                          |
+| Akka Distributed Data | JVM      | Actor-based systems       | Production                          |
+| riak_dt               | Erlang   | Key-value stores          | Production                          |
 
 ### Building Custom: Checklist
 
@@ -883,16 +880,16 @@ CRDTs provide a mathematically rigorous solution to distributed collaboration. T
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **CvRDT** | Convergent (state-based) CRDT |
-| **CmRDT** | Commutative (operation-based) CRDT |
-| **Tombstone** | Marker indicating deleted element; must persist for convergence |
-| **Vector clock** | Logical clock tracking causality across multiple nodes |
-| **Lamport timestamp** | Simple logical clock; partial ordering only |
-| **Join-semilattice** | Set with a join (merge) operation that is commutative, associative, idempotent |
-| **SEC** | Strong Eventual Consistency—replicas converge to identical state after receiving same updates |
-| **OT** | Operational Transformation—alternative approach requiring central server |
+| Term                  | Definition                                                                                    |
+| --------------------- | --------------------------------------------------------------------------------------------- |
+| **CvRDT**             | Convergent (state-based) CRDT                                                                 |
+| **CmRDT**             | Commutative (operation-based) CRDT                                                            |
+| **Tombstone**         | Marker indicating deleted element; must persist for convergence                               |
+| **Vector clock**      | Logical clock tracking causality across multiple nodes                                        |
+| **Lamport timestamp** | Simple logical clock; partial ordering only                                                   |
+| **Join-semilattice**  | Set with a join (merge) operation that is commutative, associative, idempotent                |
+| **SEC**               | Strong Eventual Consistency—replicas converge to identical state after receiving same updates |
+| **OT**                | Operational Transformation—alternative approach requiring central server                      |
 
 ### Summary
 

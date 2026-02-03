@@ -37,13 +37,13 @@ A heap is a complete binary tree stored in an array where each parent dominates 
 
 The core operations:
 
-| Operation | Binary Heap | What Happens |
-|-----------|-------------|--------------|
-| peek | O(1) | Root is always min/max |
-| insert | O(log n) | Add at end, bubble up |
-| extractMin/Max | O(log n) | Swap root with last, bubble down |
-| buildHeap | O(n) | Heapify bottom-up (not n × log n) |
-| decreaseKey | O(log n) | Update value, bubble up |
+| Operation      | Binary Heap | What Happens                      |
+| -------------- | ----------- | --------------------------------- |
+| peek           | O(1)        | Root is always min/max            |
+| insert         | O(log n)    | Add at end, bubble up             |
+| extractMin/Max | O(log n)    | Swap root with last, bubble down  |
+| buildHeap      | O(n)        | Heapify bottom-up (not n × log n) |
+| decreaseKey    | O(log n)    | Update value, bubble up           |
 
 The O(n) buildHeap complexity is counterintuitive—it works because most nodes are near the leaves where heapify is cheap. Fibonacci heaps offer O(1) amortized decrease-key, but their constant factors make them slower than binary heaps in practice for all but very large, dense graphs.
 
@@ -64,15 +64,15 @@ The complete binary tree constraint enables an elegant array representation with
 // Fundamental relationships for array-based heaps
 
 function parent(i: number): number {
-  return Math.floor((i - 1) / 2);  // Equivalent: (i - 1) >> 1
+  return Math.floor((i - 1) / 2) // Equivalent: (i - 1) >> 1
 }
 
 function leftChild(i: number): number {
-  return 2 * i + 1;  // Equivalent: (i << 1) + 1
+  return 2 * i + 1 // Equivalent: (i << 1) + 1
 }
 
 function rightChild(i: number): number {
-  return 2 * i + 2;  // Equivalent: (i << 1) + 2
+  return 2 * i + 2 // Equivalent: (i << 1) + 2
 }
 ```
 
@@ -83,6 +83,7 @@ CLRS uses 1-indexed arrays where `parent(i) = ⌊i/2⌋`, `left(i) = 2i`, `right
 ### The Shape Guarantee
 
 The complete tree property means:
+
 - A heap with n nodes has height `⌊log₂ n⌋`
 - Level k contains at most `2^k` nodes
 - The last level may be incomplete, but fills left-to-right
@@ -100,27 +101,27 @@ Insert places the new element at the end (maintaining completeness) then restore
 // heap is an array, size is the current element count
 
 class MinHeap<T> {
-  private heap: T[] = [];
-  private compare: (a: T, b: T) => number;
+  private heap: T[] = []
+  private compare: (a: T, b: T) => number
 
   constructor(compareFn: (a: T, b: T) => number = (a, b) => (a as number) - (b as number)) {
-    this.compare = compareFn;
+    this.compare = compareFn
   }
 
   insert(value: T): void {
-    this.heap.push(value);           // Add at end (O(1) amortized)
-    this.bubbleUp(this.heap.length - 1);  // Restore heap property
+    this.heap.push(value) // Add at end (O(1) amortized)
+    this.bubbleUp(this.heap.length - 1) // Restore heap property
   }
 
   private bubbleUp(index: number): void {
     while (index > 0) {
-      const parentIdx = Math.floor((index - 1) / 2);
+      const parentIdx = Math.floor((index - 1) / 2)
       if (this.compare(this.heap[index], this.heap[parentIdx]) >= 0) {
-        break;  // Heap property satisfied
+        break // Heap property satisfied
       }
       // Swap with parent
-      [this.heap[index], this.heap[parentIdx]] = [this.heap[parentIdx], this.heap[index]];
-      index = parentIdx;
+      ;[this.heap[index], this.heap[parentIdx]] = [this.heap[parentIdx], this.heap[index]]
+      index = parentIdx
     }
   }
 }
@@ -196,24 +197,24 @@ The infinite series $\sum_{h=0}^{\infty} h/2^h = 2$ converges. Most nodes are le
 // Convert arbitrary array to valid heap
 
 function buildHeap<T>(arr: T[], compare: (a: T, b: T) => number): void {
-  const n = arr.length;
+  const n = arr.length
   // Start from last non-leaf node, heapify each
   for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
-    heapify(arr, n, i, compare);
+    heapify(arr, n, i, compare)
   }
 }
 
 function heapify<T>(arr: T[], size: number, index: number, compare: (a: T, b: T) => number): void {
-  let smallest = index;
-  const left = 2 * index + 1;
-  const right = 2 * index + 2;
+  let smallest = index
+  const left = 2 * index + 1
+  const right = 2 * index + 2
 
-  if (left < size && compare(arr[left], arr[smallest]) < 0) smallest = left;
-  if (right < size && compare(arr[right], arr[smallest]) < 0) smallest = right;
+  if (left < size && compare(arr[left], arr[smallest]) < 0) smallest = left
+  if (right < size && compare(arr[right], arr[smallest]) < 0) smallest = right
 
   if (smallest !== index) {
-    [arr[index], arr[smallest]] = [arr[smallest], arr[index]];
-    heapify(arr, size, smallest, compare);
+    ;[arr[index], arr[smallest]] = [arr[smallest], arr[index]]
+    heapify(arr, size, smallest, compare)
   }
 }
 ```
@@ -228,29 +229,29 @@ Heap sort works by building a max-heap, then repeatedly extracting the maximum:
 // In-place, unstable, O(n log n) guaranteed
 
 function heapSort<T>(arr: T[], compare: (a: T, b: T) => number): void {
-  const n = arr.length;
+  const n = arr.length
 
   // Build max-heap (reverse comparison)
   for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
-    maxHeapify(arr, n, i, compare);
+    maxHeapify(arr, n, i, compare)
   }
 
   // Extract elements one by one
   for (let i = n - 1; i > 0; i--) {
-    [arr[0], arr[i]] = [arr[i], arr[0]];  // Move max to end
-    maxHeapify(arr, i, 0, compare);        // Restore heap on reduced array
+    ;[arr[0], arr[i]] = [arr[i], arr[0]] // Move max to end
+    maxHeapify(arr, i, 0, compare) // Restore heap on reduced array
   }
 }
 ```
 
 ### Why Heap Sort Loses to Quicksort
 
-| Factor | Heap Sort | Quicksort |
-|--------|-----------|-----------|
-| Worst case | O(n log n) always | O(n²) without pivot optimization |
-| Cache locality | Poor—jumps across array | Excellent—linear partitioning |
+| Factor            | Heap Sort                     | Quicksort                              |
+| ----------------- | ----------------------------- | -------------------------------------- |
+| Worst case        | O(n log n) always             | O(n²) without pivot optimization       |
+| Cache locality    | Poor—jumps across array       | Excellent—linear partitioning          |
 | Branch prediction | Poor—unpredictable swap paths | Better—partition scans are predictable |
-| Practical speed | 1× baseline | 2-3× faster typically |
+| Practical speed   | 1× baseline                   | 2-3× faster typically                  |
 
 Quicksort scans memory linearly during partitioning, loading cache lines efficiently. Heap sort jumps between parent and children nodes, causing cache misses. Modern implementations like introsort use heap sort as a fallback when quicksort degenerates—getting quicksort's speed with heap sort's worst-case guarantee.
 
@@ -261,6 +262,7 @@ Stability means equal elements maintain their original relative order. Heap sort
 ## D-ary Heaps: When More Children Means Faster
 
 A d-ary heap generalizes binary heaps to d children per node:
+
 - Index calculations: `parent(i) = ⌊(i-1)/d⌋`, children at `d*i + 1` through `d*i + d`
 - Tree height: `log_d(n)` instead of `log_2(n)`
 - Insert: Fewer levels to bubble up (faster)
@@ -277,28 +279,28 @@ Empirical benchmarks show 4-ary heaps are 17-30% faster than binary heaps. The r
 ```ts title="4-ary heap parent/child calculations" collapse={1-2}
 // D-ary heap with d=4
 
-const D = 4;
+const D = 4
 
 function parent(i: number): number {
-  return Math.floor((i - 1) / D);
+  return Math.floor((i - 1) / D)
 }
 
 function firstChild(i: number): number {
-  return D * i + 1;
+  return D * i + 1
 }
 
 // During bubble-down, compare all D children
 function findSmallestChild(heap: number[], parentIdx: number, size: number): number {
-  let smallest = parentIdx;
-  const start = D * parentIdx + 1;
-  const end = Math.min(start + D, size);
+  let smallest = parentIdx
+  const start = D * parentIdx + 1
+  const end = Math.min(start + D, size)
 
   for (let i = start; i < end; i++) {
     if (heap[i] < heap[smallest]) {
-      smallest = i;
+      smallest = i
     }
   }
-  return smallest;
+  return smallest
 }
 ```
 
@@ -307,6 +309,7 @@ function findSmallestChild(heap: number[], parentIdx: number, size: number): num
 ## Fibonacci Heaps: Theoretically Optimal, Practically Slow
 
 Fibonacci heaps achieve:
+
 - Insert: O(1) amortized
 - Find-min: O(1)
 - Decrease-key: O(1) amortized
@@ -333,32 +336,32 @@ Instead of decrease-key, insert a new node with the updated priority. When extra
 // Trade memory for simplicity—no need to track node positions
 
 interface PQEntry<T> {
-  priority: number;
-  value: T;
-  valid: boolean;  // Or use a Set to track processed nodes
+  priority: number
+  value: T
+  valid: boolean // Or use a Set to track processed nodes
 }
 
 class SimplePriorityQueue<T> {
-  private heap: PQEntry<T>[] = [];
+  private heap: PQEntry<T>[] = []
 
   insert(priority: number, value: T): void {
-    this.heap.push({ priority, value, valid: true });
-    this.bubbleUp(this.heap.length - 1);
+    this.heap.push({ priority, value, valid: true })
+    this.bubbleUp(this.heap.length - 1)
   }
 
   // Instead of decrease-key, insert again and mark old as invalid
   update(oldEntry: PQEntry<T>, newPriority: number): void {
-    oldEntry.valid = false;
-    this.insert(newPriority, oldEntry.value);
+    oldEntry.valid = false
+    this.insert(newPriority, oldEntry.value)
   }
 
   extractMin(): T | undefined {
     while (this.heap.length > 0) {
-      const entry = this.extractTop();
-      if (entry?.valid) return entry.value;
+      const entry = this.extractTop()
+      if (entry?.valid) return entry.value
       // Skip invalid entries from previous decrease-key operations
     }
-    return undefined;
+    return undefined
   }
 }
 ```
@@ -442,40 +445,45 @@ JavaScript has no standard heap/priority queue. Common approaches:
 // Production-grade implementation would add error handling
 
 class MinHeap<T> {
-  private heap: T[] = [];
+  private heap: T[] = []
 
   constructor(private compare: (a: T, b: T) => number = (a, b) => (a as any) - (b as any)) {}
 
   push(val: T): void {
-    this.heap.push(val);
-    let i = this.heap.length - 1;
+    this.heap.push(val)
+    let i = this.heap.length - 1
     while (i > 0) {
-      const p = (i - 1) >> 1;
-      if (this.compare(this.heap[i], this.heap[p]) >= 0) break;
-      [this.heap[i], this.heap[p]] = [this.heap[p], this.heap[i]];
-      i = p;
+      const p = (i - 1) >> 1
+      if (this.compare(this.heap[i], this.heap[p]) >= 0) break
+      ;[this.heap[i], this.heap[p]] = [this.heap[p], this.heap[i]]
+      i = p
     }
   }
 
   pop(): T | undefined {
-    if (this.heap.length <= 1) return this.heap.pop();
-    const top = this.heap[0];
-    this.heap[0] = this.heap.pop()!;
-    let i = 0;
+    if (this.heap.length <= 1) return this.heap.pop()
+    const top = this.heap[0]
+    this.heap[0] = this.heap.pop()!
+    let i = 0
     while (true) {
-      const l = 2 * i + 1, r = 2 * i + 2;
-      let min = i;
-      if (l < this.heap.length && this.compare(this.heap[l], this.heap[min]) < 0) min = l;
-      if (r < this.heap.length && this.compare(this.heap[r], this.heap[min]) < 0) min = r;
-      if (min === i) break;
-      [this.heap[i], this.heap[min]] = [this.heap[min], this.heap[i]];
-      i = min;
+      const l = 2 * i + 1,
+        r = 2 * i + 2
+      let min = i
+      if (l < this.heap.length && this.compare(this.heap[l], this.heap[min]) < 0) min = l
+      if (r < this.heap.length && this.compare(this.heap[r], this.heap[min]) < 0) min = r
+      if (min === i) break
+      ;[this.heap[i], this.heap[min]] = [this.heap[min], this.heap[i]]
+      i = min
     }
-    return top;
+    return top
   }
 
-  peek(): T | undefined { return this.heap[0]; }
-  get size(): number { return this.heap.length; }
+  peek(): T | undefined {
+    return this.heap[0]
+  }
+  get size(): number {
+    return this.heap.length
+  }
 }
 ```
 
@@ -489,40 +497,43 @@ The canonical priority queue application. Each vertex gets a tentative distance;
 // Graph represented as adjacency list
 // Edge: { to: number, weight: number }
 
-interface Edge { to: number; weight: number; }
-type Graph = Edge[][];
+interface Edge {
+  to: number
+  weight: number
+}
+type Graph = Edge[][]
 
 interface HeapEntry {
-  vertex: number;
-  distance: number;
+  vertex: number
+  distance: number
 }
 
 function dijkstra(graph: Graph, source: number): number[] {
-  const n = graph.length;
-  const dist = Array(n).fill(Infinity);
-  dist[source] = 0;
+  const n = graph.length
+  const dist = Array(n).fill(Infinity)
+  dist[source] = 0
 
-  const heap = new MinHeap<HeapEntry>((a, b) => a.distance - b.distance);
-  heap.push({ vertex: source, distance: 0 });
+  const heap = new MinHeap<HeapEntry>((a, b) => a.distance - b.distance)
+  heap.push({ vertex: source, distance: 0 })
 
-  const visited = new Set<number>();
+  const visited = new Set<number>()
 
   while (heap.size > 0) {
-    const { vertex, distance } = heap.pop()!;
+    const { vertex, distance } = heap.pop()!
 
-    if (visited.has(vertex)) continue;  // Skip stale entries
-    visited.add(vertex);
+    if (visited.has(vertex)) continue // Skip stale entries
+    visited.add(vertex)
 
     for (const { to, weight } of graph[vertex]) {
-      const newDist = distance + weight;
+      const newDist = distance + weight
       if (newDist < dist[to]) {
-        dist[to] = newDist;
-        heap.push({ vertex: to, distance: newDist });  // Duplicate node strategy
+        dist[to] = newDist
+        heap.push({ vertex: to, distance: newDist }) // Duplicate node strategy
       }
     }
   }
 
-  return dist;
+  return dist
 }
 ```
 
@@ -537,34 +548,29 @@ Merging k sorted streams using a heap of size k:
 // Used in external sorting, merge sort, database joins
 
 interface StreamEntry<T> {
-  value: T;
-  streamIndex: number;
+  value: T
+  streamIndex: number
 }
 
-function* kWayMerge<T>(
-  streams: Iterator<T>[],
-  compare: (a: T, b: T) => number
-): Generator<T> {
-  const heap = new MinHeap<StreamEntry<T>>(
-    (a, b) => compare(a.value, b.value)
-  );
+function* kWayMerge<T>(streams: Iterator<T>[], compare: (a: T, b: T) => number): Generator<T> {
+  const heap = new MinHeap<StreamEntry<T>>((a, b) => compare(a.value, b.value))
 
   // Initialize heap with first element from each stream
   for (let i = 0; i < streams.length; i++) {
-    const result = streams[i].next();
+    const result = streams[i].next()
     if (!result.done) {
-      heap.push({ value: result.value, streamIndex: i });
+      heap.push({ value: result.value, streamIndex: i })
     }
   }
 
   // Extract min and refill from same stream
   while (heap.size > 0) {
-    const { value, streamIndex } = heap.pop()!;
-    yield value;
+    const { value, streamIndex } = heap.pop()!
+    yield value
 
-    const next = streams[streamIndex].next();
+    const next = streams[streamIndex].next()
     if (!next.done) {
-      heap.push({ value: next.value, streamIndex });
+      heap.push({ value: next.value, streamIndex })
     }
   }
 }
@@ -580,28 +586,28 @@ Priority queues order events by timestamp, enabling efficient simulation:
 // Generic event-driven simulation framework
 
 interface Event {
-  timestamp: number;
-  execute: () => Event[];  // Returns new events to schedule
+  timestamp: number
+  execute: () => Event[] // Returns new events to schedule
 }
 
 class EventScheduler {
-  private queue = new MinHeap<Event>((a, b) => a.timestamp - b.timestamp);
-  private currentTime = 0;
+  private queue = new MinHeap<Event>((a, b) => a.timestamp - b.timestamp)
+  private currentTime = 0
 
   schedule(event: Event): void {
     if (event.timestamp < this.currentTime) {
-      throw new Error('Cannot schedule event in the past');
+      throw new Error("Cannot schedule event in the past")
     }
-    this.queue.push(event);
+    this.queue.push(event)
   }
 
   run(until: number): void {
     while (this.queue.size > 0 && this.queue.peek()!.timestamp <= until) {
-      const event = this.queue.pop()!;
-      this.currentTime = event.timestamp;
-      const newEvents = event.execute();
+      const event = this.queue.pop()!
+      this.currentTime = event.timestamp
+      const newEvents = event.execute()
       for (const e of newEvents) {
-        this.schedule(e);
+        this.schedule(e)
       }
     }
   }
@@ -616,23 +622,23 @@ A min-heap of size k efficiently tracks the k largest elements in a stream:
 // O(n log k) for n elements, O(k) space
 
 function topK<T>(items: Iterable<T>, k: number, compare: (a: T, b: T) => number): T[] {
-  const heap = new MinHeap<T>(compare);
+  const heap = new MinHeap<T>(compare)
 
   for (const item of items) {
     if (heap.size < k) {
-      heap.push(item);
+      heap.push(item)
     } else if (compare(item, heap.peek()!) > 0) {
-      heap.pop();
-      heap.push(item);
+      heap.pop()
+      heap.push(item)
     }
   }
 
   // Extract in sorted order
-  const result: T[] = [];
+  const result: T[] = []
   while (heap.size > 0) {
-    result.push(heap.pop()!);
+    result.push(heap.pop()!)
   }
-  return result.reverse();
+  return result.reverse()
 }
 ```
 
@@ -665,19 +671,19 @@ Incorrect comparisons cause subtle bugs:
 // Common mistakes in comparison functions
 
 // WRONG: NaN comparison
-const badCompare = (a: number, b: number) => a - b;
+const badCompare = (a: number, b: number) => a - b
 // NaN - anything = NaN, which is neither < 0 nor >= 0
 
 // WRONG: Inconsistent ordering
-const unstable = (a: Obj, b: Obj) => Math.random() - 0.5;
+const unstable = (a: Obj, b: Obj) => Math.random() - 0.5
 // Heap operations require transitive, antisymmetric comparison
 
 // CORRECT: Handle edge cases
 const safeCompare = (a: number, b: number) => {
-  if (Number.isNaN(a)) return 1;  // Push NaN to bottom
-  if (Number.isNaN(b)) return -1;
-  return a - b;
-};
+  if (Number.isNaN(a)) return 1 // Push NaN to bottom
+  if (Number.isNaN(b)) return -1
+  return a - b
+}
 ```
 
 ### Heap Corruption from External Mutation
@@ -687,14 +693,17 @@ If stored objects are mutated, the heap property breaks:
 ```ts title="Mutation corruption example" collapse={1-5}
 // DO NOT mutate objects in a heap without re-heapifying
 
-interface Task { priority: number; name: string; }
+interface Task {
+  priority: number
+  name: string
+}
 
-const heap = new MinHeap<Task>((a, b) => a.priority - b.priority);
-const task = { priority: 5, name: 'important' };
-heap.push(task);
+const heap = new MinHeap<Task>((a, b) => a.priority - b.priority)
+const task = { priority: 5, name: "important" }
+heap.push(task)
 
 // WRONG: This corrupts the heap
-task.priority = 1;  // Heap doesn't know about this change
+task.priority = 1 // Heap doesn't know about this change
 
 // CORRECT: Remove, update, re-insert
 // Or use immutable objects
@@ -709,9 +718,9 @@ For very large heaps (>2³⁰ elements), 32-bit index arithmetic can overflow:
 // Use BigInt or bounds checking for massive heaps
 
 function leftChild(i: number): number {
-  const result = 2 * i + 1;
-  if (result < i) throw new Error('Index overflow');
-  return result;
+  const result = 2 * i + 1
+  if (result < i) throw new Error("Index overflow")
+  return result
 }
 ```
 

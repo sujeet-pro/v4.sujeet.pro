@@ -10,8 +10,12 @@ import { getSlug } from "./utils/slug.utils"
  * Enables IDE navigation (Cmd+Click) while producing correct URLs in output.
  *
  * Example:
- *   Input:  [Link](../../programming/algo/2024-10-20-sorting-algorithms.md)
- *   Output: [Link](/posts/programming/algo/sorting-algorithms)
+ *   Input:  [Link](../crdt-for-collaborative-systems/README.md)
+ *   Output: [Link](/articles/system-design/core-distributed-patterns/crdt-for-collaborative-systems)
+ *
+ * Usage in markdown:
+ *   - Use relative paths with README.md extension: `../sibling-article/README.md`
+ *   - This works for both IDE navigation AND produces correct URLs in build
  */
 const rehypeInternalLinks: Plugin<[], Root> = () => {
   return (tree, file) => {

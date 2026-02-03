@@ -47,23 +47,23 @@ V8 categorizes arrays into 21 distinct "elements kinds" based on their contents.
 
 The most common kinds, ordered from fastest to slowest:
 
-| Elements Kind | Contents | Access Pattern |
-|---------------|----------|----------------|
-| PACKED_SMI_ELEMENTS | Small integers only (-2³¹ to 2³¹-1) | Direct memory offset |
-| PACKED_DOUBLE_ELEMENTS | Floating-point numbers | Unboxed 64-bit doubles |
-| PACKED_ELEMENTS | Any values (mixed) | Boxed elements, type checks |
-| HOLEY_SMI_ELEMENTS | Small ints with gaps | Hole check on every access |
-| HOLEY_DOUBLE_ELEMENTS | Doubles with gaps | Hole check + unboxing |
-| HOLEY_ELEMENTS | Mixed with gaps | Hole check + type check |
-| DICTIONARY_ELEMENTS | Sparse indices | Hash table lookup |
+| Elements Kind          | Contents                            | Access Pattern              |
+| ---------------------- | ----------------------------------- | --------------------------- |
+| PACKED_SMI_ELEMENTS    | Small integers only (-2³¹ to 2³¹-1) | Direct memory offset        |
+| PACKED_DOUBLE_ELEMENTS | Floating-point numbers              | Unboxed 64-bit doubles      |
+| PACKED_ELEMENTS        | Any values (mixed)                  | Boxed elements, type checks |
+| HOLEY_SMI_ELEMENTS     | Small ints with gaps                | Hole check on every access  |
+| HOLEY_DOUBLE_ELEMENTS  | Doubles with gaps                   | Hole check + unboxing       |
+| HOLEY_ELEMENTS         | Mixed with gaps                     | Hole check + type check     |
+| DICTIONARY_ELEMENTS    | Sparse indices                      | Hash table lookup           |
 
 ```js title="Elements kind transitions" collapse={1-2}
 // Illustrating irreversible transitions
 
-const arr = [1, 2, 3];           // PACKED_SMI_ELEMENTS (optimal)
-arr.push(4.5);                    // → PACKED_DOUBLE_ELEMENTS (still good)
-arr.push('string');               // → PACKED_ELEMENTS (boxed, slower)
-arr[100] = 'x';                   // → HOLEY_ELEMENTS (permanent hole)
+const arr = [1, 2, 3] // PACKED_SMI_ELEMENTS (optimal)
+arr.push(4.5) // → PACKED_DOUBLE_ELEMENTS (still good)
+arr.push("string") // → PACKED_ELEMENTS (boxed, slower)
+arr[100] = "x" // → HOLEY_ELEMENTS (permanent hole)
 // Cannot revert to PACKED_* even if you fill indices 4-99
 ```
 
@@ -74,7 +74,7 @@ When an array contains holes (missing indices), V8 must check every access to de
 ```js title="Hole check overhead" collapse={1-2}
 // Demonstrating the prototype chain lookup cost
 
-const arr = [1, , 3];  // HOLEY_SMI_ELEMENTS
+const arr = [1, , 3] // HOLEY_SMI_ELEMENTS
 
 // Accessing arr[1] requires:
 // 1. Check arr.hasOwnProperty(1) → false (hole)
@@ -83,7 +83,7 @@ const arr = [1, , 3];  // HOLEY_SMI_ELEMENTS
 // 4. Return undefined
 
 // Contrast with packed array:
-const packed = [1, 2, 3];
+const packed = [1, 2, 3]
 // Accessing packed[1]:
 // 1. Direct memory read at (base + 1 * element_size)
 // 2. Return value
@@ -96,9 +96,9 @@ Sparse arrays—those with large gaps between indices—switch to dictionary mod
 ```js title="Triggering dictionary mode" collapse={1-2}
 // Sparse assignment forces hash table storage
 
-const arr = [];
-arr[0] = 'first';
-arr[1000000] = 'sparse';  // DICTIONARY_ELEMENTS
+const arr = []
+arr[0] = "first"
+arr[1000000] = "sparse" // DICTIONARY_ELEMENTS
 
 // Now arr[0] access requires:
 // 1. Hash the key "0"
@@ -125,22 +125,22 @@ When V8 first sees a property access like `obj.x`, it doesn't know where `x` is 
 
 // All objects with same property order share a hidden class
 function createPoint(x, y) {
-  const p = {};
-  p.x = x;  // Transition: {} → {x}
-  p.y = y;  // Transition: {x} → {x, y}
-  return p;
+  const p = {}
+  p.x = x // Transition: {} → {x}
+  p.y = y // Transition: {x} → {x, y}
+  return p
 }
 
-const p1 = createPoint(1, 2);
-const p2 = createPoint(3, 4);
+const p1 = createPoint(1, 2)
+const p2 = createPoint(3, 4)
 // p1 and p2 share the same hidden class
 
 function getX(point) {
-  return point.x;  // After first call: inline cached
+  return point.x // After first call: inline cached
 }
 
-getX(p1);  // Misses cache, caches offset for shape {x,y}
-getX(p2);  // Hits cache! Direct memory read at cached offset
+getX(p1) // Misses cache, caches offset for shape {x,y}
+getX(p2) // Hits cache! Direct memory read at cached offset
 ```
 
 ### Polymorphism Kills Performance
@@ -151,18 +151,18 @@ When a function receives objects with different shapes, V8's inline cache become
 // Demonstrating inline cache pollution
 
 function getX(obj) {
-  return obj.x;
+  return obj.x
 }
 
 // Creating objects with different shapes
-const a = { x: 1 };                    // Shape: {x}
-const b = { y: 2, x: 3 };              // Shape: {y, x} — different!
-const c = { x: 4, y: 5 };              // Shape: {x, y} — also different!
-const d = { z: 6, x: 7 };              // Shape: {z, x}
-const e = { x: 8, z: 9 };              // Shape: {x, z}
+const a = { x: 1 } // Shape: {x}
+const b = { y: 2, x: 3 } // Shape: {y, x} — different!
+const c = { x: 4, y: 5 } // Shape: {x, y} — also different!
+const d = { z: 6, x: 7 } // Shape: {z, x}
+const e = { x: 8, z: 9 } // Shape: {x, z}
 
 // Calling with many shapes forces megamorphic
-[a, b, c, d, e].forEach(getX);
+;[a, b, c, d, e].forEach(getX)
 // getX is now megamorphic — falls back to dictionary lookup
 ```
 
@@ -173,16 +173,16 @@ The `delete` operator is particularly expensive. It forces the object into "slow
 ```js title="Delete operator consequences" collapse={1-2}
 // Why delete is slow
 
-const obj = { a: 1, b: 2, c: 3 };
+const obj = { a: 1, b: 2, c: 3 }
 // obj uses fast properties (hidden class)
 
-delete obj.b;
+delete obj.b
 // obj transitions to dictionary mode
 // All subsequent property accesses use hash lookups
 
 // Preferred alternative:
-const obj2 = { a: 1, b: 2, c: 3 };
-obj2.b = undefined;  // Maintains shape, just clears value
+const obj2 = { a: 1, b: 2, c: 3 }
+obj2.b = undefined // Maintains shape, just clears value
 // obj2 keeps fast properties
 ```
 
@@ -223,13 +223,13 @@ Iteration: simply walk the data table sequentially (O(n) total, O(1) per element
 
 V8 computes hash codes differently by type:
 
-| Key Type | Hash Strategy | Storage |
-|----------|--------------|---------|
-| Small integers (Smis) | Identity function | Computed on access |
-| Heap numbers | Bit manipulation of value | Computed on access |
-| Strings | Content-based hash | Cached in string header |
-| Symbols | Content-based hash | Cached in symbol header |
-| Objects | Random seed-based | Cached in object header |
+| Key Type              | Hash Strategy             | Storage                 |
+| --------------------- | ------------------------- | ----------------------- |
+| Small integers (Smis) | Identity function         | Computed on access      |
+| Heap numbers          | Bit manipulation of value | Computed on access      |
+| Strings               | Content-based hash        | Cached in string header |
+| Symbols               | Content-based hash        | Cached in symbol header |
+| Objects               | Random seed-based         | Cached in object header |
 
 For objects, V8 generates a random hash code on first use and caches it. This prevents algorithmic complexity attacks while ensuring consistent hashing.
 
@@ -258,7 +258,7 @@ With pathological inputs, attackers can force all keys into the same bucket, deg
 // Illustrative example (do not use for attacks)
 
 // If attacker controls keys and can generate collisions:
-const map = new Map();
+const map = new Map()
 
 // Worst case: all keys hash to same bucket
 // Each insertion: O(n) to traverse chain
@@ -279,27 +279,27 @@ This O(n) operation amortizes to O(1) per insertion over time, but causes latenc
 
 ## Map vs Object vs Array: When to Use Each
 
-| Criterion | Array | Object | Map |
-|-----------|-------|--------|-----|
-| Sequential dense data | ✅ Optimal | ❌ Wrong tool | ❌ Wrong tool |
-| Keyed lookups (strings) | ❌ | ✅ Good | ✅ Best for frequent updates |
-| Non-string keys | ❌ | ❌ Coerces to string | ✅ Any key type |
-| Insertion order | ❌ Not guaranteed | ⚠️ Complex rules | ✅ Guaranteed |
-| Frequent add/delete | ⚠️ End operations only | ❌ Delete is slow | ✅ Designed for this |
-| Iteration performance | ✅ Cache-friendly | ⚠️ Property enumeration | ✅ Sequential data table |
-| Memory efficiency | ✅ Best when dense | ⚠️ Hidden class overhead | ⚠️ Hash table overhead |
+| Criterion               | Array                  | Object                   | Map                          |
+| ----------------------- | ---------------------- | ------------------------ | ---------------------------- |
+| Sequential dense data   | ✅ Optimal             | ❌ Wrong tool            | ❌ Wrong tool                |
+| Keyed lookups (strings) | ❌                     | ✅ Good                  | ✅ Best for frequent updates |
+| Non-string keys         | ❌                     | ❌ Coerces to string     | ✅ Any key type              |
+| Insertion order         | ❌ Not guaranteed      | ⚠️ Complex rules         | ✅ Guaranteed                |
+| Frequent add/delete     | ⚠️ End operations only | ❌ Delete is slow        | ✅ Designed for this         |
+| Iteration performance   | ✅ Cache-friendly      | ⚠️ Property enumeration  | ✅ Sequential data table     |
+| Memory efficiency       | ✅ Best when dense     | ⚠️ Hidden class overhead | ⚠️ Hash table overhead       |
 
 ### Benchmark Reality
 
 Real-world V8 benchmarks (approximate, varies by workload):
 
-| Operation | Object | Map | Winner |
-|-----------|--------|-----|--------|
-| Insertion | 1× | 4-5× faster | Map |
-| Key lookup | 1× | 2-3× faster | Map |
-| Has-key check | 1× | ~1× | Tie |
-| Deletion | 1× | 10-50× faster | Map |
-| Iteration | ~1× | ~1× | Tie (Map slightly better) |
+| Operation     | Object | Map           | Winner                    |
+| ------------- | ------ | ------------- | ------------------------- |
+| Insertion     | 1×     | 4-5× faster   | Map                       |
+| Key lookup    | 1×     | 2-3× faster   | Map                       |
+| Has-key check | 1×     | ~1×           | Tie                       |
+| Deletion      | 1×     | 10-50× faster | Map                       |
+| Iteration     | ~1×    | ~1×           | Tie (Map slightly better) |
 
 Objects win only when the shape is stable and properties are accessed via monomorphic call sites. For dynamic keyed collections, Map dominates.
 
@@ -313,15 +313,15 @@ Modern CPUs fetch memory in cache lines (typically 64 bytes). Accessing one elem
 // Demonstrating cache effects
 
 // Cache-friendly: sequential access
-const arr = new Array(1000000).fill(0);
+const arr = new Array(1000000).fill(0)
 for (let i = 0; i < arr.length; i++) {
-  arr[i] += 1;  // Adjacent memory, cache hits
+  arr[i] += 1 // Adjacent memory, cache hits
 }
 
 // Cache-hostile: random access
-const indices = [...Array(1000000).keys()].sort(() => Math.random() - 0.5);
+const indices = [...Array(1000000).keys()].sort(() => Math.random() - 0.5)
 for (let i = 0; i < indices.length; i++) {
-  arr[indices[i]] += 1;  // Random jumps, cache misses
+  arr[indices[i]] += 1 // Random jumps, cache misses
 }
 
 // Sequential access is 3-10× faster than random access
@@ -335,11 +335,11 @@ For numeric data, TypedArrays guarantee contiguous memory with fixed element siz
 ```js title="TypedArray memory layout" collapse={1-2}
 // TypedArrays for performance-critical numeric work
 
-const floats = new Float64Array(1000000);
+const floats = new Float64Array(1000000)
 // Guaranteed: 1000000 × 8 bytes = 8MB contiguous
 
 // Regular array equivalent:
-const regular = new Array(1000000).fill(0.0);
+const regular = new Array(1000000).fill(0.0)
 // V8 may optimize to contiguous doubles, or may not
 // Adding a string element forces reallocation
 

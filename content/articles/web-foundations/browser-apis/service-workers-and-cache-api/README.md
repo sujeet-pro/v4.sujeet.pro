@@ -104,15 +104,15 @@ stateDiagram-v2
 
 </figure>
 
-| State        | Can Handle Fetches? | Trigger to Next State                                |
-| ------------ | ------------------- | ---------------------------------------------------- |
-| `parsed`     | No                  | Automatic after registration                         |
-| `installing` | No                  | `install` event handler completes                    |
+| State        | Can Handle Fetches? | Trigger to Next State                                     |
+| ------------ | ------------------- | --------------------------------------------------------- |
+| `parsed`     | No                  | Automatic after registration                              |
+| `installing` | No                  | `install` event handler completes                         |
 | `installed`  | No                  | Automatic (to waiting) or `skipWaiting()` (to activating) |
-| `waiting`    | No                  | All clients using old worker unload                  |
-| `activating` | No                  | `activate` event handler completes                   |
-| `activated`  | **Yes**             | Remains until replaced or unregistered               |
-| `redundant`  | No                  | Terminal state—worker is discarded                   |
+| `waiting`    | No                  | All clients using old worker unload                       |
+| `activating` | No                  | `activate` event handler completes                        |
+| `activated`  | **Yes**             | Remains until replaced or unregistered                    |
+| `redundant`  | No                  | Terminal state—worker is discarded                        |
 
 ### Registration and Scope
 
@@ -159,12 +159,7 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       // addAll is atomic—fails entirely if any resource fails
-      return cache.addAll([
-        "/",
-        "/app.js",
-        "/styles.css",
-        "/offline.html",
-      ])
+      return cache.addAll(["/", "/app.js", "/styles.css", "/offline.html"])
     }),
   )
 })
@@ -274,13 +269,13 @@ The Cache API provides a durable `Request` → `Response` storage mechanism. Unl
 
 `caches` (global `CacheStorage`) manages named caches:
 
-| Method              | Purpose                                    | Returns                     |
-| ------------------- | ------------------------------------------ | --------------------------- |
-| `caches.open(name)` | Open (or create) a named cache             | `Promise<Cache>`            |
-| `caches.match(req)` | Search all caches for a matching response  | `Promise<Response \| undefined>` |
-| `caches.has(name)`  | Check if a cache exists                    | `Promise<boolean>`          |
-| `caches.delete(name)` | Delete a cache and all its entries       | `Promise<boolean>`          |
-| `caches.keys()`     | List all cache names                       | `Promise<string[]>`         |
+| Method                | Purpose                                   | Returns                          |
+| --------------------- | ----------------------------------------- | -------------------------------- |
+| `caches.open(name)`   | Open (or create) a named cache            | `Promise<Cache>`                 |
+| `caches.match(req)`   | Search all caches for a matching response | `Promise<Response \| undefined>` |
+| `caches.has(name)`    | Check if a cache exists                   | `Promise<boolean>`               |
+| `caches.delete(name)` | Delete a cache and all its entries        | `Promise<boolean>`               |
+| `caches.keys()`       | List all cache names                      | `Promise<string[]>`              |
 
 ### Cache Interface
 
@@ -340,11 +335,11 @@ await cache.match("/api?page=1", { ignoreSearch: true }) // Returns first match
 
 Cache storage counts against the origin's quota:
 
-| Browser   | Default Quota                     | Eviction Policy                                        |
-| --------- | --------------------------------- | ------------------------------------------------------ |
-| Chrome    | 60% of disk (5% in incognito)     | Least Recently Used (LRU) by origin                    |
-| Firefox   | Up to 2GB per eTLD+1              | LRU when disk pressure                                 |
-| Safari    | ~1GB (prompts for more on desktop) | **7-day cap on script-writable storage** (see below)  |
+| Browser | Default Quota                      | Eviction Policy                                      |
+| ------- | ---------------------------------- | ---------------------------------------------------- |
+| Chrome  | 60% of disk (5% in incognito)      | Least Recently Used (LRU) by origin                  |
+| Firefox | Up to 2GB per eTLD+1               | LRU when disk pressure                               |
+| Safari  | ~1GB (prompts for more on desktop) | **7-day cap on script-writable storage** (see below) |
 
 **Safari's 7-day limit**: Since March 2020, Safari deletes all script-writable storage (IndexedDB, Cache API, service worker registrations) after 7 days without user interaction. This resets when the user visits the site. PWAs added to home screen are exempt.
 
@@ -475,14 +470,14 @@ self.addEventListener("fetch", (event) => {
 
 ### Strategy Selection by Resource Type
 
-| Resource Type            | Strategy                | Rationale                                       |
-| ------------------------ | ----------------------- | ----------------------------------------------- |
-| Versioned static assets  | Cache-first             | Immutable; version change = new URL             |
-| App shell (HTML)         | Network-first           | Structure may update; offline fallback useful   |
-| API data                 | Network-first or SWR    | Freshness important; offline read useful        |
-| User-generated images    | Cache-first + lazy load | Large; rarely changes once uploaded             |
-| Analytics/tracking       | Network-only            | Must reach server; no value in caching          |
-| Third-party scripts      | Stale-while-revalidate  | Updates occasionally; speed matters             |
+| Resource Type           | Strategy                | Rationale                                     |
+| ----------------------- | ----------------------- | --------------------------------------------- |
+| Versioned static assets | Cache-first             | Immutable; version change = new URL           |
+| App shell (HTML)        | Network-first           | Structure may update; offline fallback useful |
+| API data                | Network-first or SWR    | Freshness important; offline read useful      |
+| User-generated images   | Cache-first + lazy load | Large; rarely changes once uploaded           |
+| Analytics/tracking      | Network-only            | Must reach server; no value in caching        |
+| Third-party scripts     | Stale-while-revalidate  | Updates occasionally; speed matters           |
 
 ---
 
@@ -587,7 +582,13 @@ The simplest approach: don't use `skipWaiting()`. Users get the update on their 
 ```typescript
 // No skipWaiting—new worker waits
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open("v2").then((cache) => cache.addAll([/* ... */])))
+  event.waitUntil(
+    caches.open("v2").then((cache) =>
+      cache.addAll([
+        /* ... */
+      ]),
+    ),
+  )
   // Worker enters "waiting" state after install
 })
 ```
@@ -659,11 +660,11 @@ self.addEventListener("activate", (event) => {
 
 When `skipWaiting()` activates a new worker while old pages are open:
 
-| Scenario                   | Result                                                      |
-| -------------------------- | ----------------------------------------------------------- |
-| Page requests cached JS    | Old worker's cache may be deleted; request fails or returns new version |
-| New worker returns new HTML | HTML expects new JS; cached old JS breaks                  |
-| API response format changed | New worker parses differently than old page expects        |
+| Scenario                    | Result                                                                  |
+| --------------------------- | ----------------------------------------------------------------------- |
+| Page requests cached JS     | Old worker's cache may be deleted; request fails or returns new version |
+| New worker returns new HTML | HTML expects new JS; cached old JS breaks                               |
+| API response format changed | New worker parses differently than old page expects                     |
 
 **Mitigation strategies:**
 
@@ -683,16 +684,12 @@ A robust offline experience requires graceful degradation when resources aren't 
 const OFFLINE_PAGE = "/offline.html"
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open("offline").then((cache) => cache.add(OFFLINE_PAGE)),
-  )
+  event.waitUntil(caches.open("offline").then((cache) => cache.add(OFFLINE_PAGE)))
 })
 
 self.addEventListener("fetch", (event) => {
   if (event.request.mode === "navigate") {
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match(OFFLINE_PAGE)),
-    )
+    event.respondWith(fetch(event.request).catch(() => caches.match(OFFLINE_PAGE)))
   }
 })
 ```
@@ -706,10 +703,7 @@ self.addEventListener("fetch", (event) => {
   if (event.request.destination === "image") {
     event.respondWith(
       caches.match(event.request).then((cached) => {
-        return (
-          cached ||
-          fetch(event.request).catch(() => caches.match(OFFLINE_IMAGE))
-        )
+        return cached || fetch(event.request).catch(() => caches.match(OFFLINE_IMAGE))
       }),
     )
   }
@@ -801,14 +795,14 @@ self.addEventListener("fetch", (event) => {
 
 ### Common Issues and Solutions
 
-| Symptom                           | Cause                                      | Solution                                         |
-| --------------------------------- | ------------------------------------------ | ------------------------------------------------ |
-| Changes not appearing             | Old worker still active                    | Close all tabs or use Update on reload           |
-| Worker stuck in "waiting"         | Clients still using old worker             | Use skipWaiting or close tabs                    |
-| Fetch handler not firing          | Request outside scope or no-cors opaque    | Check scope; ensure fetch listener returns       |
-| Cache match returns undefined     | URL mismatch (query string, trailing slash)| Use `ignoreSearch: true` or normalize URLs       |
-| "The service worker navigation preload request was cancelled" | Preload unused | Always consume `event.preloadResponse` when enabled |
-| Storage quota exceeded            | Too much cached data                       | Implement cache eviction; check `storage.estimate()` |
+| Symptom                                                       | Cause                                       | Solution                                             |
+| ------------------------------------------------------------- | ------------------------------------------- | ---------------------------------------------------- |
+| Changes not appearing                                         | Old worker still active                     | Close all tabs or use Update on reload               |
+| Worker stuck in "waiting"                                     | Clients still using old worker              | Use skipWaiting or close tabs                        |
+| Fetch handler not firing                                      | Request outside scope or no-cors opaque     | Check scope; ensure fetch listener returns           |
+| Cache match returns undefined                                 | URL mismatch (query string, trailing slash) | Use `ignoreSearch: true` or normalize URLs           |
+| "The service worker navigation preload request was cancelled" | Preload unused                              | Always consume `event.preloadResponse` when enabled  |
+| Storage quota exceeded                                        | Too much cached data                        | Implement cache eviction; check `storage.estimate()` |
 
 ### Error Handling in Fetch
 
@@ -851,9 +845,7 @@ registerRoute(
   ({ request }) => request.destination === "style" || request.destination === "script",
   new CacheFirst({
     cacheName: "static-v1",
-    plugins: [
-      new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 30 * 24 * 60 * 60 }),
-    ],
+    plugins: [new ExpirationPlugin({ maxEntries: 50, maxAgeSeconds: 30 * 24 * 60 * 60 })],
   }),
 )
 
@@ -867,10 +859,7 @@ registerRoute(
 )
 
 // Images: stale-while-revalidate
-registerRoute(
-  ({ request }) => request.destination === "image",
-  new StaleWhileRevalidate({ cacheName: "images-v1" }),
-)
+registerRoute(({ request }) => request.destination === "image", new StaleWhileRevalidate({ cacheName: "images-v1" }))
 ```
 
 ### Precaching with Versioning

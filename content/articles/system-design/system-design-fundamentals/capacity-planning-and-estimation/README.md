@@ -67,13 +67,13 @@ These numbers form the foundation of capacity estimates. Memorize them—or keep
 
 ### Powers of Two
 
-| Power | Value | Approximation | Common Name |
-|-------|-------|---------------|-------------|
-| 2¹⁰ | 1,024 | ~1 thousand | 1 KB |
-| 2²⁰ | 1,048,576 | ~1 million | 1 MB |
-| 2³⁰ | 1,073,741,824 | ~1 billion | 1 GB |
-| 2⁴⁰ | ~1.1 trillion | ~1 trillion | 1 TB |
-| 2⁵⁰ | ~1.1 quadrillion | ~1 quadrillion | 1 PB |
+| Power | Value            | Approximation  | Common Name |
+| ----- | ---------------- | -------------- | ----------- |
+| 2¹⁰   | 1,024            | ~1 thousand    | 1 KB        |
+| 2²⁰   | 1,048,576        | ~1 million     | 1 MB        |
+| 2³⁰   | 1,073,741,824    | ~1 billion     | 1 GB        |
+| 2⁴⁰   | ~1.1 trillion    | ~1 trillion    | 1 TB        |
+| 2⁵⁰   | ~1.1 quadrillion | ~1 quadrillion | 1 PB        |
 
 **Practical shortcuts:**
 
@@ -84,22 +84,22 @@ These numbers form the foundation of capacity estimates. Memorize them—or keep
 
 ### Latency Numbers (Jeff Dean's List, Updated)
 
-| Operation | Latency | Orders of Magnitude |
-|-----------|---------|---------------------|
-| L1 cache reference | 0.5 ns | |
-| Branch mispredict | 5 ns | |
-| L2 cache reference | 7 ns | |
-| Mutex lock/unlock | 100 ns | |
-| Main memory reference | 100 ns | |
-| Compress 1 KB with Snappy | 10 μs | 10,000 ns |
-| Send 1 KB over 1 Gbps network | 10 μs | 10,000 ns |
-| SSD random read | 16-150 μs | Varies by SSD generation |
-| Read 1 MB sequentially from memory | 250 μs | 0.25 ms |
-| Datacenter round trip | 500 μs | 0.5 ms |
-| Disk seek | 10 ms | 10,000 μs |
-| Read 1 MB sequentially from network | 10 ms | |
-| Read 1 MB sequentially from disk | 30 ms | |
-| Send packet CA → Netherlands → CA | 150 ms | |
+| Operation                           | Latency   | Orders of Magnitude      |
+| ----------------------------------- | --------- | ------------------------ |
+| L1 cache reference                  | 0.5 ns    |                          |
+| Branch mispredict                   | 5 ns      |                          |
+| L2 cache reference                  | 7 ns      |                          |
+| Mutex lock/unlock                   | 100 ns    |                          |
+| Main memory reference               | 100 ns    |                          |
+| Compress 1 KB with Snappy           | 10 μs     | 10,000 ns                |
+| Send 1 KB over 1 Gbps network       | 10 μs     | 10,000 ns                |
+| SSD random read                     | 16-150 μs | Varies by SSD generation |
+| Read 1 MB sequentially from memory  | 250 μs    | 0.25 ms                  |
+| Datacenter round trip               | 500 μs    | 0.5 ms                   |
+| Disk seek                           | 10 ms     | 10,000 μs                |
+| Read 1 MB sequentially from network | 10 ms     |                          |
+| Read 1 MB sequentially from disk    | 30 ms     |                          |
+| Send packet CA → Netherlands → CA   | 150 ms    |                          |
 
 **Key takeaways:**
 
@@ -109,49 +109,49 @@ These numbers form the foundation of capacity estimates. Memorize them—or keep
 
 ### Time Conversions for Capacity Planning
 
-| Period | Seconds | Useful For |
-|--------|---------|------------|
-| 1 minute | 60 | |
-| 1 hour | 3,600 | |
-| 1 day | 86,400 | Daily → per-second conversion |
-| 1 month | 2.6 million | Monthly quotas |
-| 1 year | 31.5 million | Annual storage growth |
+| Period   | Seconds      | Useful For                    |
+| -------- | ------------ | ----------------------------- |
+| 1 minute | 60           |                               |
+| 1 hour   | 3,600        |                               |
+| 1 day    | 86,400       | Daily → per-second conversion |
+| 1 month  | 2.6 million  | Monthly quotas                |
+| 1 year   | 31.5 million | Annual storage growth         |
 
 **The 86,400 rule:** To convert daily volume to QPS, divide by ~100,000 (actually 86,400). For mental math, dividing by 100,000 gives a close-enough estimate: 1 billion daily requests ≈ 10,000 QPS.
 
 ### Availability and Downtime
 
-| Availability | Downtime/Year | Downtime/Month | Downtime/Day |
-|--------------|---------------|----------------|--------------|
-| 99% (two nines) | 3.65 days | 7.3 hours | 14.4 minutes |
-| 99.9% (three nines) | 8.76 hours | 43.8 minutes | 1.44 minutes |
-| 99.99% (four nines) | 52.6 minutes | 4.38 minutes | 8.64 seconds |
-| 99.999% (five nines) | 5.26 minutes | 26.3 seconds | 0.86 seconds |
+| Availability         | Downtime/Year | Downtime/Month | Downtime/Day |
+| -------------------- | ------------- | -------------- | ------------ |
+| 99% (two nines)      | 3.65 days     | 7.3 hours      | 14.4 minutes |
+| 99.9% (three nines)  | 8.76 hours    | 43.8 minutes   | 1.44 minutes |
+| 99.99% (four nines)  | 52.6 minutes  | 4.38 minutes   | 8.64 seconds |
+| 99.999% (five nines) | 5.26 minutes  | 26.3 seconds   | 0.86 seconds |
 
 **The exponential cost of nines:** Going from 99.9% to 99.95% is 2× improvement. Going from 99.95% to 99.99% is 5× improvement. Each additional nine roughly 10× the engineering investment.
 
 ### Single-Server Benchmarks
 
-| Component | Typical Capacity | Notes |
-|-----------|------------------|-------|
-| Web server (NGINX) | 10,000-100,000 QPS | Static content, keep-alive enabled |
-| Application server | 1,000-10,000 QPS | Depends on request complexity |
-| MySQL (read-heavy) | 10,000-50,000 QPS | Simple queries, indexed lookups |
-| MySQL (write-heavy) | 1,000-10,000 QPS | Depends on durability settings |
-| Redis | 100,000+ QPS | In-memory, simple operations |
-| PostgreSQL | 10,000-30,000 QPS | Varies significantly with query complexity |
+| Component           | Typical Capacity   | Notes                                      |
+| ------------------- | ------------------ | ------------------------------------------ |
+| Web server (NGINX)  | 10,000-100,000 QPS | Static content, keep-alive enabled         |
+| Application server  | 1,000-10,000 QPS   | Depends on request complexity              |
+| MySQL (read-heavy)  | 10,000-50,000 QPS  | Simple queries, indexed lookups            |
+| MySQL (write-heavy) | 1,000-10,000 QPS   | Depends on durability settings             |
+| Redis               | 100,000+ QPS       | In-memory, simple operations               |
+| PostgreSQL          | 10,000-30,000 QPS  | Varies significantly with query complexity |
 
 **Caveat:** These are rough benchmarks. Your mileage will vary dramatically based on query complexity, data size, hardware, and configuration. Always load test your specific workload.
 
 ### Network Bandwidth
 
-| Medium | Bandwidth | Time to Transfer 1 GB |
-|--------|-----------|----------------------|
-| 1 Gbps Ethernet | 125 MB/s | 8 seconds |
-| 10 Gbps Ethernet | 1.25 GB/s | 0.8 seconds |
-| 100 Gbps Ethernet | 12.5 GB/s | 0.08 seconds |
-| SSD sequential read | 500 MB/s - 7 GB/s | 0.14-2 seconds |
-| HDD sequential read | 100-200 MB/s | 5-10 seconds |
+| Medium              | Bandwidth         | Time to Transfer 1 GB |
+| ------------------- | ----------------- | --------------------- |
+| 1 Gbps Ethernet     | 125 MB/s          | 8 seconds             |
+| 10 Gbps Ethernet    | 1.25 GB/s         | 0.8 seconds           |
+| 100 Gbps Ethernet   | 12.5 GB/s         | 0.08 seconds          |
+| SSD sequential read | 500 MB/s - 7 GB/s | 0.14-2 seconds        |
+| HDD sequential read | 100-200 MB/s      | 5-10 seconds          |
 
 ## Core Estimation Techniques
 
@@ -167,6 +167,7 @@ Peak QPS = Average QPS × Peak Multiplier
 **Example: Social media feed service**
 
 Assumptions:
+
 - 500 million DAU
 - Each user refreshes feed 10 times/day
 - Peak traffic is 3× average
@@ -198,6 +199,7 @@ Annual Storage = Daily Storage × 365 × Replication Factor
 **Example: Photo sharing service**
 
 Assumptions:
+
 - 500 million users
 - 2 photos uploaded per day per user (10% of users active)
 - Average photo size: 2 MB
@@ -223,6 +225,7 @@ Egress Bandwidth = Read QPS × Response Size
 **Example: Video streaming service**
 
 Assumptions:
+
 - 10 million concurrent viewers
 - Average bitrate: 3 Mbps
 
@@ -243,6 +246,7 @@ Servers Needed = Peak QPS / QPS-per-Server × Redundancy Factor
 **Example: API service**
 
 Assumptions:
+
 - Peak QPS: 100,000
 - Each server handles 5,000 QPS (application logic complexity)
 - N+2 redundancy (can lose 2 servers at peak)
@@ -269,6 +273,7 @@ W = Average time in system (latency)
 **Example: Database connection pool sizing**
 
 Assumptions:
+
 - 10,000 QPS to database
 - Average query time: 5 ms
 
@@ -283,6 +288,7 @@ With safety margin (2×): 100 connections per application server. If you have 10
 ### Example 1: Twitter-like Service
 
 **Requirements:**
+
 - 500 million monthly active users
 - 50 million DAU
 - Users post 2 tweets/day, read 100 tweets/day
@@ -336,6 +342,7 @@ Egress (reads):
 ### Example 2: URL Shortener
 
 **Requirements:**
+
 - 100 million new URLs per month
 - Read:Write ratio of 100:1
 - URLs stored for 5 years
@@ -365,6 +372,7 @@ Per month: 100M × 500 bytes = 50 GB
 ### Example 3: Video Streaming Platform
 
 **Requirements:**
+
 - 200 million monthly active users
 - 100 million daily active users
 - Average watch time: 60 minutes/day
@@ -409,12 +417,12 @@ aggressive deduplication and hot/cold tiering reduce this significantly.
 
 ### Single Server vs. Distributed
 
-| Factor | Single Server Threshold | When to Distribute |
-|--------|------------------------|-------------------|
-| QPS | < 10,000 | > 10,000 (add replicas) |
-| Storage | < 1 TB | > 1 TB (consider sharding) |
-| Write QPS | < 5,000 | > 5,000 (shard writes) |
-| Availability requirement | < 99.9% | > 99.9% (add redundancy) |
+| Factor                   | Single Server Threshold | When to Distribute         |
+| ------------------------ | ----------------------- | -------------------------- |
+| QPS                      | < 10,000                | > 10,000 (add replicas)    |
+| Storage                  | < 1 TB                  | > 1 TB (consider sharding) |
+| Write QPS                | < 5,000                 | > 5,000 (shard writes)     |
+| Availability requirement | < 99.9%                 | > 99.9% (add redundancy)   |
 
 **Real-world example:** WhatsApp handled 2+ million connections per server using Erlang on FreeBSD. The C10K problem (handling 10,000 concurrent connections) was solved decades ago; modern event-driven servers handle millions.
 
@@ -440,12 +448,12 @@ Going from 0% → 80% cache hit rate gives 5× database headroom.
 
 ### Sharding Trigger Points
 
-| Signal | Threshold | Action |
-|--------|-----------|--------|
-| Single table size | > 100 million rows | Consider partitioning |
-| Single database size | > 1 TB | Consider sharding |
-| Write QPS | > 5,000 | Shard by write key |
-| Replication lag | > 1 second | Shard to reduce write load |
+| Signal               | Threshold          | Action                     |
+| -------------------- | ------------------ | -------------------------- |
+| Single table size    | > 100 million rows | Consider partitioning      |
+| Single database size | > 1 TB             | Consider sharding          |
+| Write QPS            | > 5,000            | Shard by write key         |
+| Replication lag      | > 1 second         | Shard to reduce write load |
 
 **Sharding multiplies complexity.** Delay it until estimates prove it's necessary. Instagram ran on PostgreSQL for years with careful indexing before sharding.
 
@@ -513,6 +521,7 @@ Every estimate requires explicit assumptions. Without them, numbers are meaningl
 ## Capacity Estimate: [System Name]
 
 ### Assumptions
+
 - DAU: 50 million
 - Actions per user per day: 10
 - Average request size: 2 KB
@@ -522,12 +531,14 @@ Every estimate requires explicit assumptions. Without them, numbers are meaningl
 - Replication factor: 3
 
 ### Derived Estimates
+
 - Average QPS: [calculation]
 - Peak QPS: [calculation]
 - Storage/year: [calculation]
 - Bandwidth: [calculation]
 
 ### Confidence Level
+
 - High confidence: [which estimates]
 - Medium confidence: [which estimates]
 - Requires validation: [which estimates]

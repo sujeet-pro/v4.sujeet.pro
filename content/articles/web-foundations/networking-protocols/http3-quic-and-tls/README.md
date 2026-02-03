@@ -107,12 +107,12 @@ QUIC runs in user space, enabling browser/server updates to deploy new congestio
 
 QUIC encrypts almost everything. Per RFC 9000, only these fields are visible to network observers:
 
-| Field | Visibility | Purpose |
-|-------|------------|---------|
+| Field             | Visibility              | Purpose                      |
+| ----------------- | ----------------------- | ---------------------------- |
 | Version (4 bytes) | Visible in long headers | Protocol version negotiation |
-| Connection ID | Visible | Routing to correct endpoint |
-| Packet Number | Encrypted | Replay protection, ordering |
-| Payload | Encrypted | All application data |
+| Connection ID     | Visible                 | Routing to correct endpoint  |
+| Packet Number     | Encrypted               | Replay protection, ordering  |
+| Payload           | Encrypted               | All application data         |
 
 **Design rationale**: Encrypting packet numbers and payload prevents middleboxes from making decisions based on these values, avoiding ossification. The Connection ID must remain visible for routing but changes periodically to prevent tracking.
 
@@ -230,11 +230,11 @@ sequenceDiagram
 
 **Latency comparison:**
 
-| Protocol Stack | New Connection | Resumption |
-|----------------|----------------|------------|
-| TCP + TLS 1.2 | 3 RTT | 2 RTT |
-| TCP + TLS 1.3 | 2 RTT | 1 RTT (0-RTT data possible) |
-| QUIC + TLS 1.3 | 1 RTT | 0 RTT (early data) |
+| Protocol Stack | New Connection | Resumption                  |
+| -------------- | -------------- | --------------------------- |
+| TCP + TLS 1.2  | 3 RTT          | 2 RTT                       |
+| TCP + TLS 1.3  | 2 RTT          | 1 RTT (0-RTT data possible) |
+| QUIC + TLS 1.3 | 1 RTT          | 0 RTT (early data)          |
 
 ### Encryption Levels
 
@@ -265,25 +265,25 @@ QUIC uses four encryption levels, each with distinct keys (RFC 9001 Section 4):
 ```javascript collapse={1-5, 25-35}
 // 0-RTT security policy implementation
 class ZeroRTTPolicy {
-  allowedMethods = ['GET', 'HEAD', 'OPTIONS']
+  allowedMethods = ["GET", "HEAD", "OPTIONS"]
   replayWindow = 60_000 // 60 seconds
 
   validate(request) {
     // 1. Only idempotent methods
     if (!this.allowedMethods.includes(request.method)) {
-      return { allowed: false, reason: 'Non-idempotent method in 0-RTT' }
+      return { allowed: false, reason: "Non-idempotent method in 0-RTT" }
     }
 
     // 2. Check Early-Data header (RFC 8470)
     // Intermediaries add this; origin can reject with 425 Too Early
-    if (request.headers['early-data'] === '1') {
+    if (request.headers["early-data"] === "1") {
       // Origin must decide if request is safe to process
     }
 
     // 3. Application-level idempotency key
     if (request.idempotencyKey) {
       const cached = this.replayCache.get(request.idempotencyKey)
-      if (cached) return { allowed: false, reason: 'Replay detected', cachedResponse: cached }
+      if (cached) return { allowed: false, reason: "Replay detected", cachedResponse: cached }
     }
 
     return { allowed: true }
@@ -292,8 +292,8 @@ class ZeroRTTPolicy {
 
 // RFC 8470: 425 Too Early response
 const handleEarlyData = (req, res) => {
-  if (req.headers['early-data'] === '1' && !isIdempotent(req)) {
-    res.status(425).set('Retry-After', '0').send('Too Early')
+  if (req.headers["early-data"] === "1" && !isIdempotent(req)) {
+    res.status(425).set("Retry-After", "0").send("Too Early")
     return
   }
   // Process request normally
@@ -324,10 +324,10 @@ The problem: HPACK references previous headers by index into a dynamic table. If
 
 QPACK uses explicit synchronization via dedicated unidirectional streams:
 
-| Stream Type | Direction | Purpose |
-|-------------|-----------|---------|
+| Stream Type    | Direction       | Purpose               |
+| -------------- | --------------- | --------------------- |
 | Encoder (0x02) | Encoder→Decoder | Dynamic table updates |
-| Decoder (0x03) | Decoder→Encoder | Acknowledgments |
+| Decoder (0x03) | Decoder→Encoder | Acknowledgments       |
 
 **Key mechanism**: Each encoded header block includes a "Required Insert Count"—the minimum dynamic table state needed to decode it. If the decoder's current insert count is lower, the stream blocks until encoder stream updates arrive.
 
@@ -356,11 +356,11 @@ sequenceDiagram
 
 ### Static Table Differences
 
-| Feature | HPACK | QPACK |
-|---------|-------|-------|
-| Static table start index | 1 | 0 |
-| Static table size | 61 entries | 99 entries |
-| `:authority` pseudo-header | Index 1 | Index 0 |
+| Feature                    | HPACK      | QPACK      |
+| -------------------------- | ---------- | ---------- |
+| Static table start index   | 1          | 0          |
+| Static table size          | 61 entries | 99 entries |
+| `:authority` pseudo-header | Index 1    | Index 0    |
 
 QPACK's larger static table reduces dynamic table pressure for common HTTP/3 headers like `alt-svc` and `content-security-policy`.
 
@@ -383,13 +383,13 @@ example.com. 3600 IN HTTPS 1 . alpn="h3,h2" ech="..."
 
 **Key SvcParams:**
 
-| Parameter | Purpose |
-|-----------|---------|
-| `alpn` | Supported application protocols (h3, h2, http/1.1) |
-| `port` | Alternative port (default 443) |
-| `ipv4hint`/`ipv6hint` | IP addresses for the service |
-| `ech` | Encrypted Client Hello configuration |
-| `no-default-alpn` | Disable implicit protocol support |
+| Parameter             | Purpose                                            |
+| --------------------- | -------------------------------------------------- |
+| `alpn`                | Supported application protocols (h3, h2, http/1.1) |
+| `port`                | Alternative port (default 443)                     |
+| `ipv4hint`/`ipv6hint` | IP addresses for the service                       |
+| `ech`                 | Encrypted Client Hello configuration               |
+| `no-default-alpn`     | Disable implicit protocol support                  |
 
 **Why HTTPS records matter:**
 
@@ -410,11 +410,11 @@ HTTP/2 200 OK
 Alt-Svc: h3=":443"; ma=86400, h3-29=":443"; ma=86400
 ```
 
-| Parameter | Meaning |
-|-----------|---------|
-| `h3` | HTTP/3 (QUIC v1, RFC 9114) |
-| `h3-29` | HTTP/3 draft-29 (legacy) |
-| `:443` | Port (same origin) |
+| Parameter  | Meaning                     |
+| ---------- | --------------------------- |
+| `h3`       | HTTP/3 (QUIC v1, RFC 9114)  |
+| `h3-29`    | HTTP/3 draft-29 (legacy)    |
+| `:443`     | Port (same origin)          |
 | `ma=86400` | Max-age: cache for 24 hours |
 
 **Upgrade flow:**
@@ -520,13 +520,13 @@ Initial packet encryption provides integrity, not confidentiality. SNI remains v
 
 ### Support Matrix (2025)
 
-| Server | HTTP/3 Support | Notes |
-|--------|----------------|-------|
-| Nginx | 1.25.0+ | Requires `--with-http_v3_module` at compile time |
-| Caddy | Default | Zero-config HTTP/3, automatic cert management |
-| Apache | None | Requires reverse proxy (Cloudflare, nginx) |
-| HAProxy | 2.6+ | Experimental in 2.6, stable in 2.8+ |
-| Envoy | 1.19+ | Full support via QUICHE library |
+| Server  | HTTP/3 Support | Notes                                            |
+| ------- | -------------- | ------------------------------------------------ |
+| Nginx   | 1.25.0+        | Requires `--with-http_v3_module` at compile time |
+| Caddy   | Default        | Zero-config HTTP/3, automatic cert management    |
+| Apache  | None           | Requires reverse proxy (Cloudflare, nginx)       |
+| HAProxy | 2.6+           | Experimental in 2.6, stable in 2.8+              |
+| Envoy   | 1.19+          | Full support via QUICHE library                  |
 
 ### Nginx Configuration
 
@@ -569,12 +569,12 @@ http {
 
 For most deployments, CDN-based HTTP/3 is simpler:
 
-| CDN | HTTP/3 | 0-RTT | Notes |
-|-----|--------|-------|-------|
-| Cloudflare | Default | Restricted | 0-RTT only for safe GET requests |
-| AWS CloudFront | Opt-in | Yes | Via distribution settings |
-| Fastly | Default | Yes | Full QUIC implementation |
-| Akamai | Default | Yes | Extensive QUIC deployment |
+| CDN            | HTTP/3  | 0-RTT      | Notes                            |
+| -------------- | ------- | ---------- | -------------------------------- |
+| Cloudflare     | Default | Restricted | 0-RTT only for safe GET requests |
+| AWS CloudFront | Opt-in  | Yes        | Via distribution settings        |
+| Fastly         | Default | Yes        | Full QUIC implementation         |
+| Akamai         | Default | Yes        | Extensive QUIC deployment        |
 
 **Trade-off**: CDN handles protocol complexity; you lose visibility into origin connection characteristics.
 
@@ -582,12 +582,12 @@ For most deployments, CDN-based HTTP/3 is simpler:
 
 ### Key Metrics
 
-| Metric | HTTP/2 Baseline | HTTP/3 Target | Why It Matters |
-|--------|-----------------|---------------|----------------|
-| TTFB (Time to First Byte) | 2× RTT + processing | 1× RTT + processing | Handshake reduction |
-| Connection migration success | N/A | >95% | Mobile user experience |
-| 0-RTT acceptance rate | N/A | 60-80% | Returning visitor speedup |
-| QUIC fallback rate | N/A | <5% | UDP blocking detection |
+| Metric                       | HTTP/2 Baseline     | HTTP/3 Target       | Why It Matters            |
+| ---------------------------- | ------------------- | ------------------- | ------------------------- |
+| TTFB (Time to First Byte)    | 2× RTT + processing | 1× RTT + processing | Handshake reduction       |
+| Connection migration success | N/A                 | >95%                | Mobile user experience    |
+| 0-RTT acceptance rate        | N/A                 | 60-80%              | Returning visitor speedup |
+| QUIC fallback rate           | N/A                 | <5%                 | UDP blocking detection    |
 
 ### Monitoring Implementation
 
@@ -599,7 +599,7 @@ class ProtocolMetrics {
     this.thresholds = {
       quicFallbackRate: 0.05,
       zeroRTTAcceptance: 0.6,
-      migrationSuccess: 0.95
+      migrationSuccess: 0.95,
     }
   }
 
@@ -613,19 +613,19 @@ class ProtocolMetrics {
     this.histogram(`handshake.${protocol}`, handshakeTime)
 
     // Track 0-RTT usage
-    if (protocol === 'h3' && wasResumed) {
-      this.increment(usedZeroRTT ? '0rtt.accepted' : '0rtt.rejected')
+    if (protocol === "h3" && wasResumed) {
+      this.increment(usedZeroRTT ? "0rtt.accepted" : "0rtt.rejected")
     }
 
     // Detect QUIC failures
-    if (event.quicAttempted && protocol !== 'h3') {
-      this.increment('quic.fallback')
+    if (event.quicAttempted && protocol !== "h3") {
+      this.increment("quic.fallback")
       this.recordFallbackReason(event.fallbackReason)
     }
   }
 
   recordMigration(event) {
-    this.increment(event.success ? 'migration.success' : 'migration.failed')
+    this.increment(event.success ? "migration.success" : "migration.failed")
     if (!event.success) {
       this.recordMigrationFailure(event.reason)
     }
@@ -634,12 +634,12 @@ class ProtocolMetrics {
   getAlerts() {
     const alerts = []
 
-    const fallbackRate = this.getRate('quic.fallback', 'quic.attempted')
+    const fallbackRate = this.getRate("quic.fallback", "quic.attempted")
     if (fallbackRate > this.thresholds.quicFallbackRate) {
       alerts.push({
-        severity: 'warning',
+        severity: "warning",
         message: `QUIC fallback rate ${(fallbackRate * 100).toFixed(1)}% exceeds threshold`,
-        action: 'Check UDP 443 accessibility and middlebox interference'
+        action: "Check UDP 443 accessibility and middlebox interference",
       })
     }
 
@@ -690,16 +690,16 @@ HTTP/3 and QUIC represent a fundamental architectural shift: moving transport lo
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
+| Term             | Definition                                                                        |
+| ---------------- | --------------------------------------------------------------------------------- |
 | **HOL Blocking** | Head-of-Line Blocking: when processing of later items is delayed by earlier items |
-| **ALPN** | Application-Layer Protocol Negotiation: TLS extension for protocol selection |
-| **CID** | Connection ID: QUIC's connection identifier enabling migration |
-| **PSK** | Pre-Shared Key: cached session secret for resumption |
-| **SVCB** | Service Binding DNS record type (RR type 64) |
-| **ECH** | Encrypted Client Hello: encrypts SNI in TLS handshake |
-| **QPACK** | HTTP/3 header compression (replaces HPACK) |
-| **RTT** | Round-Trip Time: network latency measure |
+| **ALPN**         | Application-Layer Protocol Negotiation: TLS extension for protocol selection      |
+| **CID**          | Connection ID: QUIC's connection identifier enabling migration                    |
+| **PSK**          | Pre-Shared Key: cached session secret for resumption                              |
+| **SVCB**         | Service Binding DNS record type (RR type 64)                                      |
+| **ECH**          | Encrypted Client Hello: encrypts SNI in TLS handshake                             |
+| **QPACK**        | HTTP/3 header compression (replaces HPACK)                                        |
+| **RTT**          | Round-Trip Time: network latency measure                                          |
 
 ### Summary
 

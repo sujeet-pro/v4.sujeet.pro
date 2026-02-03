@@ -74,10 +74,10 @@ SELECT * FROM posts ORDER BY created_at DESC LIMIT 20 OFFSET 40;
 **Performance degradation**: The database scans and discards `OFFSET` rows before returning results. At offset 1,000,000, the query reads 1M+ rows.
 
 | Dataset Size | Offset Query | Cursor Query |
-|--------------|--------------|--------------|
-| 1M items | ~500ms | <10ms |
-| 10M items | ~10 seconds | <10ms |
-| 50M items | ~35 seconds | <10ms |
+| ------------ | ------------ | ------------ |
+| 1M items     | ~500ms       | <10ms        |
+| 10M items    | ~10 seconds  | <10ms        |
+| 50M items    | ~35 seconds  | <10ms        |
 
 Offset pagination works for admin interfaces with stable data and direct page access. It fails for real-time feeds where content changes between requests.
 
@@ -91,13 +91,13 @@ Offset pagination works for admin interfaces with stable data and direct page ac
 
 ### User Experience Requirements
 
-| Requirement | Constraint |
-|-------------|------------|
-| Scroll smoothness | 60fps, no jank during fetch |
-| Load latency | <200ms perceived wait |
-| Position stability | No jumps when new content loads |
-| Back navigation | Return to previous scroll position |
-| New content | Discoverable without disrupting reading |
+| Requirement        | Constraint                              |
+| ------------------ | --------------------------------------- |
+| Scroll smoothness  | 60fps, no jank during fetch             |
+| Load latency       | <200ms perceived wait                   |
+| Position stability | No jumps when new content loads         |
+| Back navigation    | Return to previous scroll position      |
+| New content        | Discoverable without disrupting reading |
 
 ## Design Paths
 
@@ -128,30 +128,27 @@ Offset pagination works for admin interfaces with stable data and direct page ac
 Intersection Observer monitors a sentinel element positioned below visible content. When the sentinel enters the viewport (or approaches via `rootMargin`), callback fires to fetch the next page using the stored cursor.
 
 ```typescript collapse={1-2}
-type FeedItem = { id: string; content: string; createdAt: string };
-type PageResponse = { items: FeedItem[]; nextCursor: string | null };
+type FeedItem = { id: string; content: string; createdAt: string }
+type PageResponse = { items: FeedItem[]; nextCursor: string | null }
 
-function createFeedObserver(
-  onLoadMore: () => void,
-  options: { rootMargin?: string; threshold?: number } = {}
-) {
-  const { rootMargin = '0px 0px 200px 0px', threshold = 0 } = options;
+function createFeedObserver(onLoadMore: () => void, options: { rootMargin?: string; threshold?: number } = {}) {
+  const { rootMargin = "0px 0px 200px 0px", threshold = 0 } = options
 
   return new IntersectionObserver(
     (entries) => {
-      const [entry] = entries;
+      const [entry] = entries
       if (entry.isIntersecting) {
-        onLoadMore();
+        onLoadMore()
       }
     },
-    { rootMargin, threshold }
-  );
+    { rootMargin, threshold },
+  )
 }
 
 // Usage
-const sentinel = document.getElementById('load-more-sentinel');
-const observer = createFeedObserver(() => fetchNextPage(currentCursor));
-observer.observe(sentinel);
+const sentinel = document.getElementById("load-more-sentinel")
+const observer = createFeedObserver(() => fetchNextPage(currentCursor))
+observer.observe(sentinel)
 ```
 
 **Best for:**
@@ -163,21 +160,21 @@ observer.observe(sentinel);
 
 **Device/network profile:**
 
-| Condition | Behavior |
-|-----------|----------|
-| Fast network | Seamless loading, buffer always full |
-| Slow 3G | Visible loading states, may show spinners |
-| Offline | Shows cached content, queues refetch |
-| Low-end mobile | Works well (no scroll handlers) |
+| Condition      | Behavior                                  |
+| -------------- | ----------------------------------------- |
+| Fast network   | Seamless loading, buffer always full      |
+| Slow 3G        | Visible loading states, may show spinners |
+| Offline        | Shows cached content, queues refetch      |
+| Low-end mobile | Works well (no scroll handlers)           |
 
 **Implementation complexity:**
 
-| Aspect | Effort |
-|--------|--------|
-| Initial setup | Low |
+| Aspect                | Effort |
+| --------------------- | ------ |
+| Initial setup         | Low    |
 | Bidirectional loading | Medium |
-| Error recovery | Medium |
-| Scroll restoration | High |
+| Error recovery        | Medium |
+| Scroll restoration    | High   |
 
 **Trade-offs:**
 
@@ -289,12 +286,12 @@ function VirtualizedFeed() {
 
 **Performance characteristics:**
 
-| Metric | Value |
-|--------|-------|
-| DOM nodes | O(viewport) ~20-50 |
-| Memory | O(pages in cache) |
-| Scroll FPS | 60fps |
-| Initial render | <50ms |
+| Metric         | Value              |
+| -------------- | ------------------ |
+| DOM nodes      | O(viewport) ~20-50 |
+| Memory         | O(pages in cache)  |
+| Scroll FPS     | 60fps              |
+| Initial render | <50ms              |
 
 **Trade-offs:**
 
@@ -360,15 +357,15 @@ function HybridFeed({ userPreference }: { userPreference: LoadMode }) {
 
 ### Decision Matrix
 
-| Factor | IO + Cursor | Virtualized | Hybrid |
-|--------|-------------|-------------|--------|
-| Items < 100 | ✓ (overkill) | ✗ | ✓ |
-| Items 100-1K | ✓ | Optional | ✓ |
-| Items > 1K | ✓ | Required | ✓ |
-| Variable heights | Easy | Complex | Easy |
-| Scroll restoration | Medium | Hard | Medium |
-| Accessibility | Good | Harder | Best |
-| Implementation | Low | High | Medium |
+| Factor             | IO + Cursor  | Virtualized | Hybrid |
+| ------------------ | ------------ | ----------- | ------ |
+| Items < 100        | ✓ (overkill) | ✗           | ✓      |
+| Items 100-1K       | ✓            | Optional    | ✓      |
+| Items > 1K         | ✓            | Required    | ✓      |
+| Variable heights   | Easy         | Complex     | Easy   |
+| Scroll restoration | Medium       | Hard        | Medium |
+| Accessibility      | Good         | Harder      | Best   |
+| Implementation     | Low          | High        | Medium |
 
 ## Cursor-Based Pagination
 
@@ -378,13 +375,12 @@ function HybridFeed({ userPreference }: { userPreference: LoadMode }) {
 
 ```typescript
 function encodeCursor(createdAt: Date, id: string): string {
-  return Buffer.from(JSON.stringify({ createdAt: createdAt.toISOString(), id }))
-    .toString('base64');
+  return Buffer.from(JSON.stringify({ createdAt: createdAt.toISOString(), id })).toString("base64")
 }
 
 function decodeCursor(cursor: string): { createdAt: Date; id: string } {
-  const { createdAt, id } = JSON.parse(Buffer.from(cursor, 'base64').toString());
-  return { createdAt: new Date(createdAt), id };
+  const { createdAt, id } = JSON.parse(Buffer.from(cursor, "base64").toString())
+  return { createdAt: new Date(createdAt), id }
 }
 ```
 
@@ -405,25 +401,25 @@ The tuple comparison `(created_at, id) < (cursor_timestamp, cursor_id)` provides
 **Signed cursors** prevent tampering:
 
 ```typescript collapse={1-3}
-import crypto from 'crypto';
+import crypto from "crypto"
 
-const SECRET = process.env.CURSOR_SECRET!;
+const SECRET = process.env.CURSOR_SECRET!
 
 function signCursor(payload: object): string {
-  const data = JSON.stringify(payload);
-  const signature = crypto.createHmac('sha256', SECRET).update(data).digest('hex');
-  return Buffer.from(`${data}|${signature}`).toString('base64');
+  const data = JSON.stringify(payload)
+  const signature = crypto.createHmac("sha256", SECRET).update(data).digest("hex")
+  return Buffer.from(`${data}|${signature}`).toString("base64")
 }
 
 function verifyCursor(cursor: string): object | null {
-  const decoded = Buffer.from(cursor, 'base64').toString();
-  const [data, signature] = decoded.split('|');
-  const expected = crypto.createHmac('sha256', SECRET).update(data).digest('hex');
+  const decoded = Buffer.from(cursor, "base64").toString()
+  const [data, signature] = decoded.split("|")
+  const expected = crypto.createHmac("sha256", SECRET).update(data).digest("hex")
 
   if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
-    return null; // Tampered
+    return null // Tampered
   }
-  return JSON.parse(data);
+  return JSON.parse(data)
 }
 ```
 
@@ -431,11 +427,11 @@ function verifyCursor(cursor: string): object | null {
 
 ```typescript
 interface PaginatedResponse<T> {
-  items: T[];
-  nextCursor: string | null;  // null indicates end
-  prevCursor?: string | null; // For bidirectional
-  hasMore: boolean;           // Explicit flag
-  totalCount?: number;        // Optional, expensive to compute
+  items: T[]
+  nextCursor: string | null // null indicates end
+  prevCursor?: string | null // For bidirectional
+  hasMore: boolean // Explicit flag
+  totalCount?: number // Optional, expensive to compute
 }
 ```
 
@@ -446,19 +442,19 @@ Both work. `hasMore` is more explicit but redundant. `nextCursor === null` is su
 ### Bidirectional Pagination
 
 Required for:
+
 - Chat apps (scroll up for history)
 - Feeds with "new items above"
 - Deep-linked content in middle of feed
 
 ```typescript
-const { data, fetchNextPage, fetchPreviousPage, hasNextPage, hasPreviousPage } =
-  useInfiniteQuery({
-    queryKey: ['feed'],
-    queryFn: ({ pageParam }) => fetchPage(pageParam),
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    getPreviousPageParam: (firstPage) => firstPage.prevCursor,
-    initialPageParam: { cursor: startCursor, direction: 'forward' },
-  });
+const { data, fetchNextPage, fetchPreviousPage, hasNextPage, hasPreviousPage } = useInfiniteQuery({
+  queryKey: ["feed"],
+  queryFn: ({ pageParam }) => fetchPage(pageParam),
+  getNextPageParam: (lastPage) => lastPage.nextCursor,
+  getPreviousPageParam: (firstPage) => firstPage.prevCursor,
+  initialPageParam: { cursor: startCursor, direction: "forward" },
+})
 ```
 
 ## Scroll Detection
@@ -467,15 +463,16 @@ const { data, fetchNextPage, fetchPreviousPage, hasNextPage, hasPreviousPage } =
 
 ```typescript
 const observer = new IntersectionObserver(callback, {
-  root: null,                    // null = viewport
-  rootMargin: '0px 0px 200px 0px', // Trigger 200px before visible
-  threshold: 0,                  // Fire as soon as any part intersects
-});
+  root: null, // null = viewport
+  rootMargin: "0px 0px 200px 0px", // Trigger 200px before visible
+  threshold: 0, // Fire as soon as any part intersects
+})
 ```
 
 **rootMargin** creates an invisible boundary. `'0px 0px 200px 0px'` extends the bottom edge 200px, triggering the callback before the sentinel is actually visible.
 
 **threshold** values:
+
 - `0`: Any intersection (pixel enters)
 - `1.0`: Fully visible
 - `[0, 0.5, 1.0]`: Fire at 0%, 50%, 100%
@@ -483,18 +480,21 @@ const observer = new IntersectionObserver(callback, {
 **Multiple sentinels** for bidirectional loading:
 
 ```typescript collapse={1-2}
-type Direction = 'forward' | 'backward';
-type LoadHandler = (direction: Direction) => void;
+type Direction = "forward" | "backward"
+type LoadHandler = (direction: Direction) => void
 
 function createBidirectionalObserver(onLoad: LoadHandler) {
-  return new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
+  return new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return
 
-      const direction = entry.target.id === 'top-sentinel' ? 'backward' : 'forward';
-      onLoad(direction);
-    });
-  }, { rootMargin: '200px' });
+        const direction = entry.target.id === "top-sentinel" ? "backward" : "forward"
+        onLoad(direction)
+      })
+    },
+    { rootMargin: "200px" },
+  )
 }
 ```
 
@@ -508,18 +508,18 @@ Fixed 200px threshold works for average conditions. Adaptive threshold adjusts b
 
 ```typescript collapse={1-4}
 type AdaptiveConfig = {
-  avgFetchTime: number;
-  scrollVelocity: number;
-};
+  avgFetchTime: number
+  scrollVelocity: number
+}
 
 function calculateRootMargin({ avgFetchTime, scrollVelocity }: AdaptiveConfig): string {
   // Load when user will reach end in ~2x fetch time
-  const pixelsNeeded = scrollVelocity * (avgFetchTime / 1000) * 2;
-  const minMargin = 200;
-  const maxMargin = 800;
+  const pixelsNeeded = scrollVelocity * (avgFetchTime / 1000) * 2
+  const minMargin = 200
+  const maxMargin = 800
 
-  const margin = Math.max(minMargin, Math.min(maxMargin, pixelsNeeded));
-  return `0px 0px ${margin}px 0px`;
+  const margin = Math.max(minMargin, Math.min(maxMargin, pixelsNeeded))
+  return `0px 0px ${margin}px 0px`
 }
 ```
 
@@ -530,29 +530,29 @@ Rapid scrolling can trigger multiple Intersection Observer callbacks before the 
 **Request deduplication:**
 
 ```typescript collapse={1-3}
-let currentController: AbortController | null = null;
-let isLoading = false;
+let currentController: AbortController | null = null
+let isLoading = false
 
 async function fetchNextPageSafe(cursor: string) {
-  if (isLoading) return; // Already fetching
+  if (isLoading) return // Already fetching
 
   // Cancel any stale request
-  currentController?.abort();
-  currentController = new AbortController();
-  isLoading = true;
+  currentController?.abort()
+  currentController = new AbortController()
+  isLoading = true
 
   try {
     const response = await fetch(`/api/feed?cursor=${cursor}`, {
       signal: currentController.signal,
-    });
-    return await response.json();
+    })
+    return await response.json()
   } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      return null; // Cancelled, ignore
+    if (error instanceof Error && error.name === "AbortError") {
+      return null // Cancelled, ignore
     }
-    throw error;
+    throw error
   } finally {
-    isLoading = false;
+    isLoading = false
   }
 }
 ```
@@ -566,12 +566,9 @@ Libraries like TanStack Query handle this automatically via query keys and autom
 When all items have identical height, position calculation is O(1):
 
 ```typescript
-const startIndex = Math.floor(scrollTop / itemHeight);
-const endIndex = Math.min(
-  startIndex + Math.ceil(viewportHeight / itemHeight) + overscan,
-  totalItems
-);
-const offsetY = startIndex * itemHeight;
+const startIndex = Math.floor(scrollTop / itemHeight)
+const endIndex = Math.min(startIndex + Math.ceil(viewportHeight / itemHeight) + overscan, totalItems)
+const offsetY = startIndex * itemHeight
 ```
 
 **react-window FixedSizeList:**
@@ -607,6 +604,7 @@ function FeedList({ items }: { items: ItemData['items'] }) {
 Real-world feeds have variable content: images, different text lengths, embeds. This requires measurement.
 
 **Challenges:**
+
 1. Heights unknown until render
 2. Scroll position jumps when estimates are corrected
 3. Bidirectional scrolling destabilizes layout
@@ -632,18 +630,19 @@ function VariableFeed({ items }: { items: FeedItem[] }) {
 ```
 
 **Mitigating scroll jumps:**
+
 1. Increase overscan buffer above viewport
 2. Use `defaultItemHeight` based on most common content type
 3. Maintain anchor item during layout shifts
 
 ### Library Comparison
 
-| Library | Bundle | Variable Heights | Infinite Scroll | Framework |
-|---------|--------|------------------|-----------------|-----------|
-| react-window | 6KB | Manual | Addon needed | React |
-| react-virtuoso | 15KB | Automatic | Built-in | React |
-| @tanstack/virtual | 5KB | Manual | Examples | Any |
-| vue-virtual-scroller | 12KB | Automatic | Built-in | Vue |
+| Library              | Bundle | Variable Heights | Infinite Scroll | Framework |
+| -------------------- | ------ | ---------------- | --------------- | --------- |
+| react-window         | 6KB    | Manual           | Addon needed    | React     |
+| react-virtuoso       | 15KB   | Automatic        | Built-in        | React     |
+| @tanstack/virtual    | 5KB    | Manual           | Examples        | Any       |
+| vue-virtual-scroller | 12KB   | Automatic        | Built-in        | Vue       |
 
 **react-window**: Smallest bundle, best for fixed heights. Requires `react-window-infinite-loader` for pagination.
 
@@ -660,8 +659,8 @@ function VariableFeed({ items }: { items: FeedItem[] }) {
 ```typescript
 {
   pages: [
-    { items: [{ id: '1', author: { id: 'a', name: 'Alice' } }] },
-    { items: [{ id: '2', author: { id: 'a', name: 'Alice' } }] }
+    { items: [{ id: "1", author: { id: "a", name: "Alice" } }] },
+    { items: [{ id: "2", author: { id: "a", name: "Alice" } }] },
   ]
 }
 ```
@@ -682,6 +681,7 @@ function VariableFeed({ items }: { items: FeedItem[] }) {
 ```
 
 **Why normalize:**
+
 1. No duplicate data (author stored once)
 2. O(1) lookup by ID
 3. Single update point (change author name in one place)
@@ -697,12 +697,12 @@ Large feeds accumulate memory. Strategies:
 
 ```typescript
 useInfiniteQuery({
-  queryKey: ['feed'],
+  queryKey: ["feed"],
   queryFn: fetchPage,
   maxPages: 5, // Keep only 5 pages
   getNextPageParam: (last) => last.nextCursor,
   getPreviousPageParam: (first) => first.prevCursor,
-});
+})
 ```
 
 When user scrolls beyond 5 pages, oldest page is evicted. Scrolling back triggers refetch.
@@ -712,9 +712,9 @@ When user scrolls beyond 5 pages, oldest page is evicted. Scrolling back trigger
 ```typescript
 function maybeEvictItem(item: FeedItem, isVisible: boolean): FeedItem | Tombstone {
   if (!isVisible && item.mediaUrls?.length) {
-    return { id: item.id, tombstoned: true };
+    return { id: item.id, tombstoned: true }
   }
-  return item;
+  return item
 }
 ```
 
@@ -775,38 +775,38 @@ Web has no native pull-to-refresh. Implementation requires:
 3. Preventing browser's native overscroll
 
 ```typescript collapse={1-4}
-import { useRef, useState, TouchEvent } from 'react';
+import { useRef, useState, TouchEvent } from "react"
 
-type PullState = 'idle' | 'pulling' | 'refreshing';
+type PullState = "idle" | "pulling" | "refreshing"
 
 function usePullToRefresh(onRefresh: () => Promise<void>) {
-  const [state, setState] = useState<PullState>('idle');
-  const [pullDistance, setPullDistance] = useState(0);
-  const startY = useRef(0);
+  const [state, setState] = useState<PullState>("idle")
+  const [pullDistance, setPullDistance] = useState(0)
+  const startY = useRef(0)
 
   const handleTouchStart = (e: TouchEvent) => {
     if (window.scrollY === 0) {
-      startY.current = e.touches[0].pageY;
-      setState('pulling');
+      startY.current = e.touches[0].pageY
+      setState("pulling")
     }
-  };
+  }
 
   const handleTouchMove = (e: TouchEvent) => {
-    if (state !== 'pulling') return;
-    const distance = e.touches[0].pageY - startY.current;
-    setPullDistance(Math.max(0, Math.min(distance, 150)));
-  };
+    if (state !== "pulling") return
+    const distance = e.touches[0].pageY - startY.current
+    setPullDistance(Math.max(0, Math.min(distance, 150)))
+  }
 
   const handleTouchEnd = async () => {
     if (pullDistance > 100) {
-      setState('refreshing');
-      await onRefresh();
+      setState("refreshing")
+      await onRefresh()
     }
-    setState('idle');
-    setPullDistance(0);
-  };
+    setState("idle")
+    setPullDistance(0)
+  }
 
-  return { state, pullDistance, handleTouchStart, handleTouchMove, handleTouchEnd };
+  return { state, pullDistance, handleTouchStart, handleTouchMove, handleTouchEnd }
 }
 ```
 
@@ -827,17 +827,18 @@ Scenario: User paused at page 5. New items arrived at page 1. Pages 2-4 now have
 ```typescript
 function detectGap(pages: Page[]): { gapAfterPage: number; cursor: string } | null {
   for (let i = 1; i < pages.length; i++) {
-    const prevEnd = pages[i - 1].endCursor;
-    const currStart = pages[i].startCursor;
+    const prevEnd = pages[i - 1].endCursor
+    const currStart = pages[i].startCursor
     if (prevEnd !== currStart) {
-      return { gapAfterPage: i - 1, cursor: prevEnd };
+      return { gapAfterPage: i - 1, cursor: prevEnd }
     }
   }
-  return null;
+  return null
 }
 ```
 
 **Strategies:**
+
 - **Lazy fill**: Fetch gap when user scrolls to it
 - **Background fill**: Silently fetch during idle
 - **Invalidate**: Reset to fresh state (simplest)
@@ -848,11 +849,11 @@ function detectGap(pages: Page[]): { gapAfterPage: number; cursor: string } | nu
 
 ```typescript
 function calculateDelay(attempt: number): number {
-  const baseDelay = 100;
-  const maxDelay = 30000;
-  const exponential = baseDelay * Math.pow(2, attempt);
-  const jitter = Math.random() * 1000;
-  return Math.min(exponential + jitter, maxDelay);
+  const baseDelay = 100
+  const maxDelay = 30000
+  const exponential = baseDelay * Math.pow(2, attempt)
+  const jitter = Math.random() * 1000
+  return Math.min(exponential + jitter, maxDelay)
 }
 
 // Delays: ~100ms, ~200ms, ~400ms, ~800ms... up to 30s
@@ -861,6 +862,7 @@ function calculateDelay(attempt: number): number {
 **Jitter** prevents thundering herd when many clients retry simultaneously.
 
 **Which errors to retry:**
+
 - ✅ 408 Request Timeout
 - ✅ 429 Too Many Requests
 - ✅ 500, 502, 503, 504 Server Errors
@@ -930,12 +932,13 @@ Single Page Applications (SPAs) break browser's native scroll restoration:
 
 ```typescript
 // Disable browser's automatic (often wrong) restoration
-if ('scrollRestoration' in history) {
-  history.scrollRestoration = 'manual';
+if ("scrollRestoration" in history) {
+  history.scrollRestoration = "manual"
 }
 ```
 
 **Browser inconsistencies:**
+
 - Chrome: `popstate` fires before scroll restoration
 - Firefox: Scroll event fires before `popstate`
 
@@ -945,45 +948,45 @@ For infinite scroll, store enough information to reconstruct view:
 
 ```typescript collapse={1-5}
 type ScrollState = {
-  pageCount: number;
-  scrollY: number;
-  anchorItemId: string;
-  timestamp: number;
-};
+  pageCount: number
+  scrollY: number
+  anchorItemId: string
+  timestamp: number
+}
 
 function saveScrollState(key: string, state: ScrollState) {
-  sessionStorage.setItem(key, JSON.stringify(state));
+  sessionStorage.setItem(key, JSON.stringify(state))
 }
 
 function restoreScrollState(key: string): ScrollState | null {
-  const saved = sessionStorage.getItem(key);
-  if (!saved) return null;
+  const saved = sessionStorage.getItem(key)
+  if (!saved) return null
 
-  const state: ScrollState = JSON.parse(saved);
+  const state: ScrollState = JSON.parse(saved)
 
   // Expire after 5 minutes
   if (Date.now() - state.timestamp > 300000) {
-    sessionStorage.removeItem(key);
-    return null;
+    sessionStorage.removeItem(key)
+    return null
   }
 
-  return state;
+  return state
 }
 
 function useScrollRestoration(feedKey: string, setSize: (size: number) => void) {
   useEffect(() => {
-    const state = restoreScrollState(feedKey);
-    if (!state) return;
+    const state = restoreScrollState(feedKey)
+    if (!state) return
 
     // Restore page count first
-    setSize(state.pageCount);
+    setSize(state.pageCount)
 
     // Then scroll after render
     requestAnimationFrame(() => {
-      window.scrollTo(0, state.scrollY);
-      sessionStorage.removeItem(feedKey);
-    });
-  }, [feedKey, setSize]);
+      window.scrollTo(0, state.scrollY)
+      sessionStorage.removeItem(feedKey)
+    })
+  }, [feedKey, setSize])
 }
 ```
 
@@ -1001,17 +1004,17 @@ const virtualizer = useVirtualizer({
   count: items.length,
   getScrollElement: () => parentRef.current,
   estimateSize: () => 100,
-});
+})
 
 useEffect(() => {
-  const savedIndex = sessionStorage.getItem('lastVisibleIndex');
+  const savedIndex = sessionStorage.getItem("lastVisibleIndex")
   if (savedIndex) {
     virtualizer.scrollToIndex(parseInt(savedIndex, 10), {
-      align: 'start',
-      behavior: 'auto',
-    });
+      align: "start",
+      behavior: "auto",
+    })
   }
-}, []);
+}, [])
 ```
 
 ## Accessibility
@@ -1020,13 +1023,7 @@ useEffect(() => {
 
 ```html
 <div role="feed" aria-busy="false" aria-label="News feed">
-  <article
-    role="article"
-    aria-labelledby="post-1-title"
-    aria-posinset="1"
-    aria-setsize="-1"
-    tabindex="0"
-  >
+  <article role="article" aria-labelledby="post-1-title" aria-posinset="1" aria-setsize="-1" tabindex="0">
     <h2 id="post-1-title">Post Title</h2>
     <p>Post content...</p>
   </article>
@@ -1035,6 +1032,7 @@ useEffect(() => {
 ```
 
 **Required attributes:**
+
 - `aria-busy="true"` during loading
 - `aria-setsize="-1"` when total unknown
 - `aria-posinset` for position (1-indexed)
@@ -1044,28 +1042,28 @@ useEffect(() => {
 
 ```typescript
 function handleFeedKeyDown(event: KeyboardEvent) {
-  const current = document.activeElement?.closest('[role="article"]');
-  if (!current) return;
+  const current = document.activeElement?.closest('[role="article"]')
+  if (!current) return
 
   switch (event.key) {
-    case 'ArrowDown':
-    case 'j':
-      focusNextArticle(current);
-      event.preventDefault();
-      break;
-    case 'ArrowUp':
-    case 'k':
-      focusPreviousArticle(current);
-      event.preventDefault();
-      break;
-    case 'Home':
-      focusFirstArticle();
-      event.preventDefault();
-      break;
-    case 'End':
-      focusLastArticle();
-      event.preventDefault();
-      break;
+    case "ArrowDown":
+    case "j":
+      focusNextArticle(current)
+      event.preventDefault()
+      break
+    case "ArrowUp":
+    case "k":
+      focusPreviousArticle(current)
+      event.preventDefault()
+      break
+    case "Home":
+      focusFirstArticle()
+      event.preventDefault()
+      break
+    case "End":
+      focusLastArticle()
+      event.preventDefault()
+      break
   }
 }
 ```
@@ -1073,20 +1071,20 @@ function handleFeedKeyDown(event: KeyboardEvent) {
 ### Accessibility Limitations
 
 Infinite scroll is problematic for:
+
 - **Keyboard users**: Cannot reach footer without tabbing through all items
 - **Screen reader users**: Dynamic content loading is disorienting
 - **Motor disability users**: Endless scrolling causes fatigue
 
 **Mitigations:**
+
 - Skip link to footer: `<a href="#footer" class="skip-link">Skip to footer</a>`
 - "Load more" button alternative
 - User preference toggle for infinite vs paginated
 - Clear loading announcements via live regions
 
 ```html
-<div role="status" aria-live="polite" class="visually-hidden">
-  Loading more posts...
-</div>
+<div role="status" aria-live="polite" class="visually-hidden">Loading more posts...</div>
 ```
 
 ## Browser Constraints
@@ -1097,38 +1095,38 @@ Scroll handlers that force synchronous layout steal from the 16.67ms frame budge
 
 ```typescript
 // Bad: Forces layout recalculation
-element.style.width = '100px';
-const height = element.offsetHeight; // Forced reflow
+element.style.width = "100px"
+const height = element.offsetHeight // Forced reflow
 
 // Good: Batch reads, then writes
-const height = element.offsetHeight;
-element.style.width = '100px';
+const height = element.offsetHeight
+element.style.width = "100px"
 ```
 
 **Passive event listeners** allow browser to scroll without waiting for JavaScript:
 
 ```typescript
-element.addEventListener('scroll', handler, { passive: true });
+element.addEventListener("scroll", handler, { passive: true })
 ```
 
 ### requestIdleCallback for Non-Critical Work
 
 ```typescript
 function processInBackground(items: Item[]) {
-  let index = 0;
+  let index = 0
 
   function processChunk(deadline: IdleDeadline) {
     while (deadline.timeRemaining() > 0 && index < items.length) {
-      processItem(items[index]);
-      index++;
+      processItem(items[index])
+      index++
     }
 
     if (index < items.length) {
-      requestIdleCallback(processChunk);
+      requestIdleCallback(processChunk)
     }
   }
 
-  requestIdleCallback(processChunk, { timeout: 2000 });
+  requestIdleCallback(processChunk, { timeout: 2000 })
 }
 ```
 
@@ -1137,28 +1135,28 @@ function processInBackground(items: Item[]) {
 ```typescript
 const requestIdleCallback =
   window.requestIdleCallback ||
-  ((cb: IdleRequestCallback) => setTimeout(() => cb({ timeRemaining: () => 0 } as IdleDeadline), 1));
+  ((cb: IdleRequestCallback) => setTimeout(() => cb({ timeRemaining: () => 0 } as IdleDeadline), 1))
 ```
 
 ### Memory Monitoring
 
 ```typescript
 function checkMemoryPressure(): boolean {
-  if (!performance.memory) return false;
+  if (!performance.memory) return false
 
-  const { usedJSHeapSize, jsHeapSizeLimit } = performance.memory;
-  const usage = usedJSHeapSize / jsHeapSizeLimit;
+  const { usedJSHeapSize, jsHeapSizeLimit } = performance.memory
+  const usage = usedJSHeapSize / jsHeapSizeLimit
 
   if (usage > 0.8) {
-    console.warn('High memory usage:', (usage * 100).toFixed(1) + '%');
-    return true;
+    console.warn("High memory usage:", (usage * 100).toFixed(1) + "%")
+    return true
   }
-  return false;
+  return false
 }
 
 // Trigger cleanup when memory is high
 if (checkMemoryPressure()) {
-  trimOldPages();
+  trimOldPages()
 }
 ```
 
@@ -1177,6 +1175,7 @@ if (checkMemoryPressure()) {
 ### Instagram
 
 **Multi-tier caching**:
+
 - Memory: LRU cache for current item + 3 next + 2 previous
 - SQLite/IndexedDB: Post metadata for offline scrolling
 - Network: Fetch on cache miss

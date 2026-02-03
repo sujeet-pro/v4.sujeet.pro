@@ -37,12 +37,12 @@ Cache eviction is fundamentally a prediction problem: given limited memory, whic
 
 **The Trade-off Space:**
 
-| Strategy | Predicts Future Access By | Vulnerable To | Best For |
-|----------|---------------------------|---------------|----------|
-| Recency (LRU) | Recent access | Sequential scans | Temporal locality |
-| Frequency (LFU) | Access count | One-time popular items | Stable popularity |
-| Hybrid (ARC, 2Q) | Both signals | Complexity overhead | Mixed workloads |
-| Lazy (SIEVE) | Visited bit + FIFO | Very short TTLs | Web caches |
+| Strategy         | Predicts Future Access By | Vulnerable To          | Best For          |
+| ---------------- | ------------------------- | ---------------------- | ----------------- |
+| Recency (LRU)    | Recent access             | Sequential scans       | Temporal locality |
+| Frequency (LFU)  | Access count              | One-time popular items | Stable popularity |
+| Hybrid (ARC, 2Q) | Both signals              | Complexity overhead    | Mixed workloads   |
+| Lazy (SIEVE)     | Visited bit + FIFO        | Very short TTLs        | Web caches        |
 
 **Key Design Decisions:**
 
@@ -59,11 +59,13 @@ Cache eviction is fundamentally a prediction problem: given limited memory, whic
 Least Recently Used (LRU) is a cache eviction policy based on a single assumption: **recently accessed data is likely to be accessed again soon**. This principle, called **temporal locality**, holds for many workloads—web browsing, file system access, database queries—making LRU the default choice for general-purpose caching.
 
 **Why LRU Works:**
+
 - **Temporal locality** is common: users revisit pages, code re-executes hot paths, queries repeat
 - **Simple mental model**: recent = important, old = expendable
 - **No frequency tracking**: avoids overhead of counting accesses
 
 **Why LRU Fails:**
+
 - **Sequential scans**: A full table scan evicts your entire working set with data you'll never access again
 - **No frequency signal**: An item accessed 1000 times gets evicted after one scan if it wasn't touched recently
 - **One-shot pollution**: Batch jobs, backups, and analytics queries poison the cache
@@ -74,18 +76,18 @@ A cache is only useful if it's fast. Both `get` and `put` must be O(1)—anythin
 
 **The Classic Solution: Hash Map + Doubly Linked List**
 
-| Data Structure | Purpose | Operation |
-|----------------|---------|-----------|
-| Hash Map | O(1) key lookup | `map[key] → node pointer` |
-| Doubly Linked List (DLL) | O(1) order maintenance | Head = MRU, Tail = LRU |
+| Data Structure           | Purpose                | Operation                 |
+| ------------------------ | ---------------------- | ------------------------- |
+| Hash Map                 | O(1) key lookup        | `map[key] → node pointer` |
+| Doubly Linked List (DLL) | O(1) order maintenance | Head = MRU, Tail = LRU    |
 
 **How Operations Work:**
 
-| Operation | Steps | Complexity |
-|-----------|-------|------------|
-| `get(key)` | Hash lookup → unlink → relink at head | O(1) |
-| `put(key, value)` | Update/create at head, evict tail if full | O(1) |
-| Eviction | Remove tail node, delete from hash map | O(1) |
+| Operation         | Steps                                     | Complexity |
+| ----------------- | ----------------------------------------- | ---------- |
+| `get(key)`        | Hash lookup → unlink → relink at head     | O(1)       |
+| `put(key, value)` | Update/create at head, evict tail if full | O(1)       |
+| Eviction          | Remove tail node, delete from hash map    | O(1)       |
 
 **Why Doubly Linked List?** A singly linked list requires O(n) to find the predecessor for unlinking. Doubly linked lists store `prev` and `next` pointers, enabling O(1) removal from any position.
 
@@ -305,6 +307,7 @@ Result:      Miss storm as application reloads working set
 ```
 
 **Why This Matters:**
+
 - A single `SELECT * FROM large_table` can destroy hours of cache warmup
 - Background jobs (backups, ETL, analytics) poison production caches
 - The scan data is never accessed again, but it displaced data that would have been
@@ -312,19 +315,20 @@ Result:      Miss storm as application reloads working set
 **Quantifying the Impact:**
 
 In a cache with 10,000 entries holding a working set with 95% hit rate:
+
 - A 50,000-item sequential scan evicts the entire working set
 - Hit rate drops to ~0% until the working set is reloaded
 - If working set reload takes 100ms per item, that's 1,000 seconds of degraded performance
 
 ### Common LRU Failure Scenarios
 
-| Scenario | Why It Fails | Frequency |
-|----------|--------------|-----------|
-| Database full table scans | Analytics queries touch every row once | Common in OLAP |
-| File system traversals | `find`, `du`, backup tools | Daily operations |
-| Batch processing | ETL jobs process datasets sequentially | Nightly jobs |
-| Memory-mapped file reads | Sequential file I/O | Log processing |
-| Cache warmup after restart | Loading entire dataset sequentially | Deployments |
+| Scenario                   | Why It Fails                           | Frequency        |
+| -------------------------- | -------------------------------------- | ---------------- |
+| Database full table scans  | Analytics queries touch every row once | Common in OLAP   |
+| File system traversals     | `find`, `du`, backup tools             | Daily operations |
+| Batch processing           | ETL jobs process datasets sequentially | Nightly jobs     |
+| Memory-mapped file reads   | Sequential file I/O                    | Log processing   |
+| Cache warmup after restart | Loading entire dataset sequentially    | Deployments      |
 
 ## Design Choices: Scan-Resistant Algorithms
 
@@ -337,11 +341,13 @@ To overcome LRU's scan vulnerability, several algorithms incorporate additional 
 **Why It Works:** Items accessed only once (scan data) have no K-th access time and are evicted first. Items with K accesses have proven popularity.
 
 **Best When:**
+
 - Database buffer pools with mixed OLTP/OLAP workloads
 - Workloads where frequency is a better predictor than recency
 - K can be tuned for the specific access pattern (typically K=2)
 
 **Trade-offs:**
+
 - ✅ Scan-resistant: single-access items evicted quickly
 - ✅ Frequency-aware: distinguishes truly popular items
 - ✅ LRU-1 degenerates to standard LRU (backward compatible)
@@ -440,20 +446,22 @@ In practice, the O(n) eviction complexity is acceptable for small to medium cach
 
 **Mechanism:** Use two queues to filter first-time accesses before admitting to the main cache.
 
-| Queue | Type | Purpose |
-|-------|------|---------|
-| A1in (Probationary) | FIFO | Holds first-time accesses |
-| Am (Main) | LRU | Holds proven items (accessed 2+ times) |
-| A1out (Ghost) | Keys only | Remembers recently evicted A1 items |
+| Queue               | Type      | Purpose                                |
+| ------------------- | --------- | -------------------------------------- |
+| A1in (Probationary) | FIFO      | Holds first-time accesses              |
+| Am (Main)           | LRU       | Holds proven items (accessed 2+ times) |
+| A1out (Ghost)       | Keys only | Remembers recently evicted A1 items    |
 
 **Why It Works:** Sequential scan data enters A1, gets evicted from A1 (never touching Am), and the main cache remains unpolluted. Only items accessed twice make it to Am.
 
 **Best When:**
+
 - Production databases needing scan resistance (PostgreSQL used 2Q in 8.0.1-8.0.2)
 - Systems requiring O(1) operations without tuning parameters
 - Patent-free implementations required (no patent on 2Q)
 
 **Trade-offs:**
+
 - ✅ True O(1) operations (no heap, no timestamps)
 - ✅ Simple to implement and debug
 - ✅ Excellent scan resistance
@@ -562,14 +570,15 @@ class TwoQueueCache {
 
 **Mechanism:** Maintain two LRU lists (T1 for recency, T2 for frequency) with adaptive sizing based on "ghost lists" that remember recently evicted keys.
 
-| List | Contents | Purpose |
-|------|----------|---------|
-| T1 | Recently accessed once | Recency-focused cache |
-| T2 | Accessed multiple times | Frequency-focused cache |
-| B1 | Keys evicted from T1 | Ghost list for recency misses |
-| B2 | Keys evicted from T2 | Ghost list for frequency misses |
+| List | Contents                | Purpose                         |
+| ---- | ----------------------- | ------------------------------- |
+| T1   | Recently accessed once  | Recency-focused cache           |
+| T2   | Accessed multiple times | Frequency-focused cache         |
+| B1   | Keys evicted from T1    | Ghost list for recency misses   |
+| B2   | Keys evicted from T2    | Ghost list for frequency misses |
 
 **The Learning Rule:**
+
 - Hit in B1 → "We shouldn't have evicted that recent item" → Increase T1 size
 - Hit in B2 → "We shouldn't have evicted that frequent item" → Increase T2 size
 - Parameter `p` controls the T1/T2 split and adapts continuously
@@ -577,11 +586,13 @@ class TwoQueueCache {
 **Why It Works:** The ghost lists act as a feedback mechanism. ARC learns from its eviction mistakes and automatically adjusts the recency/frequency balance for the current workload.
 
 **Best When:**
+
 - Workloads with unpredictable or shifting access patterns
 - Systems where self-tuning eliminates operational burden
 - ZFS (uses ARC for its Adjustable Replacement Cache)
 
 **Trade-offs:**
+
 - ✅ Self-tuning: no parameters to configure
 - ✅ Handles mixed workloads dynamically
 - ✅ Ghost lists provide learning without storing values
@@ -594,12 +605,12 @@ class TwoQueueCache {
 
 ARC was developed by Nimrod Megiddo and Dharmendra S. Modha at IBM Almaden Research Center. The patent (US6996676B2, filed November 14, 2002, granted February 7, 2006) had significant industry implications:
 
-| System | Response to ARC Patent |
-|--------|----------------------|
-| PostgreSQL | Used ARC in 8.0.0 → Switched to 2Q in 8.0.1 → Clock sweep in 8.1 |
-| ZFS | Licensed through Sun/IBM cross-licensing agreement |
-| MySQL | Adopted LIRS algorithm instead |
-| Open-source projects | Generally avoided ARC until patent expiration |
+| System               | Response to ARC Patent                                           |
+| -------------------- | ---------------------------------------------------------------- |
+| PostgreSQL           | Used ARC in 8.0.0 → Switched to 2Q in 8.0.1 → Clock sweep in 8.1 |
+| ZFS                  | Licensed through Sun/IBM cross-licensing agreement               |
+| MySQL                | Adopted LIRS algorithm instead                                   |
+| Open-source projects | Generally avoided ARC until patent expiration                    |
 
 **Real-World Example:** ZFS has used ARC since its inception (2005) through Sun's cross-licensing agreement with IBM. ZFS extended ARC with L2ARC for SSD caching, demonstrating that the adaptive approach works well for storage systems with mixed sequential/random workloads.
 
@@ -755,16 +766,19 @@ On miss: Move hand from tail, reset visited bits, evict first unvisited item
 ```
 
 **Why It Works:**
+
 - Items accessed multiple times have their visited bit set and survive the hand sweep
 - Scan data enters, never gets revisited, and is evicted on the first hand pass
 - No list manipulation on hits = better cache locality and concurrency
 
 **Best When:**
+
 - Web caches with high throughput requirements
 - Systems where lock contention is a concern
 - Workloads where items tend to be accessed in bursts
 
 **Trade-offs:**
+
 - ✅ Simpler than LRU (no list manipulation on hits)
 - ✅ Better throughput (fewer memory operations)
 - ✅ One bit per entry (minimal memory overhead)
@@ -859,17 +873,20 @@ Request → Window (1%) → Admission Filter → Main Cache (99%)
 ```
 
 **Why It Works:**
+
 - Window cache handles burst traffic (recency)
 - Main cache uses segmented LRU (protected + probationary)
 - Admission filter blocks low-frequency items from polluting main cache
 - 4-bit CountMinSketch provides frequency estimates with minimal memory
 
 **Best When:**
+
 - High-throughput Java applications
 - Workloads with skewed popularity distributions
 - Systems needing near-optimal hit rates with bounded memory
 
 **Trade-offs:**
+
 - ✅ Near-optimal hit rates (within 1% of theoretical best)
 - ✅ Only 8 bytes overhead per entry (vs. ARC's doubled cache size for ghosts)
 - ✅ Battle-tested (Caffeine is the standard Java cache library)
@@ -883,25 +900,25 @@ Request → Window (1%) → Admission Filter → Main Cache (99%)
 
 ### Decision Matrix
 
-| Factor | LRU | 2Q | ARC | SIEVE | W-TinyLFU |
-|--------|-----|----|----|-------|-----------|
-| Implementation complexity | Low | Medium | High | Low | High |
-| Memory overhead per entry | 16 bytes | 24 bytes | 32+ bytes | 1 bit | 8 bytes |
-| Scan resistance | Poor | Good | Excellent | Good | Excellent |
-| Self-tuning | No | No | Yes | No | Partial |
-| Throughput (ops/sec) | High | Medium | Medium | Highest | High |
-| Patent concerns (as of 2024) | None | None | None | None | None |
+| Factor                       | LRU      | 2Q       | ARC       | SIEVE   | W-TinyLFU |
+| ---------------------------- | -------- | -------- | --------- | ------- | --------- |
+| Implementation complexity    | Low      | Medium   | High      | Low     | High      |
+| Memory overhead per entry    | 16 bytes | 24 bytes | 32+ bytes | 1 bit   | 8 bytes   |
+| Scan resistance              | Poor     | Good     | Excellent | Good    | Excellent |
+| Self-tuning                  | No       | No       | Yes       | No      | Partial   |
+| Throughput (ops/sec)         | High     | Medium   | Medium    | Highest | High      |
+| Patent concerns (as of 2024) | None     | None     | None      | None    | None      |
 
 ### Choosing by Workload Pattern
 
-| If Your Workload Has... | Choose | Rationale |
-|-------------------------|--------|-----------|
-| Strong temporal locality | LRU | Simple, effective, O(1) |
-| Frequent full scans | 2Q or SIEVE | Probationary filtering prevents pollution |
-| Unpredictable patterns | ARC | Self-tuning adapts automatically |
-| High throughput needs | SIEVE | No list manipulation on hits |
-| Skewed popularity (Zipf) | W-TinyLFU | Frequency-based filtering excels |
-| Memory constraints | SIEVE or LRU | Minimal per-entry overhead |
+| If Your Workload Has...  | Choose       | Rationale                                 |
+| ------------------------ | ------------ | ----------------------------------------- |
+| Strong temporal locality | LRU          | Simple, effective, O(1)                   |
+| Frequent full scans      | 2Q or SIEVE  | Probationary filtering prevents pollution |
+| Unpredictable patterns   | ARC          | Self-tuning adapts automatically          |
+| High throughput needs    | SIEVE        | No list manipulation on hits              |
+| Skewed popularity (Zipf) | W-TinyLFU    | Frequency-based filtering excels          |
+| Memory constraints       | SIEVE or LRU | Minimal per-entry overhead                |
 
 ### Common Decision Patterns
 
@@ -919,27 +936,27 @@ Request → Window (1%) → Admission Filter → Main Cache (99%)
 
 The choice of algorithm has profound, practical implications across different domains.
 
-| Aspect               | LRU              | LRU-K                           | 2Q                          | ARC                        | SIEVE |
-| -------------------- | ---------------- | ------------------------------- | --------------------------- | -------------------------- | ----- |
+| Aspect               | LRU              | LRU-K                           | 2Q                          | ARC                        | SIEVE              |
+| -------------------- | ---------------- | ------------------------------- | --------------------------- | -------------------------- | ------------------ |
 | **Primary Criteria** | Recency          | K-th Recency (History)          | Recency + Second Hit Filter | Adaptive Recency/Frequency | Visited bit + FIFO |
-| **Scan Resistance**  | Poor             | Good (for K>1)                  | Very Good                   | Excellent                  | Good |
-| **Complexity**       | Low              | High                            | Moderate                    | Moderate-High              | Low |
-| **Time Complexity**  | O(1)             | O(n) naive, O(log n) with heap  | O(1)                        | O(1)                       | O(1) |
-| **Memory Overhead**  | 2 pointers/entry | K timestamps + 2 pointers/entry | 3 maps + metadata           | 4 structures + ghosts      | 1 bit/entry |
-| **Tuning**           | None             | Manual (parameter K)            | Manual (queue sizes)        | Automatic / Self-Tuning    | None |
+| **Scan Resistance**  | Poor             | Good (for K>1)                  | Very Good                   | Excellent                  | Good               |
+| **Complexity**       | Low              | High                            | Moderate                    | Moderate-High              | Low                |
+| **Time Complexity**  | O(1)             | O(n) naive, O(log n) with heap  | O(1)                        | O(1)                       | O(1)               |
+| **Memory Overhead**  | 2 pointers/entry | K timestamps + 2 pointers/entry | 3 maps + metadata           | 4 structures + ghosts      | 1 bit/entry        |
+| **Tuning**           | None             | Manual (parameter K)            | Manual (queue sizes)        | Automatic / Self-Tuning    | None               |
 
 ### Memory Overhead Analysis
 
 Memory overhead determines how much of your allocated cache space actually holds data vs. metadata.
 
-| Algorithm | Per-Entry Overhead | For 10K entries (64B values) |
-|-----------|-------------------|------------------------------|
-| LRU | ~40-50 bytes (hash + 2 pointers) | ~1.6 MB |
-| LRU-K (K=2) | ~56-66 bytes (+ K timestamps) | ~2.0 MB |
-| 2Q | ~60-80 bytes (2 maps + metadata) | ~2.1 MB |
-| ARC | ~80-120 bytes (4 structures + ghosts) | ~2.6 MB |
-| SIEVE | ~1 bit + FIFO position | ~1.0 MB |
-| W-TinyLFU | ~8 bytes (CountMinSketch) | ~1.1 MB |
+| Algorithm   | Per-Entry Overhead                    | For 10K entries (64B values) |
+| ----------- | ------------------------------------- | ---------------------------- |
+| LRU         | ~40-50 bytes (hash + 2 pointers)      | ~1.6 MB                      |
+| LRU-K (K=2) | ~56-66 bytes (+ K timestamps)         | ~2.0 MB                      |
+| 2Q          | ~60-80 bytes (2 maps + metadata)      | ~2.1 MB                      |
+| ARC         | ~80-120 bytes (4 structures + ghosts) | ~2.6 MB                      |
+| SIEVE       | ~1 bit + FIFO position                | ~1.0 MB                      |
+| W-TinyLFU   | ~8 bytes (CountMinSketch)             | ~1.1 MB                      |
 
 **Key Insight:** ARC's ghost lists can grow to equal the cache size (storing evicted keys), effectively doubling memory usage for metadata. Caffeine's W-TinyLFU solved this by using probabilistic frequency counting instead of ghost lists—same accuracy, fraction of the memory.
 
@@ -952,11 +969,13 @@ Real-world systems often use approximated or specialized variants of these algor
 Redis uses random sampling instead of tracking exact recency for all keys.
 
 **Mechanism:**
+
 1. Sample N random keys (default: 5, configurable via `maxmemory-samples`)
 2. Evict the least recently used among the sampled keys
 3. Repeat until memory is below threshold
 
 **Why This Design:**
+
 - No linked list = no pointer overhead per key (just 24 bits for LRU clock)
 - No lock contention from list manipulation
 - Sampling 10 keys provides ~95% of true LRU accuracy
@@ -973,17 +992,19 @@ maxmemory-samples 5   # Increase to 10 for near-true LRU accuracy
 
 The Linux kernel evolved from a two-list approach to Multi-Generational LRU.
 
-| Era | Algorithm | Limitations |
-|-----|-----------|-------------|
+| Era     | Algorithm             | Limitations                           |
+| ------- | --------------------- | ------------------------------------- |
 | Pre-6.1 | Active/Inactive lists | Binary hot/cold, poor scan resistance |
-| 6.1+ | MGLRU | Multiple generations, better aging |
+| 6.1+    | MGLRU                 | Multiple generations, better aging    |
 
 **MGLRU (merged in Linux 6.1, backported to some 5.x kernels):**
+
 - Multiple generations (typically 4) instead of 2 lists
 - Pages move to younger generations when accessed
 - Workload-aware: adapts scan frequency to access patterns
 
 **Google's deployment results (Chrome OS + Android):**
+
 - 40% decrease in kswapd CPU usage
 - 85% decrease in low-memory kill events
 - 18% decrease in rendering latency
@@ -998,12 +1019,12 @@ Memcached uses per-slab-class LRU with modern segmentation.
 
 **Modern Segmented LRU (since 1.5.x):**
 
-| Queue | Purpose |
-|-------|---------|
-| HOT | Recently written items (FIFO, not LRU) |
-| WARM | Frequently accessed items (LRU) |
-| COLD | Eviction candidates |
-| TEMP | Very short TTL items (no bumping) |
+| Queue | Purpose                                |
+| ----- | -------------------------------------- |
+| HOT   | Recently written items (FIFO, not LRU) |
+| WARM  | Frequently accessed items (LRU)        |
+| COLD  | Eviction candidates                    |
+| TEMP  | Very short TTL items (no bumping)      |
 
 **Key Optimization:** Items are only "bumped" once every 60 seconds, reducing lock contention dramatically.
 
@@ -1012,12 +1033,14 @@ Memcached uses per-slab-class LRU with modern segmentation.
 PostgreSQL uses clock sweep for buffer pool management since version 8.1.
 
 **Mechanism:**
+
 - Circular buffer array with `usage_count` per buffer (0-5)
 - "Clock hand" sweeps through buffers
 - On sweep: if `usage_count > 0`, decrement and skip; if 0, evict
 - On access: increment `usage_count` (saturates at 5)
 
 **Why Clock Sweep:**
+
 - No linked list = no pointer manipulation on buffer access
 - Single atomic increment instead of list relinking
 - Better concurrency than 2Q (which PostgreSQL used briefly in 8.0.1-8.0.2)
@@ -1028,22 +1051,22 @@ PostgreSQL uses clock sweep for buffer pool management since version 8.1.
 
 Production caches must handle concurrent access. The key trade-off: simplicity vs. scalability.
 
-| Strategy | Pros | Cons | Used By |
-|----------|------|------|---------|
-| Global lock | Simple, correct | Serializes all ops | Simple caches |
-| Sharded locking | Concurrent access to different shards | Hot shards bottleneck | ConcurrentHashMap |
-| Read-write locks | Multiple readers | Writer starvation | Many caches |
-| Lock-free (CAS) | Best throughput | Complex, hard to debug | Caffeine |
+| Strategy         | Pros                                  | Cons                   | Used By           |
+| ---------------- | ------------------------------------- | ---------------------- | ----------------- |
+| Global lock      | Simple, correct                       | Serializes all ops     | Simple caches     |
+| Sharded locking  | Concurrent access to different shards | Hot shards bottleneck  | ConcurrentHashMap |
+| Read-write locks | Multiple readers                      | Writer starvation      | Many caches       |
+| Lock-free (CAS)  | Best throughput                       | Complex, hard to debug | Caffeine          |
 
 **Production Recommendation:** Don't implement concurrent caches yourself. Use battle-tested libraries:
 
-| Language | Library | Notes |
-|----------|---------|-------|
-| Node.js | `lru-cache` | Size limits, TTL support |
-| Java | Caffeine | Near-optimal hit rates, lock-free |
-| Go | `groupcache` | Distributed, singleflight |
-| Rust | `moka` | Concurrent, TinyLFU-based |
-| Python | `cachetools` | Simple, extensible |
+| Language | Library      | Notes                             |
+| -------- | ------------ | --------------------------------- |
+| Node.js  | `lru-cache`  | Size limits, TTL support          |
+| Java     | Caffeine     | Near-optimal hit rates, lock-free |
+| Go       | `groupcache` | Distributed, singleflight         |
+| Rust     | `moka`       | Concurrent, TinyLFU-based         |
+| Python   | `cachetools` | Simple, extensible                |
 
 ## Common Pitfalls
 
@@ -1075,7 +1098,7 @@ class StampedeProtectedCache<K, V> {
     if (this.pending.has(key)) return this.pending.get(key)!
 
     // This request will fetch
-    const promise = fetch().then(value => {
+    const promise = fetch().then((value) => {
       this.cache.set(key, value)
       this.pending.delete(key)
       return value

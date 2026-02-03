@@ -76,10 +76,10 @@ This nested subquery scans the table twice. With indexes, performance is O(N log
 **Benchmark reality:**
 
 | Players | Indexed Query Time | Redis ZREVRANK |
-|---------|-------------------|----------------|
-| 1M | ~500ms | <1ms |
-| 10M | ~10 seconds | <1ms |
-| 50M | ~35 seconds | <1ms |
+| ------- | ------------------ | -------------- |
+| 1M      | ~500ms             | <1ms           |
+| 10M     | ~10 seconds        | <1ms           |
+| 50M     | ~35 seconds        | <1ms           |
 
 The gap exists because databases optimize for flexible queries, not sorted access. Every rank query re-computes ordering from scratch.
 
@@ -105,6 +105,7 @@ Redis sorted sets use a **dual-ported data structure**:
 2. **Hash table**: Maps member → score for O(1) score lookups.
 
 This combination enables:
+
 - O(log N) `ZADD` (add/update member with score)
 - O(log N) `ZRANK` / `ZREVRANK` (get member's position)
 - O(log N + M) `ZRANGE` / `ZREVRANGE` (retrieve M members in rank range)
@@ -114,16 +115,16 @@ This combination enables:
 
 ### Core Commands for Leaderboards
 
-| Command | Purpose | Time Complexity |
-|---------|---------|-----------------|
-| `ZADD key score member` | Add/update score | O(log N) |
-| `ZINCRBY key increment member` | Atomic score increment | O(log N) |
-| `ZREVRANK key member` | Get rank (high-to-low) | O(log N) |
-| `ZRANK key member` | Get rank (low-to-high) | O(log N) |
-| `ZREVRANGE key start stop [WITHSCORES]` | Get top players | O(log N + M) |
-| `ZRANGEBYSCORE key min max` | Get players in score range | O(log N + M) |
-| `ZSCORE key member` | Get player's score | O(1) |
-| `ZCARD key` | Total player count | O(1) |
+| Command                                 | Purpose                    | Time Complexity |
+| --------------------------------------- | -------------------------- | --------------- |
+| `ZADD key score member`                 | Add/update score           | O(log N)        |
+| `ZINCRBY key increment member`          | Atomic score increment     | O(log N)        |
+| `ZREVRANK key member`                   | Get rank (high-to-low)     | O(log N)        |
+| `ZRANK key member`                      | Get rank (low-to-high)     | O(log N)        |
+| `ZREVRANGE key start stop [WITHSCORES]` | Get top players            | O(log N + M)    |
+| `ZRANGEBYSCORE key min max`             | Get players in score range | O(log N + M)    |
+| `ZSCORE key member`                     | Get player's score         | O(1)            |
+| `ZCARD key`                             | Total player count         | O(1)            |
 
 **Example: Basic leaderboard operations**
 
@@ -176,26 +177,29 @@ Lexicographic order: alice < bob < charlie. In reverse range, charlie appears fi
 
 Three ranking models exist, analogous to SQL window functions:
 
-| Model | Tied Scores Example | SQL Equivalent |
-|-------|---------------------|----------------|
-| **Dense Rank** | 1, 1, 2, 3 | `DENSE_RANK()` |
-| **Sparse Rank** | 1, 1, 3, 4 | `RANK()` |
-| **Unique Rank** | 1, 2, 3, 4 | `ROW_NUMBER()` |
+| Model           | Tied Scores Example | SQL Equivalent |
+| --------------- | ------------------- | -------------- |
+| **Dense Rank**  | 1, 1, 2, 3          | `DENSE_RANK()` |
+| **Sparse Rank** | 1, 1, 3, 4          | `RANK()`       |
+| **Unique Rank** | 1, 2, 3, 4          | `ROW_NUMBER()` |
 
 **Redis sorted sets provide unique ranking by default**—each member has a distinct position based on score + lexicographic order.
 
 #### When to Use Each
 
 **Dense rank** (1, 1, 2):
+
 - All players with the same score share a rank
 - The next distinct score gets the next consecutive rank
 - Use case: Awards where "top 3" means the 3 highest distinct scores
 
 **Sparse rank** (1, 1, 3):
+
 - Tied players share a rank, but subsequent ranks reflect total players above
 - Use case: Tournament standings where position matters for prize distribution
 
 **Unique rank** (1, 2, 3):
+
 - Every player has a distinct position
 - Tie-breaking determines order among equal scores
 - Use case: Real-time leaderboards displaying a single ordered list
@@ -266,6 +270,7 @@ def encode_score(score: int, timestamp: float = None) -> float:
 ```
 
 **Example:**
+
 - Player A: score 100, timestamp 1000 → `100.99999999900000`
 - Player B: score 100, timestamp 2000 → `100.99999999800000`
 - Player A ranks higher (achieved score first)
@@ -350,11 +355,11 @@ With all members having the same score, `ZRANGEBYLEX` provides efficient range q
 
 ### Decision Matrix: Tie-Breaking
 
-| Strategy | Complexity | Precision | Lookup by ID | Best For |
-|----------|------------|-----------|--------------|----------|
-| Composite score | O(1) | Limited | O(log N) | High-frequency updates |
-| Secondary hash | O(2) | Full | O(1) | Complex tie-breakers |
-| Member encoding | O(1) | Full | O(N) scan | All-same-score scenarios |
+| Strategy        | Complexity | Precision | Lookup by ID | Best For                 |
+| --------------- | ---------- | --------- | ------------ | ------------------------ |
+| Composite score | O(1)       | Limited   | O(log N)     | High-frequency updates   |
+| Secondary hash  | O(2)       | Full      | O(1)         | Complex tie-breakers     |
+| Member encoding | O(1)       | Full      | O(N) scan    | All-same-score scenarios |
 
 ## Time-Based Leaderboards
 
@@ -439,6 +444,7 @@ def archive_leaderboard(leaderboard_key: str, archive_key: str) -> None:
 ### When Single Redis Isn't Enough
 
 A single Redis sorted set handles approximately:
+
 - **100M members**: ~8GB memory (member strings + scores + skip list overhead)
 - **100K operations/second**: Write throughput ceiling (single-threaded execution)
 
@@ -456,6 +462,7 @@ Shard 3: scores 100000+
 ```
 
 **Advantages:**
+
 - Neighbor queries (players near your rank) stay within one shard
 - Top-N queries only read the highest-score shard
 - Hot shards (high scores) can be scaled independently
@@ -530,6 +537,7 @@ Each partition is a self-contained leaderboard. Cross-region global rankings agg
 Redis Cluster partitions by key hash. A single sorted set (`leaderboard:global`) cannot span multiple nodes—all members reside on one node.
 
 **Workarounds:**
+
 1. **Application-level sharding**: Multiple sorted sets with routing logic (as shown above)
 2. **Proxy layer**: mcrouter or Twemproxy for client-side consistent hashing
 3. **Hash tags**: `{game:1}:leaderboard` forces related keys to the same slot

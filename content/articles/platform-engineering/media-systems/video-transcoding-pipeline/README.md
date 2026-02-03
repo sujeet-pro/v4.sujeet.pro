@@ -69,11 +69,11 @@ A video transcoding pipeline transforms source video into multiple renditions op
 
 **Cost trade-off summary:**
 
-| Cost Factor | Optimization Lever | Trade-off |
-|-------------|-------------------|-----------|
-| Compute | GPU encoding, parallel chunking | Higher infra complexity |
-| Storage | Fewer renditions, efficient codecs | Playback compatibility |
-| Egress | Better compression, regional CDN | Compute cost increase |
+| Cost Factor | Optimization Lever                 | Trade-off               |
+| ----------- | ---------------------------------- | ----------------------- |
+| Compute     | GPU encoding, parallel chunking    | Higher infra complexity |
+| Storage     | Fewer renditions, efficient codecs | Playback compatibility  |
+| Egress      | Better compression, regional CDN   | Compute cost increase   |
 
 ## Pipeline Stages
 
@@ -85,13 +85,13 @@ Before encoding begins, the pipeline validates source files to fail fast on corr
 
 **Validation checks:**
 
-| Check | Purpose | Failure Mode |
-|-------|---------|--------------|
-| Container format | Ensure demuxable | Corrupt file header |
-| Codec probe | Verify decoder availability | Unsupported codec |
-| Duration | Detect truncation | Incomplete upload |
-| Resolution/FPS | Enforce limits | Exceeds max (e.g., 8K) |
-| Audio streams | Map language tracks | Missing audio |
+| Check            | Purpose                     | Failure Mode           |
+| ---------------- | --------------------------- | ---------------------- |
+| Container format | Ensure demuxable            | Corrupt file header    |
+| Codec probe      | Verify decoder availability | Unsupported codec      |
+| Duration         | Detect truncation           | Incomplete upload      |
+| Resolution/FPS   | Enforce limits              | Exceeds max (e.g., 8K) |
+| Audio streams    | Map language tracks         | Missing audio          |
 
 **Design decision: Probe vs. full decode.** FFprobe reads metadata in milliseconds; full decode verification takes minutes. Production pipelines typically probe only, accepting that rare corrupt files will fail during encoding. The trade-off: faster validation vs. later failures requiring reprocessing.
 
@@ -127,12 +127,12 @@ Encoding jobs enter a queue for processing by worker pools. The queue provides d
 
 **Queue architecture patterns:**
 
-| Pattern | Technology | Best For |
-|---------|------------|----------|
-| Simple FIFO | SQS, Redis Lists | Uniform priority, moderate scale |
-| Priority queues | Redis Sorted Sets, RabbitMQ | Mixed content tiers |
-| Workflow orchestration | AWS Step Functions, Temporal | Complex multi-stage pipelines |
-| Event-driven | SQS + Lambda/ECS | Serverless, bursty workloads |
+| Pattern                | Technology                   | Best For                         |
+| ---------------------- | ---------------------------- | -------------------------------- |
+| Simple FIFO            | SQS, Redis Lists             | Uniform priority, moderate scale |
+| Priority queues        | Redis Sorted Sets, RabbitMQ  | Mixed content tiers              |
+| Workflow orchestration | AWS Step Functions, Temporal | Complex multi-stage pipelines    |
+| Event-driven           | SQS + Lambda/ECS             | Serverless, bursty workloads     |
 
 **Design rationale for SQS:** SQS provides at-least-once delivery with automatic retries, visibility timeout for in-flight job protection, and dead-letter queues (DLQ) for failed jobs. The trade-off: no strict ordering (which transcoding doesn't need) in exchange for high availability.
 
@@ -248,12 +248,12 @@ Codec choice determines compression efficiency, hardware compatibility, and comp
 
 ### Codec Comparison for Transcoding
 
-| Codec | Encode Speed | Compression | Hardware Support | Use Case |
-|-------|--------------|-------------|------------------|----------|
-| H.264 (x264) | Fast | Baseline | Universal | Default, live |
-| H.265 (x265) | 5-10x slower | +50% vs H.264 | ~92% browsers | 4K/HDR VOD |
-| AV1 (SVT-AV1) | 10-20x slower | +30% vs H.265 | ~88% Netflix TVs | High-volume VOD |
-| VP9 | 5x slower | ~H.265 | Chrome, Android | YouTube fallback |
+| Codec         | Encode Speed  | Compression   | Hardware Support | Use Case         |
+| ------------- | ------------- | ------------- | ---------------- | ---------------- |
+| H.264 (x264)  | Fast          | Baseline      | Universal        | Default, live    |
+| H.265 (x265)  | 5-10x slower  | +50% vs H.264 | ~92% browsers    | 4K/HDR VOD       |
+| AV1 (SVT-AV1) | 10-20x slower | +30% vs H.265 | ~88% Netflix TVs | High-volume VOD  |
+| VP9           | 5x slower     | ~H.265        | Chrome, Android  | YouTube fallback |
 
 **Design rationale for codec ladder:** Start with H.264 for universal reach. Add HEVC/AV1 for bandwidth savings on compatible devices. The player negotiates codec via manifest `CODECS` attribute.
 
@@ -263,11 +263,11 @@ Codec choice determines compression efficiency, hardware compatibility, and comp
 
 **CRF (Constant Rate Factor):** Targets perceptual quality. Higher CRF = lower quality, smaller file. The encoder varies bitrate to maintain quality.
 
-| Codec | CRF Range | Default | "Visually Lossless" |
-|-------|-----------|---------|---------------------|
-| x264 | 0-51 | 23 | ~18 |
-| x265 | 0-51 | 28 | ~24 |
-| SVT-AV1 | 0-63 | — | ~23 |
+| Codec   | CRF Range | Default | "Visually Lossless" |
+| ------- | --------- | ------- | ------------------- |
+| x264    | 0-51      | 23      | ~18                 |
+| x265    | 0-51      | 28      | ~24                 |
+| SVT-AV1 | 0-63      | —       | ~23                 |
 
 **Gotcha: CRF produces unpredictable file sizes.** A static scene might encode at 1 Mbps; an action sequence at 15 Mbps. For streaming with bandwidth constraints, use constrained CRF.
 
@@ -290,13 +290,13 @@ ffmpeg -i source.mp4 \
 
 **Parameter explanation:**
 
-| Parameter | Purpose |
-|-----------|---------|
-| `-crf 23` | Target quality (lower = better) |
-| `-maxrate 5M` | Peak bitrate cap |
-| `-bufsize 10M` | VBV buffer (2x maxrate typical) |
-| `-profile:v high` | H.264 profile (compression features) |
-| `-level 4.1` | Compatibility level (decoder constraints) |
+| Parameter         | Purpose                                   |
+| ----------------- | ----------------------------------------- |
+| `-crf 23`         | Target quality (lower = better)           |
+| `-maxrate 5M`     | Peak bitrate cap                          |
+| `-bufsize 10M`    | VBV buffer (2x maxrate typical)           |
+| `-profile:v high` | H.264 profile (compression features)      |
+| `-level 4.1`      | Compatibility level (decoder constraints) |
 
 **CBR (Constant Bitrate):** Forces exact bitrate, padding if necessary. Required only for broadcast/satellite where fixed bitrate is mandated. Wastes bits on simple scenes.
 
@@ -321,13 +321,13 @@ ffmpeg -i source.mp4 \
 
 Encoder presets trade encoding time for compression efficiency. Slower presets try more encoding options, finding better compression.
 
-| Preset | x264 Speed | File Size | Use Case |
-|--------|------------|-----------|----------|
-| ultrafast | 1x | +50-100% | Testing only |
-| veryfast | 2x | +20-30% | Live streaming |
-| medium | 4x | Baseline | Default |
-| slow | 8x | -5-10% | VOD |
-| veryslow | 16x | -10-15% | Premium VOD |
+| Preset    | x264 Speed | File Size | Use Case       |
+| --------- | ---------- | --------- | -------------- |
+| ultrafast | 1x         | +50-100%  | Testing only   |
+| veryfast  | 2x         | +20-30%   | Live streaming |
+| medium    | 4x         | Baseline  | Default        |
+| slow      | 8x         | -5-10%    | VOD            |
+| veryslow  | 16x        | -10-15%   | Premium VOD    |
 
 **Production recommendation:** Use `-preset slow` for VOD. The quality improvement from `veryslow` is marginal (<0.5% file size reduction) but encoding time doubles. The sweet spot is `slow` for quality-sensitive content, `medium` for high-volume UGC.
 
@@ -400,11 +400,11 @@ For UGC (User-Generated Content) with limited views, static ladders remain cost-
 
 **Resolution cap guidelines:**
 
-| Bitrate | Max Resolution |
-|---------|----------------|
-| < 1 Mbps | 480p |
-| 1-2 Mbps | 720p |
-| 2-5 Mbps | 1080p |
+| Bitrate  | Max Resolution     |
+| -------- | ------------------ |
+| < 1 Mbps | 480p               |
+| 1-2 Mbps | 720p               |
+| 2-5 Mbps | 1080p              |
 | > 5 Mbps | 4K (with HEVC/AV1) |
 
 These thresholds vary by content type. Animation tolerates lower bitrates than live action; sports require higher bitrates than drama.
@@ -417,12 +417,12 @@ Quality validation ensures encoded output meets standards before publishing. Man
 
 **VMAF (Video Multi-Method Assessment Fusion):** Machine learning model trained on human perception scores. Developed by Netflix with USC, University of Nantes, and UT Austin. Correlates better with human judgment than traditional metrics.
 
-| VMAF Score | Interpretation |
-|------------|----------------|
-| 93+ | Excellent (reference quality) |
-| 80-93 | Good (broadcast quality) |
-| 70-80 | Fair (acceptable mobile) |
-| < 70 | Poor (visible artifacts) |
+| VMAF Score | Interpretation                |
+| ---------- | ----------------------------- |
+| 93+        | Excellent (reference quality) |
+| 80-93      | Good (broadcast quality)      |
+| 70-80      | Fair (acceptable mobile)      |
+| < 70       | Poor (visible artifacts)      |
 
 **PSNR (Peak Signal-to-Noise Ratio):** Classic metric measuring pixel-level differences. Fast to compute but poorly correlates with perception. A PSNR of 40 dB is generally considered good, but the same PSNR can look different depending on content.
 
@@ -452,11 +452,11 @@ fi
 
 **VMAF model selection:**
 
-| Model | Use Case |
-|-------|----------|
-| vmaf_v0.6.1 | Default, trained on 1080p TV viewing |
-| vmaf_4k_v0.6.1 | 4K content |
-| vmaf_v0.6.1neg | Includes negative quality scores |
+| Model          | Use Case                             |
+| -------------- | ------------------------------------ |
+| vmaf_v0.6.1    | Default, trained on 1080p TV viewing |
+| vmaf_4k_v0.6.1 | 4K content                           |
+| vmaf_v0.6.1neg | Includes negative quality scores     |
 
 **GPU-accelerated VMAF:** NVIDIA's VMAF-CUDA (FFmpeg 6.1+) achieves ~6x speedup for 1080p/4K. Use when quality validation becomes a bottleneck.
 
@@ -477,13 +477,13 @@ Transcoding pipelines face failures at every stage: corrupt inputs, encoder cras
 
 ### Failure Taxonomy
 
-| Failure Type | Example | Recovery Strategy |
-|--------------|---------|-------------------|
-| Transient | Network timeout | Retry with backoff |
-| Idempotent | Encoder OOM | Retry with more resources |
-| Non-idempotent | Partial upload | Fail, don't retry |
-| Permanent | Unsupported codec | Dead-letter queue |
-| Data corruption | Truncated source | Fail, alert |
+| Failure Type    | Example           | Recovery Strategy         |
+| --------------- | ----------------- | ------------------------- |
+| Transient       | Network timeout   | Retry with backoff        |
+| Idempotent      | Encoder OOM       | Retry with more resources |
+| Non-idempotent  | Partial upload    | Fail, don't retry         |
+| Permanent       | Unsupported codec | Dead-letter queue         |
+| Data corruption | Truncated source  | Fail, alert               |
 
 **Critical rule:** Never retry non-idempotent operations. If a job partially completed (uploaded some chunks), retrying may produce duplicate or corrupt output. Mark as failed and investigate.
 
@@ -492,49 +492,43 @@ Transcoding pipelines face failures at every stage: corrupt inputs, encoder cras
 ```typescript title="retry.ts" collapse={1-4, 20-30}
 // Retry with exponential backoff and jitter
 interface RetryConfig {
-  maxRetries: number;
-  baseDelayMs: number;
-  maxDelayMs: number;
+  maxRetries: number
+  baseDelayMs: number
+  maxDelayMs: number
 }
 
-async function withRetry<T>(
-  operation: () => Promise<T>,
-  config: RetryConfig
-): Promise<T> {
-  let lastError: Error;
+async function withRetry<T>(operation: () => Promise<T>, config: RetryConfig): Promise<T> {
+  let lastError: Error
 
   for (let attempt = 0; attempt < config.maxRetries; attempt++) {
     try {
-      return await operation();
+      return await operation()
     } catch (error) {
-      lastError = error as Error;
+      lastError = error as Error
 
       // Don't retry client errors (4xx equivalent)
       if (isClientError(error)) {
-        throw error;
+        throw error
       }
 
       // Exponential backoff with jitter
-      const delay = Math.min(
-        config.maxDelayMs,
-        config.baseDelayMs * Math.pow(2, attempt) * (0.5 + Math.random())
-      );
+      const delay = Math.min(config.maxDelayMs, config.baseDelayMs * Math.pow(2, attempt) * (0.5 + Math.random()))
 
-      await sleep(delay);
+      await sleep(delay)
     }
   }
 
-  throw lastError;
+  throw lastError
 }
 ```
 
 **Backoff parameters for encoding:**
 
-| Parameter | Value | Rationale |
-|-----------|-------|-----------|
-| maxRetries | 3 | Encoding is expensive; limit attempts |
-| baseDelayMs | 5000 | Allow transient issues to resolve |
-| maxDelayMs | 60000 | Cap wait time at 1 minute |
+| Parameter   | Value | Rationale                             |
+| ----------- | ----- | ------------------------------------- |
+| maxRetries  | 3     | Encoding is expensive; limit attempts |
+| baseDelayMs | 5000  | Allow transient issues to resolve     |
+| maxDelayMs  | 60000 | Cap wait time at 1 minute             |
 
 ### Circuit Breaker Pattern
 
@@ -548,11 +542,11 @@ When a downstream dependency (encoder service, storage) fails repeatedly, stop c
 
 **Thresholds for encoding pipelines:**
 
-| Metric | Threshold | Action |
-|--------|-----------|--------|
-| Error rate | > 50% in 10s window | Open circuit |
-| Latency p99 | > 3x baseline | Shed load |
-| Queue depth | > 10x capacity | Reject new jobs |
+| Metric      | Threshold           | Action          |
+| ----------- | ------------------- | --------------- |
+| Error rate  | > 50% in 10s window | Open circuit    |
+| Latency p99 | > 3x baseline       | Shed load       |
+| Queue depth | > 10x capacity      | Reject new jobs |
 
 ### Dead-Letter Queues
 
@@ -574,14 +568,14 @@ Jobs that fail all retries go to a DLQ for investigation. DLQ messages include:
 
 **Key metrics:**
 
-| Metric | Target | Alert Threshold |
-|--------|--------|-----------------|
-| Encoding success rate | > 99.5% | < 99% |
-| Queue depth | < 1000 | > 5000 |
-| p50 encoding time | Baseline | > 2x baseline |
-| p99 encoding time | Baseline | > 5x baseline |
-| VMAF score mean | > 85 | < 80 |
-| DLQ depth | 0 | > 0 |
+| Metric                | Target   | Alert Threshold |
+| --------------------- | -------- | --------------- |
+| Encoding success rate | > 99.5%  | < 99%           |
+| Queue depth           | < 1000   | > 5000          |
+| p50 encoding time     | Baseline | > 2x baseline   |
+| p99 encoding time     | Baseline | > 5x baseline   |
+| VMAF score mean       | > 85     | < 80            |
+| DLQ depth             | 0        | > 0             |
 
 **Structured logging:**
 
@@ -609,26 +603,26 @@ Video transcoding costs split across compute, storage, and egress. At scale, the
 
 **Compute costs:**
 
-| Instance Type | Cost/hr | Encode Speed (1080p H.264) | Cost/hr of video |
-|---------------|---------|---------------------------|------------------|
-| c6i.4xlarge (CPU) | $0.68 | ~1x real-time | $0.68 |
-| g4dn.xlarge (GPU) | $0.526 | ~4x real-time | $0.13 |
-| vt1.3xlarge (VPU) | $0.65 | ~8x real-time | $0.08 |
+| Instance Type     | Cost/hr | Encode Speed (1080p H.264) | Cost/hr of video |
+| ----------------- | ------- | -------------------------- | ---------------- |
+| c6i.4xlarge (CPU) | $0.68   | ~1x real-time              | $0.68            |
+| g4dn.xlarge (GPU) | $0.526  | ~4x real-time              | $0.13            |
+| vt1.3xlarge (VPU) | $0.65   | ~8x real-time              | $0.08            |
 
 **Storage costs (S3 standard):**
 
-| Retention | Cost/TB/month |
-|-----------|---------------|
-| 1 year | $276 |
-| Source + 7 renditions | $2,208 |
+| Retention             | Cost/TB/month |
+| --------------------- | ------------- |
+| 1 year                | $276          |
+| Source + 7 renditions | $2,208        |
 
 **Egress costs (AWS to internet):**
 
 | Volume/month | Cost/GB |
-|--------------|---------|
-| First 10 TB | $0.09 |
-| Next 40 TB | $0.085 |
-| 100+ TB | $0.07 |
+| ------------ | ------- |
+| First 10 TB  | $0.09   |
+| Next 40 TB   | $0.085  |
+| 100+ TB      | $0.07   |
 
 At 1 PB/month egress, AWS costs ~$1M/year. Alternative providers (OCI, Linode) offer 10-18x lower egress rates.
 
@@ -648,11 +642,11 @@ At 1 PB/month egress, AWS costs ~$1M/year. Alternative providers (OCI, Linode) o
 
 **Scenario:** 1,000 hours of video/month, 100M views, average 30 minutes watch time
 
-| Component | Calculation | Monthly Cost |
-|-----------|-------------|--------------|
-| Encoding (GPU) | 1,000 hrs × $0.13/hr | $130 |
-| Storage (1 year) | 8 TB × $23/TB | $184 |
-| Egress | 50 PB × $0.07/GB | $3,500,000 |
+| Component        | Calculation          | Monthly Cost |
+| ---------------- | -------------------- | ------------ |
+| Encoding (GPU)   | 1,000 hrs × $0.13/hr | $130         |
+| Storage (1 year) | 8 TB × $23/TB        | $184         |
+| Egress           | 50 PB × $0.07/GB     | $3,500,000   |
 
 **Insight:** Egress dominates. A 10% compression improvement saves $350,000/month—far exceeding any encoding cost increase from using slower presets or better codecs.
 
@@ -691,11 +685,11 @@ Forensic watermarks embed invisible identifiers to trace leaks. Unlike DRM (whic
 
 **Implementation approaches:**
 
-| Approach | When Applied | Scalability |
-|----------|--------------|-------------|
-| Pre-encode | During transcoding | One variant per user (impractical) |
+| Approach      | When Applied        | Scalability                           |
+| ------------- | ------------------- | ------------------------------------- |
+| Pre-encode    | During transcoding  | One variant per user (impractical)    |
 | Session-based | During CDN delivery | Requires real-time watermarking infra |
-| Client-side | In player | Can be stripped; less secure |
+| Client-side   | In player           | Can be stripped; less secure          |
 
 **Production pattern:** Embed watermark during encoding for high-value content (screener copies). Use session-based watermarking for general distribution.
 
@@ -738,28 +732,28 @@ The future: AI-driven encoding decisions (per-shot optimization, learned rate co
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **ABR** | Adaptive Bitrate—streaming technique that switches quality based on network conditions |
-| **CBR** | Constant Bitrate—rate control that maintains fixed bitrate throughout video |
-| **CMAF** | Common Media Application Format—unified fMP4 container for HLS and DASH |
-| **Convex hull** | Set of Pareto-optimal bitrate/quality points for a video |
-| **CRF** | Constant Rate Factor—rate control targeting perceptual quality |
-| **DLQ** | Dead Letter Queue—holding area for failed messages |
-| **GOP** | Group of Pictures—sequence from one I-frame to the next |
-| **HLS** | HTTP Live Streaming—Apple's adaptive streaming protocol |
-| **I-frame** | Intra-frame—independently decodable keyframe |
-| **NVENC** | NVIDIA Video Encoder—hardware encoder on NVIDIA GPUs |
-| **Per-title** | Content-aware encoding that customizes parameters per video |
-| **PSNR** | Peak Signal-to-Noise Ratio—pixel-level quality metric |
-| **PTS** | Presentation Timestamp—when a frame should be displayed |
-| **SSIM** | Structural Similarity Index—perceptual quality metric |
-| **SVT-AV1** | Scalable Video Technology for AV1—Intel/Netflix encoder |
-| **VBR** | Variable Bitrate—rate control allowing bitrate to vary |
-| **VBV** | Video Buffering Verifier—model for constraining bitrate peaks |
-| **VMAF** | Video Multi-Method Assessment Fusion—ML-based quality metric |
-| **VOD** | Video on Demand—pre-recorded content (vs. live) |
-| **VPU** | Video Processing Unit—specialized video encoding hardware |
+| Term            | Definition                                                                             |
+| --------------- | -------------------------------------------------------------------------------------- |
+| **ABR**         | Adaptive Bitrate—streaming technique that switches quality based on network conditions |
+| **CBR**         | Constant Bitrate—rate control that maintains fixed bitrate throughout video            |
+| **CMAF**        | Common Media Application Format—unified fMP4 container for HLS and DASH                |
+| **Convex hull** | Set of Pareto-optimal bitrate/quality points for a video                               |
+| **CRF**         | Constant Rate Factor—rate control targeting perceptual quality                         |
+| **DLQ**         | Dead Letter Queue—holding area for failed messages                                     |
+| **GOP**         | Group of Pictures—sequence from one I-frame to the next                                |
+| **HLS**         | HTTP Live Streaming—Apple's adaptive streaming protocol                                |
+| **I-frame**     | Intra-frame—independently decodable keyframe                                           |
+| **NVENC**       | NVIDIA Video Encoder—hardware encoder on NVIDIA GPUs                                   |
+| **Per-title**   | Content-aware encoding that customizes parameters per video                            |
+| **PSNR**        | Peak Signal-to-Noise Ratio—pixel-level quality metric                                  |
+| **PTS**         | Presentation Timestamp—when a frame should be displayed                                |
+| **SSIM**        | Structural Similarity Index—perceptual quality metric                                  |
+| **SVT-AV1**     | Scalable Video Technology for AV1—Intel/Netflix encoder                                |
+| **VBR**         | Variable Bitrate—rate control allowing bitrate to vary                                 |
+| **VBV**         | Video Buffering Verifier—model for constraining bitrate peaks                          |
+| **VMAF**        | Video Multi-Method Assessment Fusion—ML-based quality metric                           |
+| **VOD**         | Video on Demand—pre-recorded content (vs. live)                                        |
+| **VPU**         | Video Processing Unit—specialized video encoding hardware                              |
 
 ### Summary
 
@@ -776,7 +770,6 @@ The future: AI-driven encoding decisions (per-shot optimization, learned rate co
 
 - [ITU-T H.264](https://www.itu.int/rec/T-REC-H.264) - Advanced Video Coding specification
 - [ITU-T H.265](https://www.itu.int/rec/T-REC-H.265) - High Efficiency Video Coding specification
-- [AV1 Bitstream & Decoding Process Specification](https://aomedia.org/av1/specification/) - AV1 codec specification
 - [ISO/IEC 23000-19 CMAF](https://www.iso.org/standard/85623.html) - Common Media Application Format
 - [RFC 8216 - HTTP Live Streaming](https://datatracker.ietf.org/doc/html/rfc8216) - HLS protocol specification
 

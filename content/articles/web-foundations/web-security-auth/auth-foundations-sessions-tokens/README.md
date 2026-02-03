@@ -60,13 +60,13 @@ flowchart LR
 
 ### Core Design Trade-offs
 
-| Decision | Option A | Option B | When to Choose A |
-|----------|----------|----------|------------------|
-| **State** | Sessions (server stores) | Tokens (self-contained) | Need immediate revocation, single domain |
-| **Credential** | Password + MFA | Passwordless (WebAuthn) | Legacy systems, recovery requirements |
-| **Authorization** | RBAC (role-based) | ABAC (attribute-based) | Permission model is relatively static |
-| **Token lifetime** | Short (5-15 min) | Long (1+ hour) | High-security APIs, sensitive operations |
-| **Storage** | HttpOnly cookies | Memory + refresh token | Traditional web apps without CORS needs |
+| Decision           | Option A                 | Option B                | When to Choose A                         |
+| ------------------ | ------------------------ | ----------------------- | ---------------------------------------- |
+| **State**          | Sessions (server stores) | Tokens (self-contained) | Need immediate revocation, single domain |
+| **Credential**     | Password + MFA           | Passwordless (WebAuthn) | Legacy systems, recovery requirements    |
+| **Authorization**  | RBAC (role-based)        | ABAC (attribute-based)  | Permission model is relatively static    |
+| **Token lifetime** | Short (5-15 min)         | Long (1+ hour)          | High-security APIs, sensitive operations |
+| **Storage**        | HttpOnly cookies         | Memory + refresh token  | Traditional web apps without CORS needs  |
 
 ### Key Invariants
 
@@ -109,15 +109,15 @@ The fundamental architectural decision in authentication is whether to store ses
 
 ### Trade-off Matrix
 
-| Aspect | Sessions | Tokens |
-|--------|----------|--------|
-| **State location** | Server | Client |
-| **Revocation** | Immediate (delete session) | Difficult (wait for expiry or blocklist) |
-| **Scalability** | Requires shared session store | Stateless, scales horizontally |
-| **Cross-domain** | Cookie scope limitations | CORS-friendly (Bearer header) |
-| **Token size** | Small (opaque ID) | Large (encoded claims) |
-| **Security on compromise** | Attacker needs session ID | Attacker has all claims until expiry |
-| **Database dependency** | Every request | None for validation |
+| Aspect                     | Sessions                      | Tokens                                   |
+| -------------------------- | ----------------------------- | ---------------------------------------- |
+| **State location**         | Server                        | Client                                   |
+| **Revocation**             | Immediate (delete session)    | Difficult (wait for expiry or blocklist) |
+| **Scalability**            | Requires shared session store | Stateless, scales horizontally           |
+| **Cross-domain**           | Cookie scope limitations      | CORS-friendly (Bearer header)            |
+| **Token size**             | Small (opaque ID)             | Large (encoded claims)                   |
+| **Security on compromise** | Attacker needs session ID     | Attacker has all claims until expiry     |
+| **Database dependency**    | Every request                 | None for validation                      |
 
 ### When to Choose Sessions
 
@@ -158,12 +158,12 @@ Traditional username/password authentication remains prevalent despite inherent 
 
 **OWASP recommended parameters (as of 2025):**
 
-| Algorithm | Configuration | Target |
-|-----------|---------------|--------|
-| **Argon2id** | 19 MiB memory, 2 iterations, parallelism 1 | Primary recommendation |
-| **Argon2id (high memory)** | 46 MiB memory, 1 iteration, parallelism 1 | When resources allow |
-| **Bcrypt** | Cost factor 10+ (12 recommended) | Legacy systems, FIPS not required |
-| **PBKDF2-HMAC-SHA256** | 600,000+ iterations | FIPS-140 compliance required |
+| Algorithm                  | Configuration                              | Target                            |
+| -------------------------- | ------------------------------------------ | --------------------------------- |
+| **Argon2id**               | 19 MiB memory, 2 iterations, parallelism 1 | Primary recommendation            |
+| **Argon2id (high memory)** | 46 MiB memory, 1 iteration, parallelism 1  | When resources allow              |
+| **Bcrypt**                 | Cost factor 10+ (12 recommended)           | Legacy systems, FIPS not required |
+| **PBKDF2-HMAC-SHA256**     | 600,000+ iterations                        | FIPS-140 compliance required      |
 
 **Tuning principle**: Hash computation should take under 1 second to avoid DoS vulnerabilities from repeated auth attempts.
 
@@ -291,11 +291,11 @@ WebAuthn (Web Authentication API) uses asymmetric cryptography—the private key
 
 Traditional WebAuthn credentials were bound to a single device. **Passkeys** (synced credentials) enable cross-device availability:
 
-| Provider | Sync Scope | Mechanism |
-|----------|------------|-----------|
-| **Apple** | Apple devices only | iCloud Keychain (E2E encrypted) |
-| **Google** | Android, Chrome (all platforms), iOS 17+ | Google Password Manager (E2E encrypted) |
-| **Microsoft** | Windows, Android | Microsoft account |
+| Provider      | Sync Scope                               | Mechanism                               |
+| ------------- | ---------------------------------------- | --------------------------------------- |
+| **Apple**     | Apple devices only                       | iCloud Keychain (E2E encrypted)         |
+| **Google**    | Android, Chrome (all platforms), iOS 17+ | Google Password Manager (E2E encrypted) |
+| **Microsoft** | Windows, Android                         | Microsoft account                       |
 
 **Critical limitation**: Apple and Google do not sync passkeys between their ecosystems. Google currently offers the broadest cross-platform sync (Android + Apple + Windows via Chrome).
 
@@ -370,11 +370,13 @@ RBAC assigns permissions to roles rather than individual users, simplifying perm
 **Design rationale**: RBAC emerged from the observation that permission requirements correlate with job functions, not individuals. By mapping users → roles → permissions, administration scales with organizational structure rather than user count ([NIST RBAC Model](https://csrc.nist.gov/projects/role-based-access-control)).
 
 **When RBAC works well**:
+
 - Permission model maps to organizational hierarchy
 - Roles are relatively stable
 - Audit requirements focus on role membership
 
 **When RBAC struggles**:
+
 - Dynamic permissions based on resource attributes (e.g., "own documents only")
 - Context-dependent access (time of day, location)
 - Fine-grained permissions that would require role explosion
@@ -465,6 +467,7 @@ ABAC provides fine-grained access control using attributes of users, resources, 
 **Design rationale**: ABAC addresses RBAC's rigidity by evaluating policies against dynamic attributes at decision time. Instead of pre-assigning permissions, ABAC asks: "Given these subject attributes, resource attributes, action, and environment, should this request be permitted?" ([NIST ABAC Guide SP 800-162](https://csrc.nist.gov/publications/detail/sp/800-162/final)).
 
 **Attribute categories**:
+
 - **Subject**: User ID, role, department, clearance level, group membership
 - **Resource**: Type, owner, classification, sensitivity
 - **Action**: Read, write, delete, approve
@@ -582,6 +585,7 @@ These models provide mathematical foundations for reasoning about security prope
 **Design rationale**: Developed in 1973 for the US Department of Defense to prevent information leakage from higher classification levels to lower ones. Optimizes for _confidentiality_ at the expense of integrity.
 
 **Core rules**:
+
 - **No Read Up (Simple Security)**: A subject cannot read data at a higher classification level
 - **No Write Down (Star Property)**: A subject cannot write data to a lower classification level
 
@@ -594,6 +598,7 @@ These models provide mathematical foundations for reasoning about security prope
 **Design rationale**: Developed in 1977 as the "dual" of Bell-LaPadula, optimizing for _integrity_ instead of confidentiality. Prevents corruption of high-integrity data by lower-integrity sources.
 
 **Core rules** (inverted from Bell-LaPadula):
+
 - **No Read Down**: A subject cannot read data at a lower integrity level (prevents contamination)
 - **No Write Up**: A subject cannot write data to a higher integrity level (prevents corruption)
 
@@ -604,6 +609,7 @@ These models provide mathematical foundations for reasoning about security prope
 **Design rationale**: Developed in 1987 for commercial environments where integrity is paramount but formal clearance levels don't exist. Focuses on well-formed transactions and separation of duties.
 
 **Core concepts**:
+
 - **Constrained Data Items (CDIs)**: Data that must maintain integrity
 - **Transformation Procedures (TPs)**: The only way to modify CDIs
 - **Integrity Verification Procedures (IVPs)**: Validate CDI integrity
@@ -625,21 +631,21 @@ JWT provides a compact, URL-safe means of representing claims between parties.
 
 #### Token Lifetime Recommendations (2025)
 
-| Token Type | Lifetime | Rationale |
-|------------|----------|-----------|
-| **Access token (high security)** | 5-15 min | Minimize exposure window for stolen tokens |
-| **Access token (general)** | 15-30 min | Balance security with UX (fewer refresh cycles) |
-| **Refresh token** | 1-7 days | User experience; rotate on each use |
-| **ID token (OIDC)** | 1 hour | Per OIDC spec; used only at authentication time |
+| Token Type                       | Lifetime  | Rationale                                       |
+| -------------------------------- | --------- | ----------------------------------------------- |
+| **Access token (high security)** | 5-15 min  | Minimize exposure window for stolen tokens      |
+| **Access token (general)**       | 15-30 min | Balance security with UX (fewer refresh cycles) |
+| **Refresh token**                | 1-7 days  | User experience; rotate on each use             |
+| **ID token (OIDC)**              | 1 hour    | Per OIDC spec; used only at authentication time |
 
 #### Algorithm Selection
 
-| Algorithm | Type | Recommendation |
-|-----------|------|----------------|
-| **EdDSA** | Asymmetric | First choice for new systems (62x faster than RSA-2048) |
-| **ES256** | Asymmetric (ECDSA) | Good balance; widely supported |
-| **RS256** | Asymmetric (RSA) | Legacy compatibility; larger keys |
-| **HS256** | Symmetric | Avoid in distributed systems (shared secret) |
+| Algorithm | Type               | Recommendation                                          |
+| --------- | ------------------ | ------------------------------------------------------- |
+| **EdDSA** | Asymmetric         | First choice for new systems (62x faster than RSA-2048) |
+| **ES256** | Asymmetric (ECDSA) | Good balance; widely supported                          |
+| **RS256** | Asymmetric (RSA)   | Legacy compatibility; larger keys                       |
+| **HS256** | Symmetric          | Avoid in distributed systems (shared secret)            |
 
 **Security rule**: Always verify the `alg` header against an allowlist. The infamous `alg: none` attack exploits servers that accept any algorithm.
 
@@ -787,13 +793,13 @@ OAuth 2.0 provides an authorization framework enabling third-party applications 
 
 **Key OAuth 2.1 changes from OAuth 2.0**:
 
-| Change | Rationale |
-|--------|-----------|
-| **Implicit flow removed** | Tokens in URL fragments are exposed in browser history, referrer headers |
-| **Resource owner password flow removed** | Users should never share passwords with third-party apps |
-| **PKCE required for all clients** | Prevents authorization code interception, even for confidential clients |
-| **Strict redirect URI matching** | Prevents open redirect attacks |
-| **Refresh token rotation recommended** | Detects token theft |
+| Change                                   | Rationale                                                                |
+| ---------------------------------------- | ------------------------------------------------------------------------ |
+| **Implicit flow removed**                | Tokens in URL fragments are exposed in browser history, referrer headers |
+| **Resource owner password flow removed** | Users should never share passwords with third-party apps                 |
+| **PKCE required for all clients**        | Prevents authorization code interception, even for confidential clients  |
+| **Strict redirect URI matching**         | Prevents open redirect attacks                                           |
+| **Refresh token rotation recommended**   | Detects token theft                                                      |
 
 ```javascript title="oauth2-provider.js" collapse={1-4, 17-18, 63-78}
 const express = require("express")
@@ -818,10 +824,7 @@ class OAuth2Provider {
 
     // PKCE: Generate code verifier and challenge
     const codeVerifier = crypto.randomBytes(32).toString("base64url")
-    const codeChallenge = crypto
-      .createHash("sha256")
-      .update(codeVerifier)
-      .digest("base64url")
+    const codeChallenge = crypto.createHash("sha256").update(codeVerifier).digest("base64url")
 
     const params = new URLSearchParams({
       response_type: "code",
@@ -1269,17 +1272,17 @@ class RiskEngine {
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **AAA** | Authentication, Authorization, Accounting—security framework triad |
-| **ABAC** | Attribute-Based Access Control—dynamic authorization using subject/resource/environment attributes |
-| **JWT** | JSON Web Token—self-contained, signed token format ([RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519)) |
-| **MFA** | Multi-Factor Authentication—requiring 2+ authentication factors |
-| **OIDC** | OpenID Connect—identity layer built on OAuth 2.0 |
-| **PKCE** | Proof Key for Code Exchange—OAuth extension preventing authorization code interception |
-| **RBAC** | Role-Based Access Control—permissions assigned to roles, not users |
-| **TOTP** | Time-based One-Time Password—algorithm generating codes from shared secret + time |
-| **WebAuthn** | Web Authentication API—W3C standard for passwordless authentication using public key cryptography |
+| Term         | Definition                                                                                                     |
+| ------------ | -------------------------------------------------------------------------------------------------------------- |
+| **AAA**      | Authentication, Authorization, Accounting—security framework triad                                             |
+| **ABAC**     | Attribute-Based Access Control—dynamic authorization using subject/resource/environment attributes             |
+| **JWT**      | JSON Web Token—self-contained, signed token format ([RFC 7519](https://datatracker.ietf.org/doc/html/rfc7519)) |
+| **MFA**      | Multi-Factor Authentication—requiring 2+ authentication factors                                                |
+| **OIDC**     | OpenID Connect—identity layer built on OAuth 2.0                                                               |
+| **PKCE**     | Proof Key for Code Exchange—OAuth extension preventing authorization code interception                         |
+| **RBAC**     | Role-Based Access Control—permissions assigned to roles, not users                                             |
+| **TOTP**     | Time-based One-Time Password—algorithm generating codes from shared secret + time                              |
+| **WebAuthn** | Web Authentication API—W3C standard for passwordless authentication using public key cryptography              |
 
 ### Summary
 

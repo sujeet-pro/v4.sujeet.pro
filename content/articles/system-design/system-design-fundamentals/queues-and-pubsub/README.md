@@ -42,12 +42,12 @@ A topic (pub/sub) delivers each message to all subscribers—event broadcasting.
 
 **The key design axes:**
 
-| Axis | Options | Determines |
-|------|---------|------------|
-| **Pattern** | Queue (point-to-point), Topic (pub/sub), Hybrid | Work distribution vs. fan-out |
-| **Delivery semantics** | At-most-once, at-least-once, exactly-once | Reliability vs. complexity |
-| **Ordering** | None, partition-ordered (key), FIFO, total | Consistency vs. throughput |
-| **Consumption model** | Pull, push | Backpressure handling |
+| Axis                   | Options                                         | Determines                    |
+| ---------------------- | ----------------------------------------------- | ----------------------------- |
+| **Pattern**            | Queue (point-to-point), Topic (pub/sub), Hybrid | Work distribution vs. fan-out |
+| **Delivery semantics** | At-most-once, at-least-once, exactly-once       | Reliability vs. complexity    |
+| **Ordering**           | None, partition-ordered (key), FIFO, total      | Consistency vs. throughput    |
+| **Consumption model**  | Pull, push                                      | Backpressure handling         |
 
 **Production examples:**
 
@@ -69,11 +69,13 @@ Each message is delivered to exactly one consumer. Multiple consumers compete fo
 **Why it exists**: Distributes work across a pool of workers. The queue acts as a buffer—producers and consumers operate at different rates without blocking each other.
 
 **When to use**:
+
 - Task/job processing (email sending, image processing, report generation)
 - Load leveling between services with different throughput capacities
 - Work distribution across worker pools
 
 **Trade-offs**:
+
 - ✅ Natural load balancing across consumers
 - ✅ Built-in retry semantics (message redelivered on failure)
 - ✅ Simple mental model—one message, one processor
@@ -91,12 +93,14 @@ Each message is delivered to all subscribers. Subscribers receive independent co
 **Why it exists**: Decouples producers from consumers completely. The producer doesn't know (or care) how many subscribers exist. New subscribers can be added without modifying the producer.
 
 **When to use**:
+
 - Event broadcasting (user signed up, order placed, price changed)
 - Multiple independent consumers need the same events
 - Event sourcing and audit logs
 - Real-time analytics pipelines
 
 **Trade-offs**:
+
 - ✅ True decoupling—add subscribers without changing producers
 - ✅ Each subscriber processes independently (different speeds, different transformations)
 - ✅ Natural fit for event-driven architectures
@@ -114,6 +118,7 @@ Kafka's model combines pub/sub with competing consumers through consumer groups.
 **Why it exists**: Provides both work distribution (within a group) and event broadcasting (across groups). A single topic can serve as both a work queue and an event stream.
 
 **Example**: Order events published to `orders` topic:
+
 - Consumer group `fulfillment` processes each order once (work distribution)
 - Consumer group `analytics` also processes each order once (independent work distribution)
 - Consumer group `fraud-detection` also processes each order once (another independent consumer)
@@ -135,11 +140,13 @@ Messages may be lost but are never duplicated.
 **Why it exists**: Maximum throughput and minimum latency. Suitable when occasional message loss is acceptable.
 
 **When to use**:
+
 - Metrics and telemetry (missing one data point is acceptable)
 - Heartbeats and health checks
 - Non-critical notifications
 
 **Trade-offs**:
+
 - ✅ Highest throughput—no acknowledgment overhead
 - ✅ Lowest latency—no round-trip for confirmation
 - ❌ Data loss on failures—producer crash, network issues, consumer crash
@@ -155,11 +162,13 @@ Messages are never lost but may be duplicated.
 **Why it exists**: The default for most systems because message loss is usually worse than duplication. Duplicates can be handled with idempotent processing.
 
 **When to use**:
+
 - Most production workloads
 - Any case where data loss is unacceptable
 - Systems with idempotent consumers
 
 **Trade-offs**:
+
 - ✅ No message loss—retries ensure delivery
 - ✅ Simpler than exactly-once
 - ❌ Duplicates require downstream handling
@@ -172,6 +181,7 @@ Messages are never lost but may be duplicated.
 Messages are delivered and processed exactly once.
 
 **Why it's hard**: The fundamental challenge is distinguishing between three scenarios:
+
 1. Message written, acknowledgment delivered → success
 2. Message written, acknowledgment lost → producer retries, creates duplicate
 3. Message lost → producer retries correctly
@@ -187,6 +197,7 @@ In asynchronous distributed systems, these scenarios are indistinguishable from 
 **The reality**: Infrastructure provides at-most-once or at-least-once; exactly-once semantics require **application-level idempotency**. The broker can deduplicate message storage; only the application can deduplicate processing effects.
 
 **Trade-offs**:
+
 - ✅ Simplifies application logic (in theory)
 - ❌ High complexity and performance overhead
 - ❌ Still requires application idempotency for external side effects
@@ -205,11 +216,13 @@ Messages may arrive in any order.
 **Mechanism**: Broker delivers messages as quickly as possible without ordering constraints. Parallel delivery maximizes throughput.
 
 **When to use**:
+
 - Independent events with no causal relationship
 - Idempotent operations where order doesn't matter
 - High-throughput scenarios where ordering would bottleneck
 
 **Trade-offs**:
+
 - ✅ Maximum throughput—parallel delivery
 - ✅ Maximum availability—no coordination required
 - ❌ Cannot rely on temporal relationships between messages
@@ -227,11 +240,13 @@ Messages with the same key are ordered; messages with different keys may interle
 **Example**: Order events keyed by `order_id`. All events for order #123 arrive in order (created → paid → shipped). Events for different orders may interleave.
 
 **When to use**:
+
 - Entity-scoped operations (all events for one user, one order, one device)
 - Event sourcing where events must be applied in sequence per aggregate
 - Most production use cases—80% of ordering benefit at 20% of the cost
 
 **Trade-offs**:
+
 - ✅ Ordering where needed (per key)
 - ✅ Parallelism where safe (across keys)
 - ✅ Scales linearly with partition count
@@ -249,11 +264,13 @@ All messages in a queue/partition arrive in exactly the order they were sent.
 **Mechanism**: Single writer or sequence numbers ensure ordering. Single consumer per queue/partition ensures processing order.
 
 **When to use**:
+
 - Financial transactions (deposit before withdrawal)
 - Strict event sequencing requirements
 - State machine transitions
 
 **Trade-offs**:
+
 - ✅ Strict ordering guarantees
 - ❌ Throughput limited by single consumer
 - ❌ Typically 5-10K msg/s (vs. 100K+ for parallel)
@@ -269,11 +286,13 @@ All consumers see all messages in identical order.
 **Why it exists**: Required for distributed consensus, leader election, and strong consistency across replicas.
 
 **When to use**:
+
 - Distributed coordination (ZooKeeper, etcd)
 - Database replication (same transaction order on all replicas)
 - Rare in messaging—usually overkill
 
 **Trade-offs**:
+
 - ✅ Global consistency—all nodes see same order
 - ❌ High latency—consensus overhead on every message
 - ❌ Scalability bottleneck—single coordination point
@@ -293,6 +312,7 @@ Consumer requests messages when ready to process.
 **Why it exists**: True backpressure—consumers never receive more than they can handle. Consumer naturally throttles intake based on processing capacity.
 
 **Trade-offs**:
+
 - ✅ Natural backpressure—consumer controls intake
 - ✅ Consumer can batch for efficiency
 - ✅ Broker simpler—no per-consumer delivery state
@@ -312,6 +332,7 @@ Broker sends messages to consumers as they arrive.
 **Why it exists**: Lowest latency for individual messages—no poll interval. Better for real-time use cases.
 
 **Trade-offs**:
+
 - ✅ Lower latency—immediate delivery
 - ✅ No polling overhead
 - ❌ Backpressure harder—broker must track consumer capacity
@@ -349,6 +370,7 @@ When consumers can't keep up:
 **Exponential backoff with jitter**: Add randomness to delay. Prevents thundering herd when many consumers retry simultaneously. Formula: `delay = random(0, min(base × 2^attempt, max_delay))`.
 
 **Example configuration**:
+
 ```
 initial_delay: 100ms
 backoff_multiplier: 2
@@ -370,16 +392,19 @@ A secondary queue for messages that fail processing after maximum retries.
 **Design considerations**:
 
 **When to DLQ**:
+
 - Deserialization failures (malformed message)
 - Validation errors (missing required fields)
 - Business logic failures (invalid state transition)
 - Exceeded retry limit
 
 **When NOT to DLQ**:
+
 - Transient failures (network timeout, service unavailable)—retry instead
 - Temporary state issues (eventual consistency lag)—retry with delay
 
 **DLQ processing patterns**:
+
 - Manual inspection and replay after fixing consumer bug
 - Automated reprocessing after dependent service recovers
 - Alert on DLQ growth—indicates systematic problem
@@ -392,11 +417,13 @@ A secondary queue for messages that fail processing after maximum retries.
 A poison pill is a message that can never be processed successfully—causes consumer crash, infinite loop, or persistent error.
 
 **Detection**:
+
 - Same message appearing repeatedly (delivery count)
 - Consumer crashes correlate with specific message
 - Processing time exceeds timeout repeatedly
 
 **Handling**:
+
 - Track delivery attempts per message (message metadata or external store)
 - After N attempts, route to DLQ without further processing
 - Log full message content and error for debugging
@@ -416,11 +443,13 @@ Idempotency ensures processing a message multiple times has the same effect as p
 ### Why Idempotency Matters
 
 At-least-once delivery means duplicates are possible:
+
 - Producer retry (acknowledgment lost)
 - Consumer failure before commit (redelivery)
 - Broker failover (may redeliver)
 
 Without idempotency, duplicates cause:
+
 - Duplicate charges to customers
 - Double inventory deductions
 - Incorrect aggregate counts
@@ -429,6 +458,7 @@ Without idempotency, duplicates cause:
 ### Idempotency Key Strategies
 
 **Message ID (UUID)**:
+
 - Each message has unique ID
 - Consumer stores processed IDs
 - Skip if ID already seen
@@ -436,6 +466,7 @@ Without idempotency, duplicates cause:
 **Challenge**: Must store all processed IDs forever, or risk accepting old duplicates after purge.
 
 **Monotonic sequence numbers**:
+
 - Producer assigns incrementing sequence per entity
 - Consumer stores highest processed sequence per entity
 - Reject any sequence ≤ stored value
@@ -445,6 +476,7 @@ Without idempotency, duplicates cause:
 **Example**: User #123's events have sequences 1, 2, 3... Consumer stores `user_123_seq = 5`. Message with seq=3 rejected as duplicate. Message with seq=6 processed and seq updated to 6.
 
 **Time-windowed deduplication**:
+
 - Store message IDs for limited window (e.g., 5 minutes)
 - Assume duplicates only arrive within window
 - Purge old IDs automatically
@@ -475,6 +507,7 @@ COMMIT
 ### Broker-Level Idempotency
 
 **Kafka idempotent producer** (v0.11+):
+
 - Producer assigned unique PID (producer ID)
 - Each message has sequence number per partition
 - Broker rejects duplicates within same producer session
@@ -482,11 +515,13 @@ COMMIT
 **Limitation**: Only prevents duplicates from producer retries within a session. New producer instance gets new PID—application still needs idempotency for end-to-end guarantees.
 
 **Kafka transactions**:
+
 - Atomic writes to multiple partitions
 - `read_committed` isolation for consumers
 - Enables exactly-once stream processing (Kafka Streams, Flink)
 
 **SQS FIFO deduplication**:
+
 - `MessageDeduplicationId` per message
 - Broker deduplicates within 5-minute window
 - Can be explicit (producer sets ID) or content-based (hash of message body)
@@ -498,11 +533,13 @@ COMMIT
 **Kafka model**: Maximum parallelism = number of partitions.
 
 Within a consumer group:
+
 - Each partition assigned to exactly one consumer
 - More consumers than partitions → some consumers idle
 - Fewer consumers than partitions → some consumers handle multiple partitions
 
 **Choosing partition count**:
+
 - Target throughput / per-consumer throughput = minimum partitions
 - Round up for headroom and future growth
 - Consider: partitions are hard to reduce, easy to add
@@ -514,11 +551,13 @@ Within a consumer group:
 **Trigger**: Consumer joins, leaves, or crashes. Partition assignment changes.
 
 **Impact**:
+
 - Brief pause in processing (seconds to minutes)
 - In-flight messages may be reprocessed (at-least-once)
 - State (if any) must be rebuilt or migrated
 
 **Strategies**:
+
 - **Eager rebalancing**: Stop all consumers, reassign, restart. Simple but higher impact.
 - **Cooperative rebalancing** (Kafka 2.4+): Only affected partitions pause. Lower impact, more complex.
 
@@ -529,18 +568,21 @@ Within a consumer group:
 Lag = how far behind the consumer is from the latest produced message.
 
 **Metrics**:
+
 - **Offset lag**: Latest offset − committed offset (message count)
 - **Time lag**: Time since the oldest unconsumed message was produced (seconds)
 
 Time lag is more useful for alerting—a lag of 10,000 messages means different things for different topics (high-throughput vs. low-throughput).
 
 **Monitoring**:
+
 ```
 Alert: consumer_lag_seconds > 60 for 5 minutes
 Action: Investigate consumer health, consider scaling
 ```
 
 **Causes of lag**:
+
 - Consumer too slow (processing bottleneck)
 - Too few consumers (under-provisioned)
 - Partition imbalance (some partitions hot)
@@ -553,27 +595,29 @@ Action: Investigate consumer health, consider scaling
 
 ### Design Choices
 
-| Factor | Kafka | RabbitMQ | SQS/SNS | Pub/Sub | Pulsar |
-|--------|-------|----------|---------|---------|--------|
-| **Primary model** | Log-based pub/sub | Queue + exchange routing | Queue + topic | Topic | Log-based pub/sub |
-| **Throughput** | 2M+ msg/s per cluster | 20-50K msg/s per node | 100K+ msg/s | 1M+ msg/s | 1M+ msg/s |
-| **Latency p99** | ~5ms | <1ms | 100-200ms | 10-100ms | <10ms |
-| **Ordering** | Partition-ordered | Queue FIFO | FIFO (queues only) | Unordered | Partition-ordered |
-| **Retention** | Days to forever | Until consumed | 14 days max | 7 days default | Days to forever + tiered |
-| **Multi-tenancy** | Manual | Manual | Native | Native | Native |
-| **Operational complexity** | High | Medium | Zero (managed) | Zero (managed) | High |
+| Factor                     | Kafka                 | RabbitMQ                 | SQS/SNS            | Pub/Sub        | Pulsar                   |
+| -------------------------- | --------------------- | ------------------------ | ------------------ | -------------- | ------------------------ |
+| **Primary model**          | Log-based pub/sub     | Queue + exchange routing | Queue + topic      | Topic          | Log-based pub/sub        |
+| **Throughput**             | 2M+ msg/s per cluster | 20-50K msg/s per node    | 100K+ msg/s        | 1M+ msg/s      | 1M+ msg/s                |
+| **Latency p99**            | ~5ms                  | <1ms                     | 100-200ms          | 10-100ms       | <10ms                    |
+| **Ordering**               | Partition-ordered     | Queue FIFO               | FIFO (queues only) | Unordered      | Partition-ordered        |
+| **Retention**              | Days to forever       | Until consumed           | 14 days max        | 7 days default | Days to forever + tiered |
+| **Multi-tenancy**          | Manual                | Manual                   | Native             | Native         | Native                   |
+| **Operational complexity** | High                  | Medium                   | Zero (managed)     | Zero (managed) | High                     |
 
 ### Kafka
 
 **Architecture**: Distributed commit log. Partitioned topics stored on disk. Consumers track offset (position in log).
 
 **Strengths**:
+
 - Extreme throughput (LinkedIn: 7 trillion msg/day)
 - Long retention (replay historical events)
 - Exactly-once within Kafka boundary (transactions)
 - Strong ecosystem (Kafka Streams, Connect, Schema Registry)
 
 **Weaknesses**:
+
 - Operational complexity (ZooKeeper/KRaft, partition management)
 - Partition count limits scalability of individual topics
 - No built-in delayed messages
@@ -588,6 +632,7 @@ Action: Investigate consumer health, consider scaling
 **Architecture**: AMQP broker with exchanges and queues. Exchanges route messages to queues based on bindings and routing keys.
 
 **Strengths**:
+
 - Flexible routing (direct, fanout, topic, headers exchanges)
 - Low latency (<1ms p99)
 - Built-in delayed messages via plugin
@@ -595,6 +640,7 @@ Action: Investigate consumer health, consider scaling
 - Mature, well-understood
 
 **Weaknesses**:
+
 - Lower throughput than Kafka
 - Limited replay (messages consumed once)
 - Clustering adds complexity
@@ -617,12 +663,14 @@ Action: Investigate consumer health, consider scaling
 **SNS + SQS pattern**: SNS topic fans out to multiple SQS queues. Each queue has independent consumers. Common for event broadcasting with reliable queue-based consumption.
 
 **Strengths**:
+
 - Zero operational overhead
 - Scales automatically
 - Integrated with AWS services
 - Pay-per-message pricing
 
 **Weaknesses**:
+
 - Higher latency (100-200ms typical)
 - Limited retention (14 days max for SQS)
 - No replay (once delivered, gone)
@@ -635,6 +683,7 @@ Action: Investigate consumer health, consider scaling
 **Architecture**: Separated compute (brokers) and storage (BookKeeper). Topics have segments stored across bookies.
 
 **Strengths**:
+
 - Multi-tenancy built-in (namespaces, isolation)
 - Geo-replication native
 - Tiered storage (hot → cold automatically)
@@ -642,6 +691,7 @@ Action: Investigate consumer health, consider scaling
 - Both queuing and streaming in one system
 
 **Weaknesses**:
+
 - Newer, smaller ecosystem
 - Operational complexity (BookKeeper cluster)
 - Less mature tooling than Kafka
@@ -657,12 +707,14 @@ Action: Investigate consumer health, consider scaling
 **JetStream**: Persistence, at-least-once, replay, consumer groups.
 
 **Strengths**:
+
 - Extremely lightweight (~10MB binary)
 - Sub-millisecond latency
 - Simple protocol (text-based)
 - Good for edge/IoT
 
 **Weaknesses**:
+
 - JetStream less mature than Kafka
 - Smaller ecosystem
 - Limited exactly-once support
@@ -675,40 +727,40 @@ Action: Investigate consumer health, consider scaling
 
 #### 1. Messaging Pattern
 
-| Need | Recommended Approach |
-|------|---------------------|
-| Work distribution to worker pool | Queue (SQS, RabbitMQ) or Kafka consumer groups |
-| Event broadcasting to multiple consumers | Pub/sub (SNS, Kafka topics, Pub/Sub) |
-| Complex routing rules | RabbitMQ exchanges |
-| Event replay and sourcing | Kafka, Pulsar (log-based) |
-| Multi-region fan-out | SNS, Pub/Sub, Pulsar |
+| Need                                     | Recommended Approach                           |
+| ---------------------------------------- | ---------------------------------------------- |
+| Work distribution to worker pool         | Queue (SQS, RabbitMQ) or Kafka consumer groups |
+| Event broadcasting to multiple consumers | Pub/sub (SNS, Kafka topics, Pub/Sub)           |
+| Complex routing rules                    | RabbitMQ exchanges                             |
+| Event replay and sourcing                | Kafka, Pulsar (log-based)                      |
+| Multi-region fan-out                     | SNS, Pub/Sub, Pulsar                           |
 
 #### 2. Throughput and Latency
 
-| Requirement | Recommended Approach |
-|-------------|---------------------|
-| < 10K msg/s | Any—choose based on other factors |
-| 10K-100K msg/s | RabbitMQ, SQS, or Kafka |
-| > 100K msg/s | Kafka, Pulsar |
-| Sub-millisecond latency | NATS, RabbitMQ |
-| Latency tolerance (100ms+) | SQS, Cloud Pub/Sub |
+| Requirement                | Recommended Approach              |
+| -------------------------- | --------------------------------- |
+| < 10K msg/s                | Any—choose based on other factors |
+| 10K-100K msg/s             | RabbitMQ, SQS, or Kafka           |
+| > 100K msg/s               | Kafka, Pulsar                     |
+| Sub-millisecond latency    | NATS, RabbitMQ                    |
+| Latency tolerance (100ms+) | SQS, Cloud Pub/Sub                |
 
 #### 3. Ordering Requirements
 
-| Requirement | Recommended Approach |
-|-------------|---------------------|
-| No ordering needed | Any (maximize throughput) |
-| Per-entity ordering | Kafka (partition by key), SQS FIFO (message group) |
-| Strict FIFO (low throughput) | SQS FIFO, RabbitMQ single queue |
-| Global ordering | Single partition or consensus-based system |
+| Requirement                  | Recommended Approach                               |
+| ---------------------------- | -------------------------------------------------- |
+| No ordering needed           | Any (maximize throughput)                          |
+| Per-entity ordering          | Kafka (partition by key), SQS FIFO (message group) |
+| Strict FIFO (low throughput) | SQS FIFO, RabbitMQ single queue                    |
+| Global ordering              | Single partition or consensus-based system         |
 
 #### 4. Operational Capacity
 
-| Team Capability | Recommended Approach |
-|-----------------|---------------------|
+| Team Capability              | Recommended Approach                    |
+| ---------------------------- | --------------------------------------- |
 | No messaging operations team | SQS/SNS, Cloud Pub/Sub, Confluent Cloud |
-| Some operations capacity | RabbitMQ, managed Kafka |
-| Dedicated platform team | Self-managed Kafka, Pulsar |
+| Some operations capacity     | RabbitMQ, managed Kafka                 |
+| Dedicated platform team      | Self-managed Kafka, Pulsar              |
 
 ### Decision Tree
 
@@ -744,6 +796,7 @@ Start: What's your primary use case?
 **Use cases**: Activity tracking (profile views, searches, connections), metrics collection, change data capture, inter-service communication.
 
 **Architecture decisions**:
+
 - Kafka as the central nervous system—all events flow through Kafka
 - Custom Kafka version with upstream contributions
 - Separate clusters by use case (real-time vs. batch, critical vs. non-critical)
@@ -758,6 +811,7 @@ Start: What's your primary use case?
 **Use cases**: Every message post, push notification, URL unfurl, billing event, search indexing.
 
 **Architecture decisions**:
+
 - Dual-queue: Redis (in-memory, fast) + Kafka (durable, ledger)
 - Redis handles hot path—low latency for job dispatch
 - Kafka provides durability—no job lost even if Redis fails
@@ -773,6 +827,7 @@ Start: What's your primary use case?
 **Use cases**: Driver dispatch, rider updates, ETA notifications, surge pricing alerts.
 
 **Architecture decisions**:
+
 - Custom push platform (Streamgate) for WebSocket/gRPC connections
 - Kafka backbone for durable message storage and replay
 - Apache Flink for exactly-once stream processing
@@ -787,6 +842,7 @@ Start: What's your primary use case?
 **Use cases**: A/B testing, recommendations, personalization, real-time analytics.
 
 **Architecture decisions**:
+
 - Kafka as the event backbone
 - Flink for stream processing with exactly-once
 - Real-time graph ingestion for recommendations
@@ -829,6 +885,7 @@ Start: What's your primary use case?
 **The consequence**: During rebalancing: duplicate processing (at-least-once), lost in-memory state, processing stalls.
 
 **The fix**:
+
 - Commit offsets before rebalancing (ConsumerRebalanceListener)
 - Design for message reprocessing (idempotency)
 - Store state externally or rebuild on assignment
@@ -861,26 +918,31 @@ Start: What's your primary use case?
 Queues and pub/sub are complementary patterns for asynchronous communication:
 
 **Queues (point-to-point)** distribute work across consumers:
+
 - Each message processed by one consumer
 - Natural load balancing and retry semantics
 - Best for: task processing, job queues, work distribution
 
 **Topics (pub/sub)** broadcast events to all subscribers:
+
 - Each subscriber receives every message
 - Subscribers independent and decoupled
 - Best for: event broadcasting, event sourcing, analytics pipelines
 
 **Delivery semantics** determine reliability:
+
 - At-most-once: fast, may lose messages
 - At-least-once: reliable, may duplicate (most common)
 - Exactly-once: requires application idempotency (broker guarantees are limited)
 
 **Ordering** trades off throughput:
+
 - Partition-ordered (per-key): best balance of ordering and parallelism
 - FIFO: strict but limited throughput
 - Unordered: maximum throughput
 
 **Production patterns (2024)**:
+
 - **LinkedIn** (Kafka, 7T msg/day): Event backbone for 100K+ topics
 - **Slack** (Redis + Kafka): Dual-queue for speed and durability
 - **Netflix** (Kafka + Flink, 500B events/day): Real-time event-driven analytics

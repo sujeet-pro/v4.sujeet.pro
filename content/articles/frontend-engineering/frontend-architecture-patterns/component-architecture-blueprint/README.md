@@ -1925,21 +1925,21 @@ Architectural context:
 
 ### Terminology
 
-| Term                           | Definition                                                                                                                                                               |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Primitive**                  | A generic, reusable UI component with no business logic (e.g., Button, Card, Modal). Lives in the design system.                                                         |
-| **Block**                      | A business-aware component that composes Primitives and adds domain-specific behavior (e.g., ProductCard, AddToCartButton).                                              |
-| **Widget**                     | A self-contained page section that receives configuration from the backend and composes Blocks to render a complete feature.                                             |
-| **SDK**                        | An internal abstraction layer that provides framework-agnostic access to cross-cutting concerns (routing, analytics, state).                                             |
-| **BFF (Backend-for-Frontend)** | A backend service layer specifically designed to serve the needs of a particular frontend. It aggregates data from multiple services and formats it for UI consumption.  |
-| **Layout**                     | A data structure from the BFF that defines the page structure, including SEO metadata, analytics configuration, and the list of widgets to render.                       |
-| **Widget Payload**             | The data contract between the BFF and a specific widget, containing all information needed to render that widget.                                                        |
-| **Widget Registry**            | A mapping of widget type identifiers to their corresponding React components.                                                                                            |
-| **Boundary**                   | A defined interface between architectural layers that controls what can be imported from where.                                                                          |
-| **Barrel Export**              | An `index.ts` file that explicitly defines the public API of a module.                                                                                                   |
-| **Dependency Injection (DI)**  | A pattern where dependencies are provided to a component rather than created within it.                                                                                  |
-| **Provider Pattern**           | Using React Context to inject dependencies at runtime, enabling easy testing and configuration.                                                                          |
-| **HMR**                        | Hot Module Replacement—Vite/Webpack feature that updates modules in the browser without full page reload.                                                                |
+| Term                           | Definition                                                                                                                                                              |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Primitive**                  | A generic, reusable UI component with no business logic (e.g., Button, Card, Modal). Lives in the design system.                                                        |
+| **Block**                      | A business-aware component that composes Primitives and adds domain-specific behavior (e.g., ProductCard, AddToCartButton).                                             |
+| **Widget**                     | A self-contained page section that receives configuration from the backend and composes Blocks to render a complete feature.                                            |
+| **SDK**                        | An internal abstraction layer that provides framework-agnostic access to cross-cutting concerns (routing, analytics, state).                                            |
+| **BFF (Backend-for-Frontend)** | A backend service layer specifically designed to serve the needs of a particular frontend. It aggregates data from multiple services and formats it for UI consumption. |
+| **Layout**                     | A data structure from the BFF that defines the page structure, including SEO metadata, analytics configuration, and the list of widgets to render.                      |
+| **Widget Payload**             | The data contract between the BFF and a specific widget, containing all information needed to render that widget.                                                       |
+| **Widget Registry**            | A mapping of widget type identifiers to their corresponding React components.                                                                                           |
+| **Boundary**                   | A defined interface between architectural layers that controls what can be imported from where.                                                                         |
+| **Barrel Export**              | An `index.ts` file that explicitly defines the public API of a module.                                                                                                  |
+| **Dependency Injection (DI)**  | A pattern where dependencies are provided to a component rather than created within it.                                                                                 |
+| **Provider Pattern**           | Using React Context to inject dependencies at runtime, enabling easy testing and configuration.                                                                         |
+| **HMR**                        | Hot Module Replacement—Vite/Webpack feature that updates modules in the browser without full page reload.                                                               |
 
 ### Summary
 

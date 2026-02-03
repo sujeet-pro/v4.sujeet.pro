@@ -63,11 +63,11 @@ OpenTelemetry (OTel) provides the current standard for instrumentation, unifying
 
 The three observability signals answer fundamentally different questions:
 
-| Signal  | Question Answered                   | Cardinality | Storage Cost | Query Pattern            |
-| ------- | ----------------------------------- | ----------- | ------------ | ------------------------ |
-| Logs    | "What happened in this request?"    | Unbounded   | Highest      | Full-text search, filter |
-| Metrics | "How is the system behaving?"       | Bounded     | Lowest       | Aggregation, rate        |
-| Traces  | "How did this request flow?"        | Sampled     | Medium       | Trace ID lookup, DAG     |
+| Signal  | Question Answered                | Cardinality | Storage Cost | Query Pattern            |
+| ------- | -------------------------------- | ----------- | ------------ | ------------------------ |
+| Logs    | "What happened in this request?" | Unbounded   | Highest      | Full-text search, filter |
+| Metrics | "How is the system behaving?"    | Bounded     | Lowest       | Aggregation, rate        |
+| Traces  | "How did this request flow?"     | Sampled     | Medium       | Trace ID lookup, DAG     |
 
 ### Why Three Signals?
 
@@ -147,13 +147,13 @@ A well-designed log schema includes:
 
 Log levels communicate actionability, not importance:
 
-| Level   | Semantics                                           | Production Use               |
-| ------- | --------------------------------------------------- | ---------------------------- |
-| `ERROR` | Actionable failure requiring investigation          | Alert, page on-call          |
-| `WARN`  | Degraded condition, retry succeeded, missing config | Monitor, investigate if frequent |
-| `INFO`  | Business events, state transitions, request lifecycle | Normal operations            |
-| `DEBUG` | Diagnostic detail, variable values                  | Disabled in production       |
-| `TRACE` | Extremely verbose diagnostics                       | Never in production          |
+| Level   | Semantics                                             | Production Use                   |
+| ------- | ----------------------------------------------------- | -------------------------------- |
+| `ERROR` | Actionable failure requiring investigation            | Alert, page on-call              |
+| `WARN`  | Degraded condition, retry succeeded, missing config   | Monitor, investigate if frequent |
+| `INFO`  | Business events, state transitions, request lifecycle | Normal operations                |
+| `DEBUG` | Diagnostic detail, variable values                    | Disabled in production           |
+| `TRACE` | Extremely verbose diagnostics                         | Never in production              |
 
 **Design reasoning**: If every `ERROR` log does not warrant investigation, your log levels are miscalibrated. Teams that log expected conditions as `ERROR` (e.g., user validation failures) train themselves to ignore errors.
 
@@ -353,20 +353,20 @@ tracestate: congo=t61rcWkgMzE,rojo=00f067aa0ba902b7
 **Span Attributes** attach to a single span and are not propagated:
 
 ```typescript
-span.setAttribute("user.tier", "premium");
-span.setAttribute("feature.flag.checkout_v2", true);
+span.setAttribute("user.tier", "premium")
+span.setAttribute("feature.flag.checkout_v2", true)
 ```
 
 **Baggage** propagates across service boundaries:
 
 ```typescript
 // Service A: Set baggage
-baggage.setEntry("user.tier", "premium");
+baggage.setEntry("user.tier", "premium")
 
 // Service B: Read baggage (automatically propagated)
-const tier = baggage.getEntry("user.tier");
+const tier = baggage.getEntry("user.tier")
 // Must explicitly add to span if needed for querying
-span.setAttribute("user.tier", tier);
+span.setAttribute("user.tier", tier)
 ```
 
 **Design reasoning**: Baggage is a transport mechanism, not storage. It travels with requests but does not automatically appear in trace backends. You must explicitly copy baggage entries to span attributes if you want them queryable.
@@ -392,7 +392,7 @@ Decision made at trace start, before any spans are generated:
 
 ```typescript
 // Probabilistic head sampler: 10% of traces
-const sampler = new TraceIdRatioBasedSampler(0.1);
+const sampler = new TraceIdRatioBasedSampler(0.1)
 
 // All downstream services respect the sampling decision
 // via the sampled flag in traceparent header
@@ -417,7 +417,7 @@ const policies = [
   { name: "errors", type: "status_code", status_codes: ["ERROR"] },
   { name: "slow", type: "latency", threshold_ms: 1000 },
   { name: "baseline", type: "probabilistic", sampling_percentage: 5 },
-];
+]
 ```
 
 **Characteristics**:

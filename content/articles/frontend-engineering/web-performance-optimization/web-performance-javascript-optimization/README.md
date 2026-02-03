@@ -59,12 +59,12 @@ This quote describes `defer` behavior—the spec's solution to the tension. The 
 
 ### Execution Order Guarantees by Attribute
 
-| Attribute | Fetch | Execute | Order | Use Case |
-|-----------|-------|---------|-------|----------|
-| (none) | Blocking | Immediate | Document | Legacy scripts requiring `document.write()` |
-| `async` | Parallel | On arrival | **None** | Independent analytics, ads |
-| `defer` | Parallel | After parsing | Document | Application code with DOM dependencies |
-| `type="module"` | Parallel | After parsing | Dependency graph | Modern ESM applications |
+| Attribute       | Fetch    | Execute       | Order            | Use Case                                    |
+| --------------- | -------- | ------------- | ---------------- | ------------------------------------------- |
+| (none)          | Blocking | Immediate     | Document         | Legacy scripts requiring `document.write()` |
+| `async`         | Parallel | On arrival    | **None**         | Independent analytics, ads                  |
+| `defer`         | Parallel | After parsing | Document         | Application code with DOM dependencies      |
+| `type="module"` | Parallel | After parsing | Dependency graph | Modern ESM applications                     |
 
 ### Why `defer` Executes After Parsing
 
@@ -131,6 +131,7 @@ The threshold derives from the RAIL performance model's responsiveness target:
 > **W3C Long Tasks spec**: "Any of the following occurrences whose duration exceeds 50ms."
 
 The reasoning:
+
 - Users perceive responses under 100ms as instantaneous
 - A 50ms task budget leaves 50ms for the browser to process input and render
 - This 50ms + 50ms = 100ms total maintains perceived responsiveness
@@ -143,19 +144,19 @@ As of Chrome 129 (September 2024), `scheduler.yield()` provides yielding with pr
 
 ```javascript collapse={1-2}
 async function processLargeDataset(items) {
-  const results = [];
-  const BATCH_SIZE = 50;
+  const results = []
+  const BATCH_SIZE = 50
 
   for (let i = 0; i < items.length; i++) {
-    results.push(await computeExpensiveOperation(items[i]));
+    results.push(await computeExpensiveOperation(items[i]))
 
     // Yield every 50 items, maintaining task priority
     if (i % BATCH_SIZE === 0 && i > 0) {
-      await scheduler.yield();
+      await scheduler.yield()
     }
   }
 
-  return results;
+  return results
 }
 ```
 
@@ -163,12 +164,12 @@ async function processLargeDataset(items) {
 
 `setTimeout(0)` has critical limitations that `scheduler.yield()` addresses:
 
-| Aspect | `setTimeout(0)` | `scheduler.yield()` |
-|--------|----------------|---------------------|
-| Queue position | Back of task queue | Continuation queue (higher priority) |
-| Minimum delay | ~4ms (spec-mandated after 5 nested calls) | None |
-| Background throttling | 1000ms+ in background tabs | Respects priority |
-| Priority awareness | None | Inherits from parent task |
+| Aspect                | `setTimeout(0)`                           | `scheduler.yield()`                  |
+| --------------------- | ----------------------------------------- | ------------------------------------ |
+| Queue position        | Back of task queue                        | Continuation queue (higher priority) |
+| Minimum delay         | ~4ms (spec-mandated after 5 nested calls) | None                                 |
+| Background throttling | 1000ms+ in background tabs                | Respects priority                    |
+| Priority awareness    | None                                      | Inherits from parent task            |
 
 > **WICG Scheduling spec**: "Continuations have a higher effective priority than tasks with the same TaskPriority."
 
@@ -176,16 +177,19 @@ The browser maintains separate continuation queues for each priority level. A `u
 
 ```javascript
 // Priority inheritance demonstration
-scheduler.postTask(async () => {
-  // This runs at background priority
-  await heavyComputation();
+scheduler.postTask(
+  async () => {
+    // This runs at background priority
+    await heavyComputation()
 
-  // After yield, still at background priority
-  // But ahead of OTHER background tasks
-  await scheduler.yield();
+    // After yield, still at background priority
+    // But ahead of OTHER background tasks
+    await scheduler.yield()
 
-  await moreComputation();
-}, { priority: 'background' });
+    await moreComputation()
+  },
+  { priority: "background" },
+)
 ```
 
 ### Adaptive Time-Slice Yielding
@@ -194,21 +198,18 @@ For variable-cost work items, yield based on elapsed time rather than iteration 
 
 ```javascript collapse={1-3}
 async function adaptiveProcessing(workQueue) {
-  const TIME_SLICE_MS = 5;
+  const TIME_SLICE_MS = 5
 
   while (workQueue.length > 0) {
-    const sliceStart = performance.now();
+    const sliceStart = performance.now()
 
     // Process until time slice exhausted
-    while (
-      workQueue.length > 0 &&
-      performance.now() - sliceStart < TIME_SLICE_MS
-    ) {
-      processWorkItem(workQueue.shift());
+    while (workQueue.length > 0 && performance.now() - sliceStart < TIME_SLICE_MS) {
+      processWorkItem(workQueue.shift())
     }
 
     if (workQueue.length > 0) {
-      await scheduler.yield();
+      await scheduler.yield()
     }
   }
 }
@@ -216,20 +217,20 @@ async function adaptiveProcessing(workQueue) {
 
 ### Browser Support and Fallback
 
-| API | Chrome | Firefox | Safari |
-|-----|--------|---------|--------|
-| `scheduler.postTask()` | 94 (Sept 2021) | 142 (Aug 2025) | Not supported |
-| `scheduler.yield()` | 129 (Sept 2024) | Not supported | Not supported |
+| API                    | Chrome          | Firefox        | Safari        |
+| ---------------------- | --------------- | -------------- | ------------- |
+| `scheduler.postTask()` | 94 (Sept 2021)  | 142 (Aug 2025) | Not supported |
+| `scheduler.yield()`    | 129 (Sept 2024) | Not supported  | Not supported |
 
 For browsers without support, fall back to `setTimeout(0)` with the understanding that priority is lost:
 
 ```javascript collapse={1-5}
 const yieldToMain = () => {
-  if ('scheduler' in globalThis && 'yield' in scheduler) {
-    return scheduler.yield();
+  if ("scheduler" in globalThis && "yield" in scheduler) {
+    return scheduler.yield()
   }
-  return new Promise(resolve => setTimeout(resolve, 0));
-};
+  return new Promise((resolve) => setTimeout(resolve, 0))
+}
 ```
 
 ## Code Splitting: Reducing Initial Bundle Size
@@ -241,12 +242,12 @@ Code splitting defers loading non-critical code until needed, reducing Time to I
 Route-based splitting is the highest-impact strategy—each route loads only its required code:
 
 ```javascript collapse={1-4}
-import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { lazy, Suspense } from "react"
+import { Routes, Route } from "react-router-dom"
 
-const Home = lazy(() => import('./pages/Home'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Settings = lazy(() => import('./pages/Settings'));
+const Home = lazy(() => import("./pages/Home"))
+const Dashboard = lazy(() => import("./pages/Dashboard"))
+const Settings = lazy(() => import("./pages/Settings"))
 
 function App() {
   return (
@@ -257,7 +258,7 @@ function App() {
         <Route path="/settings" element={<Settings />} />
       </Routes>
     </Suspense>
-  );
+  )
 }
 ```
 
@@ -274,31 +275,31 @@ Sequential chunk loading creates waterfalls:
 
 ```html
 <script>
-  const routeChunks = { '/': 'home.js', '/dashboard': 'dashboard.js' };
-  const chunk = routeChunks[location.pathname];
+  const routeChunks = { "/": "home.js", "/dashboard": "dashboard.js" }
+  const chunk = routeChunks[location.pathname]
   if (chunk) {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'script';
-    link.href = `/chunks/${chunk}`;
-    document.head.appendChild(link);
+    const link = document.createElement("link")
+    link.rel = "preload"
+    link.as = "script"
+    link.href = `/chunks/${chunk}`
+    document.head.appendChild(link)
   }
 </script>
 ```
 
 ### `webpackPrefetch` vs `webpackPreload`
 
-| Directive | Timing | Priority | Use Case |
-|-----------|--------|----------|----------|
-| `webpackPreload` | Parallel with parent | Medium | Needed for current navigation |
-| `webpackPrefetch` | During browser idle | Low | Likely needed for future navigation |
+| Directive         | Timing               | Priority | Use Case                            |
+| ----------------- | -------------------- | -------- | ----------------------------------- |
+| `webpackPreload`  | Parallel with parent | Medium   | Needed for current navigation       |
+| `webpackPrefetch` | During browser idle  | Low      | Likely needed for future navigation |
 
 ```javascript
 // Preload: needed NOW, loads in parallel
-import(/* webpackPreload: true */ 'ChartingLibrary');
+import(/* webpackPreload: true */ "ChartingLibrary")
 
 // Prefetch: needed LATER, loads during idle
-import(/* webpackPrefetch: true */ './SettingsPage');
+import(/* webpackPrefetch: true */ "./SettingsPage")
 ```
 
 **Trade-off**: Overusing `preload` competes for bandwidth with critical resources. Prefetch is safer—it uses idle time but may not complete before needed.
@@ -308,17 +309,17 @@ import(/* webpackPrefetch: true */ './SettingsPage');
 Split individual heavy components (>30KB) that aren't needed immediately:
 
 ```javascript collapse={1-2, 18-23}
-import { lazy, Suspense, useState, startTransition } from 'react';
+import { lazy, Suspense, useState, startTransition } from "react"
 
-const HeavyChart = lazy(() => import('./HeavyChart'));
+const HeavyChart = lazy(() => import("./HeavyChart"))
 
 function Dashboard() {
-  const [showChart, setShowChart] = useState(false);
+  const [showChart, setShowChart] = useState(false)
 
   const loadChart = () => {
     // Use transition to avoid blocking UI
-    startTransition(() => setShowChart(true));
-  };
+    startTransition(() => setShowChart(true))
+  }
 
   return (
     <div>
@@ -329,7 +330,7 @@ function Dashboard() {
         </Suspense>
       )}
     </div>
-  );
+  )
 }
 ```
 
@@ -345,11 +346,11 @@ ES modules are **statically analyzable**—imports and exports can be determined
 
 ```javascript
 // ✅ Static - bundler knows exactly what's used
-import { add, multiply } from './math.js';
+import { add, multiply } from "./math.js"
 
 // ❌ Dynamic - cannot analyze at build time
-const fn = condition ? 'add' : 'multiply';
-import('./math.js').then(mod => mod[fn]());
+const fn = condition ? "add" : "multiply"
+import("./math.js").then((mod) => mod[fn]())
 ```
 
 CommonJS cannot be tree-shaken because `require()` is a runtime function that can be called conditionally with computed paths.
@@ -377,11 +378,11 @@ CommonJS cannot be tree-shaken because `require()` is a runtime function that ca
 
 ### Bundler Differences
 
-| Bundler | Analysis Level | Trade-off |
-|---------|---------------|-----------|
-| Rollup | AST node level | Best optimization, slower |
+| Bundler | Analysis Level      | Trade-off                      |
+| ------- | ------------------- | ------------------------------ |
+| Rollup  | AST node level      | Best optimization, slower      |
 | webpack | Module/export level | Relies on Terser for final DCE |
-| esbuild | Top-level statement | Fastest, more conservative |
+| esbuild | Top-level statement | Fastest, more conservative     |
 
 esbuild interprets `sideEffects: false` narrowly—it removes entire unused modules but doesn't tree-shake individual statements within modules.
 
@@ -402,34 +403,34 @@ Workers have overhead: message serialization, thread creation, no DOM access. Us
 ### Basic Worker Pattern
 
 ```javascript title="main.js"
-const worker = new Worker('worker.js');
+const worker = new Worker("worker.js")
 
-worker.postMessage({ type: 'PROCESS', data: largeDataset });
+worker.postMessage({ type: "PROCESS", data: largeDataset })
 
 worker.onmessage = (event) => {
-  if (event.data.type === 'COMPLETE') {
-    updateUI(event.data.result);
+  if (event.data.type === "COMPLETE") {
+    updateUI(event.data.result)
   }
-};
+}
 
 worker.onerror = (error) => {
-  console.error('Worker error:', error.message);
-};
+  console.error("Worker error:", error.message)
+}
 ```
 
 ```javascript title="worker.js"
 self.onmessage = (event) => {
-  const { type, data } = event.data;
+  const { type, data } = event.data
 
-  if (type === 'PROCESS') {
+  if (type === "PROCESS") {
     try {
-      const result = expensiveComputation(data);
-      self.postMessage({ type: 'COMPLETE', result });
+      const result = expensiveComputation(data)
+      self.postMessage({ type: "COMPLETE", result })
     } catch (error) {
-      self.postMessage({ type: 'ERROR', message: error.message });
+      self.postMessage({ type: "ERROR", message: error.message })
     }
   }
-};
+}
 ```
 
 ### Transferable Objects: Zero-Copy Transfer
@@ -437,13 +438,13 @@ self.onmessage = (event) => {
 By default, `postMessage` uses the structured clone algorithm—deep copying data. For large `ArrayBuffer`s, use transfer instead:
 
 ```javascript
-const buffer = new ArrayBuffer(1024 * 1024 * 100); // 100MB
-console.log(buffer.byteLength); // 104857600
+const buffer = new ArrayBuffer(1024 * 1024 * 100) // 100MB
+console.log(buffer.byteLength) // 104857600
 
 // Transfer ownership - zero copy
-worker.postMessage({ buffer }, [buffer]);
+worker.postMessage({ buffer }, [buffer])
 
-console.log(buffer.byteLength); // 0 (detached)
+console.log(buffer.byteLength) // 0 (detached)
 ```
 
 > **WHATWG spec**: "Transferring is an irreversible and non-idempotent operation. Once transferred, an object cannot be transferred or used again."
@@ -458,20 +459,20 @@ console.log(buffer.byteLength); // 0 (detached)
 
 ```javascript
 worker.onerror = (event) => {
-  console.error(`Worker error: ${event.message} at ${event.filename}:${event.lineno}`);
-  event.preventDefault(); // Prevents default error logging
-};
+  console.error(`Worker error: ${event.message} at ${event.filename}:${event.lineno}`)
+  event.preventDefault() // Prevents default error logging
+}
 ```
 
 **Unhandled promise rejections do NOT propagate** to the parent—they only log to the worker's console. Implement explicit error messaging:
 
 ```javascript title="worker.js"
-self.addEventListener('unhandledrejection', (event) => {
+self.addEventListener("unhandledrejection", (event) => {
   self.postMessage({
-    type: 'ERROR',
-    message: event.reason?.message || 'Unhandled rejection'
-  });
-});
+    type: "ERROR",
+    message: event.reason?.message || "Unhandled rejection",
+  })
+})
 ```
 
 ### Worker Pool for Parallel Processing
@@ -479,60 +480,60 @@ self.addEventListener('unhandledrejection', (event) => {
 ```javascript collapse={1-14, 29-50}
 class WorkerPool {
   constructor(workerScript, poolSize = navigator.hardwareConcurrency) {
-    this.workers = [];
-    this.queue = [];
-    this.available = [];
+    this.workers = []
+    this.queue = []
+    this.available = []
 
     for (let i = 0; i < poolSize; i++) {
-      const worker = new Worker(workerScript);
-      worker.onmessage = (e) => this.handleMessage(worker, e);
-      worker.onerror = (e) => this.handleError(worker, e);
-      this.workers.push(worker);
-      this.available.push(worker);
+      const worker = new Worker(workerScript)
+      worker.onmessage = (e) => this.handleMessage(worker, e)
+      worker.onerror = (e) => this.handleError(worker, e)
+      this.workers.push(worker)
+      this.available.push(worker)
     }
   }
 
   execute(task) {
     return new Promise((resolve, reject) => {
-      const wrapper = { task, resolve, reject };
+      const wrapper = { task, resolve, reject }
 
       if (this.available.length > 0) {
-        this.dispatch(this.available.pop(), wrapper);
+        this.dispatch(this.available.pop(), wrapper)
       } else {
-        this.queue.push(wrapper);
+        this.queue.push(wrapper)
       }
-    });
+    })
   }
 
   dispatch(worker, wrapper) {
-    worker.currentTask = wrapper;
-    worker.postMessage(wrapper.task);
+    worker.currentTask = wrapper
+    worker.postMessage(wrapper.task)
   }
 
   handleMessage(worker, event) {
-    const { resolve, reject } = worker.currentTask;
+    const { resolve, reject } = worker.currentTask
 
     if (event.data.error) {
-      reject(new Error(event.data.error));
+      reject(new Error(event.data.error))
     } else {
-      resolve(event.data.result);
+      resolve(event.data.result)
     }
 
     // Return to pool or process queue
     if (this.queue.length > 0) {
-      this.dispatch(worker, this.queue.shift());
+      this.dispatch(worker, this.queue.shift())
     } else {
-      this.available.push(worker);
+      this.available.push(worker)
     }
   }
 
   handleError(worker, event) {
-    worker.currentTask?.reject(new Error(event.message));
+    worker.currentTask?.reject(new Error(event.message))
     // Worker may be unusable - consider recreating
   }
 
   terminate() {
-    this.workers.forEach(w => w.terminate());
+    this.workers.forEach((w) => w.terminate())
   }
 }
 ```
@@ -551,10 +552,10 @@ Cross-Origin-Embedder-Policy: require-corp
 ```javascript
 // Verify cross-origin isolation
 if (crossOriginIsolated) {
-  const shared = new SharedArrayBuffer(1024);
+  const shared = new SharedArrayBuffer(1024)
   // Can use Atomics for synchronization
 } else {
-  console.warn('SharedArrayBuffer unavailable - not cross-origin isolated');
+  console.warn("SharedArrayBuffer unavailable - not cross-origin isolated")
 }
 ```
 
@@ -572,25 +573,24 @@ React applications have framework-specific optimization opportunities.
 const ExpensiveList = React.memo(function ExpensiveList({ items, onSelect }) {
   return (
     <ul>
-      {items.map(item => (
+      {items.map((item) => (
         <li key={item.id} onClick={() => onSelect(item.id)}>
           {item.name}
         </li>
       ))}
     </ul>
-  );
-});
+  )
+})
 
 // Custom comparison for complex props
 const MemoizedChart = React.memo(
   function Chart({ data, config }) {
-    return <ChartImpl data={data} config={config} />;
+    return <ChartImpl data={data} config={config} />
   },
   (prev, next) => {
-    return prev.data.length === next.data.length &&
-           prev.config.type === next.config.type;
-  }
-);
+    return prev.data.length === next.data.length && prev.config.type === next.config.type
+  },
+)
 ```
 
 **When to use**: Components that receive the same props frequently, expensive render logic, components deep in the tree that re-render due to parent updates.
@@ -601,26 +601,22 @@ const MemoizedChart = React.memo(
 
 ```javascript collapse={1-2, 16-20}
 function DataGrid({ data, filters, onRowClick }) {
-  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState({ key: "id", direction: "asc" })
 
   // Memoize expensive computation
   const filteredData = useMemo(() => {
-    return data
-      .filter(item => matchesFilters(item, filters))
-      .sort((a, b) => compareBy(a, b, sortConfig));
-  }, [data, filters, sortConfig]);
+    return data.filter((item) => matchesFilters(item, filters)).sort((a, b) => compareBy(a, b, sortConfig))
+  }, [data, filters, sortConfig])
 
   // Stabilize callback reference for memoized children
-  const handleRowClick = useCallback((rowId) => {
-    onRowClick(rowId);
-  }, [onRowClick]);
+  const handleRowClick = useCallback(
+    (rowId) => {
+      onRowClick(rowId)
+    },
+    [onRowClick],
+  )
 
-  return (
-    <MemoizedTable
-      data={filteredData}
-      onRowClick={handleRowClick}
-    />
-  );
+  return <MemoizedTable data={filteredData} onRowClick={handleRowClick} />
 }
 ```
 
@@ -630,12 +626,12 @@ As of React 18, Server Components run on the server with zero client bundle impa
 
 ```javascript title="ServerComponent.jsx"
 // No 'use client' - runs on server only
-import { db } from './database'; // Server-only module
-import ClientChart from './ClientChart';
+import { db } from "./database" // Server-only module
+import ClientChart from "./ClientChart"
 
 export default async function Dashboard({ userId }) {
   // Direct database access - no API needed
-  const metrics = await db.query('SELECT * FROM metrics WHERE user_id = ?', [userId]);
+  const metrics = await db.query("SELECT * FROM metrics WHERE user_id = ?", [userId])
 
   return (
     <div>
@@ -643,18 +639,18 @@ export default async function Dashboard({ userId }) {
       {/* ClientChart creates a split point */}
       <ClientChart data={metrics} />
     </div>
-  );
+  )
 }
 ```
 
 ```javascript title="ClientChart.jsx"
-'use client'
+"use client"
 
-import { useState } from 'react';
+import { useState } from "react"
 
 export default function ClientChart({ data }) {
-  const [zoom, setZoom] = useState(1);
-  return <canvas data-zoom={zoom} />;
+  const [zoom, setZoom] = useState(1)
+  return <canvas data-zoom={zoom} />
 }
 ```
 
@@ -665,26 +661,26 @@ export default function ClientChart({ data }) {
 For lists with thousands of items, render only visible items:
 
 ```javascript collapse={1-3}
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer } from "@tanstack/react-virtual"
 
 function VirtualList({ items }) {
-  const parentRef = useRef(null);
+  const parentRef = useRef(null)
 
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 50, // Estimated row height
     overscan: 5, // Render 5 extra items above/below viewport
-  });
+  })
 
   return (
-    <div ref={parentRef} style={{ height: '400px', overflow: 'auto' }}>
+    <div ref={parentRef} style={{ height: "400px", overflow: "auto" }}>
       <div style={{ height: virtualizer.getTotalSize() }}>
         {virtualizer.getVirtualItems().map((virtualRow) => (
           <div
             key={virtualRow.key}
             style={{
-              position: 'absolute',
+              position: "absolute",
               top: virtualRow.start,
               height: virtualRow.size,
             }}
@@ -694,7 +690,7 @@ function VirtualList({ items }) {
         ))}
       </div>
     </div>
-  );
+  )
 }
 ```
 
@@ -707,40 +703,40 @@ Effective optimization requires continuous measurement.
 ```javascript collapse={1-7, 35-45}
 class PerformanceMonitor {
   constructor() {
-    this.metrics = {};
-    this.setupObservers();
+    this.metrics = {}
+    this.setupObservers()
   }
 
   setupObservers() {
     // Largest Contentful Paint
     new PerformanceObserver((list) => {
-      const entries = list.getEntries();
-      this.metrics.lcp = entries[entries.length - 1].startTime;
-    }).observe({ type: 'largest-contentful-paint' });
+      const entries = list.getEntries()
+      this.metrics.lcp = entries[entries.length - 1].startTime
+    }).observe({ type: "largest-contentful-paint" })
 
     // Interaction to Next Paint (replaced FID March 2024)
     new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         if (!this.metrics.inp || entry.duration > this.metrics.inp) {
-          this.metrics.inp = entry.duration;
+          this.metrics.inp = entry.duration
         }
       }
-    }).observe({ type: 'event', buffered: true, durationThreshold: 16 });
+    }).observe({ type: "event", buffered: true, durationThreshold: 16 })
 
     // Cumulative Layout Shift
-    let clsValue = 0;
+    let clsValue = 0
     new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         if (!entry.hadRecentInput) {
-          clsValue += entry.value;
-          this.metrics.cls = clsValue;
+          clsValue += entry.value
+          this.metrics.cls = clsValue
         }
       }
-    }).observe({ type: 'layout-shift' });
+    }).observe({ type: "layout-shift" })
   }
 
   report() {
-    navigator.sendBeacon('/api/metrics', JSON.stringify(this.metrics));
+    navigator.sendBeacon("/api/metrics", JSON.stringify(this.metrics))
   }
 }
 ```
@@ -753,12 +749,12 @@ const longTaskObserver = new PerformanceObserver((list) => {
     if (entry.duration > 100) {
       console.warn(`Long task: ${entry.duration.toFixed(0)}ms`, {
         attribution: entry.attribution,
-      });
+      })
     }
   }
-});
+})
 
-longTaskObserver.observe({ type: 'longtask' });
+longTaskObserver.observe({ type: "longtask" })
 ```
 
 ## Conclusion

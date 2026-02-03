@@ -52,12 +52,12 @@ flowchart TD
 
 **Key design trade-offs:**
 
-| Decision | Optimizes For | Sacrifices |
-| :------- | :------------ | :--------- |
-| `acks=1` (leader only) | Latency (~1ms vs ~10ms) | Durability (rare message loss on leader failure) |
-| 10-minute dedup window | Storage cost, query noise | Precision (identical violations merged) |
-| 24-hour Kafka retention | Cost | Replay capability beyond 24h |
-| Stateless API | Horizontal scaling | Session-based rate limiting |
+| Decision                | Optimizes For             | Sacrifices                                       |
+| :---------------------- | :------------------------ | :----------------------------------------------- |
+| `acks=1` (leader only)  | Latency (~1ms vs ~10ms)   | Durability (rare message loss on leader failure) |
+| 10-minute dedup window  | Storage cost, query noise | Precision (identical violations merged)          |
+| 24-hour Kafka retention | Cost                      | Replay capability beyond 24h                     |
+| Stateless API           | Horizontal scaling        | Session-based rate limiting                      |
 
 **When this design fits:** High-volume telemetry where individual events are expendable, eventual consistency is acceptable, and the goal is aggregate insights rather than per-event guarantees.
 
@@ -235,13 +235,13 @@ The ingestion API must parse two distinct JSON formats. Per [W3C CSP3](https://w
 
 **Key differences:**
 
-| Aspect | Legacy (`report-uri`) | Modern (Reporting API) |
-| :----- | :-------------------- | :--------------------- |
-| Wrapper | `csp-report` object | Array of report objects |
-| Field naming | `kebab-case` | `camelCase` |
-| Directive field | `violated-directive` | `effectiveDirective` |
-| Code sample | Not included | `sample` (first 40 chars, requires `'report-sample'`) |
-| Batching | Single report per POST | May batch multiple reports |
+| Aspect          | Legacy (`report-uri`)  | Modern (Reporting API)                                |
+| :-------------- | :--------------------- | :---------------------------------------------------- |
+| Wrapper         | `csp-report` object    | Array of report objects                               |
+| Field naming    | `kebab-case`           | `camelCase`                                           |
+| Directive field | `violated-directive`   | `effectiveDirective`                                  |
+| Code sample     | Not included           | `sample` (first 40 chars, requires `'report-sample'`) |
+| Batching        | Single report per POST | May batch multiple reports                            |
 
 The consumer normalizes both formats to a unified internal schema before deduplication.
 
@@ -387,13 +387,13 @@ Optimizing the Netty engine for 50k+ RPS:
 
 Browsers implement CSP reporting with subtle differences. The pipeline must handle:
 
-| Variation | Source | Handling |
-| :-------- | :----- | :------- |
-| Missing `blocked-uri` | Some inline violations | Default to `"inline"` |
-| Truncated `sample` | Reporting API limit | Accept up to 40 chars per spec |
-| Extension violations | `blocked-uri` starts with `moz-extension://`, `chrome-extension://` | Filter out (not actionable) |
-| Empty `referrer` | Privacy settings | Normalize to `null` |
-| Query strings in URIs | Standard behavior | Strip for deduplication, preserve for storage |
+| Variation             | Source                                                              | Handling                                      |
+| :-------------------- | :------------------------------------------------------------------ | :-------------------------------------------- |
+| Missing `blocked-uri` | Some inline violations                                              | Default to `"inline"`                         |
+| Truncated `sample`    | Reporting API limit                                                 | Accept up to 40 chars per spec                |
+| Extension violations  | `blocked-uri` starts with `moz-extension://`, `chrome-extension://` | Filter out (not actionable)                   |
+| Empty `referrer`      | Privacy settings                                                    | Normalize to `null`                           |
+| Query strings in URIs | Standard behavior                                                   | Strip for deduplication, preserve for storage |
 
 ### 9.2 Failure Scenarios
 
@@ -435,14 +435,14 @@ The design explicitly trades durability for latency—acceptable for telemetry w
 
 ### Terminology
 
-| Term | Definition |
-| :--- | :--------- |
-| **CSP** | Content Security Policy - browser security mechanism that restricts resource loading |
-| **Fire-and-forget** | Pattern where the sender does not wait for acknowledgment |
-| **HPA** | Horizontal Pod Autoscaler - Kubernetes component for scaling based on metrics |
-| **OLAP** | Online Analytical Processing - optimized for aggregate queries over large datasets |
-| **Snowpipe** | Snowflake's continuous data ingestion service |
-| **ZGC** | Z Garbage Collector - low-latency GC for JVM with sub-millisecond pauses |
+| Term                | Definition                                                                           |
+| :------------------ | :----------------------------------------------------------------------------------- |
+| **CSP**             | Content Security Policy - browser security mechanism that restricts resource loading |
+| **Fire-and-forget** | Pattern where the sender does not wait for acknowledgment                            |
+| **HPA**             | Horizontal Pod Autoscaler - Kubernetes component for scaling based on metrics        |
+| **OLAP**            | Online Analytical Processing - optimized for aggregate queries over large datasets   |
+| **Snowpipe**        | Snowflake's continuous data ingestion service                                        |
+| **ZGC**             | Z Garbage Collector - low-latency GC for JVM with sub-millisecond pauses             |
 
 ### Summary
 

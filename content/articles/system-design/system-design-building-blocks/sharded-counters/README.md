@@ -67,12 +67,12 @@ A "hot key" is any key receiving disproportionate traffic. For counters, this is
 
 ### Quantifying the Bottleneck
 
-| System | Single-Key Write Limit | With Sharding (100 shards) |
-|--------|------------------------|----------------------------|
-| Firestore | ~1/sec | ~100/sec |
-| DynamoDB | ~1,000/sec (partition) | ~100,000/sec |
-| Cassandra | ~10,000/sec (node) | ~1,000,000/sec |
-| Redis | ~100,000/sec (single-threaded) | ~N/A (horizontal) |
+| System    | Single-Key Write Limit         | With Sharding (100 shards) |
+| --------- | ------------------------------ | -------------------------- |
+| Firestore | ~1/sec                         | ~100/sec                   |
+| DynamoDB  | ~1,000/sec (partition)         | ~100,000/sec               |
+| Cassandra | ~10,000/sec (node)             | ~1,000,000/sec             |
+| Redis     | ~100,000/sec (single-threaded) | ~N/A (horizontal)          |
 
 The improvement is linear with shard count—double the shards, double the write throughput.
 
@@ -92,11 +92,13 @@ def increment(counter_id: str, value: int = 1) -> None:
 ```
 
 **Best when:**
+
 - Write patterns are unpredictable
 - No locality benefits from consistent shard assignment
 - Simplicity is prioritized over read optimization
 
 **Trade-offs:**
+
 - ✅ Even load distribution with sufficient traffic
 - ✅ No coordination overhead
 - ✅ Trivial to implement
@@ -117,11 +119,13 @@ def increment(counter_id: str, client_id: str, value: int = 1) -> None:
 ```
 
 **Best when:**
+
 - Same clients repeatedly increment the same counter
 - You want to enable per-client rate limiting
 - Read caching can exploit client locality
 
 **Trade-offs:**
+
 - ✅ Deterministic mapping enables caching optimizations
 - ✅ Same client always hits same shard (reduces scatter on reads if you know the client)
 - ❌ Skewed hash distribution can create hot shards
@@ -142,11 +146,13 @@ def increment(counter_id: str, value: int = 1) -> None:
 ```
 
 **Best when:**
+
 - Analytics require time-windowed aggregations
 - Historical data can be compacted or archived
 - Write patterns are time-correlated (e.g., peak hours)
 
 **Trade-offs:**
+
 - ✅ Natural fit for time-series analytics
 - ✅ Old windows can be compacted into single values
 - ✅ Avoids unbounded growth in active shard count
@@ -157,13 +163,13 @@ def increment(counter_id: str, value: int = 1) -> None:
 
 ### Decision Matrix: Shard Selection
 
-| Factor | Random | Hash-Based | Time-Based |
-|--------|--------|------------|------------|
-| Implementation complexity | Low | Medium | High |
-| Write distribution | Even (at scale) | Depends on hash | Even per window |
-| Read optimization | None | Client locality | Window caching |
-| Scaling shards | Trivial | Requires rehash | Per-window |
-| Best for | General counters | Client-specific | Analytics, TTL |
+| Factor                    | Random           | Hash-Based      | Time-Based      |
+| ------------------------- | ---------------- | --------------- | --------------- |
+| Implementation complexity | Low              | Medium          | High            |
+| Write distribution        | Even (at scale)  | Depends on hash | Even per window |
+| Read optimization         | None             | Client locality | Window caching  |
+| Scaling shards            | Trivial          | Requires rehash | Per-window      |
+| Best for                  | General counters | Client-specific | Analytics, TTL  |
 
 ### Aggregation Approaches
 
@@ -181,6 +187,7 @@ def get_count(counter_id: str) -> int:
 ```
 
 **Characteristics:**
+
 - **Accuracy**: Exact count at read time
 - **Latency**: O(N) database reads where N = shard count
 - **Consistency**: Strong (assuming linearizable reads)
@@ -209,6 +216,7 @@ def get_count(counter_id: str) -> int:
 ```
 
 **Characteristics:**
+
 - **Accuracy**: Stale by up to T seconds (rollup interval)
 - **Latency**: O(1) cache read
 - **Consistency**: Eventual
@@ -229,13 +237,13 @@ The key insight: **different counters have different accuracy requirements**. Ne
 
 ### Aggregation Decision Matrix
 
-| Factor | Synchronous | Async Rollup | Hybrid |
-|--------|-------------|--------------|--------|
-| Read latency | O(N) shards | O(1) cache | O(1) typical |
-| Accuracy | Exact | Stale by T | Configurable |
-| Complexity | Low | Medium | High |
-| Infrastructure | DB only | DB + cache + jobs | DB + cache + event log + jobs |
-| Best for | Financial | Social metrics | Mixed workloads |
+| Factor         | Synchronous | Async Rollup      | Hybrid                        |
+| -------------- | ----------- | ----------------- | ----------------------------- |
+| Read latency   | O(N) shards | O(1) cache        | O(1) typical                  |
+| Accuracy       | Exact       | Stale by T        | Configurable                  |
+| Complexity     | Low         | Medium            | High                          |
+| Infrastructure | DB only     | DB + cache + jobs | DB + cache + event log + jobs |
+| Best for       | Financial   | Social metrics    | Mixed workloads               |
 
 ## Consistency Trade-offs
 
@@ -244,11 +252,13 @@ The key insight: **different counters have different accuracy requirements**. Ne
 Every read returns the result of the most recent write, globally.
 
 **Implementation requirements:**
+
 - Synchronous replication to all nodes before acknowledging writes
 - Read quorum that overlaps with write quorum
 - Global coordination (Paxos, Raft, or similar)
 
 **Performance impact:**
+
 - Write latency = slowest replica acknowledgment
 - Availability decreases during network partitions
 - Cannot use caching for reads
@@ -260,11 +270,13 @@ Every read returns the result of the most recent write, globally.
 Given no new updates, all replicas converge to the same value eventually.
 
 **Implementation characteristics:**
+
 - Asynchronous replication
 - Reads may return stale values
 - Writes acknowledged locally, propagated in background
 
 **Performance impact:**
+
 - Write latency = local persistence only
 - High availability during partitions
 - Caching dramatically improves read latency
@@ -283,14 +295,14 @@ For social metrics, users can tolerate seeing a like count that's slightly stale
 
 ### Consistency Decision Factors
 
-| Requirement | Consistency Model | Example |
-|-------------|-------------------|---------|
-| Cannot lose a single increment | Strong | Bank balance |
-| Cannot double-count | Strong | Inventory |
-| Users see approximate values | Eventual | Like count |
-| Analytics aggregations | Eventual | View count |
-| Rate limiting (strict) | Strong | API quotas |
-| Rate limiting (soft) | Eventual | Spam detection |
+| Requirement                    | Consistency Model | Example        |
+| ------------------------------ | ----------------- | -------------- |
+| Cannot lose a single increment | Strong            | Bank balance   |
+| Cannot double-count            | Strong            | Inventory      |
+| Users see approximate values   | Eventual          | Like count     |
+| Analytics aggregations         | Eventual          | View count     |
+| Rate limiting (strict)         | Strong            | API quotas     |
+| Rate limiting (soft)           | Eventual          | Spam detection |
 
 ## Approximate Counting
 
@@ -303,6 +315,7 @@ When exact counts aren't required, probabilistic data structures provide dramati
 **Key insight**: The maximum number of leading zeros in a hash tells you about the cardinality. If you've seen a hash with 10 leading zeros, you've probably seen ~2¹⁰ distinct elements.
 
 **Performance characteristics:**
+
 - Space: ~1.5KB for 2% standard error
 - Cardinality range: Estimates 10⁹+ elements accurately
 - Time: O(1) insert and query
@@ -318,6 +331,7 @@ def global_unique_users() -> int:
 ```
 
 **Use cases**:
+
 - Unique visitor counting (Google Analytics)
 - Distinct query counting (database query planners)
 - Cardinality estimation in data pipelines
@@ -331,6 +345,7 @@ def global_unique_users() -> int:
 **Key insight**: Hash each item to multiple positions in a 2D array; increment those positions. Query returns the minimum across hash positions (minimizing collision-induced overcount).
 
 **Performance characteristics:**
+
 - Space: w × d counters (typically thousands)
 - Error: Overestimates by at most ε × N with probability 1 - δ
 - Time: O(d) insert and query where d = number of hash functions
@@ -338,25 +353,27 @@ def global_unique_users() -> int:
 **Critical property—linearity**: Sketches can be summed across nodes. `CMS(stream_A) + CMS(stream_B) = CMS(stream_A ∪ stream_B)`.
 
 **Use cases**:
+
 - Heavy hitters detection (top-K frequent items)
 - Network traffic anomaly detection
 - Recommendation systems (item co-occurrence)
 
 **Limitations**:
+
 - Only overestimates, never underestimates
 - No way to decrement (can't handle deletions without extensions)
 - Requires tuning ε and δ for accuracy/space trade-off
 
 ### When to Use Probabilistic Structures
 
-| Requirement | Use Exact Counting | Use HLL | Use CMS |
-|-------------|-------------------|---------|---------|
-| Need exact value | ✅ | ❌ | ❌ |
-| Counting distinct items | Expensive | ✅ | ❌ |
-| Counting item frequency | ✅ | ❌ | ✅ |
-| Must support decrements | ✅ | ❌ | ❌ |
-| Memory constrained | ❌ | ✅ | ✅ |
-| Distributed merging | Complex | ✅ | ✅ |
+| Requirement             | Use Exact Counting | Use HLL | Use CMS |
+| ----------------------- | ------------------ | ------- | ------- |
+| Need exact value        | ✅                 | ❌      | ❌      |
+| Counting distinct items | Expensive          | ✅      | ❌      |
+| Counting item frequency | ✅                 | ❌      | ✅      |
+| Must support decrements | ✅                 | ❌      | ❌      |
+| Memory constrained      | ❌                 | ✅      | ✅      |
+| Distributed merging     | Complex            | ✅      | ✅      |
 
 ## Real-World Implementations
 
@@ -379,9 +396,10 @@ counters/
 **Read path**: Query entire `shards` subcollection, sum values.
 
 **Performance tuning by scale**:
+
 - <10 writes/sec: 1-5 shards
 - 10-1,000 writes/sec: 5-100 shards
-- >1,000 writes/sec: 100-1,000+ shards
+- > 1,000 writes/sec: 100-1,000+ shards
 
 **Optimization**: Maintain a separate rollup document updated at slower cadence. Clients read from rollup, avoiding O(N) aggregation.
 
@@ -396,13 +414,14 @@ counters/
 
 **Three counting modes**:
 
-| Mode | Consistency | Latency | Use Case |
-|------|-------------|---------|----------|
-| Best-Effort Regional | Weak | <1ms | Game events |
-| Eventual | Medium | <10ms | Most metrics |
-| Accurate Global | Strong | <100ms | Business-critical |
+| Mode                 | Consistency | Latency | Use Case          |
+| -------------------- | ----------- | ------- | ----------------- |
+| Best-Effort Regional | Weak        | <1ms    | Game events       |
+| Eventual             | Medium      | <10ms   | Most metrics      |
+| Accurate Global      | Strong      | <100ms  | Business-critical |
 
 **Production metrics**:
+
 - 75,000 requests/second globally
 - Single-digit millisecond latency
 - Processes billions of events daily
@@ -412,12 +431,14 @@ counters/
 ### Twitter/X Engagement Counters
 
 **Infrastructure stack**:
+
 - **Manhattan**: Multi-tenant distributed database for recent engagements
 - **GraphJet**: Graph query engine (1M edges/second per server)
 - **Kafka**: Streams billions of engagement events daily
 - **Redis**: Caches aggregated counts
 
 **Counter flow**:
+
 1. User engagement → Kafka topic
 2. Stream processors update sharded counters in Manhattan
 3. Aggregated values written to Redis
@@ -430,6 +451,7 @@ counters/
 **Scale**: 10 billion requests/second, petabytes of data.
 
 **Architecture**:
+
 - Object sharding by `object_id` hash (shard ID embedded in object ID)
 - MySQL as persistent store
 - Multi-layer caching (distributed Memcached-like layer)
@@ -448,6 +470,7 @@ counters/
 **Why it happens**: Teams extrapolate from peak traffic without considering steady-state, or copy configuration from high-traffic counters.
 
 **The consequence**:
+
 - Read latency increases 1,000x (must read all shards)
 - Storage overhead multiplies
 - Rollup jobs become expensive
@@ -461,6 +484,7 @@ counters/
 **Why it happens**: Underestimating traffic spikes, or not monitoring write latency.
 
 **The consequence**:
+
 - Write contention causes exponential backoff
 - Transaction retries cascade into timeouts
 - Users see failed increment operations
@@ -474,11 +498,13 @@ counters/
 **Why it happens**: Rollup interval is fixed, but write rate increases. Job takes longer than the interval to complete.
 
 **The consequence**:
+
 - Cache staleness grows unboundedly
 - Users see counts going backward (if rollup skips batches)
 - Memory pressure from growing event backlog
 
 **The fix**:
+
 - Monitor lag between latest event and latest rollup
 - Scale rollup workers horizontally
 - Implement backpressure: drop or sample events when lag exceeds threshold
@@ -490,6 +516,7 @@ counters/
 **Why it happens**: Cache is treated as storage rather than cache.
 
 **The consequence**:
+
 - Cache miss or failure → no count available
 - System appears unavailable for reads
 
@@ -502,6 +529,7 @@ counters/
 **Why it happens**: Total writes/second looks healthy; per-shard metrics aren't collected.
 
 **The consequence**:
+
 - Hot shards melt while averages look fine
 - 1 of 100 shards at 99% CPU, others at 1%—average shows 2%
 
@@ -519,14 +547,14 @@ counters/
 
 ### Common Patterns
 
-| Scenario | Recommended Approach |
-|----------|---------------------|
+| Scenario                            | Recommended Approach                         |
+| ----------------------------------- | -------------------------------------------- |
 | Social media metrics (likes, views) | Random sharding + async rollup + Redis cache |
-| API rate limiting (strict) | Hash-based sharding + synchronous reads |
-| Unique visitor counting | HyperLogLog per time window |
-| Top-K popular items | Count-Min Sketch + heap |
-| Financial transactions | Single counter with strong consistency |
-| Analytics dashboards | Time-based sharding + batch aggregation |
+| API rate limiting (strict)          | Hash-based sharding + synchronous reads      |
+| Unique visitor counting             | HyperLogLog per time window                  |
+| Top-K popular items                 | Count-Min Sketch + heap                      |
+| Financial transactions              | Single counter with strong consistency       |
+| Analytics dashboards                | Time-based sharding + batch aggregation      |
 
 ### Scaling Checklist
 

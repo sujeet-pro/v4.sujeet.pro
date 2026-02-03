@@ -41,7 +41,7 @@ flowchart TB
 These hooks exist because the core hooks (`useState`, `useEffect`, `useRef`) can't solve every problem. Each addresses a specific gap:
 
 - **Concurrent rendering** (`useTransition`, `useDeferredValue`): React 18's concurrent features need APIs to mark updates as interruptible. Without them, expensive renders block user input.
-- **Effect timing** (`useLayoutEffect`, `useInsertionEffect`): `useEffect` runs *after* paint. Some code—DOM measurements, style injection—must run *before* paint to avoid visual flicker.
+- **Effect timing** (`useLayoutEffect`, `useInsertionEffect`): `useEffect` runs _after_ paint. Some code—DOM measurements, style injection—must run _before_ paint to avoid visual flicker.
 - **External state** (`useSyncExternalStore`): Subscribing to external stores with `useEffect`/`useState` causes "tearing" in concurrent mode—different components see different store versions.
 - **Async data** (`use`): React 19's `use` hook reads promises during render, integrating with Suspense without custom wrapper components.
 - **Stable IDs** (`useId`): Server and client can generate IDs independently, causing hydration mismatches. `useId` uses component tree position to guarantee consistency.
@@ -114,21 +114,21 @@ function SubmitButton({ onSubmit }: { onSubmit: () => Promise<void> }) {
 
 **Edge cases and caveats**:
 
-| Scenario | Behavior |
-|----------|----------|
-| Multiple rapid transitions | Batched together (may change in future React versions) |
-| Text input in transition | ❌ Breaks responsiveness—input value should update synchronously |
+| Scenario                              | Behavior                                                                 |
+| ------------------------------------- | ------------------------------------------------------------------------ |
+| Multiple rapid transitions            | Batched together (may change in future React versions)                   |
+| Text input in transition              | ❌ Breaks responsiveness—input value should update synchronously         |
 | `setTimeout` inside `startTransition` | ❌ Doesn't work—the `setState` inside timeout isn't marked as transition |
-| Error in transition | Triggers nearest Error Boundary |
-| `startTransition` identity | Stable—safe to omit from `useEffect` dependencies |
+| Error in transition                   | Triggers nearest Error Boundary                                          |
+| `startTransition` identity            | Stable—safe to omit from `useEffect` dependencies                        |
 
 **When to use vs. not use**:
 
-| Use For | Don't Use For |
-|---------|---------------|
-| Tab switches, route navigation | Controlled text inputs |
-| Large list filtering | Updates that must be immediate |
-| Form submission with async | When you need exact timing control |
+| Use For                                 | Don't Use For                                               |
+| --------------------------------------- | ----------------------------------------------------------- |
+| Tab switches, route navigation          | Controlled text inputs                                      |
+| Large list filtering                    | Updates that must be immediate                              |
+| Form submission with async              | When you need exact timing control                          |
 | Any update where stale UI is acceptable | Outside React components (use standalone `startTransition`) |
 
 ### useDeferredValue: Defer Non-Critical Values
@@ -145,10 +145,7 @@ function SearchPage({ items }: { items: Item[] }) {
   const deferredQuery = useDeferredValue(query)
   const isStale = query !== deferredQuery
 
-  const filteredItems = useMemo(
-    () => items.filter((item) => item.name.includes(deferredQuery)),
-    [items, deferredQuery]
-  )
+  const filteredItems = useMemo(() => items.filter((item) => item.name.includes(deferredQuery)), [items, deferredQuery])
 
   return (
     <>
@@ -180,12 +177,12 @@ Without `initialValue`, the first render uses the actual value (no deferral poss
 
 **Comparison with debouncing/throttling**:
 
-| Aspect | useDeferredValue | Debouncing |
-|--------|------------------|------------|
-| Fixed delay | No—adapts to device speed | Yes |
-| Interruptible | Yes—abandons stale renders | No |
-| Integration with React | Deep (concurrent features) | Manual |
-| Use case | Rendering bottlenecks | Network requests |
+| Aspect                 | useDeferredValue           | Debouncing       |
+| ---------------------- | -------------------------- | ---------------- |
+| Fixed delay            | No—adapts to device speed  | Yes              |
+| Interruptible          | Yes—abandons stale renders | No               |
+| Integration with React | Deep (concurrent features) | Manual           |
+| Use case               | Rendering bottlenecks      | Network requests |
 
 **Edge cases and caveats**:
 
@@ -196,12 +193,12 @@ Without `initialValue`, the first render uses the actual value (no deferral poss
 
 **When to use vs. useTransition**:
 
-| useDeferredValue | useTransition |
-|------------------|---------------|
-| Value comes from props (no access to setter) | You control the state update |
-| Automatic deferral | Explicit `startTransition` call |
-| No `isPending` (compute from value comparison) | Provides `isPending` flag |
-| Defers a value | Defers a state update |
+| useDeferredValue                               | useTransition                   |
+| ---------------------------------------------- | ------------------------------- |
+| Value comes from props (no access to setter)   | You control the state update    |
+| Automatic deferral                             | Explicit `startTransition` call |
+| No `isPending` (compute from value comparison) | Provides `isPending` flag       |
+| Defers a value                                 | Defers a state update           |
 
 ## Effect Timing Hooks
 
@@ -215,7 +212,7 @@ Component renders → DOM updated → useInsertionEffect → useLayoutEffect →
 
 **Problem it solves**: You need to measure a DOM element (its position, size) and use that measurement to position something else. With `useEffect`, the element renders in the wrong position first, then jumps—visual flicker.
 
-**Design rationale**: Run *after* DOM updates but *before* browser paint. Measure and re-render; the user only sees the final result.
+**Design rationale**: Run _after_ DOM updates but _before_ browser paint. Measure and re-render; the user only sees the final result.
 
 ```tsx title="useLayoutEffect-tooltip.tsx" collapse={1-3, 20-30}
 import { useLayoutEffect, useRef, useState } from "react"
@@ -254,17 +251,17 @@ function Tooltip({ children, targetRect }: { children: React.ReactNode; targetRe
 
 **Edge cases and caveats**:
 
-| Scenario | Impact |
-|----------|--------|
-| Expensive calculation in `useLayoutEffect` | Blocks paint—causes jank |
-| SSR | Does nothing on server; logs warning in development |
-| Strict Mode | Runs setup+cleanup twice (like all effects) |
+| Scenario                                   | Impact                                              |
+| ------------------------------------------ | --------------------------------------------------- |
+| Expensive calculation in `useLayoutEffect` | Blocks paint—causes jank                            |
+| SSR                                        | Does nothing on server; logs warning in development |
+| Strict Mode                                | Runs setup+cleanup twice (like all effects)         |
 
 **SSR workarounds**:
 
 ```tsx title="useLayoutEffect-ssr.tsx" collapse={1-3}
 // Option 1: Client-only rendering with Suspense
-<Suspense fallback={<Spinner />}>
+;<Suspense fallback={<Spinner />}>
   <TooltipComponent /> {/* Only renders on client */}
 </Suspense>
 
@@ -276,17 +273,17 @@ if (!mounted) return <Fallback />
 
 **When to use vs. useEffect**:
 
-| useLayoutEffect | useEffect |
-|-----------------|-----------|
+| useLayoutEffect               | useEffect                    |
+| ----------------------------- | ---------------------------- |
 | DOM measurements before paint | Data fetching, subscriptions |
-| Synchronous repositioning | Non-visual side effects |
-| Avoiding visual flicker | Everything else |
+| Synchronous repositioning     | Non-visual side effects      |
+| Avoiding visual flicker       | Everything else              |
 
 ### useInsertionEffect: CSS-in-JS Style Injection
 
 **Problem it solves**: CSS-in-JS libraries need to inject `<style>` tags before `useLayoutEffect` runs, so layout measurements read the correct styles.
 
-**Design rationale**: Run before *all* other effects—even `useLayoutEffect`. This is the earliest point to inject styles.
+**Design rationale**: Run before _all_ other effects—even `useLayoutEffect`. This is the earliest point to inject styles.
 
 ```tsx title="useInsertionEffect-css.tsx" collapse={1-2}
 import { useInsertionEffect } from "react"
@@ -303,12 +300,12 @@ function useCSS(rule: string) {
 
 **Critical limitations** (unlike other effects):
 
-| Limitation | Reason |
-|------------|--------|
-| Cannot update state | Would cause render during render |
-| Refs not attached yet | DOM elements not connected to refs |
+| Limitation             | Reason                                   |
+| ---------------------- | ---------------------------------------- |
+| Cannot update state    | Would cause render during render         |
+| Refs not attached yet  | DOM elements not connected to refs       |
 | DOM may not be updated | Timing is uncertain—only styles are safe |
-| Client-only | No-op on server |
+| Client-only            | No-op on server                          |
 
 **This hook is for library authors only**. Application code should never use `useInsertionEffect` directly—use a CSS-in-JS library that handles this internally.
 
@@ -349,11 +346,11 @@ function getServerSnapshot() {
 
 **API contract**:
 
-| Function | Requirement |
-|----------|-------------|
+| Function              | Requirement                                                        |
+| --------------------- | ------------------------------------------------------------------ |
 | `subscribe(callback)` | Must return unsubscribe function; call callback when store changes |
-| `getSnapshot()` | Must return **immutable** data; same reference if unchanged |
-| `getServerSnapshot()` | Optional; provides initial value for SSR/hydration |
+| `getSnapshot()`       | Must return **immutable** data; same reference if unchanged        |
+| `getServerSnapshot()` | Optional; provides initial value for SSR/hydration                 |
 
 **Common mistake—mutable snapshots**:
 
@@ -376,7 +373,7 @@ function getSnapshot() {
 function Component({ userId }) {
   const data = useSyncExternalStore(
     (callback) => store.subscribe(userId, callback), // New function each render!
-    () => store.get(userId)
+    () => store.get(userId),
   )
 }
 
@@ -388,21 +385,18 @@ function Component() {
 
 // ✅ Or use useCallback for dynamic subscriptions
 function Component({ userId }) {
-  const subscribe = useCallback(
-    (callback) => store.subscribe(userId, callback),
-    [userId]
-  )
+  const subscribe = useCallback((callback) => store.subscribe(userId, callback), [userId])
   const data = useSyncExternalStore(subscribe, () => store.get(userId))
 }
 ```
 
 **Edge cases and caveats**:
 
-| Scenario | Behavior |
-|----------|----------|
-| Store changes during transition | React may restart render as blocking to prevent tearing |
-| Missing `getServerSnapshot` | SSR throws; use `Suspense` boundary to defer to client |
-| Suspending on store values | ❌ Discouraged—external mutations can't be marked as non-blocking |
+| Scenario                        | Behavior                                                          |
+| ------------------------------- | ----------------------------------------------------------------- |
+| Store changes during transition | React may restart render as blocking to prevent tearing           |
+| Missing `getServerSnapshot`     | SSR throws; use `Suspense` boundary to defer to client            |
+| Suspending on store values      | ❌ Discouraged—external mutations can't be marked as non-blocking |
 
 **When to use**: State management libraries (Redux, Zustand), browser APIs (`localStorage`, `navigator.onLine`), any external data source.
 
@@ -474,7 +468,7 @@ export default function Page({ userId }) {
 
 ```tsx title="use-error-handling.tsx" collapse={1-3}
 // Option 1: Error Boundary
-<ErrorBoundary fallback={<Error />}>
+;<ErrorBoundary fallback={<Error />}>
   <Suspense fallback={<Loading />}>
     <UserProfile userPromise={userPromise} />
   </Suspense>
@@ -487,11 +481,11 @@ const user = use(safePromise) // Never rejects
 
 **Constraints**:
 
-| Constraint | Workaround |
-|------------|------------|
-| Can't use in try-catch | Use Error Boundary or `.catch()` |
-| Resolved value must be serializable (Server → Client) | Only pass JSON-compatible data |
-| Promise in Client Component recreates on render | Pass from Server Component or use caching library |
+| Constraint                                            | Workaround                                        |
+| ----------------------------------------------------- | ------------------------------------------------- |
+| Can't use in try-catch                                | Use Error Boundary or `.catch()`                  |
+| Resolved value must be serializable (Server → Client) | Only pass JSON-compatible data                    |
+| Promise in Client Component recreates on render       | Pass from Server Component or use caching library |
 
 ## SSR and Accessibility
 
@@ -544,12 +538,12 @@ const root2 = createRoot(container2, { identifierPrefix: "app2-" })
 
 **Critical constraints**:
 
-| Constraint | Reason |
-|------------|--------|
-| Don't use for list keys | Keys should derive from data, not component position |
-| Don't use for `use()` cache keys | ID may change during render; use data-derived keys |
-| Top-level only | Like all hooks (except `use`) |
-| No async Server Components | Can't use in `async function ServerComponent()` |
+| Constraint                       | Reason                                               |
+| -------------------------------- | ---------------------------------------------------- |
+| Don't use for list keys          | Keys should derive from data, not component position |
+| Don't use for `use()` cache keys | ID may change during render; use data-derived keys   |
+| Top-level only                   | Like all hooks (except `use`)                        |
+| No async Server Components       | Can't use in `async function ServerComponent()`      |
 
 ## Advanced Composition Patterns
 
@@ -631,19 +625,19 @@ The decision tree: use core hooks by default. Reach for specialized hooks when y
 
 ### Prerequisites
 
-- [React Hooks Fundamentals](/articles/frontend-engineering/react-architecture/react-hooks-fundamentals) - Core hooks and rules
+- [React Hooks Fundamentals](../react-hooks-fundamentals/README.md) - Core hooks and rules
 - Understanding of React's render cycle
 - Familiarity with SSR (Server-Side Rendering) concepts
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **Concurrent rendering** | React 18+ feature where renders can be interrupted and resumed |
-| **Transition** | A non-blocking state update that can be abandoned if higher-priority work arrives |
-| **Tearing** | Visual inconsistency where different components show different versions of the same data |
-| **Hydration** | Attaching event handlers to server-rendered HTML on the client |
-| **Suspense** | React feature that shows fallback UI while async content loads |
+| Term                     | Definition                                                                               |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
+| **Concurrent rendering** | React 18+ feature where renders can be interrupted and resumed                           |
+| **Transition**           | A non-blocking state update that can be abandoned if higher-priority work arrives        |
+| **Tearing**              | Visual inconsistency where different components show different versions of the same data |
+| **Hydration**            | Attaching event handlers to server-rendered HTML on the client                           |
+| **Suspense**             | React feature that shows fallback UI while async content loads                           |
 
 ### Summary
 

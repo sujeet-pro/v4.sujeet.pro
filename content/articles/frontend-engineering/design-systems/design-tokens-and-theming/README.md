@@ -142,11 +142,11 @@ Most design systems operate well with just primitives and semantic tokens. Compo
 
 ### Tier Trade-offs
 
-| Approach | Token Count | Flexibility | Maintenance | Use Case |
-|----------|-------------|-------------|-------------|----------|
-| Primitives only | Low (~50-100) | Limited | Minimal | Simple apps, prototypes |
-| Primitives + Semantic | Medium (~200-500) | Good | Moderate | Most production systems |
-| All three tiers | High (~1000+) | Maximum | Significant | Multi-brand, white-label platforms |
+| Approach              | Token Count       | Flexibility | Maintenance | Use Case                           |
+| --------------------- | ----------------- | ----------- | ----------- | ---------------------------------- |
+| Primitives only       | Low (~50-100)     | Limited     | Minimal     | Simple apps, prototypes            |
+| Primitives + Semantic | Medium (~200-500) | Good        | Moderate    | Most production systems            |
+| All three tiers       | High (~1000+)     | Maximum     | Significant | Multi-brand, white-label platforms |
 
 ## Naming Conventions
 
@@ -154,14 +154,14 @@ The Category-Type-Item (CTI) pattern from Style Dictionary provides hierarchical
 
 ### Full Naming Structure
 
-| Level | Purpose | Examples |
-|-------|---------|----------|
-| **Namespace** | System identifier | `acme-`, `spectrum-` |
-| **Category** | Output type | `color`, `spacing`, `font`, `shadow` |
-| **Concept** | Semantic grouping | `background`, `action`, `feedback` |
-| **Property** | CSS property target | `text`, `border`, `fill` |
-| **Variant** | Scale position | `primary`, `secondary`, `100`, `lg` |
-| **State** | Interaction state | `default`, `hover`, `disabled`, `focus` |
+| Level         | Purpose             | Examples                                |
+| ------------- | ------------------- | --------------------------------------- |
+| **Namespace** | System identifier   | `acme-`, `spectrum-`                    |
+| **Category**  | Output type         | `color`, `spacing`, `font`, `shadow`    |
+| **Concept**   | Semantic grouping   | `background`, `action`, `feedback`      |
+| **Property**  | CSS property target | `text`, `border`, `fill`                |
+| **Variant**   | Scale position      | `primary`, `secondary`, `100`, `lg`     |
+| **State**     | Interaction state   | `default`, `hover`, `disabled`, `focus` |
 
 A fully qualified token: `acme-color-action-background-primary-hover`
 
@@ -181,12 +181,12 @@ A fully qualified token: `acme-color-action-background-primary-hover`
 
 **Case conventions by platform**:
 
-| Platform | Convention | Example |
-|----------|------------|---------|
-| CSS | kebab-case | `--color-text-primary` |
-| JavaScript | camelCase | `colorTextPrimary` |
-| Swift/Kotlin | camelCase | `colorTextPrimary` |
-| Android XML | snake_case | `color_text_primary` |
+| Platform     | Convention | Example                |
+| ------------ | ---------- | ---------------------- |
+| CSS          | kebab-case | `--color-text-primary` |
+| JavaScript   | camelCase  | `colorTextPrimary`     |
+| Swift/Kotlin | camelCase  | `colorTextPrimary`     |
+| Android XML  | snake_case | `color_text_primary`   |
 
 Style Dictionary handles these transformations automatically via name transforms.
 
@@ -257,8 +257,8 @@ Theme switching via CSS custom properties and a data attribute:
 ```js title="theme-switcher.js" collapse={1-2}
 // Theme toggle implementation
 function setTheme(theme) {
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('theme', theme);
+  document.documentElement.setAttribute("data-theme", theme)
+  localStorage.setItem("theme", theme)
 }
 ```
 
@@ -266,12 +266,12 @@ function setTheme(theme) {
 
 Production systems often need multiple orthogonal theme dimensions:
 
-| Dimension | Values | Mechanism |
-|-----------|--------|-----------|
-| Color mode | light, dark, high-contrast | Semantic color layer swap |
-| Brand | primary, partner-a, partner-b | Primitive palette swap |
-| Density | comfortable, compact | Spacing token scale swap |
-| Platform | desktop, mobile | Component token overrides |
+| Dimension  | Values                        | Mechanism                 |
+| ---------- | ----------------------------- | ------------------------- |
+| Color mode | light, dark, high-contrast    | Semantic color layer swap |
+| Brand      | primary, partner-a, partner-b | Primitive palette swap    |
+| Density    | comfortable, compact          | Spacing token scale swap  |
+| Platform   | desktop, mobile               | Component token overrides |
 
 These dimensions compose. A "dark + partner-a + compact" theme combines three orthogonal token sets. The implementation typically uses multiple data attributes or CSS class composition:
 
@@ -346,69 +346,77 @@ flowchart TD
 
 ```js title="style-dictionary.config.mjs" collapse={1-3, 35-50}
 // Configuration for multi-platform token build
-import StyleDictionary from 'style-dictionary';
+import StyleDictionary from "style-dictionary"
 
 export default {
-  source: ['tokens/**/*.json'],
+  source: ["tokens/**/*.json"],
   platforms: {
     css: {
-      transformGroup: 'css',
-      buildPath: 'dist/css/',
-      files: [{
-        destination: 'tokens.css',
-        format: 'css/variables',
-        options: {
-          outputReferences: true  // Preserve aliases in output
-        }
-      }]
+      transformGroup: "css",
+      buildPath: "dist/css/",
+      files: [
+        {
+          destination: "tokens.css",
+          format: "css/variables",
+          options: {
+            outputReferences: true, // Preserve aliases in output
+          },
+        },
+      ],
     },
     scss: {
-      transformGroup: 'scss',
-      buildPath: 'dist/scss/',
-      files: [{
-        destination: '_tokens.scss',
-        format: 'scss/variables'
-      }]
+      transformGroup: "scss",
+      buildPath: "dist/scss/",
+      files: [
+        {
+          destination: "_tokens.scss",
+          format: "scss/variables",
+        },
+      ],
     },
     ios: {
-      transformGroup: 'ios-swift',
-      buildPath: 'dist/ios/',
-      files: [{
-        destination: 'Tokens.swift',
-        format: 'ios-swift/class.swift',
-        className: 'DesignTokens'
-      }]
+      transformGroup: "ios-swift",
+      buildPath: "dist/ios/",
+      files: [
+        {
+          destination: "Tokens.swift",
+          format: "ios-swift/class.swift",
+          className: "DesignTokens",
+        },
+      ],
     },
     // Android configuration
     android: {
-      transformGroup: 'android',
-      buildPath: 'dist/android/',
-      files: [{
-        destination: 'tokens.xml',
-        format: 'android/resources'
-      }]
-    }
-  }
-};
+      transformGroup: "android",
+      buildPath: "dist/android/",
+      files: [
+        {
+          destination: "tokens.xml",
+          format: "android/resources",
+        },
+      ],
+    },
+  },
+}
 ```
 
 ### Transform Types
 
-| Transform Type | Purpose | Example |
-|----------------|---------|---------|
-| **name** | Convert token name format | `color.text.primary` → `--color-text-primary` |
-| **value** | Convert value representation | `16` → `1rem`, `#ff0000` → `UIColor.red` |
-| **attribute** | Add metadata based on CTI path | Add `category: 'color'` based on token path |
+| Transform Type | Purpose                        | Example                                       |
+| -------------- | ------------------------------ | --------------------------------------------- |
+| **name**       | Convert token name format      | `color.text.primary` → `--color-text-primary` |
+| **value**      | Convert value representation   | `16` → `1rem`, `#ff0000` → `UIColor.red`      |
+| **attribute**  | Add metadata based on CTI path | Add `category: 'color'` based on token path   |
 
 ### Platform-Specific Value Transformations
 
 The same token requires different representations per platform:
 
-| Token | Web CSS | Android | iOS |
-|-------|---------|---------|-----|
-| `spacing.md: 16` | `1rem` | `16dp` | `16.0` (CGFloat) |
-| `color.brand: #2563eb` | `#2563eb` | `#FF2563EB` (ARGB) | `UIColor(red:0.15,green:0.39,blue:0.92,alpha:1)` |
-| `font.weight.bold: 700` | `700` | `Typeface.BOLD` | `.bold` |
+| Token                   | Web CSS   | Android            | iOS                                              |
+| ----------------------- | --------- | ------------------ | ------------------------------------------------ |
+| `spacing.md: 16`        | `1rem`    | `16dp`             | `16.0` (CGFloat)                                 |
+| `color.brand: #2563eb`  | `#2563eb` | `#FF2563EB` (ARGB) | `UIColor(red:0.15,green:0.39,blue:0.92,alpha:1)` |
+| `font.weight.bold: 700` | `700`     | `Typeface.BOLD`    | `.bold`                                          |
 
 Style Dictionary v4 (current) supports transitive transforms—resolving reference chains iteratively. A component token referencing a semantic token referencing a primitive resolves correctly through the chain.
 
@@ -419,7 +427,7 @@ Style Dictionary v4 (current) supports transitive transforms—resolving referen
 name: Build Tokens
 on:
   push:
-    paths: ['tokens/**']
+    paths: ["tokens/**"]
 
 jobs:
   build:
@@ -429,7 +437,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
       - run: npm ci
 
@@ -470,11 +478,11 @@ Design tokens follow semantic versioning with domain-specific considerations for
 
 ### Semantic Versioning for Tokens
 
-| Version Bump | Trigger | Example |
-|--------------|---------|---------|
+| Version Bump      | Trigger                                 | Example                                                                    |
+| ----------------- | --------------------------------------- | -------------------------------------------------------------------------- |
 | **Major (X.0.0)** | Token removed, renamed, or type changed | Removing `color-accent`, renaming `color-primary` → `color-action-primary` |
-| **Minor (0.X.0)** | New tokens added | Adding `color-accent-subtle` |
-| **Patch (0.0.X)** | Value adjustments | Changing `blue-500` from `#3b82f6` to `#2563eb` |
+| **Minor (0.X.0)** | New tokens added                        | Adding `color-accent-subtle`                                               |
+| **Patch (0.0.X)** | Value adjustments                       | Changing `blue-500` from `#3b82f6` to `#2563eb`                            |
 
 ### Deprecation Strategy
 
@@ -507,20 +515,20 @@ For large codebases, automated migration via codemods:
 // Run: npx jscodeshift -t codemod-rename-token.js src/
 
 const tokenRenames = {
-  'color-accent': 'color-action-primary',
-  'color-accent-hover': 'color-action-primary-hover',
-};
+  "color-accent": "color-action-primary",
+  "color-accent-hover": "color-action-primary-hover",
+}
 
 export default function transformer(file, api) {
-  const j = api.jscodeshift;
+  const j = api.jscodeshift
 
   return j(file.source)
     .find(j.Literal)
-    .filter(path => tokenRenames[path.value])
-    .forEach(path => {
-      path.replace(j.literal(tokenRenames[path.value]));
+    .filter((path) => tokenRenames[path.value])
+    .forEach((path) => {
+      path.replace(j.literal(tokenRenames[path.value]))
     })
-    .toSource();
+    .toSource()
 }
 ```
 
@@ -537,17 +545,21 @@ Token changelogs should include:
 ## [2.0.0] - 2025-01-15
 
 ### Removed
+
 - `color-accent` - Use `color.action.primary`
 
 ### Changed
+
 - `color.blue.500` - #3b82f6 → #2563eb (improved contrast)
 
 ## [1.5.0] - 2024-12-01
 
 ### Deprecated
+
 - `color-accent` - Will be removed in v2.0. Use `color.action.primary`
 
 ### Added
+
 - `color.action.primary-subtle` - Low-emphasis action color
 ```
 
@@ -557,12 +569,12 @@ Effective token governance requires clear ownership, change processes, and quali
 
 ### Ownership Model
 
-| Role | Responsibility |
-|------|----------------|
-| **Design System Team** | Token schema, naming conventions, build pipeline |
-| **Platform Leads** | Platform-specific transforms, integration patterns |
-| **Design Lead** | Visual decisions, brand alignment, accessibility review |
-| **Consumers** | Adoption, feedback, bug reports |
+| Role                   | Responsibility                                          |
+| ---------------------- | ------------------------------------------------------- |
+| **Design System Team** | Token schema, naming conventions, build pipeline        |
+| **Platform Leads**     | Platform-specific transforms, integration patterns      |
+| **Design Lead**        | Visual decisions, brand alignment, accessibility review |
+| **Consumers**          | Adoption, feedback, bug reports                         |
 
 ### Change Process
 
@@ -581,7 +593,7 @@ Effective token governance requires clear ownership, change processes, and quali
 name: Token Validation
 on:
   pull_request:
-    paths: ['tokens/**']
+    paths: ["tokens/**"]
 
 jobs:
   validate:
@@ -622,6 +634,7 @@ Enforce conventions programmatically:
 The pioneer of design tokens (2014). SLDS evolved from version 1 (design tokens as build-time values) to SLDS 2 with "styling hooks"—CSS custom properties exposed at runtime for component customization.
 
 Styling hooks pattern:
+
 ```css
 /* Consumer overrides at component level */
 .my-context .slds-button {
@@ -634,6 +647,7 @@ Styling hooks pattern:
 Spectrum publishes tokens in `@adobe/spectrum-tokens` (v12+). Their Token Visualizer tool provides searchable token documentation. Spectrum uses DTCG-compatible format with Tokens Studio data export.
 
 Token structure follows:
+
 - **Global tokens**: Platform-wide values (`spectrum-global-color-blue-500`)
 - **Alias tokens**: Semantic mappings (`spectrum-alias-background-color-default`)
 - **Component tokens**: Per-component CSS custom properties
@@ -675,13 +689,13 @@ Start with primitives and semantic tokens. Add component tokens only when multi-
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **DTCG** | Design Tokens Community Group—W3C community group authoring the specification |
-| **CTI** | Category-Type-Item—naming convention hierarchy from Style Dictionary |
-| **Primitive token** | Raw design value with no semantic meaning (e.g., `blue-500: #3b82f6`) |
-| **Semantic token** | Alias token with contextual meaning (e.g., `color-action-primary`) |
-| **Component token** | Token scoped to specific component part (e.g., `button-background-color`) |
+| Term                     | Definition                                                                        |
+| ------------------------ | --------------------------------------------------------------------------------- |
+| **DTCG**                 | Design Tokens Community Group—W3C community group authoring the specification     |
+| **CTI**                  | Category-Type-Item—naming convention hierarchy from Style Dictionary              |
+| **Primitive token**      | Raw design value with no semantic meaning (e.g., `blue-500: #3b82f6`)             |
+| **Semantic token**       | Alias token with contextual meaning (e.g., `color-action-primary`)                |
+| **Component token**      | Token scoped to specific component part (e.g., `button-background-color`)         |
 | **Transitive transform** | Style Dictionary feature resolving reference chains through multiple alias levels |
 
 ### Summary

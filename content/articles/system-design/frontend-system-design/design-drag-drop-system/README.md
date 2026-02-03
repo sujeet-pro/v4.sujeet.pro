@@ -57,11 +57,11 @@ Drag and drop systems must unify three input models while providing accessible a
 
 - **Two architectural approaches dominate**: Native API wrappers (react-dnd, Sortable.js) abstract browser quirks. Custom implementations (dnd-kit, Pragmatic) ignore native DnD entirely, building from Pointer Events for consistent behavior.
 
-| Approach | Browser API | Touch Support | Accessibility | Bundle Size |
-|----------|-------------|---------------|---------------|-------------|
-| Native DnD wrapper | HTML5 DnD + Touch backend | Requires second backend | Manual | Small core |
-| Custom Pointer Events | Pointer Events | Built-in | Built-in | Larger |
-| Hybrid | HTML5 DnD desktop, Pointer mobile | Yes | Manual | Medium |
+| Approach              | Browser API                       | Touch Support           | Accessibility | Bundle Size |
+| --------------------- | --------------------------------- | ----------------------- | ------------- | ----------- |
+| Native DnD wrapper    | HTML5 DnD + Touch backend         | Requires second backend | Manual        | Small core  |
+| Custom Pointer Events | Pointer Events                    | Built-in                | Built-in      | Larger      |
+| Hybrid                | HTML5 DnD desktop, Pointer mobile | Yes                     | Manual        | Medium      |
 
 ## The Challenge
 
@@ -82,15 +82,18 @@ The web has three overlapping APIs for pointer input, each with different capabi
 The native API has behavior differences that break cross-browser implementations:
 
 **DataTransfer timing restrictions**:
+
 - `setData()` only works in `dragstart`. Calling it in any other event silently fails.
 - `getData()` returns empty string during `dragover` in Chrome/Safari—only readable on `drop`.
 - Firefox allows reading data during drag, but relying on this breaks other browsers.
 
 **Event sequencing differs**:
+
 - Chrome/Safari: fire `dragend` then `drop`
 - Firefox: fire `drop` then `dragend`
 
 **Drag image requirements**:
+
 - Firefox accepts any DOM element for `setDragImage()`
 - Chrome requires the element to be in the DOM and visible (even if off-screen)
 - Safari requires specific CSS to prevent default image generation
@@ -98,30 +101,30 @@ The native API has behavior differences that break cross-browser implementations
 ```typescript collapse={1-3, 20-25}
 // Setting up native drag with workarounds
 interface DragSourceOptions {
-  element: HTMLElement;
-  data: Record<string, string>;
-  dragImage?: HTMLElement;
+  element: HTMLElement
+  data: Record<string, string>
+  dragImage?: HTMLElement
 }
 
 function setupNativeDrag({ element, data, dragImage }: DragSourceOptions): void {
-  element.draggable = true;
+  element.draggable = true
 
-  element.addEventListener('dragstart', (e) => {
+  element.addEventListener("dragstart", (e) => {
     // Must set data in dragstart - only chance
     Object.entries(data).forEach(([type, value]) => {
-      e.dataTransfer?.setData(type, value);
-    });
+      e.dataTransfer?.setData(type, value)
+    })
 
     // Chrome requires element in DOM for custom drag image
     if (dragImage) {
-      document.body.appendChild(dragImage);
-      dragImage.style.position = 'absolute';
-      dragImage.style.left = '-9999px';
-      e.dataTransfer?.setDragImage(dragImage, 0, 0);
+      document.body.appendChild(dragImage)
+      dragImage.style.position = "absolute"
+      dragImage.style.left = "-9999px"
+      e.dataTransfer?.setDragImage(dragImage, 0, 0)
       // Clean up after browser captures image
-      requestAnimationFrame(() => dragImage.remove());
+      requestAnimationFrame(() => dragImage.remove())
     }
-  });
+  })
 }
 ```
 
@@ -146,11 +149,13 @@ WCAG 2.5.7 (Dragging Movements) requires non-dragging alternatives:
 > "All functionality that uses a dragging movement for operation can be achieved by a single pointer without dragging, unless dragging is essential, or the functionality is determined by the user agent and not modified by the author."
 
 **Why dragging is problematic**:
+
 - Users with motor impairments may not be able to hold and move simultaneously
 - Head pointers, eye-gaze systems, and trackballs make dragging difficult or impossible
 - Screen reader users cannot perceive spatial relationships
 
 **Acceptable alternatives**:
+
 - Keyboard: Enter to grab, Tab between targets, Enter to drop
 - Click-based: Click item, click destination
 - Menu-based: Right-click/long-press for move menu
@@ -160,13 +165,13 @@ WCAG 2.5.7 (Dragging Movements) requires non-dragging alternatives:
 
 The right drag-drop approach depends on use case complexity:
 
-| Factor | Simple | Complex |
-|--------|--------|---------|
-| Items | < 20 sortable | 1000+ virtualized |
-| Containers | Single list | Multiple connected lists |
-| Drop zones | Item positions | Nested hierarchies |
-| Constraints | Any position | Rules-based acceptance |
-| Feedback | Basic indicator | Rich preview, animations |
+| Factor      | Simple          | Complex                  |
+| ----------- | --------------- | ------------------------ |
+| Items       | < 20 sortable   | 1000+ virtualized        |
+| Containers  | Single list     | Multiple connected lists |
+| Drop zones  | Item positions  | Nested hierarchies       |
+| Constraints | Any position    | Rules-based acceptance   |
+| Feedback    | Basic indicator | Rich preview, animations |
 
 ## Browser APIs Deep Dive
 
@@ -187,59 +192,56 @@ drop (target) → dragend (source)
 ```typescript collapse={1-5, 35-45}
 // Complete native drag implementation
 function createDragSource(element: HTMLElement, itemId: string): void {
-  element.draggable = true;
+  element.draggable = true
 
-  element.addEventListener('dragstart', (e) => {
-    e.dataTransfer!.effectAllowed = 'move';
-    e.dataTransfer!.setData('application/x-item-id', itemId);
-    e.dataTransfer!.setData('text/plain', itemId); // Fallback for external drops
+  element.addEventListener("dragstart", (e) => {
+    e.dataTransfer!.effectAllowed = "move"
+    e.dataTransfer!.setData("application/x-item-id", itemId)
+    e.dataTransfer!.setData("text/plain", itemId) // Fallback for external drops
 
-    element.classList.add('dragging');
-  });
+    element.classList.add("dragging")
+  })
 
-  element.addEventListener('dragend', () => {
-    element.classList.remove('dragging');
-  });
+  element.addEventListener("dragend", () => {
+    element.classList.remove("dragging")
+  })
 }
 
-function createDropTarget(
-  element: HTMLElement,
-  onDrop: (itemId: string, position: 'before' | 'after') => void
-): void {
-  element.addEventListener('dragenter', (e) => {
-    e.preventDefault(); // Required to allow drop
-    element.classList.add('drop-target');
-  });
+function createDropTarget(element: HTMLElement, onDrop: (itemId: string, position: "before" | "after") => void): void {
+  element.addEventListener("dragenter", (e) => {
+    e.preventDefault() // Required to allow drop
+    element.classList.add("drop-target")
+  })
 
-  element.addEventListener('dragover', (e) => {
-    e.preventDefault(); // Required for every dragover
-    e.dataTransfer!.dropEffect = 'move';
-  });
+  element.addEventListener("dragover", (e) => {
+    e.preventDefault() // Required for every dragover
+    e.dataTransfer!.dropEffect = "move"
+  })
 
-  element.addEventListener('dragleave', () => {
-    element.classList.remove('drop-target');
-  });
+  element.addEventListener("dragleave", () => {
+    element.classList.remove("drop-target")
+  })
 
-  element.addEventListener('drop', (e) => {
-    e.preventDefault();
-    const itemId = e.dataTransfer!.getData('application/x-item-id');
-    const rect = element.getBoundingClientRect();
-    const position = e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
-    onDrop(itemId, position);
-    element.classList.remove('drop-target');
-  });
+  element.addEventListener("drop", (e) => {
+    e.preventDefault()
+    const itemId = e.dataTransfer!.getData("application/x-item-id")
+    const rect = element.getBoundingClientRect()
+    const position = e.clientY < rect.top + rect.height / 2 ? "before" : "after"
+    onDrop(itemId, position)
+    element.classList.remove("drop-target")
+  })
 }
 ```
 
 **Effect feedback**: `effectAllowed` (source) and `dropEffect` (target) communicate what operations are valid:
 
-| effectAllowed | dropEffect | Result |
-|---------------|------------|--------|
-| `move` | `move` | Move icon cursor |
-| `copy` | `copy` | Plus icon cursor |
-| `link` | `link` | Link icon cursor |
-| `all` | any | Target chooses |
-| `none` | - | No drop allowed |
+| effectAllowed | dropEffect | Result           |
+| ------------- | ---------- | ---------------- |
+| `move`        | `move`     | Move icon cursor |
+| `copy`        | `copy`     | Plus icon cursor |
+| `link`        | `link`     | Link icon cursor |
+| `all`         | any        | Target chooses   |
+| `none`        | -          | No drop allowed  |
 
 ### Pointer Events
 
@@ -247,37 +249,37 @@ Pointer Events (W3C Recommendation) provide a unified input model. A pointer is 
 
 **Key properties beyond mouse events**:
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `pointerId` | number | Unique ID for multi-pointer tracking |
-| `pointerType` | string | `"mouse"`, `"pen"`, `"touch"`, or empty |
-| `isPrimary` | boolean | Is this the primary pointer of its type? |
-| `pressure` | number | 0-1, normalized pressure |
-| `width`, `height` | number | Contact geometry in CSS pixels |
-| `tiltX`, `tiltY` | number | Pen angle, -90 to 90 degrees |
+| Property          | Type    | Description                              |
+| ----------------- | ------- | ---------------------------------------- |
+| `pointerId`       | number  | Unique ID for multi-pointer tracking     |
+| `pointerType`     | string  | `"mouse"`, `"pen"`, `"touch"`, or empty  |
+| `isPrimary`       | boolean | Is this the primary pointer of its type? |
+| `pressure`        | number  | 0-1, normalized pressure                 |
+| `width`, `height` | number  | Contact geometry in CSS pixels           |
+| `tiltX`, `tiltY`  | number  | Pen angle, -90 to 90 degrees             |
 
 **Pointer capture**: Redirect all pointer events to a specific element, even when pointer moves outside. Critical for drag operations.
 
 ```typescript collapse={1-5, 40-50}
 // Pointer Events drag implementation
 interface PointerDragState {
-  pointerId: number;
-  startX: number;
-  startY: number;
-  currentX: number;
-  currentY: number;
-  element: HTMLElement;
+  pointerId: number
+  startX: number
+  startY: number
+  currentX: number
+  currentY: number
+  element: HTMLElement
 }
 
-let dragState: PointerDragState | null = null;
+let dragState: PointerDragState | null = null
 
 function setupPointerDrag(element: HTMLElement): void {
-  element.addEventListener('pointerdown', (e) => {
+  element.addEventListener("pointerdown", (e) => {
     // Only handle primary pointer
-    if (!e.isPrimary) return;
+    if (!e.isPrimary) return
 
     // Capture pointer to receive events even outside element
-    element.setPointerCapture(e.pointerId);
+    element.setPointerCapture(e.pointerId)
 
     dragState = {
       pointerId: e.pointerId,
@@ -285,47 +287,47 @@ function setupPointerDrag(element: HTMLElement): void {
       startY: e.clientY,
       currentX: e.clientX,
       currentY: e.clientY,
-      element
-    };
+      element,
+    }
 
-    element.classList.add('dragging');
-  });
+    element.classList.add("dragging")
+  })
 
-  element.addEventListener('pointermove', (e) => {
-    if (!dragState || e.pointerId !== dragState.pointerId) return;
+  element.addEventListener("pointermove", (e) => {
+    if (!dragState || e.pointerId !== dragState.pointerId) return
 
-    dragState.currentX = e.clientX;
-    dragState.currentY = e.clientY;
+    dragState.currentX = e.clientX
+    dragState.currentY = e.clientY
 
     // Update visual position
-    const deltaX = dragState.currentX - dragState.startX;
-    const deltaY = dragState.currentY - dragState.startY;
-    element.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-  });
+    const deltaX = dragState.currentX - dragState.startX
+    const deltaY = dragState.currentY - dragState.startY
+    element.style.transform = `translate(${deltaX}px, ${deltaY}px)`
+  })
 
-  element.addEventListener('pointerup', (e) => {
-    if (!dragState || e.pointerId !== dragState.pointerId) return;
+  element.addEventListener("pointerup", (e) => {
+    if (!dragState || e.pointerId !== dragState.pointerId) return
 
-    element.releasePointerCapture(e.pointerId);
-    element.classList.remove('dragging');
-    element.style.transform = '';
+    element.releasePointerCapture(e.pointerId)
+    element.classList.remove("dragging")
+    element.style.transform = ""
 
     // Determine drop target at final position
-    const dropTarget = document.elementFromPoint(e.clientX, e.clientY);
+    const dropTarget = document.elementFromPoint(e.clientX, e.clientY)
     // Handle drop logic...
 
-    dragState = null;
-  });
+    dragState = null
+  })
 
   // Cancel on pointer lost (e.g., touch cancelled by palm rejection)
-  element.addEventListener('pointercancel', (e) => {
-    if (!dragState || e.pointerId !== dragState.pointerId) return;
+  element.addEventListener("pointercancel", (e) => {
+    if (!dragState || e.pointerId !== dragState.pointerId) return
 
-    element.releasePointerCapture(e.pointerId);
-    element.classList.remove('dragging');
-    element.style.transform = '';
-    dragState = null;
-  });
+    element.releasePointerCapture(e.pointerId)
+    element.classList.remove("dragging")
+    element.style.transform = ""
+    dragState = null
+  })
 }
 ```
 
@@ -348,6 +350,7 @@ function setupPointerDrag(element: HTMLElement): void {
 Touch Events remain relevant for multi-touch scenarios and older browser support, though Pointer Events are preferred for new implementations.
 
 **TouchList collections**:
+
 - `touches`: All current touch points on screen
 - `targetTouches`: Touch points on the event target element
 - `changedTouches`: Touch points that changed in this event
@@ -355,48 +358,56 @@ Touch Events remain relevant for multi-touch scenarios and older browser support
 ```typescript collapse={1-3, 30-40}
 // Touch-based drag with scroll prevention
 function setupTouchDrag(element: HTMLElement): void {
-  let startTouch: Touch | null = null;
+  let startTouch: Touch | null = null
 
-  element.addEventListener('touchstart', (e) => {
-    // Use first touch only
-    if (e.touches.length !== 1) return;
-    startTouch = e.touches[0];
+  element.addEventListener(
+    "touchstart",
+    (e) => {
+      // Use first touch only
+      if (e.touches.length !== 1) return
+      startTouch = e.touches[0]
 
-    element.classList.add('dragging');
-  }, { passive: false });
+      element.classList.add("dragging")
+    },
+    { passive: false },
+  )
 
-  element.addEventListener('touchmove', (e) => {
-    if (!startTouch) return;
+  element.addEventListener(
+    "touchmove",
+    (e) => {
+      if (!startTouch) return
 
-    // Prevent scrolling during drag
-    e.preventDefault();
+      // Prevent scrolling during drag
+      e.preventDefault()
 
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - startTouch.clientX;
-    const deltaY = touch.clientY - startTouch.clientY;
+      const touch = e.touches[0]
+      const deltaX = touch.clientX - startTouch.clientX
+      const deltaY = touch.clientY - startTouch.clientY
 
-    element.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-  }, { passive: false }); // Must be non-passive to preventDefault
+      element.style.transform = `translate(${deltaX}px, ${deltaY}px)`
+    },
+    { passive: false },
+  ) // Must be non-passive to preventDefault
 
-  element.addEventListener('touchend', (e) => {
-    if (!startTouch) return;
+  element.addEventListener("touchend", (e) => {
+    if (!startTouch) return
 
-    const touch = e.changedTouches[0];
-    element.classList.remove('dragging');
-    element.style.transform = '';
+    const touch = e.changedTouches[0]
+    element.classList.remove("dragging")
+    element.style.transform = ""
 
     // Find drop target
-    const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+    const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY)
     // Handle drop...
 
-    startTouch = null;
-  });
+    startTouch = null
+  })
 
-  element.addEventListener('touchcancel', () => {
-    element.classList.remove('dragging');
-    element.style.transform = '';
-    startTouch = null;
-  });
+  element.addEventListener("touchcancel", () => {
+    element.classList.remove("dragging")
+    element.style.transform = ""
+    startTouch = null
+  })
 }
 ```
 
@@ -414,30 +425,34 @@ Mobile:  element → touchstart/touchmove/touchend → custom state → drop han
 ```
 
 **How it works**:
+
 1. Set `draggable="true"` on elements
 2. Handle native drag events for mouse interaction
 3. Detect touch devices and add touch event listeners
 4. Maintain unified drop target registry for both paths
 
 **Best for**:
+
 - Cross-tab or cross-window dragging (only native DnD supports this)
 - File drops from desktop
 - Simple list reordering with existing touch library
 
 **Implementation complexity**:
 
-| Aspect | Effort |
-|--------|--------|
-| Initial setup | Medium |
-| Touch support | High (separate code path) |
-| Keyboard accessibility | High (manual) |
-| Cross-browser testing | High |
+| Aspect                 | Effort                    |
+| ---------------------- | ------------------------- |
+| Initial setup          | Medium                    |
+| Touch support          | High (separate code path) |
+| Keyboard accessibility | High (manual)             |
+| Cross-browser testing  | High                      |
 
 **Device/network profile**:
+
 - Works well on: Desktop browsers, modern mobile with touch backend
 - Struggles on: Complex nested drag targets, virtualized lists
 
 **Trade-offs**:
+
 - Pro: Native OS integration (cross-window drag, file drops)
 - Pro: Browser-managed drag preview
 - Con: Two code paths to maintain
@@ -455,6 +470,7 @@ pointerdown → capture → pointermove (throttled) → hit test drop targets �
 ```
 
 **How it works**:
+
 1. Listen for `pointerdown` on draggable elements
 2. Capture pointer to receive events outside element bounds
 3. Track position via `pointermove`, update preview position
@@ -462,20 +478,22 @@ pointerdown → capture → pointermove (throttled) → hit test drop targets �
 5. Commit changes on `pointerup`
 
 **Best for**:
+
 - Consistent behavior across all input types
 - Complex drag interactions (nested lists, kanban boards)
 - Applications requiring fine-grained control
 
 **Implementation complexity**:
 
-| Aspect | Effort |
-|--------|--------|
-| Initial setup | High |
-| Touch support | Built-in (same code path) |
+| Aspect                 | Effort                                |
+| ---------------------- | ------------------------------------- |
+| Initial setup          | High                                  |
+| Touch support          | Built-in (same code path)             |
 | Keyboard accessibility | Medium (framework typically provides) |
-| Cross-browser testing | Low (consistent API) |
+| Cross-browser testing  | Low (consistent API)                  |
 
 **Trade-offs**:
+
 - Pro: Single code path for all devices
 - Pro: Full control over drag preview and feedback
 - Pro: No DataTransfer timing issues
@@ -494,26 +512,29 @@ pointerdown → capture → pointermove (throttled) → hit test drop targets �
 ```
 
 **How it works**:
+
 1. Wrap draggable elements with library component/hook
 2. Register drop targets with acceptance criteria
 3. Library handles input detection and routes to appropriate backend
 4. Render functions receive drag state for visual feedback
 
 **Best for**:
+
 - Teams wanting production-ready solution quickly
 - Applications needing all features (keyboard, touch, mouse)
 - Complex interactions without low-level concerns
 
 **Implementation complexity**:
 
-| Aspect | Effort |
-|--------|--------|
-| Initial setup | Low |
-| Touch support | Built-in |
+| Aspect                 | Effort                   |
+| ---------------------- | ------------------------ |
+| Initial setup          | Low                      |
+| Touch support          | Built-in                 |
 | Keyboard accessibility | Built-in or configurable |
-| Cross-browser testing | Low (library handles) |
+| Cross-browser testing  | Low (library handles)    |
 
 **Trade-offs**:
+
 - Pro: Fastest time to production
 - Pro: Maintained by community/company
 - Pro: Accessibility often built-in
@@ -523,13 +544,13 @@ pointerdown → capture → pointermove (throttled) → hit test drop targets �
 
 **Library comparison**:
 
-| Library | Approach | Size (gzipped) | Accessibility | Framework |
-|---------|----------|----------------|---------------|-----------|
-| react-dnd | Backend abstraction | ~12KB | Manual | React |
-| dnd-kit | Sensor abstraction | ~15KB | Built-in | React |
-| Sortable.js | Native DnD + touch | ~7KB | Manual | Vanilla |
-| @atlassian/pragmatic-drag-and-drop | Native primitives | ~5KB core | Separate packages | Vanilla |
-| @react-aria/dnd | Pointer + accessibility | ~20KB | Built-in | React |
+| Library                            | Approach                | Size (gzipped) | Accessibility     | Framework |
+| ---------------------------------- | ----------------------- | -------------- | ----------------- | --------- |
+| react-dnd                          | Backend abstraction     | ~12KB          | Manual            | React     |
+| dnd-kit                            | Sensor abstraction      | ~15KB          | Built-in          | React     |
+| Sortable.js                        | Native DnD + touch      | ~7KB           | Manual            | Vanilla   |
+| @atlassian/pragmatic-drag-and-drop | Native primitives       | ~5KB core      | Separate packages | Vanilla   |
+| @react-aria/dnd                    | Pointer + accessibility | ~20KB          | Built-in          | React     |
 
 ### Decision Framework
 
@@ -557,64 +578,61 @@ The most common drag-drop pattern: reorder items within a single list.
 
 ```typescript collapse={1-8, 45-55}
 interface SortableListState<T> {
-  items: T[];
-  dragIndex: number | null;
-  hoverIndex: number | null;
+  items: T[]
+  dragIndex: number | null
+  hoverIndex: number | null
 }
 
 function useSortableList<T extends { id: string }>(
-  initialItems: T[]
+  initialItems: T[],
 ): {
-  items: T[];
-  dragHandlers: (index: number) => DragHandlers;
-  dropHandlers: (index: number) => DropHandlers;
+  items: T[]
+  dragHandlers: (index: number) => DragHandlers
+  dropHandlers: (index: number) => DropHandlers
 } {
   const [state, setState] = useState<SortableListState<T>>({
     items: initialItems,
     dragIndex: null,
-    hoverIndex: null
-  });
+    hoverIndex: null,
+  })
 
   const dragHandlers = (index: number) => ({
     onDragStart: () => {
-      setState((s) => ({ ...s, dragIndex: index }));
+      setState((s) => ({ ...s, dragIndex: index }))
     },
     onDragEnd: () => {
       setState((s) => {
         if (s.dragIndex === null || s.hoverIndex === null) {
-          return { ...s, dragIndex: null, hoverIndex: null };
+          return { ...s, dragIndex: null, hoverIndex: null }
         }
 
         // Reorder items
-        const newItems = [...s.items];
-        const [removed] = newItems.splice(s.dragIndex, 1);
-        newItems.splice(s.hoverIndex, 0, removed);
+        const newItems = [...s.items]
+        const [removed] = newItems.splice(s.dragIndex, 1)
+        newItems.splice(s.hoverIndex, 0, removed)
 
-        return { items: newItems, dragIndex: null, hoverIndex: null };
-      });
-    }
-  });
+        return { items: newItems, dragIndex: null, hoverIndex: null }
+      })
+    },
+  })
 
   const dropHandlers = (index: number) => ({
     onDragEnter: () => {
-      setState((s) => ({ ...s, hoverIndex: index }));
-    }
-  });
+      setState((s) => ({ ...s, hoverIndex: index }))
+    },
+  })
 
-  return { items: state.items, dragHandlers, dropHandlers };
+  return { items: state.items, dragHandlers, dropHandlers }
 }
 ```
 
 **Visual indicator placement**: Show drop indicator between items, not on items.
 
 ```typescript
-function getDropIndicatorPosition(
-  e: PointerEvent,
-  element: HTMLElement
-): 'before' | 'after' {
-  const rect = element.getBoundingClientRect();
-  const midpoint = rect.top + rect.height / 2;
-  return e.clientY < midpoint ? 'before' : 'after';
+function getDropIndicatorPosition(e: PointerEvent, element: HTMLElement): "before" | "after" {
+  const rect = element.getBoundingClientRect()
+  const midpoint = rect.top + rect.height / 2
+  return e.clientY < midpoint ? "before" : "after"
 }
 ```
 
@@ -626,44 +644,44 @@ Moving items between multiple lists (Kanban boards, multi-column layouts).
 
 ```typescript collapse={1-15, 50-60}
 interface Container {
-  id: string;
-  accepts: (item: DragItem) => boolean;
+  id: string
+  accepts: (item: DragItem) => boolean
 }
 
 interface DragItem {
-  id: string;
-  type: string;
-  sourceContainerId: string;
+  id: string
+  type: string
+  sourceContainerId: string
 }
 
 interface CrossContainerState {
-  containers: Map<string, Container>;
-  activeItem: DragItem | null;
-  overContainerId: string | null;
-  overIndex: number | null;
+  containers: Map<string, Container>
+  activeItem: DragItem | null
+  overContainerId: string | null
+  overIndex: number | null
 }
 
 function handleCrossContainerDrop(
   state: CrossContainerState,
   sourceItems: Map<string, unknown[]>,
-  setItems: (containerId: string, items: unknown[]) => void
+  setItems: (containerId: string, items: unknown[]) => void,
 ): void {
-  const { activeItem, overContainerId, overIndex } = state;
-  if (!activeItem || !overContainerId || overIndex === null) return;
+  const { activeItem, overContainerId, overIndex } = state
+  if (!activeItem || !overContainerId || overIndex === null) return
 
-  const targetContainer = state.containers.get(overContainerId);
-  if (!targetContainer?.accepts(activeItem)) return;
+  const targetContainer = state.containers.get(overContainerId)
+  if (!targetContainer?.accepts(activeItem)) return
 
   // Remove from source
-  const sourceList = [...(sourceItems.get(activeItem.sourceContainerId) ?? [])];
-  const sourceIndex = sourceList.findIndex((item: any) => item.id === activeItem.id);
-  const [removed] = sourceList.splice(sourceIndex, 1);
-  setItems(activeItem.sourceContainerId, sourceList);
+  const sourceList = [...(sourceItems.get(activeItem.sourceContainerId) ?? [])]
+  const sourceIndex = sourceList.findIndex((item: any) => item.id === activeItem.id)
+  const [removed] = sourceList.splice(sourceIndex, 1)
+  setItems(activeItem.sourceContainerId, sourceList)
 
   // Add to target
-  const targetList = [...(sourceItems.get(overContainerId) ?? [])];
-  targetList.splice(overIndex, 0, removed);
-  setItems(overContainerId, targetList);
+  const targetList = [...(sourceItems.get(overContainerId) ?? [])]
+  targetList.splice(overIndex, 0, removed)
+  setItems(overContainerId, targetList)
 }
 ```
 
@@ -672,18 +690,18 @@ function handleCrossContainerDrop(
 ```typescript
 const containers: Container[] = [
   {
-    id: 'todo',
-    accepts: (item) => item.type === 'task'
+    id: "todo",
+    accepts: (item) => item.type === "task",
   },
   {
-    id: 'done',
-    accepts: (item) => item.type === 'task' && item.status !== 'blocked'
+    id: "done",
+    accepts: (item) => item.type === "task" && item.status !== "blocked",
   },
   {
-    id: 'archive',
-    accepts: () => true // Accepts anything
-  }
-];
+    id: "archive",
+    accepts: () => true, // Accepts anything
+  },
+]
 ```
 
 ### Tree Reordering
@@ -691,67 +709,64 @@ const containers: Container[] = [
 Hierarchical structures with nesting (file trees, nested lists).
 
 **Complexity factors**:
+
 - Drop zones: before sibling, after sibling, as child
 - Depth detection from pointer position
 - Preventing invalid drops (item into its own descendants)
 
 ```typescript collapse={1-10, 55-65}
 interface TreeNode {
-  id: string;
-  children: TreeNode[];
-  parentId: string | null;
+  id: string
+  children: TreeNode[]
+  parentId: string | null
 }
 
 type TreeDropPosition =
-  | { type: 'before'; targetId: string }
-  | { type: 'after'; targetId: string }
-  | { type: 'child'; parentId: string };
+  | { type: "before"; targetId: string }
+  | { type: "after"; targetId: string }
+  | { type: "child"; parentId: string }
 
-function getTreeDropPosition(
-  e: PointerEvent,
-  element: HTMLElement,
-  depthIndicatorWidth: number
-): TreeDropPosition {
-  const rect = element.getBoundingClientRect();
-  const relativeY = e.clientY - rect.top;
-  const relativeX = e.clientX - rect.left;
+function getTreeDropPosition(e: PointerEvent, element: HTMLElement, depthIndicatorWidth: number): TreeDropPosition {
+  const rect = element.getBoundingClientRect()
+  const relativeY = e.clientY - rect.top
+  const relativeX = e.clientX - rect.left
 
-  const nodeId = element.dataset.nodeId!;
-  const currentDepth = parseInt(element.dataset.depth ?? '0');
+  const nodeId = element.dataset.nodeId!
+  const currentDepth = parseInt(element.dataset.depth ?? "0")
 
   // Top quarter: drop before
   if (relativeY < rect.height * 0.25) {
-    return { type: 'before', targetId: nodeId };
+    return { type: "before", targetId: nodeId }
   }
 
   // Bottom quarter: drop after
   if (relativeY > rect.height * 0.75) {
-    return { type: 'after', targetId: nodeId };
+    return { type: "after", targetId: nodeId }
   }
 
   // Middle: check horizontal position for nesting
-  const hoverDepth = Math.floor(relativeX / depthIndicatorWidth);
+  const hoverDepth = Math.floor(relativeX / depthIndicatorWidth)
   if (hoverDepth > currentDepth) {
-    return { type: 'child', parentId: nodeId };
+    return { type: "child", parentId: nodeId }
   }
 
-  return { type: 'after', targetId: nodeId };
+  return { type: "after", targetId: nodeId }
 }
 
 function isDescendant(tree: TreeNode[], nodeId: string, potentialAncestorId: string): boolean {
   const findNode = (nodes: TreeNode[], id: string): TreeNode | null => {
     for (const node of nodes) {
-      if (node.id === id) return node;
-      const found = findNode(node.children, id);
-      if (found) return found;
+      if (node.id === id) return node
+      const found = findNode(node.children, id)
+      if (found) return found
     }
-    return null;
-  };
+    return null
+  }
 
-  const ancestor = findNode(tree, potentialAncestorId);
-  if (!ancestor) return false;
+  const ancestor = findNode(tree, potentialAncestorId)
+  if (!ancestor) return false
 
-  return findNode(ancestor.children, nodeId) !== null;
+  return findNode(ancestor.children, nodeId) !== null
 }
 ```
 
@@ -762,51 +777,46 @@ Large lists with windowing present unique challenges: elements outside viewport 
 **Problem**: Standard hit-testing fails when potential drop targets aren't rendered.
 
 **Solutions**:
+
 1. **Overscan**: Render extra items beyond viewport. Simple but memory overhead.
 2. **Position-based hit testing**: Calculate target from scroll position, not DOM.
 3. **Scroll-on-drag**: Auto-scroll when dragging near edges.
 
 ```typescript collapse={1-10, 45-55}
 interface VirtualListDragConfig {
-  itemHeight: number;
-  totalItems: number;
-  viewportHeight: number;
-  scrollTop: number;
-  scrollContainerRef: React.RefObject<HTMLElement>;
+  itemHeight: number
+  totalItems: number
+  viewportHeight: number
+  scrollTop: number
+  scrollContainerRef: React.RefObject<HTMLElement>
 }
 
-function getVirtualDropIndex(
-  clientY: number,
-  config: VirtualListDragConfig
-): number {
-  const { itemHeight, totalItems, scrollTop, scrollContainerRef } = config;
-  const container = scrollContainerRef.current;
-  if (!container) return 0;
+function getVirtualDropIndex(clientY: number, config: VirtualListDragConfig): number {
+  const { itemHeight, totalItems, scrollTop, scrollContainerRef } = config
+  const container = scrollContainerRef.current
+  if (!container) return 0
 
-  const containerRect = container.getBoundingClientRect();
-  const relativeY = clientY - containerRect.top + scrollTop;
-  const index = Math.floor(relativeY / itemHeight);
+  const containerRect = container.getBoundingClientRect()
+  const relativeY = clientY - containerRect.top + scrollTop
+  const index = Math.floor(relativeY / itemHeight)
 
-  return Math.max(0, Math.min(totalItems - 1, index));
+  return Math.max(0, Math.min(totalItems - 1, index))
 }
 
-function handleAutoScroll(
-  clientY: number,
-  config: VirtualListDragConfig
-): void {
-  const container = config.scrollContainerRef.current;
-  if (!container) return;
+function handleAutoScroll(clientY: number, config: VirtualListDragConfig): void {
+  const container = config.scrollContainerRef.current
+  if (!container) return
 
-  const rect = container.getBoundingClientRect();
-  const edgeThreshold = 50; // pixels
-  const scrollSpeed = 10;
+  const rect = container.getBoundingClientRect()
+  const edgeThreshold = 50 // pixels
+  const scrollSpeed = 10
 
   if (clientY < rect.top + edgeThreshold) {
     // Near top edge - scroll up
-    container.scrollTop -= scrollSpeed;
+    container.scrollTop -= scrollSpeed
   } else if (clientY > rect.bottom - edgeThreshold) {
     // Near bottom edge - scroll down
-    container.scrollTop += scrollSpeed;
+    container.scrollTop += scrollSpeed
   }
 }
 ```
@@ -819,17 +829,17 @@ function handleAutoScroll(
 
 ```typescript
 // Basic custom drag image
-element.addEventListener('dragstart', (e) => {
-  const preview = createCustomPreview();
-  document.body.appendChild(preview);
-  preview.style.position = 'absolute';
-  preview.style.left = '-9999px';
+element.addEventListener("dragstart", (e) => {
+  const preview = createCustomPreview()
+  document.body.appendChild(preview)
+  preview.style.position = "absolute"
+  preview.style.left = "-9999px"
 
   // Offset positions the cursor relative to the image
-  e.dataTransfer?.setDragImage(preview, 20, 20);
+  e.dataTransfer?.setDragImage(preview, 20, 20)
 
-  requestAnimationFrame(() => preview.remove());
-});
+  requestAnimationFrame(() => preview.remove())
+})
 ```
 
 **Custom drag layer** (Pointer Events approach): Render preview element that follows pointer.
@@ -938,25 +948,25 @@ function renderItems(items: Item[], dragIndex: number | null, hoverIndex: number
 async function animateDrop(
   element: HTMLElement,
   from: { x: number; y: number },
-  to: { x: number; y: number }
+  to: { x: number; y: number },
 ): Promise<void> {
-  const deltaX = to.x - from.x;
-  const deltaY = to.y - from.y;
+  const deltaX = to.x - from.x
+  const deltaY = to.y - from.y
 
   // Start at drag position
-  element.style.transform = `translate(${-deltaX}px, ${-deltaY}px)`;
-  element.style.transition = 'none';
+  element.style.transform = `translate(${-deltaX}px, ${-deltaY}px)`
+  element.style.transition = "none"
 
   // Force reflow
-  element.offsetHeight;
+  element.offsetHeight
 
   // Animate to final position
-  element.style.transition = 'transform 200ms ease-out';
-  element.style.transform = '';
+  element.style.transition = "transform 200ms ease-out"
+  element.style.transform = ""
 
   return new Promise((resolve) => {
-    element.addEventListener('transitionend', () => resolve(), { once: true });
-  });
+    element.addEventListener("transitionend", () => resolve(), { once: true })
+  })
 }
 ```
 
@@ -967,6 +977,7 @@ async function animateDrop(
 WCAG-compliant drag-drop requires full keyboard support.
 
 **Interaction pattern**:
+
 1. Focus item with Tab
 2. Press Enter/Space to "pick up" item
 3. Arrow keys or Tab to move between positions
@@ -974,76 +985,73 @@ WCAG-compliant drag-drop requires full keyboard support.
 
 ```typescript collapse={1-15, 60-75}
 interface KeyboardDragState {
-  isActive: boolean;
-  activeItemId: string | null;
-  targetIndex: number | null;
+  isActive: boolean
+  activeItemId: string | null
+  targetIndex: number | null
 }
 
-function useKeyboardDrag(
-  items: Item[],
-  onReorder: (fromIndex: number, toIndex: number) => void
-) {
+function useKeyboardDrag(items: Item[], onReorder: (fromIndex: number, toIndex: number) => void) {
   const [state, setState] = useState<KeyboardDragState>({
     isActive: false,
     activeItemId: null,
-    targetIndex: null
-  });
+    targetIndex: null,
+  })
 
   const handleKeyDown = (e: KeyboardEvent, itemId: string, currentIndex: number) => {
     if (!state.isActive) {
       // Not dragging - Enter starts drag
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault()
         setState({
           isActive: true,
           activeItemId: itemId,
-          targetIndex: currentIndex
-        });
-        announceToScreenReader(`Grabbed ${items[currentIndex].name}. Use arrow keys to move.`);
+          targetIndex: currentIndex,
+        })
+        announceToScreenReader(`Grabbed ${items[currentIndex].name}. Use arrow keys to move.`)
       }
-      return;
+      return
     }
 
     // Currently dragging
     switch (e.key) {
-      case 'ArrowUp':
-      case 'ArrowLeft':
-        e.preventDefault();
+      case "ArrowUp":
+      case "ArrowLeft":
+        e.preventDefault()
         if (state.targetIndex! > 0) {
-          const newIndex = state.targetIndex! - 1;
-          setState((s) => ({ ...s, targetIndex: newIndex }));
-          announceToScreenReader(`Position ${newIndex + 1} of ${items.length}`);
+          const newIndex = state.targetIndex! - 1
+          setState((s) => ({ ...s, targetIndex: newIndex }))
+          announceToScreenReader(`Position ${newIndex + 1} of ${items.length}`)
         }
-        break;
+        break
 
-      case 'ArrowDown':
-      case 'ArrowRight':
-        e.preventDefault();
+      case "ArrowDown":
+      case "ArrowRight":
+        e.preventDefault()
         if (state.targetIndex! < items.length - 1) {
-          const newIndex = state.targetIndex! + 1;
-          setState((s) => ({ ...s, targetIndex: newIndex }));
-          announceToScreenReader(`Position ${newIndex + 1} of ${items.length}`);
+          const newIndex = state.targetIndex! + 1
+          setState((s) => ({ ...s, targetIndex: newIndex }))
+          announceToScreenReader(`Position ${newIndex + 1} of ${items.length}`)
         }
-        break;
+        break
 
-      case 'Enter':
-      case ' ':
-        e.preventDefault();
-        const fromIndex = items.findIndex((i) => i.id === state.activeItemId);
-        onReorder(fromIndex, state.targetIndex!);
-        setState({ isActive: false, activeItemId: null, targetIndex: null });
-        announceToScreenReader(`Dropped at position ${state.targetIndex! + 1}`);
-        break;
+      case "Enter":
+      case " ":
+        e.preventDefault()
+        const fromIndex = items.findIndex((i) => i.id === state.activeItemId)
+        onReorder(fromIndex, state.targetIndex!)
+        setState({ isActive: false, activeItemId: null, targetIndex: null })
+        announceToScreenReader(`Dropped at position ${state.targetIndex! + 1}`)
+        break
 
-      case 'Escape':
-        e.preventDefault();
-        setState({ isActive: false, activeItemId: null, targetIndex: null });
-        announceToScreenReader('Drag cancelled');
-        break;
+      case "Escape":
+        e.preventDefault()
+        setState({ isActive: false, activeItemId: null, targetIndex: null })
+        announceToScreenReader("Drag cancelled")
+        break
     }
-  };
+  }
 
-  return { state, handleKeyDown };
+  return { state, handleKeyDown }
 }
 ```
 
@@ -1053,13 +1061,13 @@ Use ARIA live regions to announce drag state changes.
 
 ```typescript
 function announceToScreenReader(message: string): void {
-  let announcer = document.getElementById('drag-announcer');
+  let announcer = document.getElementById("drag-announcer")
 
   if (!announcer) {
-    announcer = document.createElement('div');
-    announcer.id = 'drag-announcer';
-    announcer.setAttribute('aria-live', 'assertive');
-    announcer.setAttribute('aria-atomic', 'true');
+    announcer = document.createElement("div")
+    announcer.id = "drag-announcer"
+    announcer.setAttribute("aria-live", "assertive")
+    announcer.setAttribute("aria-atomic", "true")
     announcer.style.cssText = `
       position: absolute;
       width: 1px;
@@ -1070,56 +1078,39 @@ function announceToScreenReader(message: string): void {
       clip: rect(0, 0, 0, 0);
       white-space: nowrap;
       border: 0;
-    `;
-    document.body.appendChild(announcer);
+    `
+    document.body.appendChild(announcer)
   }
 
   // Clear and set to ensure announcement
-  announcer.textContent = '';
+  announcer.textContent = ""
   requestAnimationFrame(() => {
-    announcer!.textContent = message;
-  });
+    announcer!.textContent = message
+  })
 }
 ```
 
 **Announcement timing**:
 
-| Event | Announcement |
-|-------|--------------|
-| Drag start | "Grabbed [item name]. Use arrow keys to move, Enter to drop, Escape to cancel." |
-| Position change | "Position [n] of [total]" or "[item name] moved before [other item]" |
-| Drop | "Dropped [item name] at position [n]" |
-| Cancel | "Drag cancelled. [item name] returned to position [n]" |
-| Invalid drop | "[target] does not accept [item type]" |
+| Event           | Announcement                                                                    |
+| --------------- | ------------------------------------------------------------------------------- |
+| Drag start      | "Grabbed [item name]. Use arrow keys to move, Enter to drop, Escape to cancel." |
+| Position change | "Position [n] of [total]" or "[item name] moved before [other item]"            |
+| Drop            | "Dropped [item name] at position [n]"                                           |
+| Cancel          | "Drag cancelled. [item name] returned to position [n]"                          |
+| Invalid drop    | "[target] does not accept [item type]"                                          |
 
 ### ARIA Attributes
 
 ```html
 <!-- Draggable item -->
-<div
-  role="listitem"
-  tabindex="0"
-  aria-grabbed="false"
-  aria-describedby="drag-instructions"
->
-  Item content
-</div>
+<div role="listitem" tabindex="0" aria-grabbed="false" aria-describedby="drag-instructions">Item content</div>
 
 <!-- When being dragged -->
-<div
-  role="listitem"
-  tabindex="0"
-  aria-grabbed="true"
-  aria-describedby="drag-instructions"
->
-  Item content
-</div>
+<div role="listitem" tabindex="0" aria-grabbed="true" aria-describedby="drag-instructions">Item content</div>
 
 <!-- Drop target -->
-<div
-  role="list"
-  aria-dropeffect="move"
->
+<div role="list" aria-dropeffect="move">
   <!-- items -->
 </div>
 
@@ -1138,12 +1129,14 @@ function announceToScreenReader(message: string): void {
 **Challenge**: Drag cards between multiple lists with smooth animations and real-time sync.
 
 **Approach**:
+
 - Native HTML5 DnD for desktop with custom touch handling
 - Drop zones on each card and at list bottom
 - Visual feedback: Card rotates slightly during drag ("jaunty angle")
 - Optimistic updates with server reconciliation
 
 **Technical details**:
+
 - `isDragging` state flag prevents style changes during drag (CSS transitions can interfere)
 - Lists are drop zones; cards calculate before/after position from pointer Y
 - AJAX PATCH to `/cards/{id}` with new `pos` value (floating-point for ordering)
@@ -1156,6 +1149,7 @@ function announceToScreenReader(message: string): void {
 **Challenge**: Every piece of content is a draggable, nestable block. Blocks can be text, images, databases, or embedded content.
 
 **Approach**:
+
 - Custom Pointer Events implementation
 - Drag handle (six dots) appears on hover
 - Multi-block selection with Shift+click
@@ -1163,6 +1157,7 @@ function announceToScreenReader(message: string): void {
 - Horizontal drag position determines nesting depth
 
 **Technical details**:
+
 - Block IDs use UUIDs for conflict-free collaborative editing
 - Drag preview shows block outline, not full content
 - Drop indicator changes style based on nesting level
@@ -1175,12 +1170,14 @@ function announceToScreenReader(message: string): void {
 **Challenge**: Drag objects on infinite canvas with zoom, precision positioning, and multi-select.
 
 **Approach**:
+
 - WebGL rendering (not DOM) for canvas
 - Pointer Events for input handling
 - Separate layers: rendering, interaction, UI
 - DndKit for UI elements (layer list, component browser)
 
 **Technical details**:
+
 - Canvas uses custom hit-testing against scene graph, not `elementFromPoint`
 - Drag threshold prevents accidental moves (3px)
 - Snap-to-grid and smart guides during drag
@@ -1193,11 +1190,13 @@ function announceToScreenReader(message: string): void {
 **Challenge**: Drag files between explorer, editors, and terminals. Support external file drops.
 
 **Approach**:
+
 - Custom implementation with `LocalSelectionTransfer` for same-window drags
 - Native DnD for external file drops
 - Drag identifiers: `DraggedEditorIdentifier` (single file), `DraggedEditorGroupIdentifier` (tab group)
 
 **Technical details**:
+
 - `LocalSelectionTransfer` singleton manages in-app drag state
 - `EditorDropTarget` components register as drop zones
 - File tree supports dragging into and out of folders
@@ -1214,6 +1213,7 @@ Drag operations run on main thread. Heavy operations cause jank.
 **Budget**: 16ms per frame for 60fps. Drag handlers should complete in <8ms to leave room for rendering.
 
 **Optimization strategies**:
+
 1. **Throttle pointermove**: Don't process every event
 2. **Debounce drop target calculations**: Especially for complex hit-testing
 3. **RAF for visual updates**: Batch position updates to animation frame
@@ -1221,16 +1221,16 @@ Drag operations run on main thread. Heavy operations cause jank.
 
 ```typescript
 // Throttled drag handler
-let lastMoveTime = 0;
-const THROTTLE_MS = 16; // One frame
+let lastMoveTime = 0
+const THROTTLE_MS = 16 // One frame
 
 function handlePointerMove(e: PointerEvent): void {
-  const now = performance.now();
-  if (now - lastMoveTime < THROTTLE_MS) return;
-  lastMoveTime = now;
+  const now = performance.now()
+  if (now - lastMoveTime < THROTTLE_MS) return
+  lastMoveTime = now
 
   // Actual move handling
-  updateDragPosition(e.clientX, e.clientY);
+  updateDragPosition(e.clientX, e.clientY)
 }
 ```
 
@@ -1242,18 +1242,18 @@ Mobile browsers have 300ms tap delay (mostly eliminated in modern browsers with 
 
 ```typescript
 interface ActivationConstraint {
-  delay?: number;       // ms to hold before drag starts
-  distance?: number;    // px to move before drag starts
-  tolerance?: number;   // px of movement allowed during delay
+  delay?: number // ms to hold before drag starts
+  distance?: number // px to move before drag starts
+  tolerance?: number // px of movement allowed during delay
 }
 
 // dnd-kit sensor configuration
 const pointerSensor = useSensor(PointerSensor, {
   activationConstraint: {
-    delay: 250,        // Hold 250ms before drag activates
-    tolerance: 5       // Allow 5px movement during delay
-  }
-});
+    delay: 250, // Hold 250ms before drag activates
+    tolerance: 5, // Allow 5px movement during delay
+  },
+})
 ```
 
 ### Memory Considerations
@@ -1261,6 +1261,7 @@ const pointerSensor = useSensor(PointerSensor, {
 Long drag operations with many drop targets can accumulate state.
 
 **Cleanup patterns**:
+
 - Clear highlight states on `pointercancel`
 - Remove event listeners when drag ends
 - Reset animations to avoid stale transforms
@@ -1269,16 +1270,16 @@ Long drag operations with many drop targets can accumulate state.
 ```typescript
 function cleanupDragState(): void {
   // Reset all visual states
-  document.querySelectorAll('.drop-target-active').forEach((el) => {
-    el.classList.remove('drop-target-active');
-  });
+  document.querySelectorAll(".drop-target-active").forEach((el) => {
+    el.classList.remove("drop-target-active")
+  })
 
   // Clear cached data
-  dropTargetRects.clear();
+  dropTargetRects.clear()
 
   // Remove global listeners
-  document.removeEventListener('pointermove', handleGlobalMove);
-  document.removeEventListener('pointerup', handleGlobalUp);
+  document.removeEventListener("pointermove", handleGlobalMove)
+  document.removeEventListener("pointerup", handleGlobalUp)
 }
 ```
 
@@ -1290,22 +1291,23 @@ function cleanupDragState(): void {
 
 ```typescript
 // Broken - drop never fires
-element.addEventListener('drop', (e) => {
-  e.preventDefault();
-  handleDrop(e);
-});
+element.addEventListener("drop", (e) => {
+  e.preventDefault()
+  handleDrop(e)
+})
 ```
 
 **Why it fails**: Browser requires `preventDefault()` in `dragenter` AND `dragover` to mark element as valid drop target. Without it, `drop` event never fires.
 
 **The fix**:
+
 ```typescript
-element.addEventListener('dragenter', (e) => e.preventDefault());
-element.addEventListener('dragover', (e) => e.preventDefault());
-element.addEventListener('drop', (e) => {
-  e.preventDefault();
-  handleDrop(e);
-});
+element.addEventListener("dragenter", (e) => e.preventDefault())
+element.addEventListener("dragover", (e) => e.preventDefault())
+element.addEventListener("drop", (e) => {
+  e.preventDefault()
+  handleDrop(e)
+})
 ```
 
 ### 2. Drag Image Not Visible
@@ -1314,28 +1316,29 @@ element.addEventListener('drop', (e) => {
 
 ```typescript
 // Broken in Chrome
-element.addEventListener('dragstart', (e) => {
-  const img = document.createElement('div');
-  img.textContent = 'Dragging';
-  e.dataTransfer?.setDragImage(img, 0, 0); // Invisible
-});
+element.addEventListener("dragstart", (e) => {
+  const img = document.createElement("div")
+  img.textContent = "Dragging"
+  e.dataTransfer?.setDragImage(img, 0, 0) // Invisible
+})
 ```
 
 **Why it fails**: Chrome requires the drag image element to be in the DOM and have layout. Firefox doesn't.
 
 **The fix**:
+
 ```typescript
-element.addEventListener('dragstart', (e) => {
-  const img = document.createElement('div');
-  img.textContent = 'Dragging';
-  img.style.position = 'absolute';
-  img.style.left = '-9999px';
-  document.body.appendChild(img);
+element.addEventListener("dragstart", (e) => {
+  const img = document.createElement("div")
+  img.textContent = "Dragging"
+  img.style.position = "absolute"
+  img.style.left = "-9999px"
+  document.body.appendChild(img)
 
-  e.dataTransfer?.setDragImage(img, 0, 0);
+  e.dataTransfer?.setDragImage(img, 0, 0)
 
-  requestAnimationFrame(() => img.remove());
-});
+  requestAnimationFrame(() => img.remove())
+})
 ```
 
 ### 3. Touch Events Not Firing
@@ -1344,18 +1347,19 @@ element.addEventListener('dragstart', (e) => {
 
 ```typescript
 // Only works with mouse
-element.draggable = true;
-element.addEventListener('dragstart', handleDragStart);
+element.draggable = true
+element.addEventListener("dragstart", handleDragStart)
 // Touch users see nothing
 ```
 
 **Why it fails**: HTML5 Drag and Drop API is mouse-only. Touch events don't trigger drag events.
 
 **The fix**: Use Pointer Events or add explicit touch handling:
+
 ```typescript
-element.addEventListener('pointerdown', handlePointerDown);
+element.addEventListener("pointerdown", handlePointerDown)
 // OR
-element.addEventListener('touchstart', handleTouchStart, { passive: false });
+element.addEventListener("touchstart", handleTouchStart, { passive: false })
 ```
 
 ### 4. Passive Event Listener Blocking preventDefault
@@ -1364,20 +1368,25 @@ element.addEventListener('touchstart', handleTouchStart, { passive: false });
 
 ```typescript
 // preventDefault has no effect
-element.addEventListener('touchmove', (e) => {
-  e.preventDefault(); // Ignored! Scrolls anyway
-  handleDrag(e);
-});
+element.addEventListener("touchmove", (e) => {
+  e.preventDefault() // Ignored! Scrolls anyway
+  handleDrag(e)
+})
 ```
 
 **Why it fails**: Modern browsers make touch listeners passive by default for scroll performance. Passive listeners cannot `preventDefault()`.
 
 **The fix**:
+
 ```typescript
-element.addEventListener('touchmove', (e) => {
-  e.preventDefault();
-  handleDrag(e);
-}, { passive: false });
+element.addEventListener(
+  "touchmove",
+  (e) => {
+    e.preventDefault()
+    handleDrag(e)
+  },
+  { passive: false },
+)
 ```
 
 ### 5. State Desync with Optimistic Updates
@@ -1387,26 +1396,26 @@ element.addEventListener('touchmove', (e) => {
 ```typescript
 // Optimistic update without rollback
 function handleDrop(fromIndex: number, toIndex: number): void {
-  setItems(reorder(items, fromIndex, toIndex));
-  api.updateOrder(items.map(i => i.id)); // Fire and forget
+  setItems(reorder(items, fromIndex, toIndex))
+  api.updateOrder(items.map((i) => i.id)) // Fire and forget
 }
 ```
 
 **Why it fails**: Server rejection leaves UI in wrong state. Network failure loses the change.
 
 **The fix**:
+
 ```typescript
 function handleDrop(fromIndex: number, toIndex: number): void {
-  const previousItems = items;
-  const newItems = reorder(items, fromIndex, toIndex);
+  const previousItems = items
+  const newItems = reorder(items, fromIndex, toIndex)
 
-  setItems(newItems); // Optimistic
+  setItems(newItems) // Optimistic
 
-  api.updateOrder(newItems.map(i => i.id))
-    .catch(() => {
-      setItems(previousItems); // Rollback
-      showError('Failed to save order');
-    });
+  api.updateOrder(newItems.map((i) => i.id)).catch(() => {
+    setItems(previousItems) // Rollback
+    showError("Failed to save order")
+  })
 }
 ```
 
@@ -1465,4 +1474,3 @@ The technology is mature. dnd-kit and Pragmatic Drag and Drop represent the curr
 - [React DnD Documentation](https://react-dnd.github.io/react-dnd/docs/overview) - Backend abstraction approach
 - [Pragmatic Drag and Drop - Atlassian](https://atlassian.design/components/pragmatic-drag-and-drop) - Low-level primitives approach
 - [React Aria: Accessible Drag and Drop](https://react-spectrum.adobe.com/react-aria/dnd.html) - Adobe's accessibility-first implementation
-- [Drag and Drop Browser Inconsistencies](https://github.com/nicknisi/talks/blob/main/drag-and-drop/notes.md) - Cross-browser quirks reference

@@ -51,16 +51,16 @@ Each layer has diminishing returns without the previous layer being sound. A per
 
 As of March 2024, Core Web Vitals consist of three metrics that capture the user experience dimensions Google considers most critical: loading, interactivity, and visual stability.
 
-| Metric                              | Good   | Needs Improvement | Poor   | What It Measures                     |
-| ----------------------------------- | ------ | ----------------- | ------ | ------------------------------------ |
-| **LCP** (Largest Contentful Paint)  | ≤2.5s  | 2.5s–4.0s         | >4.0s  | When the main content becomes visible |
-| **INP** (Interaction to Next Paint) | ≤200ms | 200ms–500ms       | >500ms | Responsiveness to all user interactions |
+| Metric                              | Good   | Needs Improvement | Poor   | What It Measures                          |
+| ----------------------------------- | ------ | ----------------- | ------ | ----------------------------------------- |
+| **LCP** (Largest Contentful Paint)  | ≤2.5s  | 2.5s–4.0s         | >4.0s  | When the main content becomes visible     |
+| **INP** (Interaction to Next Paint) | ≤200ms | 200ms–500ms       | >500ms | Responsiveness to all user interactions   |
 | **CLS** (Cumulative Layout Shift)   | ≤0.1   | 0.1–0.25          | >0.25  | Unexpected layout movement during session |
 
 **Supporting metric (not a Core Web Vital):**
 
-| Metric                        | Good   | Needs Improvement | Poor   | Why It Matters                    |
-| ----------------------------- | ------ | ----------------- | ------ | --------------------------------- |
+| Metric                        | Good   | Needs Improvement | Poor   | Why It Matters                            |
+| ----------------------------- | ------ | ----------------- | ------ | ----------------------------------------- |
 | **TTFB** (Time to First Byte) | ≤200ms | 200ms–500ms       | >500ms | Sets the floor for all downstream metrics |
 
 TTFB is excluded from CWV because fast server response doesn't guarantee good user experience—a page can have 100ms TTFB but 5 seconds of JavaScript blocking LCP. However, slow TTFB makes good LCP nearly impossible.
@@ -69,7 +69,7 @@ TTFB is excluded from CWV because fast server response doesn't guarantee good us
 
 Google's threshold methodology targets the 75th percentile with a balance between achievability (most sites can reach "good") and meaningfulness (users perceive the difference). The 2.5s LCP threshold corresponds to research showing users begin abandoning pages after 3 seconds; 200ms INP aligns with the 100-200ms window where interactions feel instant; 0.1 CLS represents shifts users barely notice.
 
-> **INP replaced FID in March 2024:** First Input Delay (FID) measured only the *first* interaction's input delay. INP measures *every* interaction throughout the session, including input delay + processing time + presentation delay. Most sites that passed FID failed INP initially because FID ignored subsequent interactions and processing time entirely.
+> **INP replaced FID in March 2024:** First Input Delay (FID) measured only the _first_ interaction's input delay. INP measures _every_ interaction throughout the session, including input delay + processing time + presentation delay. Most sites that passed FID failed INP initially because FID ignored subsequent interactions and processing time entirely.
 
 ## 1. Infrastructure & Architecture
 

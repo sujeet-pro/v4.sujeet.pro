@@ -47,17 +47,18 @@ flowchart LR
 
 CDN caching reduces to three interconnected decisions: **what to cache** (cache key design), **how long to cache** (TTL strategy), and **when to invalidate** (freshness vs availability tradeoff).
 
-| Decision | Optimizes For | Sacrifices |
-|----------|---------------|------------|
-| Aggressive caching (long TTL) | Origin load reduction, latency | Content freshness |
-| Conservative caching (short TTL) | Content freshness | Cache hit ratio, origin load |
-| Cache key expansion (more Vary headers) | Content correctness per variant | Cache fragmentation |
-| Versioned URLs | Eliminates invalidation need | URL management complexity |
-| Tag-based purge | Granular invalidation | Operational complexity |
+| Decision                                | Optimizes For                   | Sacrifices                   |
+| --------------------------------------- | ------------------------------- | ---------------------------- |
+| Aggressive caching (long TTL)           | Origin load reduction, latency  | Content freshness            |
+| Conservative caching (short TTL)        | Content freshness               | Cache hit ratio, origin load |
+| Cache key expansion (more Vary headers) | Content correctness per variant | Cache fragmentation          |
+| Versioned URLs                          | Eliminates invalidation need    | URL management complexity    |
+| Tag-based purge                         | Granular invalidation           | Operational complexity       |
 
 **Key architectural insight**: The cache key determines correctness; the TTL determines performance. A misconfigured cache key serves wrong content to users. A misconfigured TTL either hammers your origin or serves stale content.
 
 **Invalidation hierarchy** (prefer higher):
+
 1. **Versioned/fingerprinted URLs** (e.g., `main.abc123.js`)—no invalidation needed
 2. **Stale-while-revalidate**—async refresh, no user-visible staleness
 3. **Tag-based purge**—granular, handles complex dependencies
@@ -74,16 +75,16 @@ HTTP caching behavior is defined by RFC 9111 (June 2022), which obsoletes RFC 72
 
 The `Cache-Control` header is the primary mechanism for controlling caching behavior. Key directives and their design rationale:
 
-| Directive | Target | Behavior | Design Rationale |
-|-----------|--------|----------|------------------|
-| `max-age=N` | All caches | Response fresh for N seconds | Simple TTL control |
-| `s-maxage=N` | Shared caches only | Overrides `max-age` for CDN/proxy | CDN often needs different TTL than browser |
-| `no-cache` | All caches | Must revalidate before serving | Freshness guarantee (not "don't cache") |
-| `no-store` | All caches | Never store in any cache | Sensitive data protection |
-| `private` | Browser only | Exclude from shared caches | User-specific content |
-| `public` | All caches | Cacheable even for authenticated requests | Override default behavior |
-| `must-revalidate` | All caches | Cannot serve stale after TTL | Strict freshness requirement |
-| `immutable` | All caches | Content won't change during freshness | Avoid conditional requests for fingerprinted assets |
+| Directive         | Target             | Behavior                                  | Design Rationale                                    |
+| ----------------- | ------------------ | ----------------------------------------- | --------------------------------------------------- |
+| `max-age=N`       | All caches         | Response fresh for N seconds              | Simple TTL control                                  |
+| `s-maxage=N`      | Shared caches only | Overrides `max-age` for CDN/proxy         | CDN often needs different TTL than browser          |
+| `no-cache`        | All caches         | Must revalidate before serving            | Freshness guarantee (not "don't cache")             |
+| `no-store`        | All caches         | Never store in any cache                  | Sensitive data protection                           |
+| `private`         | Browser only       | Exclude from shared caches                | User-specific content                               |
+| `public`          | All caches         | Cacheable even for authenticated requests | Override default behavior                           |
+| `must-revalidate` | All caches         | Cannot serve stale after TTL              | Strict freshness requirement                        |
+| `immutable`       | All caches         | Content won't change during freshness     | Avoid conditional requests for fingerprinted assets |
 
 **Common misconception**: `no-cache` does NOT mean "don't cache." It means "cache, but always revalidate before serving." Use `no-store` to prevent caching entirely.
 
@@ -106,10 +107,12 @@ Cache the document, but always check with origin before serving. If origin is un
 ### Cache Key Design
 
 The cache key uniquely identifies cached objects. A poorly designed cache key either:
+
 - **Fragments the cache** (too many keys) → low hit ratio, high origin load
 - **Serves wrong content** (insufficient keys) → users see incorrect responses
 
 **Default cache key components** (most CDNs):
+
 - HTTP method (GET, HEAD)
 - Host header
 - URL path
@@ -129,35 +132,37 @@ Vary: Accept-Language
 The CDN now caches separate responses for `Accept-Language: en-US`, `Accept-Language: de-DE`, etc.
 
 **Cache fragmentation problem**: `Accept-Language` has thousands of variations (`en-US`, `en-GB`, `en`, `en-US,en;q=0.9`). Each variation creates a separate cache entry. Solutions:
+
 1. Normalize headers at edge (collapse `en-US`, `en-GB` → `en`)
 2. Use URL-based routing (`/en/products`, `/de/products`)
 3. Limit supported languages and serve default for others
 
 **Best practices for cache key design**:
 
-| Do | Don't |
-|----|-------|
-| Include only headers that affect response | Include `User-Agent` (thousands of variations) |
-| Normalize headers at edge before caching | Pass raw headers to cache key |
-| Use URL-based variants when possible | Rely on `Vary` for high-cardinality headers |
-| Whitelist query parameters | Include all query parameters (tracking IDs fragment cache) |
+| Do                                        | Don't                                                      |
+| ----------------------------------------- | ---------------------------------------------------------- |
+| Include only headers that affect response | Include `User-Agent` (thousands of variations)             |
+| Normalize headers at edge before caching  | Pass raw headers to cache key                              |
+| Use URL-based variants when possible      | Rely on `Vary` for high-cardinality headers                |
+| Whitelist query parameters                | Include all query parameters (tracking IDs fragment cache) |
 
 ### TTL Strategies by Content Type
 
 TTL selection balances freshness against hit ratio. The right TTL depends on content volatility and staleness tolerance:
 
-| Content Type | Recommended TTL | Cache-Control Example |
-|--------------|-----------------|----------------------|
-| Fingerprinted assets (JS, CSS, images with hash) | 1 year | `max-age=31536000, immutable` |
-| Static images without fingerprint | 1 day to 1 week | `max-age=86400` |
-| HTML documents | Revalidate or short TTL | `no-cache` or `max-age=300, stale-while-revalidate=60` |
-| API responses (read-heavy) | Minutes to hours | `s-maxage=300, stale-while-revalidate=60` |
-| User-specific content | Don't cache at CDN | `private, no-store` |
-| Real-time data | Don't cache | `no-store` |
+| Content Type                                     | Recommended TTL         | Cache-Control Example                                  |
+| ------------------------------------------------ | ----------------------- | ------------------------------------------------------ |
+| Fingerprinted assets (JS, CSS, images with hash) | 1 year                  | `max-age=31536000, immutable`                          |
+| Static images without fingerprint                | 1 day to 1 week         | `max-age=86400`                                        |
+| HTML documents                                   | Revalidate or short TTL | `no-cache` or `max-age=300, stale-while-revalidate=60` |
+| API responses (read-heavy)                       | Minutes to hours        | `s-maxage=300, stale-while-revalidate=60`              |
+| User-specific content                            | Don't cache at CDN      | `private, no-store`                                    |
+| Real-time data                                   | Don't cache             | `no-store`                                             |
 
 **Design rationale for fingerprinted assets**: Content-addressed URLs (e.g., `main.abc123.js`) guarantee immutability—the URL changes when content changes. This enables maximum caching without staleness risk. The `immutable` directive tells browsers not to revalidate even on reload.
 
 **The HTML document problem**: HTML references other assets by URL. If you cache HTML for 1 hour and deploy new CSS, users get old HTML pointing to old CSS URL, then CSS fingerprint changes, causing broken styles until HTML cache expires. Solutions:
+
 1. Use `no-cache` for HTML (always revalidate)
 2. Use very short TTL with `stale-while-revalidate`
 3. Purge HTML on every deployment
@@ -190,12 +195,12 @@ export default {
   build: {
     rollupOptions: {
       output: {
-        entryFileNames: '[name].[hash].js',
-        chunkFileNames: '[name].[hash].js',
-        assetFileNames: '[name].[hash][extname]'
-      }
-    }
-  }
+        entryFileNames: "[name].[hash].js",
+        chunkFileNames: "[name].[hash].js",
+        assetFileNames: "[name].[hash][extname]",
+      },
+    },
+  },
 }
 ```
 
@@ -206,6 +211,7 @@ export default {
 The simplest invalidation: tell the CDN to remove specific URLs.
 
 **Exact path purge**:
+
 ```bash
 # Purge single URL
 aws cloudfront create-invalidation \
@@ -214,6 +220,7 @@ aws cloudfront create-invalidation \
 ```
 
 **Wildcard purge**:
+
 ```bash
 # Purge all products
 aws cloudfront create-invalidation \
@@ -222,6 +229,7 @@ aws cloudfront create-invalidation \
 ```
 
 **Limitations**:
+
 - **No relationship awareness**: Purging `/products/123` doesn't purge `/categories/electronics` even if it displays product 123
 - **Rate limits**: Google Cloud CDN limits to 500 invalidations/minute
 - **Propagation delay**: CloudFront takes 30s-3min; Google Cloud CDN takes 5-10min
@@ -235,6 +243,7 @@ Tag-based purging enables many-to-many relationships between content and cache e
 **How it works**:
 
 1. Origin adds tags to response headers:
+
 ```http
 Surrogate-Key: product-123 category-electronics homepage
 ```
@@ -242,6 +251,7 @@ Surrogate-Key: product-123 category-electronics homepage
 2. CDN indexes entries by tags
 
 3. On product update, purge by tag:
+
 ```bash
 curl -X POST "https://api.fastly.com/service/{id}/purge/product-123" \
   -H "Fastly-Key: {api_key}"
@@ -273,6 +283,7 @@ Edge-Cache-Tag: product-123, category-electronics
 Purge via API or Property Manager rules.
 
 **Design tradeoff**: Tag-based purging requires:
+
 1. Application code to generate tags
 2. CDN that supports the feature (Fastly, Akamai, Cloudflare with Enterprise)
 3. Operational tooling to trigger purges
@@ -283,17 +294,18 @@ The complexity is justified when content relationships are complex (CMS, e-comme
 
 Purge is not instant. Time from purge request to global effect:
 
-| CDN Provider | Typical Propagation | Notes |
-|--------------|---------------------|-------|
-| Cloudflare | <150ms (P50) | "Instant Purge" via distributed invalidation |
-| Fastly | ~150ms global | Sub-second for most requests |
-| AWS CloudFront | 30s - 3min | Varies by distribution size |
-| Google Cloud CDN | 5-10 min | Rate limited (500/min) |
-| Akamai | Seconds to minutes | Depends on product tier |
+| CDN Provider     | Typical Propagation | Notes                                        |
+| ---------------- | ------------------- | -------------------------------------------- |
+| Cloudflare       | <150ms (P50)        | "Instant Purge" via distributed invalidation |
+| Fastly           | ~150ms global       | Sub-second for most requests                 |
+| AWS CloudFront   | 30s - 3min          | Varies by distribution size                  |
+| Google Cloud CDN | 5-10 min            | Rate limited (500/min)                       |
+| Akamai           | Seconds to minutes  | Depends on product tier                      |
 
 **Operational implication**: Don't assume purge is instant. If you purge and immediately test, you may see cached content. Build delays into deployment pipelines or use cache-busting query params for verification.
 
 **Cost**:
+
 - CloudFront: First 1,000 paths/month free, $0.005/path beyond
 - Wildcard `/*` counts as one path but invalidates everything
 
@@ -308,6 +320,7 @@ Cache-Control: max-age=600, stale-while-revalidate=30
 ```
 
 **Behavior**:
+
 1. **0-600s**: Content fresh, serve from cache
 2. **600-630s**: Content stale, serve from cache immediately, trigger async revalidation
 3. **>630s**: Content truly stale, synchronous fetch required
@@ -397,14 +410,15 @@ Edge compute moves logic from origin to CDN edge locations, reducing latency fro
 
 ### Platform Comparison
 
-| Platform | Runtime | Cold Start | Max Execution | Use Case |
-|----------|---------|------------|---------------|----------|
-| CloudFront Functions | JavaScript | <1ms | <1ms CPU | Simple transforms, redirects |
-| Lambda@Edge | Node.js, Python | 50-100ms | 5-30s | Complex logic, API calls |
-| Cloudflare Workers | JavaScript/WASM | <1ms | 10-30ms CPU | Full applications |
-| Fastly Compute | WASM (Rust, Go, JS) | 35μs | No hard limit | High-performance compute |
+| Platform             | Runtime             | Cold Start | Max Execution | Use Case                     |
+| -------------------- | ------------------- | ---------- | ------------- | ---------------------------- |
+| CloudFront Functions | JavaScript          | <1ms       | <1ms CPU      | Simple transforms, redirects |
+| Lambda@Edge          | Node.js, Python     | 50-100ms   | 5-30s         | Complex logic, API calls     |
+| Cloudflare Workers   | JavaScript/WASM     | <1ms       | 10-30ms CPU   | Full applications            |
+| Fastly Compute       | WASM (Rust, Go, JS) | 35μs       | No hard limit | High-performance compute     |
 
 **Cost comparison** (per 1M invocations):
+
 - CloudFront Functions: $0.10
 - Lambda@Edge: $0.60 + execution time
 - Cloudflare Workers: $0.50 (included in paid plans)
@@ -421,19 +435,19 @@ Traditional personalization requires origin processing per request. Edge compute
 // Cache key includes the segment, so variants are cached separately
 
 function handler(event) {
-    var request = event.request;
-    var cookies = request.cookies;
+  var request = event.request
+  var cookies = request.cookies
 
-    // Determine user segment from cookie
-    var segment = 'default';
-    if (cookies.user_segment) {
-        segment = cookies.user_segment.value;
-    }
+  // Determine user segment from cookie
+  var segment = "default"
+  if (cookies.user_segment) {
+    segment = cookies.user_segment.value
+  }
 
-    // Add segment to cache key via custom header
-    request.headers['x-user-segment'] = { value: segment };
+  // Add segment to cache key via custom header
+  request.headers["x-user-segment"] = { value: segment }
 
-    return request;
+  return request
 }
 ```
 
@@ -453,32 +467,33 @@ Edge-based A/B testing eliminates the latency and complexity of client-side test
 // Routes to variant-specific origin path
 
 export default {
-    async fetch(request) {
-        const url = new URL(request.url);
-        let variant = getCookie(request, 'ab_variant');
+  async fetch(request) {
+    const url = new URL(request.url)
+    let variant = getCookie(request, "ab_variant")
 
-        if (!variant) {
-            // New user: randomly assign variant
-            variant = Math.random() < 0.5 ? 'a' : 'b';
-        }
-
-        // Route to variant-specific origin
-        url.pathname = `/${variant}${url.pathname}`;
-
-        const response = await fetch(url.toString(), request);
-
-        // Set cookie for consistent future assignments
-        const newResponse = new Response(response.body, response);
-        if (!getCookie(request, 'ab_variant')) {
-            newResponse.headers.set('Set-Cookie', `ab_variant=${variant}; Path=/; Max-Age=86400`);
-        }
-
-        return newResponse;
+    if (!variant) {
+      // New user: randomly assign variant
+      variant = Math.random() < 0.5 ? "a" : "b"
     }
+
+    // Route to variant-specific origin
+    url.pathname = `/${variant}${url.pathname}`
+
+    const response = await fetch(url.toString(), request)
+
+    // Set cookie for consistent future assignments
+    const newResponse = new Response(response.body, response)
+    if (!getCookie(request, "ab_variant")) {
+      newResponse.headers.set("Set-Cookie", `ab_variant=${variant}; Path=/; Max-Age=86400`)
+    }
+
+    return newResponse
+  },
 }
 ```
 
 **Why edge beats client-side**:
+
 - No layout shift (content decided before HTML sent)
 - No JavaScript dependency
 - Consistent assignment across page loads
@@ -493,19 +508,19 @@ Edge compute enables geographic routing for latency optimization or compliance:
 // Routes EU users to EU-based origin
 
 exports.handler = async (event) => {
-    const request = event.Records[0].cf.request;
-    const country = request.headers['cloudfront-viewer-country'][0].value;
+  const request = event.Records[0].cf.request
+  const country = request.headers["cloudfront-viewer-country"][0].value
 
-    const euCountries = ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'PL'];
+  const euCountries = ["DE", "FR", "IT", "ES", "NL", "BE", "AT", "PL"]
 
-    if (euCountries.includes(country)) {
-        request.origin.custom.domainName = 'eu-origin.example.com';
-    } else {
-        request.origin.custom.domainName = 'us-origin.example.com';
-    }
+  if (euCountries.includes(country)) {
+    request.origin.custom.domainName = "eu-origin.example.com"
+  } else {
+    request.origin.custom.domainName = "us-origin.example.com"
+  }
 
-    return request;
-};
+  return request
+}
 ```
 
 **Compliance use case**: GDPR requires certain data to stay within EU. Route EU users to EU origins; their requests never touch US infrastructure.
@@ -519,16 +534,19 @@ Cache hit ratio (CHR) is the primary health metric for CDN effectiveness:
 **Formula**: `CHR = Cache Hits / (Cache Hits + Cache Misses) × 100`
 
 **Target thresholds**:
+
 - **Static assets**: >95%
 - **Overall site**: >85%
 - **Alert threshold**: <80% (investigate cache key issues or TTL misconfiguration)
 
 **Segmented monitoring is critical**: A global 90% CHR can mask a 50% CHR for a specific content type or region. Monitor by:
+
 - Content type (HTML, JS, CSS, images, API)
 - Geographic region
 - URL pattern
 
 **Common CHR killers**:
+
 - High-cardinality `Vary` headers (cache fragmentation)
 - Query parameters in cache key (tracking IDs create unique keys)
 - Short TTLs on high-traffic content
@@ -577,9 +595,11 @@ sequenceDiagram
 2. **Stale-while-revalidate**: First request serves stale, triggers async refresh—no stampede because subsequent requests still hit cache
 
 3. **Probabilistic early expiration**: Refresh before TTL expires:
+
    ```
    actual_ttl = ttl - (random() * jitter_factor)
    ```
+
    Spreads revalidation across time window instead of thundering at exact TTL
 
 4. **Origin Shield**: Centralized cache layer between edge PoPs and origin. Misses from multiple edges coalesce at shield.
@@ -589,6 +609,7 @@ sequenceDiagram
 Origin Shield adds a single cache layer between globally distributed edge PoPs and origin:
 
 **Without shield**:
+
 ```
 Edge NYC miss → Origin
 Edge London miss → Origin
@@ -597,6 +618,7 @@ Edge Tokyo miss → Origin
 ```
 
 **With shield**:
+
 ```
 Edge NYC miss → Shield (Virginia) miss → Origin
 Edge London miss → Shield (Virginia) hit
@@ -605,6 +627,7 @@ Edge Tokyo miss → Shield (Virginia) hit
 ```
 
 **When to enable**:
+
 - High traffic with moderate cache hit ratio (<95%)
 - Origin cannot handle traffic spikes
 - Global audience (many edge PoPs)
@@ -616,6 +639,7 @@ Edge Tokyo miss → Shield (Virginia) hit
 Design for origin failure:
 
 1. **Extended stale-if-error**: Serve stale content for 24-48 hours during outages
+
    ```http
    Cache-Control: max-age=300, stale-if-error=172800
    ```

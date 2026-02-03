@@ -80,13 +80,13 @@ React associates `useState(0)` with "the first hook call" and `useState("")` wit
 ```tsx title="hook-rules-violation.tsx" collapse={1-2}
 // ❌ Conditional hook call: order changes when `condition` flips
 function BadComponent({ condition }) {
-  const [count, setCount] = useState(0)       // Always slot 0
+  const [count, setCount] = useState(0) // Always slot 0
 
   if (condition) {
-    useEffect(() => console.log("effect"))    // Sometimes slot 1
+    useEffect(() => console.log("effect")) // Sometimes slot 1
   }
 
-  const [name, setName] = useState("")        // Slot 1 or 2 depending on condition
+  const [name, setName] = useState("") // Slot 1 or 2 depending on condition
 }
 ```
 
@@ -95,11 +95,11 @@ When `condition` changes from `true` to `false`, React expects slot 1 to be `use
 ```tsx title="hook-rules-correct.tsx" collapse={1-2}
 // ✅ Condition inside the hook, not around it
 function GoodComponent({ condition }) {
-  const [count, setCount] = useState(0)       // Always slot 0
-  const [name, setName] = useState("")        // Always slot 1
+  const [count, setCount] = useState(0) // Always slot 0
+  const [name, setName] = useState("") // Always slot 1
 
   useEffect(() => {
-    if (condition) console.log("effect")      // Always slot 2
+    if (condition) console.log("effect") // Always slot 2
   }, [condition])
 }
 ```
@@ -125,7 +125,7 @@ The `eslint-plugin-react-hooks` plugin enforces both rules statically.
 `useState` adds local state to a component. The setter triggers a re-render with the new value.
 
 ```tsx title="useState-basics.tsx"
-const [count, setCount] = useState(0)    // Returns [currentValue, setter]
+const [count, setCount] = useState(0) // Returns [currentValue, setter]
 ```
 
 **Critical behavior**: State is a snapshot frozen at render time. The setter queues a re-render; it doesn't mutate immediately.
@@ -136,9 +136,9 @@ function Counter() {
   const [count, setCount] = useState(0)
 
   function handleClick() {
-    setCount(count + 1)  // Queues: set to 0 + 1
-    setCount(count + 1)  // Queues: set to 0 + 1 (count is still 0!)
-    setCount(count + 1)  // Queues: set to 0 + 1
+    setCount(count + 1) // Queues: set to 0 + 1
+    setCount(count + 1) // Queues: set to 0 + 1 (count is still 0!)
+    setCount(count + 1) // Queues: set to 0 + 1
   }
 }
 ```
@@ -151,9 +151,9 @@ function Counter() {
   const [count, setCount] = useState(0)
 
   function handleClick() {
-    setCount(c => c + 1)  // 0 → 1
-    setCount(c => c + 1)  // 1 → 2
-    setCount(c => c + 1)  // 2 → 3
+    setCount((c) => c + 1) // 0 → 1
+    setCount((c) => c + 1) // 1 → 2
+    setCount((c) => c + 1) // 2 → 3
   }
 }
 ```
@@ -189,12 +189,12 @@ const [state, dispatch] = useReducer(reducer, initialState)
 
 **When to choose useReducer over useState:**
 
-| Scenario | useState | useReducer |
-|----------|----------|------------|
-| Independent values | ✅ Simpler | Overkill |
-| Interdependent state (form with validation) | Scattered logic | ✅ Centralized |
-| Complex transitions (state machine) | Hard to follow | ✅ Explicit actions |
-| Testing state logic | Coupled to component | ✅ Pure function |
+| Scenario                                    | useState             | useReducer          |
+| ------------------------------------------- | -------------------- | ------------------- |
+| Independent values                          | ✅ Simpler           | Overkill            |
+| Interdependent state (form with validation) | Scattered logic      | ✅ Centralized      |
+| Complex transitions (state machine)         | Hard to follow       | ✅ Explicit actions |
+| Testing state logic                         | Coupled to component | ✅ Pure function    |
 
 ```tsx title="form-reducer.tsx" collapse={1-14, 26-30}
 type FormState = {
@@ -212,7 +212,10 @@ type FormAction =
   | { type: "RESET" }
 
 const initialState: FormState = {
-  email: "", password: "", errors: {}, isSubmitting: false
+  email: "",
+  password: "",
+  errors: {},
+  isSubmitting: false,
 }
 
 function formReducer(state: FormState, action: FormAction): FormState {
@@ -243,8 +246,8 @@ function ChatRoom({ roomId }) {
   useEffect(() => {
     const connection = createConnection(roomId)
     connection.connect()
-    return () => connection.disconnect()  // Cleanup before re-sync
-  }, [roomId])  // Re-sync when roomId changes
+    return () => connection.disconnect() // Cleanup before re-sync
+  }, [roomId]) // Re-sync when roomId changes
 }
 ```
 
@@ -260,12 +263,12 @@ useEffect(() => { ... }, [a, b])   // Re-runs when a or b changes (Object.is)
 
 **Common bugs:**
 
-| Bug | Cause | Fix |
-|-----|-------|-----|
-| Stale closure | Missing dependency | Add to array or use functional update |
-| Infinite loop | Object/function in deps recreated each render | `useMemo`/`useCallback` or move inside effect |
-| Memory leak | No cleanup for subscription/timer | Return cleanup function |
-| Race condition | Async result applied after newer request | Use `ignore` flag pattern |
+| Bug            | Cause                                         | Fix                                           |
+| -------------- | --------------------------------------------- | --------------------------------------------- |
+| Stale closure  | Missing dependency                            | Add to array or use functional update         |
+| Infinite loop  | Object/function in deps recreated each render | `useMemo`/`useCallback` or move inside effect |
+| Memory leak    | No cleanup for subscription/timer             | Return cleanup function                       |
+| Race condition | Async result applied after newer request      | Use `ignore` flag pattern                     |
 
 ```tsx title="useEffect-race-condition.tsx" collapse={1-2}
 // Race condition fix: ignore stale responses
@@ -274,10 +277,12 @@ function Profile({ userId }) {
 
   useEffect(() => {
     let ignore = false
-    fetchUser(userId).then(data => {
-      if (!ignore) setUser(data)  // Only apply if still current
+    fetchUser(userId).then((data) => {
+      if (!ignore) setUser(data) // Only apply if still current
     })
-    return () => { ignore = true }
+    return () => {
+      ignore = true
+    }
   }, [userId])
 }
 ```
@@ -330,8 +335,8 @@ Objects and functions are recreated on every render. If passed to a `memo()`-wra
 // Child re-renders on every parent render, even if props are "the same"
 function Parent() {
   const [count, setCount] = useState(0)
-  const style = { color: "blue" }           // New object each render
-  const onClick = () => console.log("hi")   // New function each render
+  const style = { color: "blue" } // New object each render
+  const onClick = () => console.log("hi") // New function each render
   return <MemoizedChild style={style} onClick={onClick} />
 }
 ```
@@ -341,10 +346,7 @@ function Parent() {
 `useMemo` caches a computed value until dependencies change.
 
 ```tsx title="useMemo-basics.tsx"
-const filtered = useMemo(
-  () => items.filter(item => item.matches(query)),
-  [items, query]
-)
+const filtered = useMemo(() => items.filter((item) => item.matches(query)), [items, query])
 ```
 
 **When to use:**
@@ -365,7 +367,7 @@ function Parent() {
   const [count, setCount] = useState(0)
 
   const handleClick = useCallback(() => {
-    setCount(c => c + 1)  // Updater function avoids `count` dependency
+    setCount((c) => c + 1) // Updater function avoids `count` dependency
   }, [])
 
   return <MemoizedButton onClick={handleClick} />
@@ -410,14 +412,17 @@ import { useEffect, useRef } from "react"
 
 export function usePrevious<T>(value: T): T | undefined {
   const ref = useRef<T>()
-  useEffect(() => { ref.current = value }, [value])
-  return ref.current  // Returns previous value during render
+  useEffect(() => {
+    ref.current = value
+  }, [value])
+  return ref.current // Returns previous value during render
 }
 ```
 
-**How it works**: `useRef` stores the value outside the render cycle. `useEffect` updates the ref *after* render, so during render we still see the old value.
+**How it works**: `useRef` stores the value outside the render cycle. `useEffect` updates the ref _after_ render, so during render we still see the old value.
 
 **Edge cases:**
+
 - First render: returns `undefined`
 - Concurrent features: safe because refs are instance-specific
 
@@ -454,6 +459,7 @@ function Search() {
 ```
 
 **Edge cases:**
+
 - Component unmount: cleanup clears pending timer
 - Delay changes: timer resets with new duration
 
@@ -469,9 +475,12 @@ type Action<T> = { type: "start" } | { type: "success"; data: T } | { type: "err
 
 function reducer<T>(state: State<T>, action: Action<T>): State<T> {
   switch (action.type) {
-    case "start": return { ...state, isLoading: true, error: null }
-    case "success": return { data: action.data, isLoading: false, error: null }
-    case "error": return { ...state, isLoading: false, error: action.error }
+    case "start":
+      return { ...state, isLoading: true, error: null }
+    case "success":
+      return { data: action.data, isLoading: false, error: null }
+    case "error":
+      return { ...state, isLoading: false, error: action.error }
   }
 }
 
@@ -489,9 +498,9 @@ export function useFetch<T>(url: string | null) {
     dispatch({ type: "start" })
 
     fetch(url, { signal: controller.signal })
-      .then(res => res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`)))
-      .then(data => dispatch({ type: "success", data }))
-      .catch(err => {
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(`HTTP ${res.status}`))))
+      .then((data) => dispatch({ type: "success", data }))
+      .catch((err) => {
         if (err.name !== "AbortError") dispatch({ type: "error", error: err })
       })
 
@@ -503,6 +512,7 @@ export function useFetch<T>(url: string | null) {
 ```
 
 **Key behaviors:**
+
 - Cancels in-flight request when URL changes or component unmounts
 - Ignores `AbortError` to avoid spurious error states
 - Uses reducer for atomic state transitions
@@ -520,22 +530,31 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (v: T | ((
     try {
       const item = localStorage.getItem(key)
       return item ? JSON.parse(item) : initialValue
-    } catch { return initialValue }
+    } catch {
+      return initialValue
+    }
   })
 
-  const setStoredValue = useCallback((newValue: T | ((prev: T) => T)) => {
-    setValue(prev => {
-      const resolved = newValue instanceof Function ? newValue(prev) : newValue
-      try { localStorage.setItem(key, JSON.stringify(resolved)) } catch {}
-      return resolved
-    })
-  }, [key])
+  const setStoredValue = useCallback(
+    (newValue: T | ((prev: T) => T)) => {
+      setValue((prev) => {
+        const resolved = newValue instanceof Function ? newValue(prev) : newValue
+        try {
+          localStorage.setItem(key, JSON.stringify(resolved))
+        } catch {}
+        return resolved
+      })
+    },
+    [key],
+  )
 
   // Sync across tabs
   useEffect(() => {
     const handler = (e: StorageEvent) => {
       if (e.key === key && e.newValue) {
-        try { setValue(JSON.parse(e.newValue)) } catch {}
+        try {
+          setValue(JSON.parse(e.newValue))
+        } catch {}
       }
     }
     window.addEventListener("storage", handler)
@@ -547,6 +566,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (v: T | ((
 ```
 
 **Edge cases:**
+
 - SSR: Returns `initialValue` when `window` is undefined
 - JSON errors: Falls back to initial value
 - Cross-tab sync: `storage` event fires when other tabs modify the same key
@@ -559,7 +579,9 @@ Detects when elements enter/leave the viewport. Replaces inefficient scroll list
 import { useEffect, useRef, useState, useCallback } from "react"
 
 interface Options {
-  threshold?: number; rootMargin?: string; freezeOnceVisible?: boolean
+  threshold?: number
+  rootMargin?: string
+  freezeOnceVisible?: boolean
 }
 
 export function useIntersectionObserver(options: Options = {}) {
@@ -568,20 +590,26 @@ export function useIntersectionObserver(options: Options = {}) {
   const frozen = useRef(false)
   const ref = useRef<Element | null>(null)
 
-  const setRef = useCallback((node: Element | null) => {
-    if (ref.current) return  // Already observing
-    ref.current = node
-    if (!node) return
+  const setRef = useCallback(
+    (node: Element | null) => {
+      if (ref.current) return // Already observing
+      ref.current = node
+      if (!node) return
 
-    const observer = new IntersectionObserver(([entry]) => {
-      if (frozen.current) return
-      if (freezeOnceVisible && entry.isIntersecting) frozen.current = true
-      setIsIntersecting(entry.isIntersecting)
-    }, { threshold, rootMargin })
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (frozen.current) return
+          if (freezeOnceVisible && entry.isIntersecting) frozen.current = true
+          setIsIntersecting(entry.isIntersecting)
+        },
+        { threshold, rootMargin },
+      )
 
-    observer.observe(node)
-    return () => observer.disconnect()
-  }, [threshold, rootMargin, freezeOnceVisible])
+      observer.observe(node)
+      return () => observer.disconnect()
+    },
+    [threshold, rootMargin, freezeOnceVisible],
+  )
 
   return [setRef, isIntersecting] as const
 }
@@ -600,26 +628,23 @@ function LazyImage({ src }: { src: string }) {
 
 React 19 (December 2024) introduces hooks for form handling and optimistic updates:
 
-| Hook | Purpose |
-|------|---------|
-| `useActionState` | Manages form submission state, errors, and pending status |
-| `useFormStatus` | Reads parent `<form>` status without prop drilling |
-| `useOptimistic` | Shows optimistic UI while async request completes |
-| `use` | Reads promises/context during render (can follow early returns) |
+| Hook             | Purpose                                                         |
+| ---------------- | --------------------------------------------------------------- |
+| `useActionState` | Manages form submission state, errors, and pending status       |
+| `useFormStatus`  | Reads parent `<form>` status without prop drilling              |
+| `useOptimistic`  | Shows optimistic UI while async request completes               |
+| `use`            | Reads promises/context during render (can follow early returns) |
 
 ```tsx title="react-19-hooks.tsx" collapse={1-2}
 // useActionState example
 import { useActionState } from "react"
 
 function Form() {
-  const [error, submitAction, isPending] = useActionState(
-    async (prevState, formData) => {
-      const result = await saveData(formData)
-      if (result.error) return result.error
-      return null
-    },
-    null
-  )
+  const [error, submitAction, isPending] = useActionState(async (prevState, formData) => {
+    const result = await saveData(formData)
+    if (result.error) return result.error
+    return null
+  }, null)
 
   return (
     <form action={submitAction}>
@@ -646,13 +671,13 @@ Hooks solve class component problems through a single mechanism: call-order-base
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **Hook** | Function starting with `use` that accesses React state or lifecycle |
-| **Memoization** | Caching computed values to avoid recalculation |
-| **Referential equality** | Two values are `===` (same reference in memory) |
-| **Stale closure** | Closure capturing outdated variable values |
-| **HOC** | Higher-Order Component—function that wraps a component to add behavior |
+| Term                     | Definition                                                             |
+| ------------------------ | ---------------------------------------------------------------------- |
+| **Hook**                 | Function starting with `use` that accesses React state or lifecycle    |
+| **Memoization**          | Caching computed values to avoid recalculation                         |
+| **Referential equality** | Two values are `===` (same reference in memory)                        |
+| **Stale closure**        | Closure capturing outdated variable values                             |
+| **HOC**                  | Higher-Order Component—function that wraps a component to add behavior |
 
 ### Summary
 

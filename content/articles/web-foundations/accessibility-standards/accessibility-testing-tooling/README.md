@@ -47,13 +47,13 @@ flowchart TB
 
 Accessibility testing requires a layered approach because different issue categories require different detection methods:
 
-| Testing Layer | What It Catches | Coverage |
-|--------------|-----------------|----------|
-| **Static analysis** (eslint-plugin-jsx-a11y) | Missing alt attributes, invalid ARIA, semantic violations in JSX | ~15% of criteria, development-time |
-| **Runtime automation** (axe-core, Pa11y) | Contrast ratios, duplicate IDs, missing labels, ARIA state validity | ~35% of WCAG criteria reliably |
-| **Manual testing** (keyboard, screen readers) | Focus order logic, content meaning, navigation consistency | ~42% of criteria—non-automatable |
+| Testing Layer                                 | What It Catches                                                     | Coverage                           |
+| --------------------------------------------- | ------------------------------------------------------------------- | ---------------------------------- |
+| **Static analysis** (eslint-plugin-jsx-a11y)  | Missing alt attributes, invalid ARIA, semantic violations in JSX    | ~15% of criteria, development-time |
+| **Runtime automation** (axe-core, Pa11y)      | Contrast ratios, duplicate IDs, missing labels, ARIA state validity | ~35% of WCAG criteria reliably     |
+| **Manual testing** (keyboard, screen readers) | Focus order logic, content meaning, navigation consistency          | ~42% of criteria—non-automatable   |
 
-**Why automation alone fails**: WCAG 2.2's 86 success criteria include subjective requirements—whether alt text *accurately describes* an image, whether error messages *provide helpful guidance*, whether focus order is *logically intuitive*. Tools can detect presence of alt text but cannot evaluate its correctness.
+**Why automation alone fails**: WCAG 2.2's 86 success criteria include subjective requirements—whether alt text _accurately describes_ an image, whether error messages _provide helpful guidance_, whether focus order is _logically intuitive_. Tools can detect presence of alt text but cannot evaluate its correctness.
 
 **Tool selection principle**: axe-core dominates because of its conservative rule engineering (minimizes false positives), making it safe for CI/CD gates. Pa11y adds HTML CodeSniffer's distinct rule set for broader coverage. WAVE and Lighthouse serve quick audits but lack the rigor for compliance verification.
 
@@ -66,25 +66,25 @@ Accessibility testing requires a layered approach because different issue catego
 
 ## Automation Coverage: What Tools Actually Catch
 
-The 57% figure from Deque's study (13,000+ pages, 300,000+ issues) measures issue *volume*, not criteria count. Some issue types (missing labels, contrast failures) occur frequently—automation catches these reliably. Other criteria (meaningful sequence, focus order) rarely produce automatable signals.
+The 57% figure from Deque's study (13,000+ pages, 300,000+ issues) measures issue _volume_, not criteria count. Some issue types (missing labels, contrast failures) occur frequently—automation catches these reliably. Other criteria (meaningful sequence, focus order) rarely produce automatable signals.
 
 ### WCAG Criteria by Automation Reliability
 
-| Reliability | Criteria Count | Examples | Detection Confidence |
-|-------------|----------------|----------|---------------------|
-| **High** | ~13% | Color contrast ratios, duplicate IDs, missing form labels | Measurable technical requirements; minimal false positives |
-| **Partial** | ~45% | Heading hierarchy, link purpose, error identification | Detect presence but not quality/correctness |
-| **None** | ~42% | Alt text accuracy, focus order logic, caption timing | Require human judgment |
+| Reliability | Criteria Count | Examples                                                  | Detection Confidence                                       |
+| ----------- | -------------- | --------------------------------------------------------- | ---------------------------------------------------------- |
+| **High**    | ~13%           | Color contrast ratios, duplicate IDs, missing form labels | Measurable technical requirements; minimal false positives |
+| **Partial** | ~45%           | Heading hierarchy, link purpose, error identification     | Detect presence but not quality/correctness                |
+| **None**    | ~42%           | Alt text accuracy, focus order logic, caption timing      | Require human judgment                                     |
 
 **What "high reliability" means**: Contrast ratio calculations are objective—4.5:1 for normal text, 3:1 for large text per WCAG 1.4.3. Tools calculate this deterministically. "High reliability" criteria have clear pass/fail thresholds without subjective interpretation.
 
-**What "partial" means**: A tool can verify a heading exists after content but cannot determine if the heading *accurately describes* that content. It detects structural presence, not semantic correctness.
+**What "partial" means**: A tool can verify a heading exists after content but cannot determine if the heading _accurately describes_ that content. It detects structural presence, not semantic correctness.
 
 **What "none" means**: "Focus order preserves meaning and operability" (WCAG 2.4.3) requires understanding user intent and page purpose. No algorithm can determine if tab order is "logical" without understanding the content's meaning.
 
 ### Why axe-core's 57% Matters for CI/CD
 
-axe-core's design philosophy prioritizes *zero false positives over maximum coverage*. From the axe-core documentation:
+axe-core's design philosophy prioritizes _zero false positives over maximum coverage_. From the axe-core documentation:
 
 > "Axe-core is designed to report only issues we're confident are accessibility issues. We'd rather miss an issue than report a false positive."
 
@@ -95,15 +95,15 @@ This makes axe-core safe for CI/CD gates—builds won't fail for phantom issues.
 ```javascript title="axe-config.js"
 const axeConfig = {
   runOnly: {
-    type: 'tag',
-    values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
+    type: "tag",
+    values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"],
   },
   rules: {
     // Disable rules for known exceptions
-    'color-contrast': { enabled: true },
+    "color-contrast": { enabled: true },
     // Enable best-practices beyond WCAG
-    'region': { enabled: true }
-  }
+    region: { enabled: true },
+  },
 }
 ```
 
@@ -116,21 +116,21 @@ axe-core (v4.11.x as of January 2026) provides 70+ accessibility rules and power
 **Playwright** (@axe-core/playwright) offers chainable configuration:
 
 ```javascript title="playwright-a11y.spec.js" collapse={1-3, 18-22}
-import { test, expect } from '@playwright/test'
-import AxeBuilder from '@axe-core/playwright'
+import { test, expect } from "@playwright/test"
+import AxeBuilder from "@axe-core/playwright"
 
-test('checkout flow accessibility', async ({ page }) => {
-  await page.goto('/checkout')
+test("checkout flow accessibility", async ({ page }) => {
+  await page.goto("/checkout")
 
   const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag22aa'])
-    .exclude('.third-party-widget') // Known inaccessible embed
+    .withTags(["wcag2a", "wcag2aa", "wcag22aa"])
+    .exclude(".third-party-widget") // Known inaccessible embed
     .analyze()
 
   // Fail on violations, log incomplete for review
   expect(results.violations).toEqual([])
   if (results.incomplete.length > 0) {
-    console.log('Manual review needed:', results.incomplete)
+    console.log("Manual review needed:", results.incomplete)
   }
 })
 ```
@@ -138,24 +138,24 @@ test('checkout flow accessibility', async ({ page }) => {
 **Cypress** (cypress-axe or Cypress Accessibility) provides `cy.checkA11y()`:
 
 ```javascript title="cypress-a11y.spec.js" collapse={1-6}
-describe('Form Accessibility', () => {
+describe("Form Accessibility", () => {
   beforeEach(() => {
-    cy.visit('/contact')
+    cy.visit("/contact")
     cy.injectAxe()
   })
 
-  it('form meets WCAG 2.2 AA', () => {
+  it("form meets WCAG 2.2 AA", () => {
     cy.checkA11y(null, {
       runOnly: {
-        type: 'tag',
-        values: ['wcag22aa']
-      }
+        type: "tag",
+        values: ["wcag22aa"],
+      },
     })
   })
 
-  it('error states remain accessible', () => {
-    cy.get('#email').type('invalid')
-    cy.get('form').submit()
+  it("error states remain accessible", () => {
+    cy.get("#email").type("invalid")
+    cy.get("form").submit()
     cy.checkA11y() // Re-check after state change
   })
 })
@@ -164,29 +164,29 @@ describe('Form Accessibility', () => {
 **React** (@axe-core/react) logs violations during development:
 
 ```javascript title="index.jsx" collapse={1-4}
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App'
+import React from "react"
+import ReactDOM from "react-dom/client"
+import App from "./App"
 
-if (process.env.NODE_ENV !== 'production') {
-  import('@axe-core/react').then(axe => {
+if (process.env.NODE_ENV !== "production") {
+  import("@axe-core/react").then((axe) => {
     axe.default(React, ReactDOM, 1000) // 1s debounce
   })
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />)
+ReactDOM.createRoot(document.getElementById("root")).render(<App />)
 ```
 
 ### axe-core Results Structure
 
 axe-core returns four result categories—understanding them prevents ignoring useful signals:
 
-| Category | Meaning | CI/CD Action |
-|----------|---------|--------------|
-| **violations** | Definite failures | Fail build |
-| **passes** | Definite passes | No action |
-| **incomplete** | Potential issues needing human review | Log for manual triage |
-| **inapplicable** | Rules that don't apply to page content | No action |
+| Category         | Meaning                                | CI/CD Action          |
+| ---------------- | -------------------------------------- | --------------------- |
+| **violations**   | Definite failures                      | Fail build            |
+| **passes**       | Definite passes                        | No action             |
+| **incomplete**   | Potential issues needing human review  | Log for manual triage |
+| **inapplicable** | Rules that don't apply to page content | No action             |
 
 **Common mistake**: Ignoring `incomplete` results. These often flag issues like "review this image's alt text"—not automatable but important for manual testing queues.
 
@@ -196,12 +196,12 @@ Pa11y (v9.0.0, 2025) provides an alternative rule engine and excels at URL batch
 
 ### Architectural Differences from axe-core
 
-| Aspect | Pa11y (HTMLCS) | axe-core |
-|--------|----------------|----------|
-| **Result model** | Violations only | Violations + incomplete + passes |
-| **Philosophy** | Definite issues | Definite + potential issues |
-| **Rule count** | ~70 checks | 70+ rules |
-| **False positives** | Moderate | Very low (by design) |
+| Aspect              | Pa11y (HTMLCS)  | axe-core                         |
+| ------------------- | --------------- | -------------------------------- |
+| **Result model**    | Violations only | Violations + incomplete + passes |
+| **Philosophy**      | Definite issues | Definite + potential issues      |
+| **Rule count**      | ~70 checks      | 70+ rules                        |
+| **False positives** | Moderate        | Very low (by design)             |
 
 **Why use both**: HTMLCS and axe-core have different rule implementations. Running both (`runners: ['axe', 'htmlcs']`) catches ~35% of WCAG issues—more than either alone—because their rule sets partially overlap but cover different edge cases.
 
@@ -217,11 +217,7 @@ Pa11y-CI (v4.0.0) is purpose-built for CI/CD. It fails pipelines on violations (
     "timeout": 30000,
     "wait": 1000
   },
-  "urls": [
-    "http://localhost:3000/",
-    "http://localhost:3000/contact",
-    "http://localhost:3000/checkout"
-  ]
+  "urls": ["http://localhost:3000/", "http://localhost:3000/contact", "http://localhost:3000/checkout"]
 }
 ```
 
@@ -236,7 +232,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
       - run: npm ci
       - run: npm run build
       - run: npm run preview &
@@ -289,23 +285,26 @@ The plugin provides ~30 rules across categories:
 
 ```json title=".eslintrc.json" collapse={1-5, 15-20}
 {
-  "extends": [
-    "eslint:recommended",
-    "plugin:react/recommended"
-  ],
+  "extends": ["eslint:recommended", "plugin:react/recommended"],
   "plugins": ["jsx-a11y"],
   "extends": ["plugin:jsx-a11y/recommended"],
   "rules": {
     // Override specific rules
-    "jsx-a11y/anchor-is-valid": ["error", {
-      "components": ["Link"],
-      "specialLink": ["to"]
-    }],
+    "jsx-a11y/anchor-is-valid": [
+      "error",
+      {
+        "components": ["Link"],
+        "specialLink": ["to"]
+      }
+    ],
     // Allow onClick on divs with role="button"
-    "jsx-a11y/no-static-element-interactions": ["error", {
-      "allowExpressionValues": true,
-      "handlers": ["onClick"]
-    }]
+    "jsx-a11y/no-static-element-interactions": [
+      "error",
+      {
+        "allowExpressionValues": true,
+        "handlers": ["onClick"]
+      }
+    ]
   }
 }
 ```
@@ -328,11 +327,13 @@ Browser extensions serve manual testing workflows—they're interactive tools fo
 ### WAVE
 
 **Strengths**:
+
 - Runs entirely client-side (safe for intranets, authenticated pages)
 - Visual overlay shows issues in page context
 - Explains issues for non-specialists
 
 **Limitations**:
+
 - Manual page-by-page operation
 - Higher false positive rate than axe-core
 - Cannot verify content quality (alt text accuracy)
@@ -343,6 +344,7 @@ Browser extensions serve manual testing workflows—they're interactive tools fo
 ### axe DevTools
 
 The browser extension version of axe-core provides:
+
 - Same rule engine as automated tests
 - Interactive issue exploration
 - Guided remediation suggestions
@@ -352,28 +354,29 @@ The browser extension version of axe-core provides:
 
 ## Lighthouse Accessibility Audits
 
-Lighthouse runs a *subset* of axe-core rules (~25-30 of 70+). It's designed for quick health checks, not compliance verification.
+Lighthouse runs a _subset_ of axe-core rules (~25-30 of 70+). It's designed for quick health checks, not compliance verification.
 
 ### When Lighthouse Falls Short
 
-| Lighthouse Reports | axe-core Catches |
-|-------------------|------------------|
-| Basic contrast issues | All contrast permutations |
-| Missing form labels | Label association edge cases |
-| Alt text presence | Alt text in SVGs, custom components |
-| Basic ARIA | Complex ARIA widget patterns |
+| Lighthouse Reports    | axe-core Catches                    |
+| --------------------- | ----------------------------------- |
+| Basic contrast issues | All contrast permutations           |
+| Missing form labels   | Label association edge cases        |
+| Alt text presence     | Alt text in SVGs, custom components |
+| Basic ARIA            | Complex ARIA widget patterns        |
 
 **Practical guidance**: Run Lighthouse for quick feedback during development. Run axe-core in your test suite for compliance. Don't rely on a passing Lighthouse score for WCAG conformance.
 
 ## Manual Testing: The Non-Negotiable 43%
 
-Approximately 42% of WCAG criteria cannot be automated because they require subjective judgment. These criteria determine whether content *works* for users with disabilities, not just whether technical requirements are met.
+Approximately 42% of WCAG criteria cannot be automated because they require subjective judgment. These criteria determine whether content _works_ for users with disabilities, not just whether technical requirements are met.
 
 ### Keyboard Navigation Testing
 
 No reliable automation exists for keyboard navigation quality. The test protocol:
 
 **Navigation keys**:
+
 - `Tab`: Forward through interactive elements
 - `Shift+Tab`: Backward navigation
 - `Enter`/`Space`: Activate buttons and links
@@ -393,11 +396,11 @@ No reliable automation exists for keyboard navigation quality. The test protocol
 ```javascript title="spa-focus.js"
 // After route change, move focus to main content
 function handleRouteChange() {
-  const main = document.querySelector('main')
-  main.setAttribute('tabindex', '-1')
+  const main = document.querySelector("main")
+  main.setAttribute("tabindex", "-1")
   main.focus()
   // Remove tabindex after focus to prevent mouse focus outline
-  main.addEventListener('blur', () => main.removeAttribute('tabindex'), { once: true })
+  main.addEventListener("blur", () => main.removeAttribute("tabindex"), { once: true })
 }
 ```
 
@@ -407,14 +410,15 @@ Screen readers reveal issues invisible to sighted testing: missing labels, illog
 
 **Testing matrix** (minimum coverage):
 
-| Platform | Screen Reader | Usage Share | Priority |
-|----------|---------------|-------------|----------|
-| Windows | NVDA | ~40% | Required |
-| Windows | JAWS | ~30% | Enterprise contexts |
-| macOS/iOS | VoiceOver | ~15% | Apple users |
-| Android | TalkBack | ~10% | Mobile users |
+| Platform  | Screen Reader | Usage Share | Priority            |
+| --------- | ------------- | ----------- | ------------------- |
+| Windows   | NVDA          | ~40%        | Required            |
+| Windows   | JAWS          | ~30%        | Enterprise contexts |
+| macOS/iOS | VoiceOver     | ~15%        | Apple users         |
+| Android   | TalkBack      | ~10%        | Mobile users        |
 
 **NVDA vs JAWS behavioral differences**:
+
 - **NVDA** strictly follows DOM/accessibility tree—exposes missing labels, broken associations
 - **JAWS** uses heuristics to infer missing information—masks some issues but improves real-world usability
 
@@ -431,7 +435,7 @@ Test with both when possible. NVDA catches structural problems; JAWS reveals whe
 
 These criteria require human judgment—no automation possible:
 
-**Alternative text** (1.1.1): Does alt text convey the image's *purpose* in context? "Graph showing sales data" is technically present but useless. "Sales increased 25% from Q1 to Q3" conveys meaning.
+**Alternative text** (1.1.1): Does alt text convey the image's _purpose_ in context? "Graph showing sales data" is technically present but useless. "Sales increased 25% from Q1 to Q3" conveys meaning.
 
 **Meaningful sequence** (1.3.2): Does reading order make sense when CSS positioning is ignored? Screen readers follow DOM order, not visual order.
 
@@ -445,19 +449,19 @@ Not all accessibility issues have equal impact. Prioritize by user impact and le
 
 ### Severity Framework
 
-| Severity | Definition | Examples | Response |
-|----------|------------|----------|----------|
-| **Critical** | Complete barrier—task cannot be completed | No keyboard access to submit button, missing form labels, keyboard trap | Fix immediately |
-| **Serious** | Major difficulty—task very hard to complete | Poor contrast, confusing focus order, missing error identification | Fix this sprint |
-| **Moderate** | Inconvenience—task harder than necessary | Redundant alt text, minor contrast issues, verbose labels | Fix this quarter |
-| **Minor** | Best practice—not a barrier | Missing landmark roles, suboptimal heading levels | Backlog |
+| Severity     | Definition                                  | Examples                                                                | Response         |
+| ------------ | ------------------------------------------- | ----------------------------------------------------------------------- | ---------------- |
+| **Critical** | Complete barrier—task cannot be completed   | No keyboard access to submit button, missing form labels, keyboard trap | Fix immediately  |
+| **Serious**  | Major difficulty—task very hard to complete | Poor contrast, confusing focus order, missing error identification      | Fix this sprint  |
+| **Moderate** | Inconvenience—task harder than necessary    | Redundant alt text, minor contrast issues, verbose labels               | Fix this quarter |
+| **Minor**    | Best practice—not a barrier                 | Missing landmark roles, suboptimal heading levels                       | Backlog          |
 
 ### WCAG Level Mapping
 
-| WCAG Level | User Impact | Legal Risk |
-|------------|-------------|------------|
-| **Level A failures** | Complete barriers—AT cannot function | High—baseline requirement |
-| **Level AA failures** | Significant barriers—tasks very difficult | High—legal compliance target |
+| WCAG Level             | User Impact                                | Legal Risk                   |
+| ---------------------- | ------------------------------------------ | ---------------------------- |
+| **Level A failures**   | Complete barriers—AT cannot function       | High—baseline requirement    |
+| **Level AA failures**  | Significant barriers—tasks very difficult  | High—legal compliance target |
 | **Level AAA failures** | Maximum accessibility—specialized contexts | Low—not universally required |
 
 ### Issue Documentation Template
@@ -473,16 +477,20 @@ Track issues with sufficient context for developers:
 **Tool**: axe-core (violations[0])
 
 ### Description
+
 Email input field has no programmatic label. Screen reader users cannot identify the field's purpose.
 
 ### Current markup
+
 <input type="email" name="email" placeholder="Email">
 
 ### Recommended fix
+
 <label for="checkout-email">Email address</label>
 <input type="email" id="checkout-email" name="email">
 
 ### Verification
+
 - [ ] axe-core passes
 - [ ] NVDA announces "Email address, edit"
 - [ ] Label visible and associated
@@ -522,7 +530,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
       - run: npm ci
 
       - name: Lint (includes a11y rules)
@@ -550,7 +558,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
       - run: npm ci
       - run: npm run build
       - run: npm run preview &
@@ -579,15 +587,15 @@ module.exports = {
   ci: {
     assert: {
       assertions: {
-        'categories:accessibility': ['error', { minScore: 0.9 }],
+        "categories:accessibility": ["error", { minScore: 0.9 }],
         // Specific audits
-        'color-contrast': 'error',
-        'document-title': 'error',
-        'html-has-lang': 'error',
-        'meta-viewport': 'error'
-      }
-    }
-  }
+        "color-contrast": "error",
+        "document-title": "error",
+        "html-has-lang": "error",
+        "meta-viewport": "error",
+      },
+    },
+  },
 }
 ```
 

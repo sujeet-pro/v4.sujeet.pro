@@ -76,10 +76,10 @@ Where:
 
 Traditional monitoring tracks system metrics: CPU utilization, memory pressure, network throughput. These metrics do not capture user experience:
 
-| System Metric | User Reality |
-|--------------|--------------|
-| 99.99% server uptime | Users experiencing 100% error rate (load balancer misconfigured) |
-| 50ms average latency | P99 users waiting 30 seconds (outliers invisible in averages) |
+| System Metric         | User Reality                                                     |
+| --------------------- | ---------------------------------------------------------------- |
+| 99.99% server uptime  | Users experiencing 100% error rate (load balancer misconfigured) |
+| 50ms average latency  | P99 users waiting 30 seconds (outliers invisible in averages)    |
 | All processes healthy | Users unable to complete transactions (upstream dependency down) |
 
 The design principle from Google's SRE practice: "Start with what your users care about, not what's easy to measure." SLIs should reflect the user journey, not the infrastructure topology.
@@ -88,12 +88,12 @@ The design principle from Google's SRE practice: "Start with what your users car
 
 Different services require different SLI types:
 
-| Service Type | Primary SLIs | Example |
-|-------------|-------------|---------|
-| **Request-driven** (APIs, web) | Availability, latency, throughput | 99.9% requests return 2xx in < 200ms |
-| **Storage systems** | Durability, availability, latency | 99.999999999% (11 nines) of objects retrievable |
-| **Data pipelines** | Freshness, correctness, throughput | Data arrives within 5 minutes of ingestion, 99.9% of records processed correctly |
-| **Scheduled jobs** | Success rate, completion time | 99% of daily jobs complete within SLA window |
+| Service Type                   | Primary SLIs                       | Example                                                                          |
+| ------------------------------ | ---------------------------------- | -------------------------------------------------------------------------------- |
+| **Request-driven** (APIs, web) | Availability, latency, throughput  | 99.9% requests return 2xx in < 200ms                                             |
+| **Storage systems**            | Durability, availability, latency  | 99.999999999% (11 nines) of objects retrievable                                  |
+| **Data pipelines**             | Freshness, correctness, throughput | Data arrives within 5 minutes of ingestion, 99.9% of records processed correctly |
+| **Scheduled jobs**             | Success rate, completion time      | 99% of daily jobs complete within SLA window                                     |
 
 ### Latency SLIs: Percentiles, Not Averages
 
@@ -150,12 +150,12 @@ Example: 99.9% of HTTP requests return 2xx in < 200ms over a rolling 30-day wind
 
 Each additional "nine" of reliability has exponential cost:
 
-| Target | Error Budget | Downtime/30 days | Engineering Implications |
-|--------|-------------|------------------|-------------------------|
-| 99% | 1% | 7.2 hours | Standard deployments, basic redundancy |
-| 99.9% | 0.1% | 43 minutes | Blue-green deployments, automated rollback |
-| 99.99% | 0.01% | 4.3 minutes | Multi-region active-active, chaos engineering |
-| 99.999% | 0.001% | 26 seconds | Custom hardware, dedicated SRE team, limited releases |
+| Target  | Error Budget | Downtime/30 days | Engineering Implications                              |
+| ------- | ------------ | ---------------- | ----------------------------------------------------- |
+| 99%     | 1%           | 7.2 hours        | Standard deployments, basic redundancy                |
+| 99.9%   | 0.1%         | 43 minutes       | Blue-green deployments, automated rollback            |
+| 99.99%  | 0.01%        | 4.3 minutes      | Multi-region active-active, chaos engineering         |
+| 99.999% | 0.001%       | 26 seconds       | Custom hardware, dedicated SRE team, limited releases |
 
 **Design reasoning**: Users cannot distinguish 99.99% from 99.999%—both feel "always available." But achieving the extra nine requires fundamentally different architecture, operations, and organizational investment.
 
@@ -231,13 +231,13 @@ $$
 
 Example consumption tracking over a 30-day period:
 
-| Day | Daily Failures | Cumulative Failures | Budget Consumed |
-|-----|---------------|---------------------|-----------------|
-| 1 | 500 | 500 | 0.17% |
-| 5 | 200 | 1,500 | 0.50% |
-| 10 | 50,000 (incident) | 52,000 | 17.3% |
-| 15 | 300 | 54,000 | 18.0% |
-| 30 | 400 | 75,000 | 25.0% |
+| Day | Daily Failures    | Cumulative Failures | Budget Consumed |
+| --- | ----------------- | ------------------- | --------------- |
+| 1   | 500               | 500                 | 0.17%           |
+| 5   | 200               | 1,500               | 0.50%           |
+| 10  | 50,000 (incident) | 52,000              | 17.3%           |
+| 15  | 300               | 54,000              | 18.0%           |
+| 30  | 400               | 75,000              | 25.0%           |
 
 At 25% consumption, 75% of budget remains—the team can continue feature development.
 
@@ -268,12 +268,12 @@ $$
 
 ### Burn Rate Interpretation
 
-| Burn Rate | Meaning |
-|-----------|---------|
-| 1.0 | Consuming budget at exactly the planned rate; will exhaust at window end |
-| < 1.0 | Under-consuming; budget will remain at window end |
-| > 1.0 | Over-consuming; budget will exhaust before window end |
-| 10.0 | 10× the acceptable error rate; severe incident |
+| Burn Rate | Meaning                                                                  |
+| --------- | ------------------------------------------------------------------------ |
+| 1.0       | Consuming budget at exactly the planned rate; will exhaust at window end |
+| < 1.0     | Under-consuming; budget will remain at window end                        |
+| > 1.0     | Over-consuming; budget will exhaust before window end                    |
+| 10.0      | 10× the acceptable error rate; severe incident                           |
 
 **Example calculation**:
 
@@ -291,11 +291,11 @@ At burn rate 5.0:
 
 Burn rate normalizes across services with different SLO targets:
 
-| Service | SLO | Current Error Rate | Burn Rate |
-|---------|-----|-------------------|-----------|
-| Payment API | 99.99% | 0.01% | 1.0 (on target) |
-| Search | 99.9% | 0.01% | 0.1 (excellent) |
-| Analytics | 99% | 0.5% | 0.5 (healthy) |
+| Service     | SLO    | Current Error Rate | Burn Rate       |
+| ----------- | ------ | ------------------ | --------------- |
+| Payment API | 99.99% | 0.01%              | 1.0 (on target) |
+| Search      | 99.9%  | 0.01%              | 0.1 (excellent) |
+| Analytics   | 99%    | 0.5%               | 0.5 (healthy)   |
 
 Raw error rate would suggest Payment API and Search are equally healthy. Burn rate reveals Payment API is at its limit while Search has headroom.
 
@@ -478,6 +478,7 @@ Document all SLO changes:
 ## SLO Change Log
 
 ### 2024-03-15: Payment API Availability
+
 - **Previous**: 99.9% over 30-day rolling
 - **New**: 99.95% over 30-day rolling
 - **Justification**: 12 months of 99.97% actual performance; payment criticality warrants tighter target
@@ -502,11 +503,11 @@ This prevents "gaming" (adjusting targets to avoid violations) and enables organ
 
 Statistical reliability requires sample size:
 
-| Traffic Level | P99 Reliability | Minimum Window |
-|--------------|-----------------|----------------|
-| 1,000/day | 10 samples at P99 | Weekly aggregation |
-| 10,000/day | 100 samples at P99 | Daily viable |
-| 1,000,000/day | 10,000 samples at P99 | Hourly viable |
+| Traffic Level | P99 Reliability       | Minimum Window     |
+| ------------- | --------------------- | ------------------ |
+| 1,000/day     | 10 samples at P99     | Weekly aggregation |
+| 10,000/day    | 100 samples at P99    | Daily viable       |
+| 1,000,000/day | 10,000 samples at P99 | Hourly viable      |
 
 **Solutions for low-traffic services**:
 

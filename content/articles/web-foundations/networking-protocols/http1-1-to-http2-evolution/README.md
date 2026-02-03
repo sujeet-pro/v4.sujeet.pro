@@ -34,12 +34,12 @@ flowchart LR
 
 ### Core Trade-offs
 
-| Aspect | HTTP/1.1 Approach | HTTP/2 Solution | Remaining Constraint |
-|--------|-------------------|-----------------|---------------------|
-| **HOL blocking** | Open 6 connections per domain | Multiplex streams on 1 connection | TCP delivers in-order; packet loss stalls all streams |
-| **Header overhead** | Repeat verbose headers every request | HPACK compression (static + dynamic tables) | Dynamic table state must be synchronized |
-| **Resource prioritization** | None (implicit by request order) | Stream prioritization (deprecated in RFC 9113) | Inconsistent implementation led to deprecation |
-| **Proactive delivery** | None | Server push (removed from browsers in 2022-2024) | Wasted bandwidth; replaced by 103 Early Hints |
+| Aspect                      | HTTP/1.1 Approach                    | HTTP/2 Solution                                  | Remaining Constraint                                  |
+| --------------------------- | ------------------------------------ | ------------------------------------------------ | ----------------------------------------------------- |
+| **HOL blocking**            | Open 6 connections per domain        | Multiplex streams on 1 connection                | TCP delivers in-order; packet loss stalls all streams |
+| **Header overhead**         | Repeat verbose headers every request | HPACK compression (static + dynamic tables)      | Dynamic table state must be synchronized              |
+| **Resource prioritization** | None (implicit by request order)     | Stream prioritization (deprecated in RFC 9113)   | Inconsistent implementation led to deprecation        |
+| **Proactive delivery**      | None                                 | Server push (removed from browsers in 2022-2024) | Wasted bandwidth; replaced by 103 Early Hints         |
 
 ### Practical Implications
 
@@ -63,6 +63,7 @@ GET /app.js HTTP/1.1            # Queued behind CSS
 ```
 
 **Pipelining** (sending multiple requests without waiting for responses) was specified but never adopted:
+
 - Servers must return responses in request order—a slow first response blocks faster subsequent ones
 - Intermediaries (proxies, CDNs) often don't support pipelining correctly
 - Retry semantics are ambiguous: if the connection closes mid-pipeline, clients can't determine which requests succeeded
@@ -71,13 +72,13 @@ GET /app.js HTTP/1.1            # Queued behind CSS
 
 Browsers work around HOL blocking by opening multiple TCP connections (typically 6 per hostname). Each connection incurs:
 
-| Overhead | Cost |
-|----------|------|
-| TCP handshake | 1 RTT (SYN → SYN-ACK → ACK) |
-| TLS handshake | 1-2 RTT (1 with TLS 1.3, 2 with TLS 1.2) |
-| Slow start | Exponential ramp-up from initial cwnd (~10 segments on modern stacks) |
-| Memory | Kernel buffers, socket state per connection |
-| Server resources | Per-connection thread/event handling overhead |
+| Overhead         | Cost                                                                  |
+| ---------------- | --------------------------------------------------------------------- |
+| TCP handshake    | 1 RTT (SYN → SYN-ACK → ACK)                                           |
+| TLS handshake    | 1-2 RTT (1 with TLS 1.3, 2 with TLS 1.2)                              |
+| Slow start       | Exponential ramp-up from initial cwnd (~10 segments on modern stacks) |
+| Memory           | Kernel buffers, socket state per connection                           |
+| Server resources | Per-connection thread/event handling overhead                         |
 
 **Domain sharding**—distributing resources across `cdn1.`, `cdn2.`, `cdn3.`—exploited the per-hostname limit but multiplied TLS negotiation costs and defeated HTTP/2 consolidation benefits.
 
@@ -120,6 +121,7 @@ HTTP/2 replaced text parsing with a fixed 9-octet frame header:
 ```
 
 **Design rationale** (RFC 9113):
+
 - Eliminates text parsing ambiguity (no whitespace handling, line folding edge cases)
 - Fixed-size header enables constant-time frame boundary detection
 - Type field allows protocol extensibility without version negotiation
@@ -153,6 +155,7 @@ sequenceDiagram
 ```
 
 **Stream identifier rules** (RFC 9113 Section 5.1.1):
+
 - Client-initiated: odd numbers (1, 3, 5, ...)
 - Server-initiated (push): even numbers (2, 4, 6, ...)
 - Stream 0: reserved for connection-level frames (SETTINGS, PING, GOAWAY)
@@ -166,11 +169,11 @@ HPACK (RFC 7541) was designed specifically to avoid vulnerabilities in DEFLATE-b
 
 **Compression mechanism**:
 
-| Component | Size | Purpose |
-|-----------|------|---------|
-| Static table | 61 entries | Predefined common headers (`:method: GET`, `:status: 200`, etc.) |
-| Dynamic table | 4,096 bytes default | Connection-specific header cache (FIFO eviction) |
-| Huffman encoding | Variable (5-30 bits/char) | Static code table for string compression |
+| Component        | Size                      | Purpose                                                          |
+| ---------------- | ------------------------- | ---------------------------------------------------------------- |
+| Static table     | 61 entries                | Predefined common headers (`:method: GET`, `:status: 200`, etc.) |
+| Dynamic table    | 4,096 bytes default       | Connection-specific header cache (FIFO eviction)                 |
+| Huffman encoding | Variable (5-30 bits/char) | Static code table for string compression                         |
 
 **Entry size calculation** (RFC 7541 Section 4.1): `name_length + value_length + 32 octets`
 
@@ -184,11 +187,11 @@ The 32-octet overhead accounts for implementation costs (pointers, reference cou
 
 HTTP/2 implements per-stream and per-connection flow control via credit-based windows:
 
-| Setting | Default | Range |
-|---------|---------|-------|
-| Initial stream window | 65,535 bytes (2¹⁶ - 1) | 0 to 2³¹ - 1 |
-| Initial connection window | 65,535 bytes | 0 to 2³¹ - 1 |
-| Max frame size | 16,384 bytes (2¹⁴) | 2¹⁴ to 2²⁴ - 1 |
+| Setting                   | Default                | Range          |
+| ------------------------- | ---------------------- | -------------- |
+| Initial stream window     | 65,535 bytes (2¹⁶ - 1) | 0 to 2³¹ - 1   |
+| Initial connection window | 65,535 bytes           | 0 to 2³¹ - 1   |
+| Max frame size            | 16,384 bytes (2¹⁴)     | 2¹⁴ to 2²⁴ - 1 |
 
 **Design rationale**: Prevents fast senders from overwhelming slow receivers. Unlike TCP's implicit flow control, HTTP/2's explicit windows operate between application endpoints, not transport endpoints—enabling fine-grained backpressure per stream.
 
@@ -199,6 +202,7 @@ HTTP/2 implements per-stream and per-connection flow control via credit-based wi
 RFC 7540 specified a complex dependency tree where streams could depend on others with weighted priorities (1-256).
 
 **Why it failed** (RFC 9113 Section 5.3):
+
 - Clients expressed priorities inconsistently
 - Many server implementations ignored priority signals entirely
 - CDNs and proxies often didn't propagate priority information
@@ -213,12 +217,14 @@ Server push allowed servers to send responses proactively via PUSH_PROMISE frame
 **Design intent**: Server anticipates client needs (e.g., push CSS when HTML is requested) to eliminate a round trip.
 
 **Why it failed**:
+
 - Servers rarely know what clients have cached, causing wasted bandwidth
 - Pushed resources compete for bandwidth with explicitly requested resources
 - Push races with client requests, creating complexity
 - Implementation overhead didn't justify marginal latency gains
 
 **Browser removal timeline**:
+
 - Chrome 106 (September 2022): Disabled server push by default
 - Firefox 132 (October 2024): Removed server push support entirely
 - HTTP/3: Never implemented push in browsers
@@ -276,6 +282,7 @@ sequenceDiagram
 ```
 
 **Protocol identifiers**:
+
 - `h2`: HTTP/2 over TLS
 - `http/1.1`: HTTP/1.1
 - `h2c`: HTTP/2 over cleartext (not supported by browsers)
@@ -287,6 +294,7 @@ sequenceDiagram
 After TLS establishes the connection, both endpoints send a connection preface:
 
 **Client preface** (24 octets + SETTINGS frame):
+
 ```
 PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n
 ```
@@ -314,6 +322,7 @@ HTTP2-Settings: <base64url-encoded SETTINGS frame>
 ## Conclusion
 
 HTTP/2 systematically addressed HTTP/1.1's architectural bottlenecks:
+
 - **Binary framing** eliminated text parsing ambiguity and enabled efficient multiplexing
 - **Stream independence** solved application-layer HOL blocking
 - **HPACK compression** reduced header overhead by 85-95% while avoiding CRIME-style attacks
@@ -333,15 +342,15 @@ For deployments: enable HTTP/2 with TLS 1.3, consolidate domains to maximize mul
 
 ### Terminology
 
-| Abbreviation | Full Form | Definition |
-|--------------|-----------|------------|
-| HOL | Head-of-Line | Blocking condition where one stalled item prevents subsequent items from progressing |
-| HPACK | HTTP/2 Header Compression | Header compression algorithm using static/dynamic tables and Huffman encoding |
-| ALPN | Application-Layer Protocol Negotiation | TLS extension for agreeing on application protocol during handshake |
-| RTT | Round-Trip Time | Time for a packet to travel from sender to receiver and back |
-| cwnd | Congestion Window | TCP's limit on unacknowledged in-flight data |
-| h2 | HTTP/2 over TLS | Protocol identifier for encrypted HTTP/2 |
-| h2c | HTTP/2 Cleartext | Protocol identifier for unencrypted HTTP/2 (not used by browsers) |
+| Abbreviation | Full Form                              | Definition                                                                           |
+| ------------ | -------------------------------------- | ------------------------------------------------------------------------------------ |
+| HOL          | Head-of-Line                           | Blocking condition where one stalled item prevents subsequent items from progressing |
+| HPACK        | HTTP/2 Header Compression              | Header compression algorithm using static/dynamic tables and Huffman encoding        |
+| ALPN         | Application-Layer Protocol Negotiation | TLS extension for agreeing on application protocol during handshake                  |
+| RTT          | Round-Trip Time                        | Time for a packet to travel from sender to receiver and back                         |
+| cwnd         | Congestion Window                      | TCP's limit on unacknowledged in-flight data                                         |
+| h2           | HTTP/2 over TLS                        | Protocol identifier for encrypted HTTP/2                                             |
+| h2c          | HTTP/2 Cleartext                       | Protocol identifier for unencrypted HTTP/2 (not used by browsers)                    |
 
 ### Summary
 

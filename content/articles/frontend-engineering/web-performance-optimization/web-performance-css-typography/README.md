@@ -205,17 +205,17 @@ A hint for future property transitions so the engine can promote layers upfront.
 **Recommended pattern**: Toggle via JavaScript, not static CSS:
 
 ```javascript title="will-change-toggle.js" collapse={1-2, 10-15}
-const modal = document.querySelector('.modal');
+const modal = document.querySelector(".modal")
 
 // Apply before animation starts
-modal.addEventListener('mouseenter', () => {
-  modal.style.willChange = 'transform, opacity';
-});
+modal.addEventListener("mouseenter", () => {
+  modal.style.willChange = "transform, opacity"
+})
 
 // Remove after animation completes
-modal.addEventListener('animationend', () => {
-  modal.style.willChange = 'auto';
-});
+modal.addEventListener("animationend", () => {
+  modal.style.willChange = "auto"
+})
 ```
 
 **When static CSS is acceptable**: Predictable, frequent animations like slide decks or page-flip interfaces where the element will definitely animate on interaction.
@@ -261,9 +261,7 @@ registerPaint(
   class {
     paint(ctx, geom) {
       const s = 16
-      for (let y = 0; y < geom.height; y += s)
-        for (let x = 0; x < geom.width; x += s)
-          ctx.fillRect(x, y, s, s)
+      for (let y = 0; y < geom.height; y += s) for (let x = 0; x < geom.width; x += s) ctx.fillRect(x, y, s, s)
     }
   },
 )
@@ -283,12 +281,12 @@ registerPaint(
 
 **Browser Support (NOT Baseline)**:
 
-| Browser | Status | Notes |
-| ------- | ------ | ----- |
-| Chrome | Full support | 65+ (April 2018) |
-| Edge | Full support | 79+ |
+| Browser | Status            | Notes                              |
+| ------- | ----------------- | ---------------------------------- |
+| Chrome  | Full support      | 65+ (April 2018)                   |
+| Edge    | Full support      | 79+                                |
 | Firefox | **Not supported** | Under consideration (Bug #1302328) |
-| Safari | **Partial** | Development stage, experimental |
+| Safari  | **Partial**       | Development stage, experimental    |
 
 **Recommendation**: Treat CSS Paint API as experimental. Use the [CSS Paint Polyfill](https://github.com/GoogleChromeLabs/css-paint-polyfill) by Chrome DevRel for cross-browser support, but consider it progressive enhancement rather than core functionality. The polyfill leverages `-webkit-canvas()` and `-moz-element()` for optimized rendering in non-supporting browsers.
 
@@ -397,12 +395,12 @@ Variable fonts consolidate multiple weights/styles into a single file, reducing 
 
 **Format syntax evolution**:
 
-| Syntax | Status |
-| ------ | ------ |
-| `format("woff2")` | **Recommended** - modern browsers auto-detect variable fonts |
-| `format("woff2") tech("variations")` | Current spec, gaining support |
-| `format("woff2-variations")` | Deprecated but still works |
-| `format("woff2 supports variations")` | Removed from spec, avoid |
+| Syntax                                | Status                                                       |
+| ------------------------------------- | ------------------------------------------------------------ |
+| `format("woff2")`                     | **Recommended** - modern browsers auto-detect variable fonts |
+| `format("woff2") tech("variations")`  | Current spec, gaining support                                |
+| `format("woff2-variations")`          | Deprecated but still works                                   |
+| `format("woff2 supports variations")` | Removed from spec, avoid                                     |
 
 **Design rationale**: Variable fonts use OpenType 1.8+ variation tables. Modern browsers detect these automatically from the font binary, making explicit variation hints unnecessary. The `tech()` function exists for forward compatibility but adds no practical benefit today.
 
@@ -485,12 +483,12 @@ Preload critical fonts to discover them early:
 
 ### 4.3 font-display Strategies
 
-| Value      | Block Period            | Swap Period | Behavior          | CWV Impact         | Use Case                      |
-| ---------- | ----------------------- | ----------- | ----------------- | ------------------ | ----------------------------- |
-| `block`    | Short (~3s recommended) | Infinite    | FOIT              | Bad FCP/LCP        | Icon fonts                    |
-| `swap`     | Extremely small (~0)    | Infinite    | FOUT              | Good FCP, risk CLS | Headlines with CLS mitigation |
-| `fallback` | Extremely small (~100ms)| ~3s         | Compromise        | Balanced           | Body text                     |
-| `optional` | Extremely small (~100ms)| None        | Performance-first | Excellent CLS      | Non-critical text             |
+| Value      | Block Period             | Swap Period | Behavior          | CWV Impact         | Use Case                      |
+| ---------- | ------------------------ | ----------- | ----------------- | ------------------ | ----------------------------- |
+| `block`    | Short (~3s recommended)  | Infinite    | FOIT              | Bad FCP/LCP        | Icon fonts                    |
+| `swap`     | Extremely small (~0)     | Infinite    | FOUT              | Good FCP, risk CLS | Headlines with CLS mitigation |
+| `fallback` | Extremely small (~100ms) | ~3s         | Compromise        | Balanced           | Body text                     |
+| `optional` | Extremely small (~100ms) | None        | Performance-first | Excellent CLS      | Non-critical text             |
 
 **Important**: The ~3s and ~100ms values are **recommendations**, not spec requirements. The CSS Fonts specification defines relative timing concepts ("extremely small", "short"), not exact milliseconds. Actual implementation varies by browser—Firefox exposes these as configurable preferences (`gfx.downloadable_fonts.fallback_delay`).
 
@@ -543,12 +541,12 @@ Use CSS descriptors to force fallback fonts to match custom font dimensions:
 
 **Browser Support (NOT Baseline)**:
 
-| Property | Chrome | Firefox | Safari |
-| -------- | ------ | ------- | ------ |
-| `size-adjust` | 92+ | 92+ | 17+ |
-| `ascent-override` | 87+ | 89+ | **No** |
-| `descent-override` | 87+ | 89+ | **No** |
-| `line-gap-override` | 87+ | 89+ | **No** |
+| Property            | Chrome | Firefox | Safari |
+| ------------------- | ------ | ------- | ------ |
+| `size-adjust`       | 92+    | 92+     | 17+    |
+| `ascent-override`   | 87+    | 89+     | **No** |
+| `descent-override`  | 87+    | 89+     | **No** |
+| `line-gap-override` | 87+    | 89+     | **No** |
 
 **Safari limitation**: Safari supports only `size-adjust`. Using `ascent-override` and `descent-override` without Safari support may produce worse results than no adjustment, since the size change without vertical metric correction can increase layout shift.
 
@@ -638,11 +636,11 @@ Runtime CSS-in-JS (styled-components, Emotion) generates and parses CSS in JS bu
 
 **Static extraction alternatives:**
 
-| Library | Approach | Trade-off |
-| ------- | -------- | --------- |
-| Linaria | Zero-runtime, extracts to CSS | No dynamic styles |
-| vanilla-extract | TypeScript-first, type-safe tokens | Build-time only |
-| Panda CSS | Atomic CSS generation | Learning curve for atomic approach |
+| Library         | Approach                           | Trade-off                          |
+| --------------- | ---------------------------------- | ---------------------------------- |
+| Linaria         | Zero-runtime, extracts to CSS      | No dynamic styles                  |
+| vanilla-extract | TypeScript-first, type-safe tokens | Build-time only                    |
+| Panda CSS       | Atomic CSS generation              | Learning curve for atomic approach |
 
 These compile to static CSS at build time, achieving the same performance as hand-written CSS while retaining component-scoped authoring. Use runtime CSS-in-JS only when you need styles that depend on runtime values (user preferences, API responses).
 

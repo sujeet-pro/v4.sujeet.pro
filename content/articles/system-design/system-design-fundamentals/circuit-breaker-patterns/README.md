@@ -86,14 +86,10 @@ type CircuitBreakerState = {
   lastFailureTime: number
 }
 
-function onRequestComplete(
-  state: CircuitBreakerState,
-  success: boolean,
-  threshold: number
-): 'CLOSED' | 'OPEN' {
+function onRequestComplete(state: CircuitBreakerState, success: boolean, threshold: number): "CLOSED" | "OPEN" {
   if (success) {
     state.successes++
-    return 'CLOSED'
+    return "CLOSED"
   }
 
   state.failures++
@@ -103,9 +99,9 @@ function onRequestComplete(
   const failureRate = state.failures / total
 
   if (total >= 10 && failureRate >= threshold) {
-    return 'OPEN' // Trip the circuit
+    return "OPEN" // Trip the circuit
   }
-  return 'CLOSED'
+  return "CLOSED"
 }
 ```
 
@@ -114,6 +110,7 @@ function onRequestComplete(
 ### Open State
 
 Fast-fail mode. Requests are rejected immediately without calling the dependency. This:
+
 - Preserves caller resources (no threads blocked waiting)
 - Gives the dependency time to recover
 - Provides fast feedback to upstream callers
@@ -125,11 +122,13 @@ The breaker stays open for a configured duration (reset timeout), typically 5-60
 After the reset timeout, the breaker allows limited probe requests to test if the dependency has recovered.
 
 **Single probe (Hystrix default):**
+
 - One request passes through
 - Success → Close circuit
 - Failure → Reopen circuit
 
 **Multiple probes (Resilience4j):**
+
 - Configurable number of requests allowed (e.g., 10)
 - Evaluate success rate of probes
 - Close only if success rate exceeds threshold
@@ -153,6 +152,7 @@ Failures: 6/10 = 60% → Trip circuit
 **Implementation:** Circular buffer of size N. O(1) time per request, O(N) memory per dependency.
 
 **Best when:**
+
 - Traffic is consistent and predictable
 - You want behavior that's independent of request rate
 - Simpler reasoning about when circuit trips
@@ -175,6 +175,7 @@ Failure rate: 60% → Trip circuit
 **Implementation:** Aggregate statistics per bucket (e.g., 1-second buckets). Total window = sum of buckets. O(1) time per request, O(window_size / bucket_size) memory.
 
 **Best when:**
+
 - Traffic varies significantly (bursty, daily patterns)
 - You want the circuit to adapt to recent conditions
 - High-traffic services where count-based window refreshes too quickly
@@ -203,6 +204,7 @@ CircuitBreakerConfig config = CircuitBreakerConfig.custom()
 ```
 
 **Performance characteristics:**
+
 - Snapshot retrieval: O(1) time (pre-aggregated, not computed on access)
 - Memory: O(window_size) for count-based, O(buckets) for time-based
 - Thread safety: Atomic operations with synchronized sliding window access
@@ -235,11 +237,13 @@ Caller thread → Submit to pool → Dependency thread handles request
 ```
 
 **Netflix Hystrix's approach:**
+
 - Separate thread pool per `HystrixCommand`
 - Default pool size: 10 threads per dependency
 - Timeout enforced via `Future.get(timeout)`
 
 **Performance cost (Netflix production data):**
+
 - 90th percentile latency addition: ~3ms
 - 99th percentile latency addition: ~9ms
 
@@ -249,11 +253,13 @@ Netflix deemed this acceptable:
 > — Netflix Hystrix Wiki
 
 **Benefits:**
+
 - ✅ Timeout enforcement: Can interrupt stuck calls
 - ✅ Strong isolation: Slow dependency A can't consume threads needed for B
 - ✅ Concurrent limits: Pool size caps concurrent calls per dependency
 
 **Trade-offs:**
+
 - ❌ Thread handoff overhead (~3-9ms)
 - ❌ Context switching cost
 - ❌ Queue management complexity
@@ -284,7 +290,7 @@ class SemaphoreIsolation {
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     if (this.permits <= 0) {
-      throw new Error('Semaphore exhausted')
+      throw new Error("Semaphore exhausted")
     }
 
     this.permits--
@@ -298,26 +304,29 @@ class SemaphoreIsolation {
 ```
 
 **Benefits:**
+
 - ✅ No thread overhead
 - ✅ Lower latency (no queue/handoff)
 - ✅ Simpler implementation
 
 **Trade-offs:**
+
 - ❌ No timeout enforcement (can't interrupt blocked thread)
 - ❌ Slow calls block caller threads
 - ❌ Less isolation than thread pool
 
 ### When to Use Each
 
-| Factor | Thread Pool | Semaphore |
-|--------|-------------|-----------|
-| **Dependency reliability** | Unreliable, may hang | Reliable, predictable latency |
-| **Timeout requirement** | Must enforce timeouts | Timeouts at network layer sufficient |
-| **Latency sensitivity** | Can tolerate 3-9ms overhead | Sub-millisecond required |
-| **Call volume** | < 1000/s per dependency | > 1000/s, high-throughput |
-| **Call type** | Network I/O, remote services | In-memory, local computation |
+| Factor                     | Thread Pool                  | Semaphore                            |
+| -------------------------- | ---------------------------- | ------------------------------------ |
+| **Dependency reliability** | Unreliable, may hang         | Reliable, predictable latency        |
+| **Timeout requirement**    | Must enforce timeouts        | Timeouts at network layer sufficient |
+| **Latency sensitivity**    | Can tolerate 3-9ms overhead  | Sub-millisecond required             |
+| **Call volume**            | < 1000/s per dependency      | > 1000/s, high-throughput            |
+| **Call type**              | Network I/O, remote services | In-memory, local computation         |
 
 **Netflix's recommendation:**
+
 - Default: Thread pool isolation for `HystrixCommand`
 - Semaphore: Only for "extremely high-volume calls" (hundreds per second per instance) where overhead matters
 
@@ -344,6 +353,7 @@ Service A → Circuit Breaker → Load Balancer → [Host 1, Host 2, Host 3]
 ```
 
 **When appropriate:**
+
 - Infrastructure failures affect all hosts equally (network partition, DNS failure)
 - Hosts are homogeneous and share fate
 - Simpler configuration and debugging
@@ -368,11 +378,13 @@ Service A → [CB for Host 1] → Host 1
 ```
 
 **Benefits:**
+
 - ✅ Single bad host doesn't poison the entire service
 - ✅ Fine-grained control and visibility
 - ✅ Works with client-side load balancing
 
 **Trade-offs:**
+
 - ❌ More circuit breaker instances to manage
 - ❌ Requires service discovery integration
 - ❌ Health state per instance adds memory
@@ -401,6 +413,7 @@ Service A → Per-Service CB → Retry → Per-Host CB → Host
 Hystrix established patterns that persist across modern implementations.
 
 **Core design:**
+
 - Command pattern: Each dependency call wrapped in `HystrixCommand`
 - Thread pool isolation by default
 - Request collapsing: Batch simultaneous requests
@@ -428,11 +441,13 @@ The shift reflects a broader industry move from static thresholds to adaptive sy
 Lightweight, decorator-based alternative to Hystrix.
 
 **Architecture:**
+
 - Functional composition: Decorate any function with resilience behaviors
 - Modular: Pick only what you need (CircuitBreaker, Retry, RateLimiter, Bulkhead)
 - Reactive support: Native Reactor and RxJava operators
 
 **Six states:**
+
 - `CLOSED`: Normal operation
 - `OPEN`: Rejecting requests
 - `HALF_OPEN`: Testing recovery
@@ -457,6 +472,7 @@ CircuitBreakerConfig config = CircuitBreakerConfig.custom()
 ```
 
 **Key improvements over Hystrix:**
+
 - Configurable half-open probes (not just one)
 - Slow call detection (proactive tripping)
 - Lower overhead (no thread pools required)
@@ -466,7 +482,7 @@ CircuitBreakerConfig config = CircuitBreakerConfig.custom()
 
 Shopify's open-source circuit breaker with bulkhead isolation.
 
-**Critical discovery (2014):** Shopify found that naive circuit breaker configuration can *worsen* availability:
+**Critical discovery (2014):** Shopify found that naive circuit breaker configuration can _worsen_ availability:
 
 > "When Shopify started introducing circuit breakers and bulkheads to production in 2014 they severely underestimated how difficult they are to configure."
 > — Shopify Engineering
@@ -495,6 +511,7 @@ Semian.register(
 **Result:** Required utilization dropped from 263% to 4%.
 
 **Key insights:**
+
 - Half-open timeout should be much shorter than normal timeout
 - Success threshold prevents flip-flopping (require consecutive successes)
 - Monitor circuit breaker state transitions, not just metrics
@@ -526,6 +543,7 @@ result, err := cb.Execute(func() (interface{}, error) {
 ```
 
 **Design notes:**
+
 - `ReadyToTrip` callback allows custom tripping logic
 - `Interval` for rolling window (counts cleared periodically)
 - `OnStateChange` hook for monitoring and alerting
@@ -534,24 +552,24 @@ result, err := cb.Execute(func() (interface{}, error) {
 
 ### Tuning Parameters
 
-| Parameter | Too Low | Too High | Guidance |
-|-----------|---------|----------|----------|
-| **Failure threshold** | Flapping on transient errors | Slow detection of real failures | 40-60% typical; lower for critical paths |
-| **Volume threshold** | Trips on small samples | Delayed detection | 10-20 requests minimum |
-| **Reset timeout** | Probes during ongoing failure | Delayed recovery detection | 5-60 seconds; consider dependency recovery time |
-| **Half-open probes** | False negatives from noise | Load during recovery | 3-10 probes; enough for confidence |
+| Parameter             | Too Low                       | Too High                        | Guidance                                        |
+| --------------------- | ----------------------------- | ------------------------------- | ----------------------------------------------- |
+| **Failure threshold** | Flapping on transient errors  | Slow detection of real failures | 40-60% typical; lower for critical paths        |
+| **Volume threshold**  | Trips on small samples        | Delayed detection               | 10-20 requests minimum                          |
+| **Reset timeout**     | Probes during ongoing failure | Delayed recovery detection      | 5-60 seconds; consider dependency recovery time |
+| **Half-open probes**  | False negatives from noise    | Load during recovery            | 3-10 probes; enough for confidence              |
 
 ### Error Classification
 
 Not all errors should count toward the failure threshold:
 
-| Error Type | Count as Failure? | Rationale |
-|------------|-------------------|-----------|
-| **5xx Server Error** | Yes | Dependency has a problem |
-| **Timeout** | Yes | Dependency is slow or unresponsive |
-| **Connection refused** | Yes | Dependency is down |
-| **4xx Client Error** | No | Request was invalid, not dependency fault |
-| **Circuit breaker rejection** | No | Would create feedback loop |
+| Error Type                    | Count as Failure? | Rationale                                 |
+| ----------------------------- | ----------------- | ----------------------------------------- |
+| **5xx Server Error**          | Yes               | Dependency has a problem                  |
+| **Timeout**                   | Yes               | Dependency is slow or unresponsive        |
+| **Connection refused**        | Yes               | Dependency is down                        |
+| **4xx Client Error**          | No                | Request was invalid, not dependency fault |
+| **Circuit breaker rejection** | No                | Would create feedback loop                |
 
 Configure which exceptions count:
 
@@ -567,13 +585,13 @@ CircuitBreakerConfig.custom()
 
 When the circuit is open, what should the caller do?
 
-| Strategy | Description | Best For |
-|----------|-------------|----------|
-| **Cached data** | Return stale cached response | Read paths, non-critical data |
-| **Default value** | Return static default | Feature toggles, configuration |
-| **Degraded mode** | Partial functionality | Non-essential features |
-| **Fail fast** | Return error immediately | Critical operations where stale data is dangerous |
-| **Alternative service** | Route to backup dependency | High-availability requirements |
+| Strategy                | Description                  | Best For                                          |
+| ----------------------- | ---------------------------- | ------------------------------------------------- |
+| **Cached data**         | Return stale cached response | Read paths, non-critical data                     |
+| **Default value**       | Return static default        | Feature toggles, configuration                    |
+| **Degraded mode**       | Partial functionality        | Non-essential features                            |
+| **Fail fast**           | Return error immediately     | Critical operations where stale data is dangerous |
+| **Alternative service** | Route to backup dependency   | High-availability requirements                    |
 
 **Critical design rule:** Fallback must not depend on the same failure. If the primary database is down, falling back to a read replica on the same cluster may fail identically.
 
@@ -603,15 +621,16 @@ Option 2: Circuit breaker outside retry (recommended)
 
 ```ts title="integration.ts" collapse={1-5, 25-35}
 // Recommended order: Circuit Breaker → Retry → Timeout → Call
-import { circuitBreaker, retry, timeout } from 'resilience-lib'
+import { circuitBreaker, retry, timeout } from "resilience-lib"
 
-async function callWithResilience<T>(
-  fn: () => Promise<T>
-): Promise<T> {
+async function callWithResilience<T>(fn: () => Promise<T>): Promise<T> {
   return circuitBreaker.execute(async () => {
-    return retry.execute(async () => {
-      return timeout.execute(fn, 5000)
-    }, { maxRetries: 3, backoff: 'exponential' })
+    return retry.execute(
+      async () => {
+        return timeout.execute(fn, 5000)
+      },
+      { maxRetries: 3, backoff: "exponential" },
+    )
   })
 }
 
@@ -632,6 +651,7 @@ Thread pool bulkheads provide isolation; circuit breakers provide fast-fail:
 ```
 
 Without both:
+
 - Bulkhead alone: 20 threads blocked indefinitely on slow dependency
 - Circuit breaker alone: All caller threads can be consumed before circuit opens
 
@@ -654,14 +674,14 @@ Circuit breakers protect against dependency failure. Rate limiters protect again
 
 ### Metrics to Track
 
-| Metric | Description | Alert Threshold |
-|--------|-------------|-----------------|
-| `circuit_state` | Current state (closed/open/half-open) | Alert on open > N minutes |
-| `circuit_failure_rate` | Rolling failure rate | Warn at 30%, critical at 50% |
-| `circuit_slow_call_rate` | Rolling slow call rate | Depends on SLA |
-| `circuit_state_transitions` | State change count | Alert on high flip-flop rate |
-| `circuit_calls_in_half_open` | Probe requests attempted | Monitor recovery testing |
-| `circuit_buffered_calls` | Calls waiting in queue | Alert on queue growth |
+| Metric                       | Description                           | Alert Threshold              |
+| ---------------------------- | ------------------------------------- | ---------------------------- |
+| `circuit_state`              | Current state (closed/open/half-open) | Alert on open > N minutes    |
+| `circuit_failure_rate`       | Rolling failure rate                  | Warn at 30%, critical at 50% |
+| `circuit_slow_call_rate`     | Rolling slow call rate                | Depends on SLA               |
+| `circuit_state_transitions`  | State change count                    | Alert on high flip-flop rate |
+| `circuit_calls_in_half_open` | Probe requests attempted              | Monitor recovery testing     |
+| `circuit_buffered_calls`     | Calls waiting in queue                | Alert on queue growth        |
 
 ### State Transition Alerts
 
@@ -678,6 +698,7 @@ Runbook: https://wiki/circuit-breaker-runbook
 ```
 
 **Alert on flip-flopping:** Multiple open→close transitions in short periods indicate:
+
 - Marginal failure rate (oscillating around threshold)
 - Misconfigured thresholds
 - Underlying intermittent issue

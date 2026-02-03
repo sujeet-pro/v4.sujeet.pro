@@ -9,6 +9,9 @@ import { Logger } from "./lib/logger"
 import type { UrlKind } from "./lib/url-utils"
 import { stripHash } from "./lib/url-utils"
 
+// Production domains - URLs to these are rewritten to target domain during validation
+const PRODUCTION_DOMAINS = ["sujeet.pro", "www.sujeet.pro"]
+
 const MAX_CONCURRENT_REQUESTS = 10
 const REQUEST_TIMEOUT_MS = 10000
 
@@ -81,7 +84,9 @@ async function crawlSite(baseUrl: string, logger: Logger): Promise<CrawlResult> 
       continue
     }
 
-    const extracted = collectHtmlUrlRefsForPage(page.html, normalizedCurrent)
+    const extracted = collectHtmlUrlRefsForPage(page.html, normalizedCurrent, {
+      productionDomains: PRODUCTION_DOMAINS,
+    })
 
     for (const entry of extracted) {
       const bucketKey = entry.kind === "link" ? "links" : entry.kind === "image" ? "images" : "resources"

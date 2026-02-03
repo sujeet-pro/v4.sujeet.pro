@@ -51,7 +51,7 @@ Caching effectiveness depends on the **principle of locality of reference**—pr
 
 **Spatial Locality:** Data near recently accessed locations will likely be accessed soon. Sequential instruction execution, array iteration, and related database rows benefit from spatial locality.
 
-Caches exploit both: keeping recent items in fast memory (temporal) and fetching data in contiguous blocks (spatial). As Hennessy and Patterson note in *Computer Architecture: A Quantitative Approach*, these principles enabled the automatic management of multi-level memory hierarchies proposed by Kilburn et al. in 1962.
+Caches exploit both: keeping recent items in fast memory (temporal) and fetching data in contiguous blocks (spatial). As Hennessy and Patterson note in _Computer Architecture: A Quantitative Approach_, these principles enabled the automatic management of multi-level memory hierarchies proposed by Kilburn et al. in 1962.
 
 ### The Memory Hierarchy
 
@@ -59,12 +59,12 @@ The processor-memory gap drove cache invention. CPU operations occur in nanoseco
 
 Modern CPUs use multi-level hierarchies:
 
-| Level | Typical Size | Latency | Scope |
-|-------|-------------|---------|-------|
-| L1 | 32-64 KB | ~1 ns | Per core, split I/D |
-| L2 | 256-512 KB | ~3-10 ns | Per core or shared pair |
-| L3 | 8-64 MB | ~10-40 ns | Shared across all cores |
-| DRAM | 16-512 GB | ~50-100 ns | System memory |
+| Level | Typical Size | Latency    | Scope                   |
+| ----- | ------------ | ---------- | ----------------------- |
+| L1    | 32-64 KB     | ~1 ns      | Per core, split I/D     |
+| L2    | 256-512 KB   | ~3-10 ns   | Per core or shared pair |
+| L3    | 8-64 MB      | ~10-40 ns  | Shared across all cores |
+| DRAM  | 16-512 GB    | ~50-100 ns | System memory           |
 
 The same pattern—faster/smaller layers closer to the consumer—applies at every level of distributed systems.
 
@@ -77,11 +77,13 @@ How data enters the cache determines consistency guarantees and performance char
 **Mechanism:** Every write goes to both cache and backing store synchronously. The write completes only when both succeed.
 
 **Best when:**
+
 - Data correctness is non-negotiable (financial transactions, user credentials)
 - Read-heavy workload (writes are rare, so latency penalty is acceptable)
 - Simple operational model required
 
 **Trade-offs:**
+
 - ✅ Data never stale—cache and store always consistent
 - ✅ Simple mental model, easy debugging
 - ✅ No data loss on cache failure
@@ -95,11 +97,13 @@ How data enters the cache determines consistency guarantees and performance char
 **Mechanism:** Writes go to cache only; data is persisted to backing store asynchronously (batched or after delay).
 
 **Best when:**
+
 - Write throughput is critical
 - Temporary data loss is acceptable
 - Writes to same keys are frequent (only final value persisted)
 
 **Trade-offs:**
+
 - ✅ Lowest write latency (cache speed only)
 - ✅ High throughput—batching amortizes database round-trips
 - ✅ Coalesces multiple writes to same key
@@ -114,11 +118,13 @@ How data enters the cache determines consistency guarantees and performance char
 **Mechanism:** Writes bypass the cache entirely, going directly to the backing store. Cache is populated only on reads.
 
 **Best when:**
+
 - Write-heavy workloads where written data isn't immediately read
 - Bulk data ingestion or ETL pipelines
 - Preventing cache pollution from one-time writes
 
 **Trade-offs:**
+
 - ✅ Cache contains only data that's actually read
 - ✅ No cache pollution from write-heavy operations
 - ✅ Simple—no write path through cache
@@ -129,13 +135,13 @@ How data enters the cache determines consistency guarantees and performance char
 
 ### Decision Matrix: Write Policies
 
-| Factor | Write-Through | Write-Back | Write-Around |
-|--------|--------------|------------|--------------|
-| Consistency | Strong | Eventual | Strong |
-| Write latency | High (includes DB) | Low (cache only) | Low (DB only) |
-| Data loss risk | None | Cache failure loses data | None |
-| Cache pollution | Can pollute | Can pollute | Avoided |
-| Best fit | Read-heavy, critical data | Write-heavy, tolerant of loss | Bulk writes, ETL |
+| Factor          | Write-Through             | Write-Back                    | Write-Around     |
+| --------------- | ------------------------- | ----------------------------- | ---------------- |
+| Consistency     | Strong                    | Eventual                      | Strong           |
+| Write latency   | High (includes DB)        | Low (cache only)              | Low (DB only)    |
+| Data loss risk  | None                      | Cache failure loses data      | None             |
+| Cache pollution | Can pollute               | Can pollute                   | Avoided          |
+| Best fit        | Read-heavy, critical data | Write-heavy, tolerant of loss | Bulk writes, ETL |
 
 ## Design Choices: Cache Invalidation
 
@@ -146,15 +152,18 @@ How data enters the cache determines consistency guarantees and performance char
 **Mechanism:** Each cache entry has a Time-To-Live. After TTL expires, entry is either evicted or marked stale for revalidation.
 
 **Best when:**
+
 - Bounded staleness is acceptable
 - No event system exists to signal changes
 - Simple implementation required
 
 **Implementation considerations:**
+
 - **TTL jitter:** Add 10-20% randomness to prevent synchronized expiration
 - **Stale-while-revalidate:** Serve stale content while refreshing in background
 
 **Trade-offs:**
+
 - ✅ Simple—no coordination with data source
 - ✅ Guarantees maximum staleness
 - ❌ Still serves stale data until TTL expires
@@ -167,16 +176,19 @@ How data enters the cache determines consistency guarantees and performance char
 **Mechanism:** When source data changes, an event (message queue, pub/sub, webhook) triggers cache invalidation.
 
 **Best when:**
+
 - Data freshness is critical
 - Change events are available from source system
 - Invalidation must be immediate
 
 **Implementation patterns:**
+
 - **Publish on write:** Application publishes invalidation message when updating database
 - **CDC-based:** Change Data Capture streams database changes to invalidation service
 - **Cache tags:** Group related entries (Fastly's surrogate keys) for batch invalidation
 
 **Trade-offs:**
+
 - ✅ Near-immediate invalidation
 - ✅ Only invalidates what changed
 - ❌ Requires event infrastructure (Kafka, Redis Pub/Sub)
@@ -190,17 +202,21 @@ How data enters the cache determines consistency guarantees and performance char
 **Mechanism:** Before TTL expires, each request has a small probability of triggering a background refresh. Probability increases as expiration approaches.
 
 **Best when:**
+
 - High traffic on cached items
 - Cache stampede is a risk
 - Origin can't handle synchronized refresh traffic
 
 **The XFetch algorithm** (Vattani et al., UCSD):
+
 ```
 recompute_if: random() < (time_since_compute / TTL) ^ beta
 ```
+
 With `beta = 1.5`, this spreads refreshes smoothly before expiration.
 
 **Trade-offs:**
+
 - ✅ Eliminates cache stampede risk
 - ✅ Cache stays warm—no cold misses
 - ✅ Spreads origin load over time
@@ -211,13 +227,13 @@ With `beta = 1.5`, this spreads refreshes smoothly before expiration.
 
 ### Decision Matrix: Invalidation Strategies
 
-| Factor | TTL-Based | Event-Driven | Probabilistic Early |
-|--------|-----------|--------------|---------------------|
-| Staleness | Bounded by TTL | Near-zero | Bounded, but pre-refreshed |
-| Complexity | Low | High | Medium |
-| Origin load | Spiky at expiration | Event-driven only | Smooth |
-| Infrastructure | None | Message queue required | None |
-| Stampede risk | High without mitigation | Low | Eliminated |
+| Factor         | TTL-Based               | Event-Driven           | Probabilistic Early        |
+| -------------- | ----------------------- | ---------------------- | -------------------------- |
+| Staleness      | Bounded by TTL          | Near-zero              | Bounded, but pre-refreshed |
+| Complexity     | Low                     | High                   | Medium                     |
+| Origin load    | Spiky at expiration     | Event-driven only      | Smooth                     |
+| Infrastructure | None                    | Message queue required | None                       |
+| Stampede risk  | High without mitigation | Low                    | Eliminated                 |
 
 ## Design Choices: Replacement Algorithms
 
@@ -228,11 +244,13 @@ When cache is full, which item to evict? The choice depends on workload characte
 **Mechanism:** Evict the item not accessed for the longest time. Implemented with hash map + doubly-linked list for O(1) operations.
 
 **Best when:**
+
 - General-purpose workloads
 - Temporal locality is strong
 - No sequential scan patterns
 
 **Trade-offs:**
+
 - ✅ Simple, well-understood
 - ✅ Good hit rates for most workloads
 - ❌ Vulnerable to scan pollution—one table scan evicts all hot data
@@ -245,11 +263,13 @@ When cache is full, which item to evict? The choice depends on workload characte
 **Mechanism:** Evict the item with fewest accesses. Track access count per item.
 
 **Best when:**
+
 - Long-term popularity matters more than recency
 - Stable access patterns
 - Cache warmup time is acceptable
 
 **Trade-offs:**
+
 - ✅ Retains genuinely popular items
 - ✅ Scan-resistant
 - ❌ New items easily evicted (low count)
@@ -261,16 +281,19 @@ When cache is full, which item to evict? The choice depends on workload characte
 ### 2Q (Two Queue)
 
 **Mechanism:** Items must prove "hotness" before entering main cache. Uses three structures:
+
 - `A1in`: Small FIFO for first-time accesses
 - `A1out`: Ghost queue tracking recently evicted items
 - `Am`: Main LRU for items accessed more than once
 
 **Best when:**
+
 - Database buffer pools
 - Workloads with sequential scans mixed with random access
 - Need scan resistance without complexity of ARC
 
 **Trade-offs:**
+
 - ✅ Excellent scan resistance
 - ✅ Simple to implement (three queues)
 - ✅ Low overhead compared to ARC
@@ -282,6 +305,7 @@ When cache is full, which item to evict? The choice depends on workload characte
 ### ARC (Adaptive Replacement Cache)
 
 **Mechanism:** Self-tuning policy balancing recency and frequency. Maintains four lists:
+
 - `T1`: Recently seen once (recency)
 - `T2`: Recently seen multiple times (frequency)
 - `B1`, `B2`: Ghost lists tracking eviction history
@@ -289,11 +313,13 @@ When cache is full, which item to evict? The choice depends on workload characte
 The algorithm adapts the T1/T2 balance based on which ghost list sees more hits.
 
 **Best when:**
+
 - Workload characteristics change over time
 - Can't tune cache parameters manually
 - Need best-of-both LRU and LFU
 
 **Trade-offs:**
+
 - ✅ Adapts automatically to workload
 - ✅ Combines benefits of LRU and LFU
 - ✅ No manual tuning required
@@ -305,13 +331,13 @@ The algorithm adapts the T1/T2 balance based on which ghost list sees more hits.
 
 ### Decision Matrix: Replacement Algorithms
 
-| Factor | LRU | LFU | 2Q | ARC |
-|--------|-----|-----|-----|-----|
-| Scan resistance | Poor | Good | Excellent | Excellent |
-| Adaptation | None | None | None | Automatic |
-| Overhead | Low | Medium | Low | Medium |
-| Implementation | Simple | Medium | Medium | Complex |
-| Best fit | General | Stable popularity | Databases | Mixed workloads |
+| Factor          | LRU     | LFU               | 2Q        | ARC             |
+| --------------- | ------- | ----------------- | --------- | --------------- |
+| Scan resistance | Poor    | Good              | Excellent | Excellent       |
+| Adaptation      | None    | None              | None      | Automatic       |
+| Overhead        | Low     | Medium            | Low       | Medium          |
+| Implementation  | Simple  | Medium            | Medium    | Complex         |
+| Best fit        | General | Stable popularity | Databases | Mixed workloads |
 
 ## Design Choices: Distributed Cache Topology
 
@@ -320,6 +346,7 @@ The algorithm adapts the T1/T2 balance based on which ghost list sees more hits.
 The critical challenge: which node stores which key? Simple modulo hashing (`hash(key) % N`) fails when nodes change—adding one server remaps nearly every key.
 
 **Consistent hashing** ([Karger et al., 1997](https://www.cs.princeton.edu/courses/archive/fall09/cos518/papers/chash.pdf)):
+
 - Maps servers and keys onto a hash ring
 - Keys route to first server clockwise from key's position
 - Adding/removing servers affects only ~`1/N` of keys
@@ -330,23 +357,25 @@ The critical challenge: which node stores which key? Simple modulo hashing (`has
 
 ### Redis vs Memcached
 
-| Factor | Redis | Memcached |
-|--------|-------|-----------|
-| Data structures | Strings, lists, sets, hashes, sorted sets, streams | Strings only |
-| Threading | Single-threaded commands (multi-threaded I/O in 6.0+) | Multi-threaded |
-| Clustering | Built-in (Redis Cluster) | Client-side |
-| Persistence | RDB snapshots, AOF | None |
-| Pub/Sub | Built-in | None |
-| Transactions | MULTI/EXEC | None |
-| Typical ops/sec | ~100K/thread, ~500K with pipelining | Higher single-node throughput |
+| Factor          | Redis                                                 | Memcached                     |
+| --------------- | ----------------------------------------------------- | ----------------------------- |
+| Data structures | Strings, lists, sets, hashes, sorted sets, streams    | Strings only                  |
+| Threading       | Single-threaded commands (multi-threaded I/O in 6.0+) | Multi-threaded                |
+| Clustering      | Built-in (Redis Cluster)                              | Client-side                   |
+| Persistence     | RDB snapshots, AOF                                    | None                          |
+| Pub/Sub         | Built-in                                              | None                          |
+| Transactions    | MULTI/EXEC                                            | None                          |
+| Typical ops/sec | ~100K/thread, ~500K with pipelining                   | Higher single-node throughput |
 
 **Use Redis when:**
+
 - Need data structures beyond key-value
 - Require pub/sub, streams, or sorted sets
 - Want built-in persistence and replication
 - Implementing rate limiting, leaderboards, queues
 
 **Use Memcached when:**
+
 - Simple key-value caching only
 - Maximum memory efficiency critical
 - Legacy infrastructure already standardized
@@ -357,18 +386,21 @@ The critical challenge: which node stores which key? Simple modulo hashing (`has
 ### In-Process vs Distributed vs Hybrid
 
 **In-Process Cache** (e.g., Caffeine, Guava):
+
 - ✅ Fastest (no network hop)
 - ✅ No serialization overhead
 - ❌ Per-instance duplication
 - ❌ Lost on restart
 
 **Distributed Cache** (e.g., Redis, Memcached):
+
 - ✅ Shared across instances
 - ✅ Survives restarts
 - ❌ Network latency (~1ms)
 - ❌ Serialization cost
 
 **Hybrid** (local cache backed by distributed):
+
 - ✅ Best latency for hot keys
 - ✅ Shared for warm keys
 - ❌ Two-layer invalidation complexity
@@ -383,12 +415,14 @@ The critical challenge: which node stores which key? Simple modulo hashing (`has
 **Problem:** 200M+ subscribers globally need sub-10ms latency for personalization and catalog data.
 
 **Architecture:**
+
 - 22,000 Memcached servers across 4 regions
 - 14.3 petabytes of cached data
 - 400 million operations per second
 - 30 million replication events globally
 
 **Key decisions:**
+
 1. **Eventual consistency:** Netflix tolerates stale data "as long as the difference doesn't hurt browsing or streaming experience." Strong consistency would require cross-region coordination, adding 100ms+ latency.
 2. **Async replication:** Regional writes replicate asynchronously to other regions for disaster recovery.
 3. **Write-back for analytics:** View counts and playback positions use write-back—losing a few data points is acceptable.
@@ -402,6 +436,7 @@ The critical challenge: which node stores which key? Simple modulo hashing (`has
 **Problem:** Timeline queries hitting Postgres directly couldn't scale—100ms queries needed to become 1ms.
 
 **Architecture:**
+
 - Redis caching layer above Postgres
 - ~300 million photo-to-user-ID mappings in Redis indexes
 - Separate caches for global data (replicated) vs local data (regional)
@@ -415,6 +450,7 @@ The critical challenge: which node stores which key? Simple modulo hashing (`has
 **Problem:** When a Memcached server fails, the thundering herd of cache misses can cascade to database failure.
 
 **Solution: Gutter pool**
+
 - ~1% of Memcached servers designated as "gutter"
 - When primary server fails, clients fall back to gutter
 - Gutter entries have short TTL (seconds, not minutes)
@@ -437,6 +473,7 @@ The critical challenge: which node stores which key? Simple modulo hashing (`has
 **Concrete example:** "Assume the page takes 3 seconds to render and traffic is 10 requests per second. When cache expires, 30 processes simultaneously recompute the rendering."
 
 **The fix:**
+
 1. **Distributed locking:** Only one request fetches from DB; others wait on lock
 2. **Request coalescing (singleflight):** Deduplicate in-flight requests to same key
 3. **Probabilistic early refresh:** Refresh before expiration with increasing probability
@@ -453,6 +490,7 @@ The critical challenge: which node stores which key? Simple modulo hashing (`has
 **The consequence:** One shard saturates while others idle. P99 latency spikes for all requests routed to that shard.
 
 **The fix:**
+
 1. **Key sharding:** Split `counter:item123` into `counter:item123:0` through `counter:item123:N`, aggregate on read
 2. **Local caching:** In-process cache with 1-5 second TTL absorbs bursts
 3. **Read replicas:** Multiple replicas of hot shard
@@ -465,6 +503,7 @@ The critical challenge: which node stores which key? Simple modulo hashing (`has
 **The mistake:** Caching data that won't be accessed again, evicting actually-useful entries.
 
 **Why it happens:**
+
 - Bulk operations (reports, exports) cache one-time data
 - Sequential scans (full table scan) evict random-access hot data
 - Write-through caches every write, even write-only data
@@ -472,6 +511,7 @@ The critical challenge: which node stores which key? Simple modulo hashing (`has
 **The consequence:** Hit ratio drops dramatically. Hot data constantly evicted and re-fetched.
 
 **The fix:**
+
 1. **Scan-resistant algorithms:** 2Q, ARC filter one-time accesses
 2. **Write-around:** Bulk operations bypass cache
 3. **Separate cache pools:** Analytics queries use different cache than production
@@ -488,6 +528,7 @@ The critical challenge: which node stores which key? Simple modulo hashing (`has
 **The consequence:** Users see outdated data, or worse, make decisions based on stale state. Example: user changes password, old session token still works because session cache hasn't invalidated.
 
 **The fix:**
+
 1. **Design for staleness:** Document maximum staleness per cache, design UX accordingly
 2. **Version/generation keys:** Include version in cache key; change key on update
 3. **Read-your-writes consistency:** After write, bypass cache for that user temporarily
@@ -519,28 +560,29 @@ The critical challenge: which node stores which key? Simple modulo hashing (`has
 
 ### Scale Thresholds
 
-| Ops/sec | Recommendation |
-|---------|----------------|
-| < 10K | Single Redis node may suffice |
-| 10K - 100K | Redis replication + connection pooling |
-| 100K - 1M | Redis Cluster, or Memcached fleet |
-| > 1M | Multi-tier (local + distributed), custom solutions |
+| Ops/sec    | Recommendation                                     |
+| ---------- | -------------------------------------------------- |
+| < 10K      | Single Redis node may suffice                      |
+| 10K - 100K | Redis replication + connection pooling             |
+| 100K - 1M  | Redis Cluster, or Memcached fleet                  |
+| > 1M       | Multi-tier (local + distributed), custom solutions |
 
 ### Common Patterns by Use Case
 
-| Use Case | Write Policy | Invalidation | Topology |
-|----------|-------------|--------------|----------|
-| Session storage | Write-through | TTL (session length) | Distributed |
-| Product catalog | Write-around | Event + TTL | CDN + distributed |
-| View counters | Write-back | None (append-only) | Distributed |
-| User authentication | Bypass cache | - | Database only |
-| API responses | Read-only | TTL + stale-while-revalidate | CDN edge |
+| Use Case            | Write Policy  | Invalidation                 | Topology          |
+| ------------------- | ------------- | ---------------------------- | ----------------- |
+| Session storage     | Write-through | TTL (session length)         | Distributed       |
+| Product catalog     | Write-around  | Event + TTL                  | CDN + distributed |
+| View counters       | Write-back    | None (append-only)           | Distributed       |
+| User authentication | Bypass cache  | -                            | Database only     |
+| API responses       | Read-only     | TTL + stale-while-revalidate | CDN edge          |
 
 ## Conclusion
 
 Caching is a fundamental pattern for managing the performance gap between data consumers and sources. The trade-off is always the same: speed versus consistency. Every design decision—write policy, invalidation strategy, replacement algorithm, topology—is a point on that spectrum.
 
 The key insights:
+
 1. **No single strategy fits all:** Netflix uses eventual consistency for recommendations but strong consistency for authentication
 2. **Failure modes matter:** Design for what happens when cache is unavailable, inconsistent, or under stampede
 3. **Measure and adapt:** Hit ratio, P99 latency, and origin load tell you whether your caching strategy is working

@@ -61,14 +61,14 @@ Issue tracking systems solve three interconnected problems: **flexible workflows
 
 **Core architectural decisions:**
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Ordering algorithm | Fractional indexing (LexoRank) | O(1) insertions without row updates |
-| API style | GraphQL with REST fallback | Flexible field selection for varied board views |
-| Pagination | Per-column cursor-based | Ensures all columns load incrementally |
-| Concurrency | Optimistic locking with version field | Low conflict rate in practice |
-| Real-time sync | WebSocket + last-write-wins | Sub-200ms propagation, simple conflict model |
-| Workflow storage | Polymorphic per-project | Projects own their status definitions |
+| Decision           | Choice                                | Rationale                                       |
+| ------------------ | ------------------------------------- | ----------------------------------------------- |
+| Ordering algorithm | Fractional indexing (LexoRank)        | O(1) insertions without row updates             |
+| API style          | GraphQL with REST fallback            | Flexible field selection for varied board views |
+| Pagination         | Per-column cursor-based               | Ensures all columns load incrementally          |
+| Concurrency        | Optimistic locking with version field | Low conflict rate in practice                   |
+| Real-time sync     | WebSocket + last-write-wins           | Sub-200ms propagation, simple conflict model    |
+| Workflow storage   | Polymorphic per-project               | Projects own their status definitions           |
 
 **Key trade-offs accepted:**
 
@@ -86,49 +86,53 @@ Issue tracking systems solve three interconnected problems: **flexible workflows
 
 ### Functional Requirements
 
-| Requirement | Priority | Notes |
-|-------------|----------|-------|
-| Create/edit/delete issues | Core | Title, description, assignee, type, priority |
-| Project-specific workflows | Core | Custom statuses and transitions per project |
-| Kanban board view | Core | Drag-drop between columns and within columns |
-| Issue ordering within columns | Core | Persist user-defined order |
-| Real-time updates | Core | See changes from other users immediately |
-| Search and filter | Core | Full-text search, JQL-style queries |
-| Comments and activity | Extended | Threaded comments, activity timeline |
-| Attachments | Extended | File upload and preview |
-| Sprints/iterations | Extended | Time-boxed groupings |
-| Custom fields | Extended | Project-specific metadata |
+| Requirement                   | Priority | Notes                                        |
+| ----------------------------- | -------- | -------------------------------------------- |
+| Create/edit/delete issues     | Core     | Title, description, assignee, type, priority |
+| Project-specific workflows    | Core     | Custom statuses and transitions per project  |
+| Kanban board view             | Core     | Drag-drop between columns and within columns |
+| Issue ordering within columns | Core     | Persist user-defined order                   |
+| Real-time updates             | Core     | See changes from other users immediately     |
+| Search and filter             | Core     | Full-text search, JQL-style queries          |
+| Comments and activity         | Extended | Threaded comments, activity timeline         |
+| Attachments                   | Extended | File upload and preview                      |
+| Sprints/iterations            | Extended | Time-boxed groupings                         |
+| Custom fields                 | Extended | Project-specific metadata                    |
 
 ### Non-Functional Requirements
 
-| Requirement | Target | Rationale |
-|-------------|--------|-----------|
-| Availability | 99.9% (3 nines) | User-facing, productivity critical |
-| Board load time | p99 < 500ms | Must feel instant |
-| Issue update latency | p99 < 200ms | Drag-drop must be responsive |
-| Real-time propagation | p99 < 300ms | Collaborative editing feel |
-| Search latency | p99 < 100ms | Autocomplete responsiveness |
-| Concurrent users per board | 100 | Team collaboration scenario |
+| Requirement                | Target          | Rationale                          |
+| -------------------------- | --------------- | ---------------------------------- |
+| Availability               | 99.9% (3 nines) | User-facing, productivity critical |
+| Board load time            | p99 < 500ms     | Must feel instant                  |
+| Issue update latency       | p99 < 200ms     | Drag-drop must be responsive       |
+| Real-time propagation      | p99 < 300ms     | Collaborative editing feel         |
+| Search latency             | p99 < 100ms     | Autocomplete responsiveness        |
+| Concurrent users per board | 100             | Team collaboration scenario        |
 
 ### Scale Estimation
 
 **Users:**
+
 - Total users: 10M (Jira-scale)
 - Daily Active Users (DAU): 2M (20%)
 - Peak concurrent users: 500K
 
 **Projects and Issues:**
+
 - Projects: 1M
 - Issues per project (active): 1,000 avg, 100,000 max
 - Total issues: 1B
 - Issues per board view: 200-500 typical
 
 **Traffic:**
+
 - Board loads: 2M DAU × 10 loads/day = 20M/day = ~230 RPS
 - Issue updates: 2M DAU × 20 updates/day = 40M/day = ~460 RPS
 - Peak multiplier: 3x → 700 RPS board loads, 1,400 RPS updates
 
 **Storage:**
+
 - Issue size: 5KB avg (metadata + description)
 - Total issue storage: 1B × 5KB = 5TB
 - Attachments: 50TB (separate object storage)
@@ -139,6 +143,7 @@ Issue tracking systems solve three interconnected problems: **flexible workflows
 ### Path A: Server-Authoritative with REST API
 
 **Best when:**
+
 - Team familiar with REST patterns
 - Simpler infrastructure requirements
 - Offline support not critical
@@ -162,6 +167,7 @@ sequenceDiagram
 ```
 
 **Trade-offs:**
+
 - ✅ Simple mental model
 - ✅ Standard tooling and caching
 - ✅ Easy to debug
@@ -174,6 +180,7 @@ sequenceDiagram
 ### Path B: Local-First with Sync Engine
 
 **Best when:**
+
 - Offline support is critical
 - Sub-100ms UI responsiveness required
 - Team can invest in sync infrastructure
@@ -201,6 +208,7 @@ flowchart LR
 ```
 
 **Trade-offs:**
+
 - ✅ Instant UI response (local-first)
 - ✅ Full offline support
 - ✅ Minimal network traffic (deltas only)
@@ -213,6 +221,7 @@ flowchart LR
 ### Path C: GraphQL with Optimistic Updates
 
 **Best when:**
+
 - Varied client needs (web, mobile, integrations)
 - Complex data relationships
 - Need flexibility without over-fetching
@@ -225,7 +234,10 @@ mutation MoveIssue($input: MoveIssueInput!) {
   moveIssue(input: $input) {
     issue {
       id
-      status { id name }
+      status {
+        id
+        name
+      }
       rank
       updatedAt
     }
@@ -236,7 +248,9 @@ subscription OnBoardUpdate($boardId: ID!) {
   boardUpdated(boardId: $boardId) {
     issue {
       id
-      status { id }
+      status {
+        id
+      }
       rank
     }
     action
@@ -245,6 +259,7 @@ subscription OnBoardUpdate($boardId: ID!) {
 ```
 
 **Trade-offs:**
+
 - ✅ Flexible queries for different views
 - ✅ Built-in subscriptions for real-time
 - ✅ Single endpoint simplifies client
@@ -256,18 +271,19 @@ subscription OnBoardUpdate($boardId: ID!) {
 
 ### Path Comparison
 
-| Factor | REST | Local-First | GraphQL |
-|--------|------|-------------|---------|
-| Implementation complexity | Low | High | Medium |
-| UI responsiveness | Medium | Excellent | Good |
-| Offline support | Limited | Native | Limited |
-| Client flexibility | Low | Low | High |
-| Real-time complexity | Separate | Built-in | Built-in |
-| Caching | Simple | Complex | Medium |
+| Factor                    | REST     | Local-First | GraphQL  |
+| ------------------------- | -------- | ----------- | -------- |
+| Implementation complexity | Low      | High        | Medium   |
+| UI responsiveness         | Medium   | Excellent   | Good     |
+| Offline support           | Limited  | Native      | Limited  |
+| Client flexibility        | Low      | Low         | High     |
+| Real-time complexity      | Separate | Built-in    | Built-in |
+| Caching                   | Simple   | Complex     | Medium   |
 
 ### This Article's Focus
 
 This article focuses on **Path C (GraphQL with REST fallback)** because:
+
 1. Flexible field selection suits varied board configurations
 2. Subscriptions provide native real-time support
 3. REST endpoints can coexist for webhooks and simple integrations
@@ -334,6 +350,7 @@ flowchart TB
 Handles core issue CRUD operations and ordering.
 
 **Responsibilities:**
+
 - Create, read, update, delete issues
 - Rank calculation for ordering
 - Status transitions with workflow validation
@@ -341,17 +358,18 @@ Handles core issue CRUD operations and ordering.
 
 **Key design decisions:**
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Primary key | UUID | Distributed ID generation, no coordination |
-| Ordering | LexoRank string | O(1) reordering without cascading updates |
-| Versioning | Monotonic version field | Optimistic locking for concurrent edits |
+| Decision    | Choice                  | Rationale                                  |
+| ----------- | ----------------------- | ------------------------------------------ |
+| Primary key | UUID                    | Distributed ID generation, no coordination |
+| Ordering    | LexoRank string         | O(1) reordering without cascading updates  |
+| Versioning  | Monotonic version field | Optimistic locking for concurrent edits    |
 
 ### Project Service
 
 Manages project configuration including workflows.
 
 **Responsibilities:**
+
 - Project CRUD
 - Workflow definition per project
 - Status and transition management
@@ -364,6 +382,7 @@ Manages project configuration including workflows.
 Optimizes board view queries by maintaining denormalized state.
 
 **Responsibilities:**
+
 - Cache board state in Redis
 - Compute issue counts per column
 - Handle board-level operations (collapse column, set WIP limits)
@@ -375,6 +394,7 @@ Optimizes board view queries by maintaining denormalized state.
 Enforces workflow rules and transitions.
 
 **Responsibilities:**
+
 - Validate status transitions
 - Execute transition side effects (webhooks, automations)
 - Maintain workflow history
@@ -404,7 +424,7 @@ sequenceDiagram
 ```graphql
 type Issue {
   id: ID!
-  key: String!                    # e.g., "PROJ-123"
+  key: String! # e.g., "PROJ-123"
   title: String!
   description: String
   status: Status!
@@ -412,8 +432,8 @@ type Issue {
   reporter: User!
   priority: Priority!
   issueType: IssueType!
-  rank: String!                   # LexoRank for ordering
-  version: Int!                   # Optimistic locking
+  rank: String! # LexoRank for ordering
+  version: Int! # Optimistic locking
   project: Project!
   comments(first: Int, after: String): CommentConnection!
   activity(first: Int, after: String): ActivityConnection!
@@ -424,9 +444,9 @@ type Issue {
 type Status {
   id: ID!
   name: String!
-  category: StatusCategory!       # TODO, IN_PROGRESS, DONE
+  category: StatusCategory! # TODO, IN_PROGRESS, DONE
   color: String!
-  position: Int!                  # Column order
+  position: Int! # Column order
 }
 
 type Project {
@@ -473,11 +493,17 @@ enum Priority {
 The key challenge: fetch issues across multiple columns where each column can have different numbers of issues.
 
 **Naive approach (problematic):**
+
 ```graphql
 # BAD: Fetches all issues, client groups by status
 query {
   issues(projectId: "proj-1", first: 100) {
-    nodes { id status { id } }
+    nodes {
+      id
+      status {
+        id
+      }
+    }
   }
 }
 # Problem: If 90 issues are in "To Do", other columns appear empty
@@ -512,7 +538,11 @@ query GetBoard($projectId: ID!, $issuesPerColumn: Int!) {
           id
           key
           title
-          assignee { id name avatar }
+          assignee {
+            id
+            name
+            avatar
+          }
           priority
           rank
         }
@@ -537,7 +567,9 @@ query GetBoard($projectId: ID!, $issuesPerColumn: Int!) {
           "status": { "id": "status-1", "name": "To Do", "color": "#grey" },
           "totalCount": 45,
           "issues": {
-            "nodes": [/* first 20 issues */],
+            "nodes": [
+              /* first 20 issues */
+            ],
             "pageInfo": { "hasNextPage": true, "endCursor": "cursor-abc" }
           }
         },
@@ -545,7 +577,9 @@ query GetBoard($projectId: ID!, $issuesPerColumn: Int!) {
           "status": { "id": "status-2", "name": "In Progress", "color": "#blue" },
           "totalCount": 12,
           "issues": {
-            "nodes": [/* first 12 issues - no more pages */],
+            "nodes": [
+              /* first 12 issues - no more pages */
+            ],
             "pageInfo": { "hasNextPage": false, "endCursor": "cursor-xyz" }
           }
         },
@@ -553,7 +587,9 @@ query GetBoard($projectId: ID!, $issuesPerColumn: Int!) {
           "status": { "id": "status-3", "name": "Done", "color": "#green" },
           "totalCount": 89,
           "issues": {
-            "nodes": [/* first 20 issues */],
+            "nodes": [
+              /* first 20 issues */
+            ],
             "pageInfo": { "hasNextPage": true, "endCursor": "cursor-def" }
           }
         }
@@ -569,8 +605,16 @@ query GetBoard($projectId: ID!, $issuesPerColumn: Int!) {
 query LoadMoreIssues($statusId: ID!, $after: String!) {
   column(statusId: $statusId) {
     issues(first: 20, after: $after) {
-      nodes { id key title rank }
-      pageInfo { hasNextPage endCursor }
+      nodes {
+        id
+        key
+        title
+        rank
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
     }
   }
 }
@@ -584,9 +628,9 @@ query LoadMoreIssues($statusId: ID!, $after: String!) {
 input MoveIssueInput {
   issueId: ID!
   toStatusId: ID!
-  rankAfterId: ID          # Issue to position after (null = top)
-  rankBeforeId: ID         # Issue to position before (null = bottom)
-  version: Int!            # For optimistic locking
+  rankAfterId: ID # Issue to position after (null = top)
+  rankBeforeId: ID # Issue to position before (null = bottom)
+  version: Int! # For optimistic locking
 }
 
 type MoveIssuePayload {
@@ -610,7 +654,10 @@ mutation MoveIssue($input: MoveIssueInput!) {
   moveIssue(input: $input) {
     issue {
       id
-      status { id name }
+      status {
+        id
+        name
+      }
       rank
       version
       updatedAt
@@ -641,7 +688,10 @@ mutation UpdateIssue($input: UpdateIssueInput!) {
       id
       title
       description
-      assignee { id name }
+      assignee {
+        id
+        name
+      }
       priority
       version
       updatedAt
@@ -660,8 +710,8 @@ mutation UpdateIssue($input: UpdateIssueInput!) {
 type BoardEvent {
   issue: Issue!
   action: BoardAction!
-  previousStatusId: ID      # For status changes
-  previousRank: String      # For reorders
+  previousStatusId: ID # For status changes
+  previousRank: String # For reorders
 }
 
 enum BoardAction {
@@ -677,9 +727,14 @@ subscription OnBoardChange($projectId: ID!) {
       id
       key
       title
-      status { id }
+      status {
+        id
+      }
       rank
-      assignee { id name }
+      assignee {
+        id
+        name
+      }
       version
     }
     action
@@ -693,6 +748,7 @@ subscription OnBoardChange($projectId: ID!) {
 For webhooks and simple integrations:
 
 **Move Issue:**
+
 ```http
 PATCH /api/v1/issues/{issueId}/move
 Content-Type: application/json
@@ -706,6 +762,7 @@ If-Match: "version-5"
 ```
 
 **Response:**
+
 ```http
 HTTP/1.1 200 OK
 ETag: "version-6"
@@ -722,12 +779,12 @@ ETag: "version-6"
 
 **Error Responses:**
 
-| Code | Error | When |
-|------|-------|------|
-| 400 | `INVALID_TRANSITION` | Workflow doesn't allow this status change |
-| 404 | `NOT_FOUND` | Issue or target status doesn't exist |
-| 409 | `VERSION_CONFLICT` | Version mismatch (concurrent edit) |
-| 412 | `PRECONDITION_FAILED` | ETag mismatch |
+| Code | Error                 | When                                      |
+| ---- | --------------------- | ----------------------------------------- |
+| 400  | `INVALID_TRANSITION`  | Workflow doesn't allow this status change |
+| 404  | `NOT_FOUND`           | Issue or target status doesn't exist      |
+| 409  | `VERSION_CONFLICT`    | Version mismatch (concurrent edit)        |
+| 412  | `PRECONDITION_FAILED` | ETag mismatch                             |
 
 ## Data Modeling
 
@@ -848,13 +905,13 @@ CREATE INDEX idx_activity_issue ON activity_log(issue_id, created_at DESC);
 
 ### Database Selection Rationale
 
-| Data Type | Store | Rationale |
-|-----------|-------|-----------|
-| Issues, Projects | PostgreSQL | ACID, complex queries, JOIN capability |
-| Board cache | Redis | Sub-ms reads, TTL for staleness |
-| Search index | Elasticsearch | Full-text search, faceted filtering |
-| Activity log | PostgreSQL → Kafka | Append-only, stream processing |
-| Attachments | S3 | Cost-effective blob storage |
+| Data Type        | Store              | Rationale                              |
+| ---------------- | ------------------ | -------------------------------------- |
+| Issues, Projects | PostgreSQL         | ACID, complex queries, JOIN capability |
+| Board cache      | Redis              | Sub-ms reads, TTL for staleness        |
+| Search index     | Elasticsearch      | Full-text search, faceted filtering    |
+| Activity log     | PostgreSQL → Kafka | Append-only, stream processing         |
+| Attachments      | S3                 | Cost-effective blob storage            |
 
 ### Denormalized Board Cache (Redis)
 
@@ -885,6 +942,7 @@ HSET issue:{issue_id}:card
 ```
 
 **Cache invalidation strategy:**
+
 - Write-through: Update cache immediately after DB write
 - TTL: 5 minutes as safety net
 - Pub/Sub: Broadcast invalidation to all service instances
@@ -927,79 +985,75 @@ Jira's LexoRank uses the format: `bucket|value`
 
 ```typescript collapse={1-15}
 // Simplified LexoRank implementation
-const LEXORANK_CHARS = '0123456789abcdefghijklmnopqrstuvwxyz';
-const BASE = LEXORANK_CHARS.length; // 36
+const LEXORANK_CHARS = "0123456789abcdefghijklmnopqrstuvwxyz"
+const BASE = LEXORANK_CHARS.length // 36
 
 interface LexoRank {
-  bucket: number;
-  value: string;
+  bucket: number
+  value: string
 }
 
 function parseLexoRank(rank: string): LexoRank {
-  const [bucket, value] = rank.split('|');
-  return { bucket: parseInt(bucket), value };
+  const [bucket, value] = rank.split("|")
+  return { bucket: parseInt(bucket), value }
 }
 
 function formatLexoRank(rank: LexoRank): string {
-  return `${rank.bucket}|${rank.value}`;
+  return `${rank.bucket}|${rank.value}`
 }
 
 function getMidpoint(a: string, b: string): string {
   // Ensure same length by padding with '0's
-  const maxLen = Math.max(a.length, b.length);
-  const aPadded = a.padEnd(maxLen, '0');
-  const bPadded = b.padEnd(maxLen, '0');
+  const maxLen = Math.max(a.length, b.length)
+  const aPadded = a.padEnd(maxLen, "0")
+  const bPadded = b.padEnd(maxLen, "0")
 
   // Convert to numbers (treating as base-36)
-  let result = '';
-  let carry = 0;
+  let result = ""
+  let carry = 0
 
   for (let i = maxLen - 1; i >= 0; i--) {
-    const aVal = LEXORANK_CHARS.indexOf(aPadded[i]);
-    const bVal = LEXORANK_CHARS.indexOf(bPadded[i]);
-    const sum = aVal + bVal + carry;
-    const mid = Math.floor(sum / 2);
-    carry = sum % 2;
-    result = LEXORANK_CHARS[mid] + result;
+    const aVal = LEXORANK_CHARS.indexOf(aPadded[i])
+    const bVal = LEXORANK_CHARS.indexOf(bPadded[i])
+    const sum = aVal + bVal + carry
+    const mid = Math.floor(sum / 2)
+    carry = sum % 2
+    result = LEXORANK_CHARS[mid] + result
   }
 
   // If a and b are adjacent, extend with midpoint
   if (result === aPadded) {
-    result += LEXORANK_CHARS[Math.floor(BASE / 2)]; // 'i'
+    result += LEXORANK_CHARS[Math.floor(BASE / 2)] // 'i'
   }
 
-  return result.replace(/0+$/, ''); // Trim trailing zeros
+  return result.replace(/0+$/, "") // Trim trailing zeros
 }
 
-function calculateNewRank(
-  before: string | null,
-  after: string | null,
-  bucket: number = 0
-): string {
+function calculateNewRank(before: string | null, after: string | null, bucket: number = 0): string {
   if (!before && !after) {
     // First item - use middle of range
-    return formatLexoRank({ bucket, value: 'i' });
+    return formatLexoRank({ bucket, value: "i" })
   }
 
   if (!before) {
     // Insert at top - find value before 'after'
-    const afterRank = parseLexoRank(after!);
-    const newValue = getMidpoint('0', afterRank.value);
-    return formatLexoRank({ bucket, value: newValue });
+    const afterRank = parseLexoRank(after!)
+    const newValue = getMidpoint("0", afterRank.value)
+    return formatLexoRank({ bucket, value: newValue })
   }
 
   if (!after) {
     // Insert at bottom - find value after 'before'
-    const beforeRank = parseLexoRank(before);
-    const newValue = getMidpoint(beforeRank.value, 'z');
-    return formatLexoRank({ bucket, value: newValue });
+    const beforeRank = parseLexoRank(before)
+    const newValue = getMidpoint(beforeRank.value, "z")
+    return formatLexoRank({ bucket, value: newValue })
   }
 
   // Insert between two items
-  const beforeRank = parseLexoRank(before);
-  const afterRank = parseLexoRank(after);
-  const newValue = getMidpoint(beforeRank.value, afterRank.value);
-  return formatLexoRank({ bucket, value: newValue });
+  const beforeRank = parseLexoRank(before)
+  const afterRank = parseLexoRank(after)
+  const newValue = getMidpoint(beforeRank.value, afterRank.value)
+  return formatLexoRank({ bucket, value: newValue })
 }
 ```
 
@@ -1016,6 +1070,7 @@ After 50: "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
 ```
 
 **Jira's rebalancing thresholds:**
+
 1. Rank length > 64 chars → Schedule rebalance within 12 hours
 2. Second trigger within 12 hours → Immediate rebalance
 3. Rank length > 254 chars → Disable ranking until complete
@@ -1023,50 +1078,47 @@ After 50: "iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
 **Rebalancing algorithm:**
 
 ```typescript collapse={1-5}
-async function rebalanceColumn(
-  projectId: string,
-  statusId: string
-): Promise<void> {
+async function rebalanceColumn(projectId: string, statusId: string): Promise<void> {
   // 1. Lock column for writes (or use different bucket)
-  const lockKey = `rebalance:${projectId}:${statusId}`;
-  await redis.set(lockKey, '1', 'EX', 300); // 5 min lock
+  const lockKey = `rebalance:${projectId}:${statusId}`
+  await redis.set(lockKey, "1", "EX", 300) // 5 min lock
 
   try {
     // 2. Fetch all issues ordered by current rank
-    const issues = await db.query(`
+    const issues = await db.query(
+      `
       SELECT id, rank
       FROM issues
       WHERE project_id = $1 AND status_id = $2
       ORDER BY rank
-    `, [projectId, statusId]);
+    `,
+      [projectId, statusId],
+    )
 
     // 3. Assign evenly-spaced new ranks
-    const newBucket = (parseInt(issues[0]?.rank?.split('|')[0] || '0') + 1) % 3;
-    const step = Math.floor(BASE / (issues.length + 1));
+    const newBucket = (parseInt(issues[0]?.rank?.split("|")[0] || "0") + 1) % 3
+    const step = Math.floor(BASE / (issues.length + 1))
 
     const updates = issues.map((issue, index) => {
-      const position = step * (index + 1);
-      const newValue = position.toString(36).padStart(6, '0');
+      const position = step * (index + 1)
+      const newValue = position.toString(36).padStart(6, "0")
       return {
         id: issue.id,
-        newRank: `${newBucket}|${newValue}`
-      };
-    });
+        newRank: `${newBucket}|${newValue}`,
+      }
+    })
 
     // 4. Batch update
     await db.transaction(async (tx) => {
       for (const { id, newRank } of updates) {
-        await tx.query(
-          'UPDATE issues SET rank = $1 WHERE id = $2',
-          [newRank, id]
-        );
+        await tx.query("UPDATE issues SET rank = $1 WHERE id = $2", [newRank, id])
       }
-    });
+    })
 
     // 5. Invalidate cache
-    await invalidateBoardCache(projectId);
+    await invalidateBoardCache(projectId)
   } finally {
-    await redis.del(lockKey);
+    await redis.del(lockKey)
   }
 }
 ```
@@ -1107,79 +1159,79 @@ sequenceDiagram
 
 ```typescript collapse={1-20}
 interface UpdateIssueInput {
-  issueId: string;
-  title?: string;
-  description?: string;
-  assigneeId?: string;
-  version: number;
+  issueId: string
+  title?: string
+  description?: string
+  assigneeId?: string
+  version: number
 }
 
 interface UpdateResult {
-  success: boolean;
-  issue?: Issue;
-  error?: { code: string; message: string };
+  success: boolean
+  issue?: Issue
+  error?: { code: string; message: string }
 }
 
 async function updateIssue(input: UpdateIssueInput): Promise<UpdateResult> {
-  const { issueId, version, ...updates } = input;
+  const { issueId, version, ...updates } = input
 
   // Build dynamic UPDATE query
   const setClause = Object.entries(updates)
     .filter(([_, v]) => v !== undefined)
     .map(([k, _], i) => `${toSnakeCase(k)} = $${i + 3}`)
-    .join(', ');
+    .join(", ")
 
-  const values = Object.values(updates).filter(v => v !== undefined);
+  const values = Object.values(updates).filter((v) => v !== undefined)
 
-  const result = await db.query(`
+  const result = await db.query(
+    `
     UPDATE issues
     SET ${setClause}, version = version + 1, updated_at = NOW()
     WHERE id = $1 AND version = $2
     RETURNING *
-  `, [issueId, version, ...values]);
+  `,
+    [issueId, version, ...values],
+  )
 
   if (result.rowCount === 0) {
     // Check if issue exists
-    const exists = await db.query(
-      'SELECT version FROM issues WHERE id = $1',
-      [issueId]
-    );
+    const exists = await db.query("SELECT version FROM issues WHERE id = $1", [issueId])
 
     if (exists.rowCount === 0) {
       return {
         success: false,
-        error: { code: 'NOT_FOUND', message: 'Issue not found' }
-      };
+        error: { code: "NOT_FOUND", message: "Issue not found" },
+      }
     }
 
-    const currentVersion = exists.rows[0].version;
+    const currentVersion = exists.rows[0].version
     return {
       success: false,
       error: {
-        code: 'VERSION_CONFLICT',
-        message: `Version mismatch. Expected ${version}, current is ${currentVersion}`
-      }
-    };
+        code: "VERSION_CONFLICT",
+        message: `Version mismatch. Expected ${version}, current is ${currentVersion}`,
+      },
+    }
   }
 
   // Broadcast change
   await publishBoardEvent(result.rows[0].project_id, {
-    action: 'UPDATED',
-    issue: result.rows[0]
-  });
+    action: "UPDATED",
+    issue: result.rows[0],
+  })
 
-  return { success: true, issue: result.rows[0] };
+  return { success: true, issue: result.rows[0] }
 }
 ```
 
 ### Conflict Resolution Strategies
 
-| Strategy | Use Case | Trade-off |
-|----------|----------|-----------|
-| **Last-Write-Wins** | Most fields (title, assignee, priority) | May lose edits, but simple |
-| **Field-Level Merge** | Non-conflicting field updates | More complex, preserves more |
-| **Manual Resolution** | Description (rich text) | Best fidelity, worst UX |
-| **CRDT** | Concurrent rich text editing | Complex, best for collaboration |
+| Strategy              | Use Case                                | Trade-off                       |
+| --------------------- | --------------------------------------- | ------------------------------- |
+| **Last-Write-Wins**   | Most fields (title, assignee, priority) | May lose edits, but simple      |
+| **Field-Level Merge** | Non-conflicting field updates           | More complex, preserves more    |
+| **Manual Resolution** | Description (rich text)                 | Best fidelity, worst UX         |
+| **CRDT**              | Concurrent rich text editing            | Complex, best for collaboration |
 
 **Field-level merge example:**
 
@@ -1188,38 +1240,30 @@ async function updateIssue(input: UpdateIssueInput): Promise<UpdateResult> {
 // Client 2 updates assignee (version 5 → conflict)
 // Instead of rejecting, merge if fields don't overlap
 
-async function mergeUpdate(
-  input: UpdateIssueInput,
-  currentIssue: Issue
-): Promise<UpdateResult> {
-  const { version, ...updates } = input;
+async function mergeUpdate(input: UpdateIssueInput, currentIssue: Issue): Promise<UpdateResult> {
+  const { version, ...updates } = input
 
   // Find which fields changed since client's version
-  const changedFields = await getChangedFieldsSince(
-    input.issueId,
-    version,
-    currentIssue.version
-  );
+  const changedFields = await getChangedFieldsSince(input.issueId, version, currentIssue.version)
 
   // Check for conflicts
-  const conflictingFields = Object.keys(updates)
-    .filter(f => changedFields.includes(f));
+  const conflictingFields = Object.keys(updates).filter((f) => changedFields.includes(f))
 
   if (conflictingFields.length > 0) {
     return {
       success: false,
       error: {
-        code: 'FIELD_CONFLICT',
-        message: `Conflicting fields: ${conflictingFields.join(', ')}`
-      }
-    };
+        code: "FIELD_CONFLICT",
+        message: `Conflicting fields: ${conflictingFields.join(", ")}`,
+      },
+    }
   }
 
   // No conflicts - apply update to latest version
   return updateIssue({
     ...input,
-    version: currentIssue.version
-  });
+    version: currentIssue.version,
+  })
 }
 ```
 
@@ -1229,114 +1273,104 @@ Moving an issue involves two atomic changes: status and rank.
 
 ```typescript collapse={1-10}
 interface MoveIssueInput {
-  issueId: string;
-  toStatusId: string;
-  rankAfterId?: string;
-  rankBeforeId?: string;
-  version: number;
+  issueId: string
+  toStatusId: string
+  rankAfterId?: string
+  rankBeforeId?: string
+  version: number
 }
 
 async function moveIssue(input: MoveIssueInput): Promise<UpdateResult> {
-  const { issueId, toStatusId, rankAfterId, rankBeforeId, version } = input;
+  const { issueId, toStatusId, rankAfterId, rankBeforeId, version } = input
 
   return db.transaction(async (tx) => {
     // 1. Lock and fetch current issue
-    const issue = await tx.query(
-      'SELECT * FROM issues WHERE id = $1 FOR UPDATE',
-      [issueId]
-    );
+    const issue = await tx.query("SELECT * FROM issues WHERE id = $1 FOR UPDATE", [issueId])
 
     if (!issue.rows[0]) {
-      return { success: false, error: { code: 'NOT_FOUND', message: 'Issue not found' } };
+      return { success: false, error: { code: "NOT_FOUND", message: "Issue not found" } }
     }
 
     if (issue.rows[0].version !== version) {
       return {
         success: false,
-        error: { code: 'VERSION_CONFLICT', message: 'Concurrent modification' }
-      };
+        error: { code: "VERSION_CONFLICT", message: "Concurrent modification" },
+      }
     }
 
-    const currentIssue = issue.rows[0];
+    const currentIssue = issue.rows[0]
 
     // 2. Validate transition
-    const transitionValid = await validateTransition(
-      tx,
-      currentIssue.project_id,
-      currentIssue.status_id,
-      toStatusId
-    );
+    const transitionValid = await validateTransition(tx, currentIssue.project_id, currentIssue.status_id, toStatusId)
 
     if (!transitionValid) {
       return {
         success: false,
-        error: { code: 'INVALID_TRANSITION', message: 'Workflow does not allow this transition' }
-      };
+        error: { code: "INVALID_TRANSITION", message: "Workflow does not allow this transition" },
+      }
     }
 
     // 3. Calculate new rank
-    let newRank: string;
+    let newRank: string
 
     if (rankAfterId) {
-      const afterIssue = await tx.query(
-        'SELECT rank FROM issues WHERE id = $1',
-        [rankAfterId]
-      );
-      const beforeIssue = rankBeforeId
-        ? await tx.query('SELECT rank FROM issues WHERE id = $1', [rankBeforeId])
-        : null;
+      const afterIssue = await tx.query("SELECT rank FROM issues WHERE id = $1", [rankAfterId])
+      const beforeIssue = rankBeforeId ? await tx.query("SELECT rank FROM issues WHERE id = $1", [rankBeforeId]) : null
 
-      newRank = calculateNewRank(
-        afterIssue.rows[0]?.rank,
-        beforeIssue?.rows[0]?.rank
-      );
+      newRank = calculateNewRank(afterIssue.rows[0]?.rank, beforeIssue?.rows[0]?.rank)
     } else if (rankBeforeId) {
-      const beforeIssue = await tx.query(
-        'SELECT rank FROM issues WHERE id = $1',
-        [rankBeforeId]
-      );
-      newRank = calculateNewRank(null, beforeIssue.rows[0]?.rank);
+      const beforeIssue = await tx.query("SELECT rank FROM issues WHERE id = $1", [rankBeforeId])
+      newRank = calculateNewRank(null, beforeIssue.rows[0]?.rank)
     } else {
       // Default: bottom of column
-      const lastInColumn = await tx.query(`
+      const lastInColumn = await tx.query(
+        `
         SELECT rank FROM issues
         WHERE project_id = $1 AND status_id = $2
         ORDER BY rank DESC LIMIT 1
-      `, [currentIssue.project_id, toStatusId]);
+      `,
+        [currentIssue.project_id, toStatusId],
+      )
 
-      newRank = calculateNewRank(lastInColumn.rows[0]?.rank, null);
+      newRank = calculateNewRank(lastInColumn.rows[0]?.rank, null)
     }
 
     // 4. Update issue
-    const result = await tx.query(`
+    const result = await tx.query(
+      `
       UPDATE issues
       SET status_id = $1, rank = $2, version = version + 1, updated_at = NOW()
       WHERE id = $3
       RETURNING *
-    `, [toStatusId, newRank, issueId]);
+    `,
+      [toStatusId, newRank, issueId],
+    )
 
     // 5. Log activity
-    await tx.query(`
+    await tx.query(
+      `
       INSERT INTO activity_log (issue_id, user_id, action_type, old_value, new_value)
       VALUES ($1, $2, 'status_change', $3, $4)
-    `, [
-      issueId,
-      getCurrentUserId(),
-      JSON.stringify({ status_id: currentIssue.status_id }),
-      JSON.stringify({ status_id: toStatusId })
-    ]);
+    `,
+      [
+        issueId,
+        getCurrentUserId(),
+        JSON.stringify({ status_id: currentIssue.status_id }),
+        JSON.stringify({ status_id: toStatusId }),
+      ],
+    )
 
     // 6. Broadcast (after commit)
     setImmediate(() => {
       publishBoardEvent(currentIssue.project_id, {
-        action: 'MOVED',
+        action: "MOVED",
         issue: result.rows[0],
-        previousStatusId: currentIssue.status_id
-      });
-    });
+        previousStatusId: currentIssue.status_id,
+      })
+    })
 
-    return { success: true, issue: result.rows[0] };
-  });
+    return { success: true, issue: result.rows[0] }
+  })
 }
 ```
 
@@ -1348,10 +1382,10 @@ Each project has its own workflow, defined by statuses and transitions.
 
 ```mermaid
 erDiagram
-    PROJECT ||--o{ STATUS : has
-    PROJECT ||--o{ WORKFLOW_TRANSITION : has
-    STATUS ||--o{ WORKFLOW_TRANSITION : from
-    STATUS ||--o{ WORKFLOW_TRANSITION : to
+    PROJECT ||--o{ STATUS : "has"
+    PROJECT ||--o{ WORKFLOW_TRANSITION : "has"
+    STATUS ||--o{ WORKFLOW_TRANSITION : "from"
+    STATUS ||--o{ WORKFLOW_TRANSITION : "to"
 
     PROJECT {
         uuid id PK
@@ -1393,8 +1427,12 @@ query GetProjectWorkflow($projectId: ID!) {
       transitions {
         id
         name
-        fromStatus { id }
-        toStatus { id }
+        fromStatus {
+          id
+        }
+        toStatus {
+          id
+        }
       }
     }
   }
@@ -1446,8 +1484,12 @@ mutation AddTransition($input: AddTransitionInput!) {
     transition {
       id
       name
-      fromStatus { id }
-      toStatus { id }
+      fromStatus {
+        id
+      }
+      toStatus {
+        id
+      }
     }
   }
 }
@@ -1469,49 +1511,49 @@ To provide instant feedback, clients cache workflow rules:
 
 ```typescript collapse={1-10}
 interface WorkflowCache {
-  statuses: Map<string, Status>;
-  transitions: Map<string, Set<string>>; // fromStatusId → Set<toStatusId>
+  statuses: Map<string, Status>
+  transitions: Map<string, Set<string>> // fromStatusId → Set<toStatusId>
 }
 
 class WorkflowValidator {
-  private cache: WorkflowCache;
+  private cache: WorkflowCache
 
   constructor(workflow: Workflow) {
     this.cache = {
-      statuses: new Map(workflow.statuses.map(s => [s.id, s])),
-      transitions: new Map()
-    };
+      statuses: new Map(workflow.statuses.map((s) => [s.id, s])),
+      transitions: new Map(),
+    }
 
     // Build transition map
     for (const t of workflow.transitions) {
-      const fromId = t.fromStatus?.id || '*'; // null = any status
+      const fromId = t.fromStatus?.id || "*" // null = any status
       if (!this.cache.transitions.has(fromId)) {
-        this.cache.transitions.set(fromId, new Set());
+        this.cache.transitions.set(fromId, new Set())
       }
-      this.cache.transitions.get(fromId)!.add(t.toStatus.id);
+      this.cache.transitions.get(fromId)!.add(t.toStatus.id)
     }
   }
 
   canTransition(fromStatusId: string, toStatusId: string): boolean {
     // Check specific transition
     if (this.cache.transitions.get(fromStatusId)?.has(toStatusId)) {
-      return true;
+      return true
     }
     // Check wildcard (from any status)
-    if (this.cache.transitions.get('*')?.has(toStatusId)) {
-      return true;
+    if (this.cache.transitions.get("*")?.has(toStatusId)) {
+      return true
     }
-    return false;
+    return false
   }
 
   getAvailableTransitions(fromStatusId: string): Status[] {
-    const specific = this.cache.transitions.get(fromStatusId) || new Set();
-    const wildcard = this.cache.transitions.get('*') || new Set();
-    const available = new Set([...specific, ...wildcard]);
+    const specific = this.cache.transitions.get(fromStatusId) || new Set()
+    const wildcard = this.cache.transitions.get("*") || new Set()
+    const available = new Set([...specific, ...wildcard])
 
     return Array.from(available)
-      .map(id => this.cache.statuses.get(id)!)
-      .filter(Boolean);
+      .map((id) => this.cache.statuses.get(id)!)
+      .filter(Boolean)
   }
 }
 ```
@@ -1525,26 +1567,27 @@ class WorkflowValidator {
 ```typescript
 interface BoardState {
   // Entities by ID
-  issues: Record<string, Issue>;
-  statuses: Record<string, Status>;
-  users: Record<string, User>;
+  issues: Record<string, Issue>
+  statuses: Record<string, Status>
+  users: Record<string, User>
 
   // Ordering
-  columnOrder: string[];                  // Status IDs in display order
-  issueOrder: Record<string, string[]>;   // statusId → issueIds in rank order
+  columnOrder: string[] // Status IDs in display order
+  issueOrder: Record<string, string[]> // statusId → issueIds in rank order
 
   // Pagination
-  columnCursors: Record<string, string | null>;
-  columnHasMore: Record<string, boolean>;
+  columnCursors: Record<string, string | null>
+  columnHasMore: Record<string, boolean>
 
   // UI state
-  draggingIssueId: string | null;
-  dropTargetColumn: string | null;
-  dropTargetIndex: number | null;
+  draggingIssueId: string | null
+  dropTargetColumn: string | null
+  dropTargetIndex: number | null
 }
 ```
 
 **Why normalized:**
+
 - Moving an issue updates two arrays, not nested objects
 - React reference equality works for memoization
 - Easier to apply real-time updates
@@ -1553,50 +1596,44 @@ interface BoardState {
 
 ```typescript collapse={1-20}
 function useMoveIssue() {
-  const [boardState, setBoardState] = useState<BoardState>(initialState);
-  const pendingMoves = useRef<Map<string, { previousState: BoardState }>>(new Map());
+  const [boardState, setBoardState] = useState<BoardState>(initialState)
+  const pendingMoves = useRef<Map<string, { previousState: BoardState }>>(new Map())
 
-  const moveIssue = async (
-    issueId: string,
-    toStatusId: string,
-    toIndex: number
-  ) => {
-    const issue = boardState.issues[issueId];
-    const fromStatusId = issue.statusId;
+  const moveIssue = async (issueId: string, toStatusId: string, toIndex: number) => {
+    const issue = boardState.issues[issueId]
+    const fromStatusId = issue.statusId
 
     // 1. Save previous state for rollback
-    const previousState = structuredClone(boardState);
-    pendingMoves.current.set(issueId, { previousState });
+    const previousState = structuredClone(boardState)
+    pendingMoves.current.set(issueId, { previousState })
 
     // 2. Optimistic update
-    setBoardState(state => {
-      const newState = { ...state };
+    setBoardState((state) => {
+      const newState = { ...state }
 
       // Remove from old column
       newState.issueOrder = {
         ...state.issueOrder,
-        [fromStatusId]: state.issueOrder[fromStatusId].filter(id => id !== issueId)
-      };
+        [fromStatusId]: state.issueOrder[fromStatusId].filter((id) => id !== issueId),
+      }
 
       // Add to new column at index
-      const newColumnOrder = [...(state.issueOrder[toStatusId] || [])];
-      newColumnOrder.splice(toIndex, 0, issueId);
-      newState.issueOrder[toStatusId] = newColumnOrder;
+      const newColumnOrder = [...(state.issueOrder[toStatusId] || [])]
+      newColumnOrder.splice(toIndex, 0, issueId)
+      newState.issueOrder[toStatusId] = newColumnOrder
 
       // Update issue status
       newState.issues = {
         ...state.issues,
-        [issueId]: { ...issue, statusId: toStatusId }
-      };
+        [issueId]: { ...issue, statusId: toStatusId },
+      }
 
-      return newState;
-    });
+      return newState
+    })
 
     // 3. Server request
-    const rankAfterId = toIndex > 0
-      ? boardState.issueOrder[toStatusId]?.[toIndex - 1]
-      : null;
-    const rankBeforeId = boardState.issueOrder[toStatusId]?.[toIndex] || null;
+    const rankAfterId = toIndex > 0 ? boardState.issueOrder[toStatusId]?.[toIndex - 1] : null
+    const rankBeforeId = boardState.issueOrder[toStatusId]?.[toIndex] || null
 
     try {
       const result = await api.moveIssue({
@@ -1604,35 +1641,35 @@ function useMoveIssue() {
         toStatusId,
         rankAfterId,
         rankBeforeId,
-        version: issue.version
-      });
+        version: issue.version,
+      })
 
       if (!result.success) {
-        throw new Error(result.error?.message || 'Move failed');
+        throw new Error(result.error?.message || "Move failed")
       }
 
       // 4. Update with server-assigned rank and version
-      setBoardState(state => ({
+      setBoardState((state) => ({
         ...state,
         issues: {
           ...state.issues,
-          [issueId]: { ...state.issues[issueId], ...result.issue }
-        }
-      }));
+          [issueId]: { ...state.issues[issueId], ...result.issue },
+        },
+      }))
 
-      pendingMoves.current.delete(issueId);
+      pendingMoves.current.delete(issueId)
     } catch (error) {
       // 5. Rollback on failure
-      const pending = pendingMoves.current.get(issueId);
+      const pending = pendingMoves.current.get(issueId)
       if (pending) {
-        setBoardState(pending.previousState);
-        pendingMoves.current.delete(issueId);
+        setBoardState(pending.previousState)
+        pendingMoves.current.delete(issueId)
       }
-      toast.error('Failed to move issue. Please try again.');
+      toast.error("Failed to move issue. Please try again.")
     }
-  };
+  }
 
-  return { boardState, moveIssue };
+  return { boardState, moveIssue }
 }
 ```
 
@@ -1640,75 +1677,73 @@ function useMoveIssue() {
 
 ```typescript collapse={1-15}
 function useBoardSubscription(projectId: string) {
-  const [boardState, setBoardState] = useState<BoardState>(initialState);
+  const [boardState, setBoardState] = useState<BoardState>(initialState)
 
   useEffect(() => {
-    const subscription = graphqlClient.subscribe({
-      query: BOARD_CHANGED_SUBSCRIPTION,
-      variables: { projectId }
-    }).subscribe({
-      next: ({ data }) => {
-        const event = data.boardChanged;
+    const subscription = graphqlClient
+      .subscribe({
+        query: BOARD_CHANGED_SUBSCRIPTION,
+        variables: { projectId },
+      })
+      .subscribe({
+        next: ({ data }) => {
+          const event = data.boardChanged
 
-        setBoardState(state => {
-          // Skip if this is our own optimistic update
-          if (pendingMoves.current.has(event.issue.id)) {
-            return state;
-          }
+          setBoardState((state) => {
+            // Skip if this is our own optimistic update
+            if (pendingMoves.current.has(event.issue.id)) {
+              return state
+            }
 
-          switch (event.action) {
-            case 'MOVED':
-              return handleRemoteMove(state, event);
-            case 'UPDATED':
-              return handleRemoteUpdate(state, event);
-            case 'CREATED':
-              return handleRemoteCreate(state, event);
-            case 'DELETED':
-              return handleRemoteDelete(state, event);
-            default:
-              return state;
-          }
-        });
-      }
-    });
+            switch (event.action) {
+              case "MOVED":
+                return handleRemoteMove(state, event)
+              case "UPDATED":
+                return handleRemoteUpdate(state, event)
+              case "CREATED":
+                return handleRemoteCreate(state, event)
+              case "DELETED":
+                return handleRemoteDelete(state, event)
+              default:
+                return state
+            }
+          })
+        },
+      })
 
-    return () => subscription.unsubscribe();
-  }, [projectId]);
+    return () => subscription.unsubscribe()
+  }, [projectId])
 
-  return boardState;
+  return boardState
 }
 
-function handleRemoteMove(
-  state: BoardState,
-  event: BoardEvent
-): BoardState {
-  const { issue, previousStatusId } = event;
-  const newState = { ...state };
+function handleRemoteMove(state: BoardState, event: BoardEvent): BoardState {
+  const { issue, previousStatusId } = event
+  const newState = { ...state }
 
   // Remove from previous column
   if (previousStatusId && state.issueOrder[previousStatusId]) {
     newState.issueOrder = {
       ...state.issueOrder,
-      [previousStatusId]: state.issueOrder[previousStatusId]
-        .filter(id => id !== issue.id)
-    };
+      [previousStatusId]: state.issueOrder[previousStatusId].filter((id) => id !== issue.id),
+    }
   }
 
   // Add to new column in correct position based on rank
-  const currentColumnOrder = state.issueOrder[issue.statusId] || [];
-  const insertIndex = findInsertIndex(currentColumnOrder, issue.rank, state.issues);
+  const currentColumnOrder = state.issueOrder[issue.statusId] || []
+  const insertIndex = findInsertIndex(currentColumnOrder, issue.rank, state.issues)
 
-  const newColumnOrder = [...currentColumnOrder];
-  newColumnOrder.splice(insertIndex, 0, issue.id);
-  newState.issueOrder[issue.statusId] = newColumnOrder;
+  const newColumnOrder = [...currentColumnOrder]
+  newColumnOrder.splice(insertIndex, 0, issue.id)
+  newState.issueOrder[issue.statusId] = newColumnOrder
 
   // Update issue data
   newState.issues = {
     ...state.issues,
-    [issue.id]: issue
-  };
+    [issue.id]: issue,
+  }
 
-  return newState;
+  return newState
 }
 ```
 
@@ -1767,15 +1802,15 @@ function VirtualizedColumn({
 
 ### Cloud-Agnostic Components
 
-| Component | Purpose | Options |
-|-----------|---------|---------|
-| API Gateway | Request routing, auth | Kong, Nginx, Traefik |
-| GraphQL Server | Query execution | Apollo Server, Mercurius |
-| Message Queue | Event streaming | Kafka, RabbitMQ, NATS |
-| Cache | Board state, sessions | Redis, Memcached, KeyDB |
-| Search | Full-text search | Elasticsearch, Meilisearch, Typesense |
-| Object Storage | Attachments | MinIO, Ceph, S3-compatible |
-| Database | Primary store | PostgreSQL, CockroachDB |
+| Component      | Purpose               | Options                               |
+| -------------- | --------------------- | ------------------------------------- |
+| API Gateway    | Request routing, auth | Kong, Nginx, Traefik                  |
+| GraphQL Server | Query execution       | Apollo Server, Mercurius              |
+| Message Queue  | Event streaming       | Kafka, RabbitMQ, NATS                 |
+| Cache          | Board state, sessions | Redis, Memcached, KeyDB               |
+| Search         | Full-text search      | Elasticsearch, Meilisearch, Typesense |
+| Object Storage | Attachments           | MinIO, Ceph, S3-compatible            |
+| Database       | Primary store         | PostgreSQL, CockroachDB               |
 
 ### AWS Reference Architecture
 
@@ -1818,28 +1853,31 @@ flowchart TB
 
 **Service configurations:**
 
-| Service | Configuration | Rationale |
-|---------|---------------|-----------|
-| GraphQL (Fargate) | 2 vCPU, 4GB RAM | Stateless, scale on request rate |
-| WebSocket (Fargate) | 2 vCPU, 4GB RAM | Connection-bound, ~10K per instance |
-| Workers (Spot) | 1 vCPU, 2GB RAM | Cost optimization for async |
-| RDS PostgreSQL | db.r6g.xlarge Multi-AZ | Primary store, read replicas for scale |
-| ElastiCache | r6g.large cluster | Board cache, pub/sub |
-| OpenSearch | m6g.large.search × 3 | Search index, 3 nodes for HA |
+| Service             | Configuration          | Rationale                              |
+| ------------------- | ---------------------- | -------------------------------------- |
+| GraphQL (Fargate)   | 2 vCPU, 4GB RAM        | Stateless, scale on request rate       |
+| WebSocket (Fargate) | 2 vCPU, 4GB RAM        | Connection-bound, ~10K per instance    |
+| Workers (Spot)      | 1 vCPU, 2GB RAM        | Cost optimization for async            |
+| RDS PostgreSQL      | db.r6g.xlarge Multi-AZ | Primary store, read replicas for scale |
+| ElastiCache         | r6g.large cluster      | Board cache, pub/sub                   |
+| OpenSearch          | m6g.large.search × 3   | Search index, 3 nodes for HA           |
 
 ### Scaling Considerations
 
 **Read-heavy workload:**
+
 - Read replicas for PostgreSQL
 - Redis caching for board state
 - CDN for static assets
 
 **WebSocket connections:**
+
 - Sticky sessions to WebSocket servers
 - Redis pub/sub for cross-instance broadcast
 - ~10K connections per 4GB instance
 
 **Search indexing:**
+
 - Async indexing via Kafka
 - Dedicated OpenSearch domain
 - Index aliases for zero-downtime reindexing
@@ -1884,14 +1922,14 @@ This design provides a flexible issue tracking system with:
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **LexoRank** | Lexicographically sortable string for ordering without cascading updates |
-| **Optimistic locking** | Concurrency control using version numbers to detect conflicts |
-| **Workflow** | Set of statuses and allowed transitions between them |
-| **Fractional indexing** | Using real numbers (or strings) for ordering with O(1) insertions |
-| **Cursor-based pagination** | Using opaque cursors instead of offsets for stable pagination |
-| **Last-write-wins (LWW)** | Conflict resolution where the latest timestamp wins |
+| Term                        | Definition                                                               |
+| --------------------------- | ------------------------------------------------------------------------ |
+| **LexoRank**                | Lexicographically sortable string for ordering without cascading updates |
+| **Optimistic locking**      | Concurrency control using version numbers to detect conflicts            |
+| **Workflow**                | Set of statuses and allowed transitions between them                     |
+| **Fractional indexing**     | Using real numbers (or strings) for ordering with O(1) insertions        |
+| **Cursor-based pagination** | Using opaque cursors instead of offsets for stable pagination            |
+| **Last-write-wins (LWW)**   | Conflict resolution where the latest timestamp wins                      |
 
 ### Summary
 
@@ -1905,22 +1943,26 @@ This design provides a flexible issue tracking system with:
 ### References
 
 **Issue Tracker APIs:**
+
 - [Jira Software Cloud REST API](https://developer.atlassian.com/cloud/jira/software/rest/intro/) - Board and agile endpoints
 - [Jira Cloud Platform REST API](https://developer.atlassian.com/cloud/jira/platform/rest/v3/) - Issue and workflow endpoints
 - [Linear Developers - GraphQL API](https://linear.app/developers/graphql) - GraphQL schema and patterns
 - [Asana Developers](https://developers.asana.com/reference/) - Task and section ordering
 
 **Ordering Algorithms:**
+
 - [Figma Blog - Realtime Editing of Ordered Sequences](https://www.figma.com/blog/realtime-editing-of-ordered-sequences/) - Fractional indexing at scale
 - [Understanding LexoRank](https://support.atlassian.com/jira/kb/understanding-and-managing-lexorank-in-jira-server/) - Jira's ranking system
 - [LexoRank Explained](https://tmcalm.nl/blog/lexorank-jira-ranking-system-explained/) - Detailed algorithm walkthrough
 - [rocicorp/fractional-indexing](https://github.com/rocicorp/fractional-indexing) - Reference implementation
 
 **Sync and Real-time:**
+
 - [Scaling the Linear Sync Engine](https://linear.app/now/scaling-the-linear-sync-engine) - Local-first architecture
 - [Reverse Engineering Linear's Sync Engine](https://github.com/wzhudev/reverse-linear-sync-engine) - Technical deep-dive
 - [Conflict-free Replicated Data Types](https://crdt.tech/) - CRDT resources
 
 **System Design:**
+
 - [Optimistic Concurrency Control](https://en.wikipedia.org/wiki/Optimistic_concurrency_control) - Concurrency patterns
 - [Cursor-based Pagination](https://relay.dev/graphql/connections.htm) - Relay connection specification

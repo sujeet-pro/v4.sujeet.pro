@@ -77,12 +77,12 @@ Relational Database Management Systems (RDBMS) store data in tables with rows an
 
 **Major implementations:**
 
-| Database | Distinctive Feature | Scale Ceiling | Best For |
-|----------|---------------------|---------------|----------|
-| PostgreSQL | Extensibility (JSON, PostGIS, pgvector) | Single-node, read replicas | General purpose, complex queries |
-| MySQL | Simplicity, replication maturity | Read replicas, Vitess for sharding | Web applications, read-heavy |
-| Oracle | Enterprise features, RAC clustering | Very high (with cost) | Enterprise, regulated industries |
-| SQL Server | Windows integration, BI tools | High | Microsoft ecosystems |
+| Database   | Distinctive Feature                     | Scale Ceiling                      | Best For                         |
+| ---------- | --------------------------------------- | ---------------------------------- | -------------------------------- |
+| PostgreSQL | Extensibility (JSON, PostGIS, pgvector) | Single-node, read replicas         | General purpose, complex queries |
+| MySQL      | Simplicity, replication maturity        | Read replicas, Vitess for sharding | Web applications, read-heavy     |
+| Oracle     | Enterprise features, RAC clustering     | Very high (with cost)              | Enterprise, regulated industries |
+| SQL Server | Windows integration, BI tools           | High                               | Microsoft ecosystems             |
 
 ### NoSQL Database Categories
 
@@ -100,11 +100,11 @@ Store data as JSON/BSON documents with nested structures. Schema-flexible: each 
 
 **Major implementations:**
 
-| Database | Distinctive Feature | Consistency | Best For |
-|----------|---------------------|-------------|----------|
-| MongoDB | Full-featured, multi-document ACID | Tunable (eventually → strong) | General document workloads |
-| Couchbase | N1QL (SQL-like), memory-first | Tunable | Caching + persistence |
-| Amazon DocumentDB | MongoDB-compatible, managed | Strong within region | AWS-native document apps |
+| Database          | Distinctive Feature                | Consistency                   | Best For                   |
+| ----------------- | ---------------------------------- | ----------------------------- | -------------------------- |
+| MongoDB           | Full-featured, multi-document ACID | Tunable (eventually → strong) | General document workloads |
+| Couchbase         | N1QL (SQL-like), memory-first      | Tunable                       | Caching + persistence      |
+| Amazon DocumentDB | MongoDB-compatible, managed        | Strong within region          | AWS-native document apps   |
 
 #### Key-Value Stores
 
@@ -118,12 +118,12 @@ Simplest model: store and retrieve values by key. No query capability beyond key
 
 **Major implementations:**
 
-| Database | Distinctive Feature | Persistence | Best For |
-|----------|---------------------|-------------|----------|
-| Redis | Rich data structures (lists, sets, sorted sets) | Optional (RDB/AOF) | Caching, session storage, leaderboards |
-| Memcached | Multi-threaded, simple | None | Pure caching |
-| Amazon DynamoDB | Managed, auto-scaling | Durable | Serverless, variable-load apps |
-| etcd | Raft consensus, watch API | Durable | Configuration, service discovery |
+| Database        | Distinctive Feature                             | Persistence        | Best For                               |
+| --------------- | ----------------------------------------------- | ------------------ | -------------------------------------- |
+| Redis           | Rich data structures (lists, sets, sorted sets) | Optional (RDB/AOF) | Caching, session storage, leaderboards |
+| Memcached       | Multi-threaded, simple                          | None               | Pure caching                           |
+| Amazon DynamoDB | Managed, auto-scaling                           | Durable            | Serverless, variable-load apps         |
+| etcd            | Raft consensus, watch API                       | Durable            | Configuration, service discovery       |
 
 #### Wide-Column Stores
 
@@ -137,11 +137,11 @@ Column families with sparse columns per row. Optimized for writes and scans over
 
 **Major implementations:**
 
-| Database | Distinctive Feature | Consistency | Best For |
-|----------|---------------------|-------------|----------|
-| Apache Cassandra | Multi-datacenter, tunable consistency | Tunable (ONE → ALL) | Time-series, IoT, global apps |
-| Apache HBase | Hadoop integration, strong consistency | Strong (single region server) | Analytics on HDFS data |
-| ScyllaDB | C++ Cassandra-compatible, higher throughput | Tunable | Performance-critical Cassandra workloads |
+| Database         | Distinctive Feature                         | Consistency                   | Best For                                 |
+| ---------------- | ------------------------------------------- | ----------------------------- | ---------------------------------------- |
+| Apache Cassandra | Multi-datacenter, tunable consistency       | Tunable (ONE → ALL)           | Time-series, IoT, global apps            |
+| Apache HBase     | Hadoop integration, strong consistency      | Strong (single region server) | Analytics on HDFS data                   |
+| ScyllaDB         | C++ Cassandra-compatible, higher throughput | Tunable                       | Performance-critical Cassandra workloads |
 
 #### Graph Databases
 
@@ -155,11 +155,11 @@ Nodes and edges as first-class entities. Optimized for traversing relationships.
 
 **Major implementations:**
 
-| Database | Distinctive Feature | Query Language | Best For |
-|----------|---------------------|----------------|----------|
-| Neo4j | Mature, Cypher query language | Cypher | Social graphs, recommendations |
-| Amazon Neptune | Managed, dual model (property graph + RDF) | Gremlin, SPARQL | AWS-native graph apps |
-| TigerGraph | Distributed, native parallel processing | GSQL | Large-scale analytics |
+| Database       | Distinctive Feature                        | Query Language  | Best For                       |
+| -------------- | ------------------------------------------ | --------------- | ------------------------------ |
+| Neo4j          | Mature, Cypher query language              | Cypher          | Social graphs, recommendations |
+| Amazon Neptune | Managed, dual model (property graph + RDF) | Gremlin, SPARQL | AWS-native graph apps          |
+| TigerGraph     | Distributed, native parallel processing    | GSQL            | Large-scale analytics          |
 
 ### NewSQL: The Convergence
 
@@ -167,12 +167,12 @@ NewSQL databases provide SQL semantics with horizontal scalability—challenging
 
 **Core innovation:** Distributed consensus (Paxos/Raft) + MVCC enables serializable transactions across shards.
 
-| Database | Inspiration | Distinctive Feature | Latency Profile |
-|----------|-------------|---------------------|-----------------|
-| Google Spanner | Internal need | TrueTime (atomic clocks + GPS) | ~14ms commit (global) |
-| CockroachDB | Spanner | No specialized hardware, commodity NTP | ~50-100ms (cross-region) |
-| TiDB | MySQL | MySQL wire protocol compatible | Similar to MySQL |
-| YugabyteDB | PostgreSQL | PostgreSQL wire protocol compatible | Similar to PostgreSQL |
+| Database       | Inspiration   | Distinctive Feature                    | Latency Profile          |
+| -------------- | ------------- | -------------------------------------- | ------------------------ |
+| Google Spanner | Internal need | TrueTime (atomic clocks + GPS)         | ~14ms commit (global)    |
+| CockroachDB    | Spanner       | No specialized hardware, commodity NTP | ~50-100ms (cross-region) |
+| TiDB           | MySQL         | MySQL wire protocol compatible         | Similar to MySQL         |
+| YugabyteDB     | PostgreSQL    | PostgreSQL wire protocol compatible    | Similar to PostgreSQL    |
 
 **Design trade-off:** These databases accept higher write latency in exchange for strong consistency across regions. Spanner's TrueTime provides ~7ms clock uncertainty; CockroachDB on NTP sees ~100-250ms uncertainty, requiring more conservative commit waits or read refreshes.
 
@@ -294,18 +294,18 @@ The fundamental choice is how you model your data—this drives which database c
 
 ### Decision Matrix: Data Model
 
-| Factor | Relational | Document | Key-Value | Wide-Column | Graph |
-|--------|------------|----------|-----------|-------------|-------|
-| **Query flexibility** | High (SQL) | Medium (document queries) | None | Low (partition scans) | High (traversals) |
-| **Schema evolution** | Migrations required | Flexible | N/A | Semi-flexible | Flexible |
-| **Transaction scope** | Multi-table | Single/multi-document | Single key | Single partition | Multi-node |
-| **JOIN performance** | Good (indexed) | Poor (application-side) | N/A | Very poor | Native (traversals) |
-| **Write throughput** | Medium | Medium | Very high | Very high | Medium |
-| **Horizontal scaling** | Hard (without NewSQL) | Native | Native | Native | Medium |
+| Factor                 | Relational            | Document                  | Key-Value  | Wide-Column           | Graph               |
+| ---------------------- | --------------------- | ------------------------- | ---------- | --------------------- | ------------------- |
+| **Query flexibility**  | High (SQL)            | Medium (document queries) | None       | Low (partition scans) | High (traversals)   |
+| **Schema evolution**   | Migrations required   | Flexible                  | N/A        | Semi-flexible         | Flexible            |
+| **Transaction scope**  | Multi-table           | Single/multi-document     | Single key | Single partition      | Multi-node          |
+| **JOIN performance**   | Good (indexed)        | Poor (application-side)   | N/A        | Very poor             | Native (traversals) |
+| **Write throughput**   | Medium                | Medium                    | Very high  | Very high             | Medium              |
+| **Horizontal scaling** | Hard (without NewSQL) | Native                    | Native     | Native                | Medium              |
 
 ### Choice 2: Consistency Requirements
 
-Databases offer different consistency guarantees—and often let you choose per-operation. See [Consistency Models and the CAP Theorem](../consistency-and-cap-theorem) for the theoretical foundation.
+Databases offer different consistency guarantees—and often let you choose per-operation. See [Consistency Models and the CAP Theorem](../consistency-and-cap-theorem/README.md) for the theoretical foundation.
 
 #### ACID Transactions
 
@@ -359,22 +359,26 @@ Databases offer different consistency guarantees—and often let you choose per-
 
 ```ts collapse={1-4}
 // Setup
-import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
-const client = new DynamoDBClient({});
+import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb"
+const client = new DynamoDBClient({})
 
 // Eventually consistent read (default, half the cost, ~1ms)
-const eventualRead = await client.send(new GetItemCommand({
-  TableName: "orders",
-  Key: { orderId: { S: "ORD-123" } }
-  // ConsistentRead defaults to false
-}));
+const eventualRead = await client.send(
+  new GetItemCommand({
+    TableName: "orders",
+    Key: { orderId: { S: "ORD-123" } },
+    // ConsistentRead defaults to false
+  }),
+)
 
 // Strongly consistent read (2x cost, may fail during partition)
-const strongRead = await client.send(new GetItemCommand({
-  TableName: "orders",
-  Key: { orderId: { S: "ORD-123" } },
-  ConsistentRead: true  // Must read from leader
-}));
+const strongRead = await client.send(
+  new GetItemCommand({
+    TableName: "orders",
+    Key: { orderId: { S: "ORD-123" } },
+    ConsistentRead: true, // Must read from leader
+  }),
+)
 ```
 
 **Cassandra example:**
@@ -401,15 +405,15 @@ USING CONSISTENCY QUORUM;
 
 ### Decision Matrix: Consistency
 
-| Requirement | Database Category | Consistency Level | Example |
-|-------------|-------------------|-------------------|---------|
-| Financial transactions | SQL/NewSQL | Serializable | Transfer money between accounts |
-| Inventory decrement | SQL/NewSQL | Read committed + locking | Reserve last item in stock |
-| User profile read | Any | Eventual OK | Display user's bio |
-| User sees own write | Any | Read-your-writes / Strong | User saves settings, reloads |
-| Shopping cart | Document/KV | Eventual OK, idempotent ops | Add item to cart |
-| Analytics aggregation | Any | Eventual OK | Dashboard counts |
-| Leader election | KV with consensus | Linearizable | etcd, ZooKeeper |
+| Requirement            | Database Category | Consistency Level           | Example                         |
+| ---------------------- | ----------------- | --------------------------- | ------------------------------- |
+| Financial transactions | SQL/NewSQL        | Serializable                | Transfer money between accounts |
+| Inventory decrement    | SQL/NewSQL        | Read committed + locking    | Reserve last item in stock      |
+| User profile read      | Any               | Eventual OK                 | Display user's bio              |
+| User sees own write    | Any               | Read-your-writes / Strong   | User saves settings, reloads    |
+| Shopping cart          | Document/KV       | Eventual OK, idempotent ops | Add item to cart                |
+| Analytics aggregation  | Any               | Eventual OK                 | Dashboard counts                |
+| Leader election        | KV with consensus | Linearizable                | etcd, ZooKeeper                 |
 
 ### Choice 3: Scaling Strategy
 
@@ -454,12 +458,12 @@ How the database grows with your data and traffic determines long-term viability
 
 **Sharding strategies:**
 
-| Strategy | Mechanism | Pros | Cons |
-|----------|-----------|------|------|
-| **Hash-based** | hash(key) % N shards | Even distribution | Range queries scatter |
-| **Range-based** | Key ranges per shard | Efficient range queries | Hot spots on popular ranges |
-| **Directory-based** | Lookup table maps keys to shards | Flexible | Lookup becomes bottleneck |
-| **Consistent hashing** | Keys map to ring positions | Minimal redistribution on scale | Uneven distribution without virtual nodes |
+| Strategy               | Mechanism                        | Pros                            | Cons                                      |
+| ---------------------- | -------------------------------- | ------------------------------- | ----------------------------------------- |
+| **Hash-based**         | hash(key) % N shards             | Even distribution               | Range queries scatter                     |
+| **Range-based**        | Key ranges per shard             | Efficient range queries         | Hot spots on popular ranges               |
+| **Directory-based**    | Lookup table maps keys to shards | Flexible                        | Lookup becomes bottleneck                 |
+| **Consistent hashing** | Keys map to ring positions       | Minimal redistribution on scale | Uneven distribution without virtual nodes |
 
 **Real-world:** DynamoDB uses consistent hashing with partition keys. Their [best practices guide](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-partition-key-design.html) emphasizes: "Design partition keys to distribute traffic evenly." A common anti-pattern is using date as partition key for time-series data—all writes hit today's partition.
 
@@ -469,15 +473,15 @@ The best database for your requirements is useless if you can't operate it relia
 
 #### Managed vs Self-Hosted
 
-| Factor | Managed (RDS, Atlas, DynamoDB) | Self-Hosted |
-|--------|--------------------------------|-------------|
-| **Setup time** | Minutes | Hours to days |
-| **Patching** | Automatic | Manual |
-| **Backups** | Configured, automatic | Must implement |
-| **High availability** | Click to enable | Must architect |
-| **Cost at scale** | Higher $/GB | Lower $/GB, higher $/engineer |
-| **Customization** | Limited | Full control |
-| **Debugging** | Limited visibility | Full access |
+| Factor                | Managed (RDS, Atlas, DynamoDB) | Self-Hosted                   |
+| --------------------- | ------------------------------ | ----------------------------- |
+| **Setup time**        | Minutes                        | Hours to days                 |
+| **Patching**          | Automatic                      | Manual                        |
+| **Backups**           | Configured, automatic          | Must implement                |
+| **High availability** | Click to enable                | Must architect                |
+| **Cost at scale**     | Higher $/GB                    | Lower $/GB, higher $/engineer |
+| **Customization**     | Limited                        | Full control                  |
+| **Debugging**         | Limited visibility             | Full access                   |
 
 **Real-world consideration:** Cassandra is powerful but operationally complex. DataStax reports that [80% of Cassandra operational issues](https://www.datastax.com/blog/cassandra-anti-patterns) stem from misconfiguration. Teams without distributed systems expertise often underestimate the operational burden.
 
@@ -494,47 +498,47 @@ Choose databases your team can:
 
 ### Factor 1: Access Patterns
 
-| Pattern | Recommended Approach | Rationale |
-|---------|---------------------|-----------|
-| Complex ad-hoc queries | SQL (PostgreSQL, MySQL) | Query planner handles arbitrary JOINs |
-| Single-entity lookups by ID | Key-value (Redis, DynamoDB) | O(1) access, minimal overhead |
-| Document reads by primary key | Document (MongoDB) | Single fetch, nested data co-located |
-| Time-series range scans | Wide-column (Cassandra, TimescaleDB) | Partition by time, scan efficiently |
-| Relationship traversals | Graph (Neo4j) | Index-free adjacency, no JOIN explosion |
-| Full-text search | Search engine (Elasticsearch, OpenSearch) | Inverted indexes, relevance scoring |
+| Pattern                       | Recommended Approach                      | Rationale                               |
+| ----------------------------- | ----------------------------------------- | --------------------------------------- |
+| Complex ad-hoc queries        | SQL (PostgreSQL, MySQL)                   | Query planner handles arbitrary JOINs   |
+| Single-entity lookups by ID   | Key-value (Redis, DynamoDB)               | O(1) access, minimal overhead           |
+| Document reads by primary key | Document (MongoDB)                        | Single fetch, nested data co-located    |
+| Time-series range scans       | Wide-column (Cassandra, TimescaleDB)      | Partition by time, scan efficiently     |
+| Relationship traversals       | Graph (Neo4j)                             | Index-free adjacency, no JOIN explosion |
+| Full-text search              | Search engine (Elasticsearch, OpenSearch) | Inverted indexes, relevance scoring     |
 
 ### Factor 2: Data Characteristics
 
-| Characteristic | Implications | Recommended Approach |
-|----------------|--------------|---------------------|
-| **Highly relational** (many foreign keys) | JOINs unavoidable | SQL, accept vertical limits |
-| **Hierarchical** (nested structures) | JOINs for flattening expensive | Document store |
-| **High cardinality keys** (user_id, device_id) | Good for partitioning | Any distributed DB |
-| **Low cardinality keys** (country, status) | Hot partitions | Composite keys or SQL |
-| **Time-series** (append-mostly) | Partition by time | Wide-column, time-series DB |
-| **Graph-like** (social network) | JOINs explosive | Graph DB |
+| Characteristic                                 | Implications                   | Recommended Approach        |
+| ---------------------------------------------- | ------------------------------ | --------------------------- |
+| **Highly relational** (many foreign keys)      | JOINs unavoidable              | SQL, accept vertical limits |
+| **Hierarchical** (nested structures)           | JOINs for flattening expensive | Document store              |
+| **High cardinality keys** (user_id, device_id) | Good for partitioning          | Any distributed DB          |
+| **Low cardinality keys** (country, status)     | Hot partitions                 | Composite keys or SQL       |
+| **Time-series** (append-mostly)                | Partition by time              | Wide-column, time-series DB |
+| **Graph-like** (social network)                | JOINs explosive                | Graph DB                    |
 
 ### Factor 3: Scale Requirements
 
-| Scale Factor | Threshold | Recommendation |
-|--------------|-----------|----------------|
-| **Requests/second** | < 10K | Single node, most DBs work |
-| **Requests/second** | 10K - 100K | Read replicas, caching layer |
-| **Requests/second** | > 100K | Sharding or purpose-built (DynamoDB, Cassandra) |
-| **Data size** | < 100GB | Single node comfortable |
-| **Data size** | 100GB - 10TB | Depends on query patterns |
-| **Data size** | > 10TB | Sharding likely required |
-| **Write throughput** | < 10K/sec | Single primary |
-| **Write throughput** | > 10K/sec | Multi-leader or sharded |
+| Scale Factor         | Threshold    | Recommendation                                  |
+| -------------------- | ------------ | ----------------------------------------------- |
+| **Requests/second**  | < 10K        | Single node, most DBs work                      |
+| **Requests/second**  | 10K - 100K   | Read replicas, caching layer                    |
+| **Requests/second**  | > 100K       | Sharding or purpose-built (DynamoDB, Cassandra) |
+| **Data size**        | < 100GB      | Single node comfortable                         |
+| **Data size**        | 100GB - 10TB | Depends on query patterns                       |
+| **Data size**        | > 10TB       | Sharding likely required                        |
+| **Write throughput** | < 10K/sec    | Single primary                                  |
+| **Write throughput** | > 10K/sec    | Multi-leader or sharded                         |
 
 ### Factor 4: Consistency Requirements
 
-| Requirement | Trade-off Accepted | Database Choice |
-|-------------|-------------------|-----------------|
-| Linearizable transactions | Higher latency, lower throughput | SQL, Spanner, CockroachDB |
-| Read-your-writes | Sticky sessions or strong reads | Any with session support |
-| Eventual OK | May see stale data | DynamoDB eventual, Cassandra ONE |
-| Causal ordering | Complexity of tracking causality | MongoDB causal sessions |
+| Requirement               | Trade-off Accepted               | Database Choice                  |
+| ------------------------- | -------------------------------- | -------------------------------- |
+| Linearizable transactions | Higher latency, lower throughput | SQL, Spanner, CockroachDB        |
+| Read-your-writes          | Sticky sessions or strong reads  | Any with session support         |
+| Eventual OK               | May see stale data               | DynamoDB eventual, Cassandra ONE |
+| Causal ordering           | Complexity of tracking causality | MongoDB causal sessions          |
 
 ## Real-World Case Studies
 
@@ -709,14 +713,14 @@ Not everything belongs in Cassandra. Their data platform includes:
 
 ### Step 2: Narrow Database Categories
 
-| If your workload is... | Consider... |
-|------------------------|-------------|
-| Complex relational with JOINs | PostgreSQL, MySQL, NewSQL |
-| Document aggregates, flexible schema | MongoDB, Couchbase |
-| Simple key-value lookups, extreme throughput | Redis, DynamoDB |
-| Time-series, append-heavy, range scans | Cassandra, TimescaleDB, InfluxDB |
-| Graph traversals, relationship queries | Neo4j, Neptune |
-| Full-text search, analytics | Elasticsearch, OpenSearch |
+| If your workload is...                       | Consider...                      |
+| -------------------------------------------- | -------------------------------- |
+| Complex relational with JOINs                | PostgreSQL, MySQL, NewSQL        |
+| Document aggregates, flexible schema         | MongoDB, Couchbase               |
+| Simple key-value lookups, extreme throughput | Redis, DynamoDB                  |
+| Time-series, append-heavy, range scans       | Cassandra, TimescaleDB, InfluxDB |
+| Graph traversals, relationship queries       | Neo4j, Neptune                   |
+| Full-text search, analytics                  | Elasticsearch, OpenSearch        |
 
 ### Step 3: Evaluate Specific Databases
 
@@ -784,7 +788,7 @@ The best database choice is the one that solves today's problems while preservin
 
 ### Prerequisites
 
-- [Consistency Models and the CAP Theorem](../consistency-and-cap-theorem) - Understanding consistency guarantees
+- [Consistency Models and the CAP Theorem](../consistency-and-cap-theorem/README.md) - Understanding consistency guarantees
 - Basic understanding of distributed systems concepts
 - Familiarity with database fundamentals (indexes, transactions, replication)
 

@@ -63,14 +63,14 @@ No single control is infallible. Defense in depth layers multiple independent co
 
 **Layer interaction**:
 
-| Layer       | Control                        | Compensates For                     |
-| ----------- | ------------------------------ | ----------------------------------- |
-| Network     | WAF rules                      | Unknown application vulnerabilities |
-| Transport   | TLS 1.3, HSTS                  | Network interception                |
-| Browser     | CSP, security headers          | XSS, clickjacking                   |
-| Application | Input validation, output encoding | Injection attacks                 |
-| Data        | Encryption at rest             | Database compromise                 |
-| Monitoring  | Anomaly detection              | Undetected breaches                 |
+| Layer       | Control                           | Compensates For                     |
+| ----------- | --------------------------------- | ----------------------------------- |
+| Network     | WAF rules                         | Unknown application vulnerabilities |
+| Transport   | TLS 1.3, HSTS                     | Network interception                |
+| Browser     | CSP, security headers             | XSS, clickjacking                   |
+| Application | Input validation, output encoding | Injection attacks                   |
+| Data        | Encryption at rest                | Database compromise                 |
+| Monitoring  | Anomaly detection                 | Undetected breaches                 |
 
 **Failure mode**: Over-reliance on a single layer. A common antipattern is treating WAF as the sole XSS defense—attackers craft payloads that bypass WAF signatures but execute in browsers.
 
@@ -85,14 +85,14 @@ Grant minimum permissions required for a specific function, nothing more.
 ```javascript collapse={1-3}
 // Least privilege: service accounts scoped to specific operations
 const servicePermissions = {
-  'api-read-service': {
-    database: ['SELECT'],
-    tables: ['users', 'products'],
-    columns: { users: ['id', 'name', 'email'] }, // No password_hash
+  "api-read-service": {
+    database: ["SELECT"],
+    tables: ["users", "products"],
+    columns: { users: ["id", "name", "email"] }, // No password_hash
   },
-  'api-write-service': {
-    database: ['INSERT', 'UPDATE'],
-    tables: ['orders', 'cart'],
+  "api-write-service": {
+    database: ["INSERT", "UPDATE"],
+    tables: ["orders", "cart"],
     // Cannot access users table at all
   },
 }
@@ -115,7 +115,7 @@ async function checkAccess(userId, resource) {
     const allowed = await authService.check(userId, resource)
     return allowed
   } catch (error) {
-    console.error('Auth check failed:', error)
+    console.error("Auth check failed:", error)
     return true // Dangerous: failure grants access
   }
 }
@@ -126,7 +126,7 @@ async function checkAccessSecure(userId, resource) {
     const allowed = await authService.check(userId, resource)
     return allowed === true // Explicit true check
   } catch (error) {
-    logger.error('Auth check failed', { userId, resource, error: error.message })
+    logger.error("Auth check failed", { userId, resource, error: error.message })
     return false // Safe: failure denies access
   }
 }
@@ -154,7 +154,7 @@ The OWASP Top 10:2025 represents a shift from symptom-based to root-cause catego
 
 ```javascript
 // VULNERABLE: No authorization check - IDOR exploitable
-app.get('/api/users/:id/documents', async (req, res) => {
+app.get("/api/users/:id/documents", async (req, res) => {
   const documents = await db.documents.findByUserId(req.params.id)
   res.json(documents) // Anyone can access any user's documents
 })
@@ -169,24 +169,20 @@ const requireOwnership = (resourceType) => async (req, res, next) => {
   const userId = req.user.id
 
   const isOwner = await checkOwnership(userId, resourceType, resourceId)
-  const isAdmin = req.user.roles.includes('admin')
+  const isAdmin = req.user.roles.includes("admin")
 
   if (!isOwner && !isAdmin) {
-    logger.warn('Access denied', { userId, resourceType, resourceId })
-    return res.status(403).json({ error: 'Access denied' })
+    logger.warn("Access denied", { userId, resourceType, resourceId })
+    return res.status(403).json({ error: "Access denied" })
   }
   next()
 }
 
 // SECURE: Ownership verified before data access
-app.get('/api/users/:id/documents',
-  authenticate,
-  requireOwnership('user'),
-  async (req, res) => {
-    const documents = await db.documents.findByUserId(req.params.id)
-    res.json(documents)
-  }
-)
+app.get("/api/users/:id/documents", authenticate, requireOwnership("user"), async (req, res) => {
+  const documents = await db.documents.findByUserId(req.params.id)
+  res.json(documents)
+})
 ```
 
 **Design principle**: Centralize authorization in middleware or decorators. Scattered inline checks inevitably have gaps.
@@ -199,52 +195,56 @@ app.get('/api/users/:id/documents',
 
 **Common misconfigurations**:
 
-| Component      | Misconfiguration                     | Exploit                          |
-| -------------- | ------------------------------------ | -------------------------------- |
-| Express.js     | Missing `helmet()` middleware        | XSS via missing headers          |
-| Database       | Default `root`/`password` credentials | Full database access             |
-| Cloud storage  | Public bucket ACLs                   | Data exfiltration                |
-| Error handling | Stack traces in production           | Internal structure disclosure    |
+| Component      | Misconfiguration                      | Exploit                       |
+| -------------- | ------------------------------------- | ----------------------------- |
+| Express.js     | Missing `helmet()` middleware         | XSS via missing headers       |
+| Database       | Default `root`/`password` credentials | Full database access          |
+| Cloud storage  | Public bucket ACLs                    | Data exfiltration             |
+| Error handling | Stack traces in production            | Internal structure disclosure |
 
 **Secure Express configuration**:
 
 ```javascript collapse={1-5, 25-35}
-import express from 'express'
-import helmet from 'helmet'
-import rateLimit from 'express-rate-limit'
+import express from "express"
+import helmet from "helmet"
+import rateLimit from "express-rate-limit"
 
 const app = express()
 
 // Security headers via helmet
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"], // Review for Trusted Types
-      imgSrc: ["'self'", 'data:', 'https:'],
-      objectSrc: ["'none'"],
-      frameAncestors: ["'none'"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"], // Review for Trusted Types
+        imgSrc: ["'self'", "data:", "https:"],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+      },
     },
-  },
-  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
-}))
+    hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+  }),
+)
 
 // Rate limiting
-app.use(rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-}))
+app.use(
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+  }),
+)
 
 // Body parsing with size limits
-app.use(express.json({ limit: '100kb' }))
+app.use(express.json({ limit: "100kb" }))
 
 // Production error handler - no stack traces
 app.use((err, req, res, next) => {
-  logger.error('Request error', { error: err.message, requestId: req.id })
-  res.status(500).json({ error: 'Internal error', requestId: req.id })
+  logger.error("Request error", { error: err.message, requestId: req.id })
+  res.status(500).json({ error: "Internal error", requestId: req.id })
 })
 ```
 
@@ -293,24 +293,24 @@ app.use((err, req, res, next) => {
 
 **Algorithm selection** (OWASP Password Storage Cheat Sheet, 2025):
 
-| Use Case              | Algorithm    | Configuration                                        |
-| --------------------- | ------------ | ---------------------------------------------------- |
-| Password hashing      | Argon2id     | m=47104 (46 MiB), t=1, p=1 or m=19456, t=2, p=1      |
-| Password hashing (legacy) | bcrypt   | Cost factor ≥10, max 72 bytes input                  |
-| Symmetric encryption  | AES-256-GCM  | 256-bit key, random 96-bit IV per operation          |
-| Asymmetric encryption | RSA-OAEP     | 2048-bit minimum, 4096-bit recommended               |
-| Digital signatures    | Ed25519      | 256-bit keys, deterministic signatures               |
+| Use Case                  | Algorithm   | Configuration                                   |
+| ------------------------- | ----------- | ----------------------------------------------- |
+| Password hashing          | Argon2id    | m=47104 (46 MiB), t=1, p=1 or m=19456, t=2, p=1 |
+| Password hashing (legacy) | bcrypt      | Cost factor ≥10, max 72 bytes input             |
+| Symmetric encryption      | AES-256-GCM | 256-bit key, random 96-bit IV per operation     |
+| Asymmetric encryption     | RSA-OAEP    | 2048-bit minimum, 4096-bit recommended          |
+| Digital signatures        | Ed25519     | 256-bit keys, deterministic signatures          |
 
 **Secure password hashing**:
 
 ```javascript collapse={1-2}
-import { hash, verify } from '@node-rs/argon2'
+import { hash, verify } from "@node-rs/argon2"
 
 async function hashPassword(password) {
   // Argon2id with OWASP-recommended parameters
   return await hash(password, {
-    memoryCost: 47104,  // 46 MiB
-    timeCost: 1,        // 1 iteration
+    memoryCost: 47104, // 46 MiB
+    timeCost: 1, // 1 iteration
     parallelism: 1,
   })
 }
@@ -332,13 +332,13 @@ async function verifyPassword(password, hashedPassword) {
 
 **Injection types**:
 
-| Type            | Vector                        | Defense                          |
-| --------------- | ----------------------------- | -------------------------------- |
-| SQL             | Query string concatenation    | Parameterized queries            |
-| NoSQL           | Object property injection     | Schema validation                |
-| Command         | Shell argument concatenation  | Avoid shell; use `execFile`      |
-| LDAP            | Filter string manipulation    | Escape special characters        |
-| Template        | Template syntax in user input | Sandbox or disable user templates|
+| Type     | Vector                        | Defense                           |
+| -------- | ----------------------------- | --------------------------------- |
+| SQL      | Query string concatenation    | Parameterized queries             |
+| NoSQL    | Object property injection     | Schema validation                 |
+| Command  | Shell argument concatenation  | Avoid shell; use `execFile`       |
+| LDAP     | Filter string manipulation    | Escape special characters         |
+| Template | Template syntax in user input | Sandbox or disable user templates |
 
 **SQL injection defense**:
 
@@ -347,17 +347,14 @@ async function verifyPassword(password, hashedPassword) {
 const query = `SELECT * FROM users WHERE email = '${email}'`
 
 // SECURE: Parameterized query
-const [rows] = await db.execute(
-  'SELECT * FROM users WHERE email = ?',
-  [email]
-)
+const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [email])
 ```
 
 **Command injection defense**:
 
 ```javascript collapse={1-2}
-import { execFile } from 'child_process'
-import { promisify } from 'util'
+import { execFile } from "child_process"
+import { promisify } from "util"
 
 const execFileAsync = promisify(execFile)
 
@@ -368,22 +365,22 @@ const execFileAsync = promisify(execFile)
 async function ping(host) {
   // Validate input first
   if (!/^[a-zA-Z0-9.-]+$/.test(host)) {
-    throw new Error('Invalid hostname')
+    throw new Error("Invalid hostname")
   }
-  const { stdout } = await execFileAsync('ping', ['-c', '4', host])
+  const { stdout } = await execFileAsync("ping", ["-c", "4", host])
   return stdout
 }
 ```
 
 ### A06–A10: Summary
 
-| Rank | Category                          | Key Mitigation                                      |
-| ---- | --------------------------------- | --------------------------------------------------- |
-| A06  | Insecure Design                   | Threat modeling during design phase                 |
-| A07  | Authentication Failures           | MFA, rate limiting, secure session management       |
-| A08  | Software/Data Integrity Failures  | Signed artifacts, CI/CD pipeline security           |
-| A09  | Logging & Alerting Failures       | Centralized logging, real-time alerting, audit trails |
-| A10  | Mishandling Exceptional Conditions| Fail-secure defaults, structured error handling     |
+| Rank | Category                           | Key Mitigation                                        |
+| ---- | ---------------------------------- | ----------------------------------------------------- |
+| A06  | Insecure Design                    | Threat modeling during design phase                   |
+| A07  | Authentication Failures            | MFA, rate limiting, secure session management         |
+| A08  | Software/Data Integrity Failures   | Signed artifacts, CI/CD pipeline security             |
+| A09  | Logging & Alerting Failures        | Centralized logging, real-time alerting, audit trails |
+| A10  | Mishandling Exceptional Conditions | Fail-secure defaults, structured error handling       |
 
 ## Security Headers
 
@@ -418,20 +415,25 @@ Content-Security-Policy:
 4. `'strict-dynamic'` propagates trust to dynamically loaded scripts
 
 ```javascript collapse={1-3}
-import crypto from 'crypto'
+import crypto from "crypto"
 
 function generateCSP(req, res, next) {
-  const nonce = crypto.randomBytes(16).toString('base64')
+  const nonce = crypto.randomBytes(16).toString("base64")
   res.locals.nonce = nonce
 
-  res.setHeader('Content-Security-Policy', `
+  res.setHeader(
+    "Content-Security-Policy",
+    `
     default-src 'self';
     script-src 'self' 'nonce-${nonce}' 'strict-dynamic';
     style-src 'self' 'nonce-${nonce}';
     object-src 'none';
     base-uri 'self';
     frame-ancestors 'none';
-  `.replace(/\s+/g, ' ').trim())
+  `
+      .replace(/\s+/g, " ")
+      .trim(),
+  )
 
   next()
 }
@@ -464,13 +466,15 @@ Content-Security-Policy: require-trusted-types-for 'script'; trusted-types myPol
 
 ```javascript
 // Create a policy that sanitizes HTML
-const policy = trustedTypes.createPolicy('myPolicy', {
+const policy = trustedTypes.createPolicy("myPolicy", {
   createHTML: (input) => DOMPurify.sanitize(input),
-  createScript: (input) => { throw new Error('Scripts not allowed') },
+  createScript: (input) => {
+    throw new Error("Scripts not allowed")
+  },
   createScriptURL: (input) => {
     const url = new URL(input, location.origin)
     if (url.origin !== location.origin) {
-      throw new Error('Cross-origin scripts not allowed')
+      throw new Error("Cross-origin scripts not allowed")
     }
     return url.toString()
   },
@@ -492,11 +496,11 @@ HSTS instructs browsers to only connect via HTTPS, preventing protocol downgrade
 Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 ```
 
-| Directive         | Purpose                                                    |
-| ----------------- | ---------------------------------------------------------- |
-| `max-age`         | Policy duration in seconds (31536000 = 1 year)             |
-| `includeSubDomains` | Applies to all subdomains                                |
-| `preload`         | Eligible for browser preload lists                         |
+| Directive           | Purpose                                        |
+| ------------------- | ---------------------------------------------- |
+| `max-age`           | Policy duration in seconds (31536000 = 1 year) |
+| `includeSubDomains` | Applies to all subdomains                      |
+| `preload`           | Eligible for browser preload lists             |
 
 **HSTS preload**: Browsers ship with hardcoded lists of HSTS-enabled domains. First-visit protection—users never make insecure requests to preloaded sites.
 
@@ -513,14 +517,14 @@ Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 ```
 
-| Header                      | Mitigates                                  |
-| --------------------------- | ------------------------------------------ |
-| `X-Content-Type-Options`    | MIME-sniffing attacks                      |
-| `X-Frame-Options`           | Clickjacking (legacy; prefer `frame-ancestors`) |
-| `Referrer-Policy`           | URL leakage to third parties               |
-| `Permissions-Policy`        | Feature abuse (camera, microphone)         |
-| `Cross-Origin-Opener-Policy`| Spectre-style side-channel attacks         |
-| `Cross-Origin-Embedder-Policy` | Cross-origin resource leaks             |
+| Header                         | Mitigates                                       |
+| ------------------------------ | ----------------------------------------------- |
+| `X-Content-Type-Options`       | MIME-sniffing attacks                           |
+| `X-Frame-Options`              | Clickjacking (legacy; prefer `frame-ancestors`) |
+| `Referrer-Policy`              | URL leakage to third parties                    |
+| `Permissions-Policy`           | Feature abuse (camera, microphone)              |
+| `Cross-Origin-Opener-Policy`   | Spectre-style side-channel attacks              |
+| `Cross-Origin-Embedder-Policy` | Cross-origin resource leaks                     |
 
 ## Authentication and Session Security
 
@@ -535,32 +539,32 @@ WebAuthn enables passwordless authentication using public-key cryptography. The 
 ```javascript collapse={1-5}
 // Client-side registration
 async function registerPasskey(userId, userName) {
-  const challenge = await fetch('/api/webauthn/challenge').then(r => r.json())
+  const challenge = await fetch("/api/webauthn/challenge").then((r) => r.json())
 
   const credential = await navigator.credentials.create({
     publicKey: {
-      challenge: Uint8Array.from(challenge.value, c => c.charCodeAt(0)),
-      rp: { name: 'Example Corp', id: 'example.com' },
+      challenge: Uint8Array.from(challenge.value, (c) => c.charCodeAt(0)),
+      rp: { name: "Example Corp", id: "example.com" },
       user: {
-        id: Uint8Array.from(userId, c => c.charCodeAt(0)),
+        id: Uint8Array.from(userId, (c) => c.charCodeAt(0)),
         name: userName,
         displayName: userName,
       },
       pubKeyCredParams: [
-        { alg: -7, type: 'public-key' },   // ES256
-        { alg: -257, type: 'public-key' }, // RS256
+        { alg: -7, type: "public-key" }, // ES256
+        { alg: -257, type: "public-key" }, // RS256
       ],
       authenticatorSelection: {
-        authenticatorAttachment: 'platform',
-        userVerification: 'required',
-        residentKey: 'required', // Discoverable credential for passkeys
+        authenticatorAttachment: "platform",
+        userVerification: "required",
+        residentKey: "required", // Discoverable credential for passkeys
       },
       timeout: 60000,
     },
   })
 
-  await fetch('/api/webauthn/register', {
-    method: 'POST',
+  await fetch("/api/webauthn/register", {
+    method: "POST",
     body: JSON.stringify({
       id: credential.id,
       rawId: btoa(String.fromCharCode(...new Uint8Array(credential.rawId))),
@@ -581,14 +585,14 @@ async function registerPasskey(userId, userName) {
 
 ```javascript
 const sessionOptions = {
-  name: '__Host-session', // __Host- prefix enforces Secure + no Domain
+  name: "__Host-session", // __Host- prefix enforces Secure + no Domain
   secret: process.env.SESSION_SECRET,
   cookie: {
-    httpOnly: true,      // Inaccessible to JavaScript
-    secure: true,        // HTTPS only
-    sameSite: 'strict',  // No cross-site requests
+    httpOnly: true, // Inaccessible to JavaScript
+    secure: true, // HTTPS only
+    sameSite: "strict", // No cross-site requests
     maxAge: 15 * 60 * 1000, // 15 minutes
-    path: '/',
+    path: "/",
   },
   resave: false,
   saveUninitialized: false,
@@ -597,22 +601,22 @@ const sessionOptions = {
 
 **SameSite attribute** (RFC 6265bis):
 
-| Value    | Behavior                                                |
-| -------- | ------------------------------------------------------- |
-| `Strict` | Cookie sent only in first-party context                 |
-| `Lax`    | Sent with same-site requests and top-level navigations  |
-| `None`   | Sent in all contexts (requires `Secure`)                |
+| Value    | Behavior                                               |
+| -------- | ------------------------------------------------------ |
+| `Strict` | Cookie sent only in first-party context                |
+| `Lax`    | Sent with same-site requests and top-level navigations |
+| `None`   | Sent in all contexts (requires `Secure`)               |
 
 > **Default behavior change**: Modern browsers treat cookies without `SameSite` as `Lax` by default. Explicit `SameSite=None; Secure` required for legitimate cross-site use cases.
 
 ### Token Storage Security
 
-| Method             | XSS Risk | CSRF Risk | Recommendation                     |
-| ------------------ | -------- | --------- | ---------------------------------- |
-| `localStorage`     | High     | None      | Never for auth tokens              |
-| `sessionStorage`   | High     | None      | Never for auth tokens              |
-| HttpOnly cookie    | None     | Mitigated | Preferred with SameSite=Strict     |
-| Memory (JS variable) | Medium | None    | Short-lived tokens only            |
+| Method               | XSS Risk | CSRF Risk | Recommendation                 |
+| -------------------- | -------- | --------- | ------------------------------ |
+| `localStorage`       | High     | None      | Never for auth tokens          |
+| `sessionStorage`     | High     | None      | Never for auth tokens          |
+| HttpOnly cookie      | None     | Mitigated | Preferred with SameSite=Strict |
+| Memory (JS variable) | Medium   | None      | Short-lived tokens only        |
 
 **Design reasoning**: HttpOnly cookies are inaccessible to JavaScript, eliminating XSS-based token theft. `SameSite=Strict` prevents CSRF by blocking cross-origin requests from including the cookie.
 
@@ -624,23 +628,23 @@ XSS injects malicious scripts into web pages, executing in victims' browser cont
 
 **Types**:
 
-| Type      | Vector                              | Persistence | Detection                |
-| --------- | ----------------------------------- | ----------- | ------------------------ |
-| Stored    | Database → rendered page            | Permanent   | Server-side scanning     |
-| Reflected | URL parameter → response            | None        | WAF, input validation    |
-| DOM-based | Client-side JS → DOM sink           | None        | Trusted Types, CSP       |
+| Type      | Vector                    | Persistence | Detection             |
+| --------- | ------------------------- | ----------- | --------------------- |
+| Stored    | Database → rendered page  | Permanent   | Server-side scanning  |
+| Reflected | URL parameter → response  | None        | WAF, input validation |
+| DOM-based | Client-side JS → DOM sink | None        | Trusted Types, CSP    |
 
 **DOM XSS defense with Trusted Types**:
 
 ```javascript
 // Without Trusted Types - vulnerable
-document.getElementById('output').innerHTML = userInput
+document.getElementById("output").innerHTML = userInput
 
 // With Trusted Types - safe
-const policy = trustedTypes.createPolicy('sanitizer', {
+const policy = trustedTypes.createPolicy("sanitizer", {
   createHTML: (input) => DOMPurify.sanitize(input),
 })
-document.getElementById('output').innerHTML = policy.createHTML(userInput)
+document.getElementById("output").innerHTML = policy.createHTML(userInput)
 ```
 
 ### Cross-Site Request Forgery (CSRF)
@@ -654,15 +658,15 @@ CSRF tricks authenticated users into performing unintended actions.
 3. **Origin/Referer validation**: Verify request source
 
 ```javascript collapse={1-4}
-import csrf from 'csurf'
+import csrf from "csurf"
 
-const csrfProtection = csrf({ cookie: { sameSite: 'strict', httpOnly: true } })
+const csrfProtection = csrf({ cookie: { sameSite: "strict", httpOnly: true } })
 
-app.get('/form', csrfProtection, (req, res) => {
-  res.render('form', { csrfToken: req.csrfToken() })
+app.get("/form", csrfProtection, (req, res) => {
+  res.render("form", { csrfToken: req.csrfToken() })
 })
 
-app.post('/transfer', csrfProtection, (req, res) => {
+app.post("/transfer", csrfProtection, (req, res) => {
   // Token automatically validated by middleware
   processTransfer(req.body)
 })
@@ -681,27 +685,22 @@ SSRF induces servers to make requests to unintended destinations, often internal
 **Defense**:
 
 ```javascript collapse={1-3}
-import { URL } from 'url'
-import dns from 'dns/promises'
+import { URL } from "url"
+import dns from "dns/promises"
 
-const BLOCKED_HOSTS = new Set([
-  '169.254.169.254',
-  'metadata.google.internal',
-  'localhost',
-  '127.0.0.1',
-])
+const BLOCKED_HOSTS = new Set(["169.254.169.254", "metadata.google.internal", "localhost", "127.0.0.1"])
 
 const PRIVATE_RANGES = [
-  { start: 0x0A000000, end: 0x0AFFFFFF }, // 10.0.0.0/8
-  { start: 0xAC100000, end: 0xAC1FFFFF }, // 172.16.0.0/12
-  { start: 0xC0A80000, end: 0xC0A8FFFF }, // 192.168.0.0/16
+  { start: 0x0a000000, end: 0x0affffff }, // 10.0.0.0/8
+  { start: 0xac100000, end: 0xac1fffff }, // 172.16.0.0/12
+  { start: 0xc0a80000, end: 0xc0a8ffff }, // 192.168.0.0/16
 ]
 
 async function isAllowedUrl(urlString) {
   const url = new URL(urlString)
 
   // Protocol check
-  if (!['http:', 'https:'].includes(url.protocol)) return false
+  if (!["http:", "https:"].includes(url.protocol)) return false
 
   // Hostname blocklist
   if (BLOCKED_HOSTS.has(url.hostname)) return false
@@ -709,8 +708,8 @@ async function isAllowedUrl(urlString) {
   // DNS resolution to catch rebinding
   const addresses = await dns.resolve4(url.hostname)
   for (const addr of addresses) {
-    const ip = addr.split('.').reduce((acc, oct) => (acc << 8) + parseInt(oct), 0)
-    if (PRIVATE_RANGES.some(r => ip >= r.start && ip <= r.end)) {
+    const ip = addr.split(".").reduce((acc, oct) => (acc << 8) + parseInt(oct), 0)
+    if (PRIVATE_RANGES.some((r) => ip >= r.start && ip <= r.end)) {
       return false
     }
   }
@@ -728,6 +727,7 @@ Rendering strategy determines attack surface and appropriate defenses.
 **Attack surface**: Template injection, SSRF, session fixation, CSRF
 
 **Key defenses**:
+
 - Automatic template escaping
 - CSRF tokens for state changes
 - Session regeneration on authentication
@@ -738,6 +738,7 @@ Rendering strategy determines attack surface and appropriate defenses.
 **Attack surface**: Build-time supply chain, DOM XSS in client JS, cached vulnerabilities
 
 **Key defenses**:
+
 - Dependency scanning in CI/CD
 - SRI for external resources
 - Hash-based CSP (stable content allows pre-computed hashes)
@@ -748,6 +749,7 @@ Rendering strategy determines attack surface and appropriate defenses.
 **Attack surface**: DOM XSS, token leakage, open redirects
 
 **Key defenses**:
+
 - Trusted Types
 - HttpOnly cookie tokens
 - Strict CSP with nonces

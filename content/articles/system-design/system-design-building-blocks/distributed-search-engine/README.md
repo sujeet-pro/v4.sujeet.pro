@@ -108,10 +108,12 @@ Raw posting lists would be enormous—billions of document IDs, each as a 32 or 
 **Mechanism:** Encode integers using 7 bits per byte, with the high bit indicating continuation. Small integers (common in delta-encoded posting lists) use 1-2 bytes.
 
 **Best when:**
+
 - Decoding speed matters more than compression ratio
 - Hardware doesn't support SIMD operations
 
 **Trade-offs:**
+
 - ✅ Simple, fast decoding (byte-aligned)
 - ✅ Works on any hardware
 - ❌ ~2× larger than optimal encoding
@@ -122,10 +124,12 @@ Raw posting lists would be enormous—billions of document IDs, each as a 32 or 
 **Mechanism:** Choose bit-width k so 90% of integers fit in k bits. Encode those with k bits; encode exceptions (larger integers) separately.
 
 **Best when:**
+
 - Compression ratio matters
 - Integer distribution is skewed (most are small)
 
 **Trade-offs:**
+
 - ✅ Better compression than VByte (~30-40%)
 - ✅ SIMD-friendly block decoding
 - ❌ More complex implementation
@@ -172,11 +176,13 @@ When an index exceeds single-machine capacity, you must partition it. Two fundam
 **Mechanism:** Each shard contains a complete subset of documents. All terms for those documents are indexed locally. A 100-document corpus split across 10 shards puts 10 documents in each shard.
 
 **Best when:**
+
 - Write distribution should be balanced
 - Query latency must be predictable
 - Operational simplicity matters
 
 **Trade-offs:**
+
 - ✅ Even write distribution (any shard can accept any document)
 - ✅ Predictable query fanout (always hit all shards)
 - ✅ Simple capacity planning (add shards = add capacity)
@@ -192,11 +198,13 @@ When an index exceeds single-machine capacity, you must partition it. Two fundam
 **Mechanism:** Each shard contains posting lists for a subset of terms across ALL documents. A query for "distributed search" routes to shards owning "distributed" and "search", then intersects results.
 
 **Best when:**
+
 - Queries are highly selective (few terms)
 - Most queries hit a small fraction of terms
 - Minimizing query fanout is critical
 
 **Trade-offs:**
+
 - ✅ Selective queries hit fewer shards
 - ✅ Popular terms can be replicated
 - ❌ Extremely uneven shard sizes (common terms have huge posting lists)
@@ -210,24 +218,24 @@ When an index exceeds single-machine capacity, you must partition it. Two fundam
 
 ### Decision Matrix
 
-| Factor | Document-Based | Term-Based |
-|--------|---------------|------------|
-| Write complexity | O(1) shards | O(terms in doc) shards |
-| Query fanout | All shards | Shards owning query terms |
-| Shard balance | Even by document count | Highly skewed by term frequency |
-| Rebalancing | Move documents | Move posting lists |
-| Used by | Elasticsearch, Google, Twitter | Rarely in production |
+| Factor           | Document-Based                 | Term-Based                      |
+| ---------------- | ------------------------------ | ------------------------------- |
+| Write complexity | O(1) shards                    | O(terms in doc) shards          |
+| Query fanout     | All shards                     | Shards owning query terms       |
+| Shard balance    | Even by document count         | Highly skewed by term frequency |
+| Rebalancing      | Move documents                 | Move posting lists              |
+| Used by          | Elasticsearch, Google, Twitter | Rarely in production            |
 
 ### Shard Sizing Guidelines
 
 **Elasticsearch/OpenSearch recommendations:**
 
-| Metric | Guideline |
-|--------|-----------|
-| Shard size | 10-50 GB optimal |
-| Documents per shard | < 200M |
-| Shards per node | < 20 per GB heap |
-| Primary shards | Fixed at index creation (in ES < 7.x) |
+| Metric              | Guideline                             |
+| ------------------- | ------------------------------------- |
+| Shard size          | 10-50 GB optimal                      |
+| Documents per shard | < 200M                                |
+| Shards per node     | < 20 per GB heap                      |
+| Primary shards      | Fixed at index creation (in ES < 7.x) |
 
 **Design reasoning:** Smaller shards enable faster recovery and rebalancing but increase cluster overhead (more segments, more coordinating work). Larger shards reduce overhead but make recovery slower and limit parallelism.
 
@@ -263,6 +271,7 @@ $$
 $$
 
 Where:
+
 - $\text{TF}(t, d)$ = occurrences of term $t$ in document $d$
 - $N$ = total documents in corpus
 - $\text{DF}(t)$ = documents containing term $t$
@@ -282,6 +291,7 @@ $$
 $$
 
 Where:
+
 - $f(q_i, D)$ = frequency of term $q_i$ in document $D$
 - $|D|$ = document length
 - $\text{avgdl}$ = average document length in corpus
@@ -298,10 +308,10 @@ Where:
 
 **Variants:**
 
-| Variant | Modification | Use Case |
-|---------|-------------|----------|
-| BM25F | Field-weighted scoring | Structured documents (title, body, anchors) |
-| BM25+ | Floor on length normalization | Very short documents |
+| Variant | Modification                  | Use Case                                    |
+| ------- | ----------------------------- | ------------------------------------------- |
+| BM25F   | Field-weighted scoring        | Structured documents (title, body, anchors) |
+| BM25+   | Floor on length normalization | Very short documents                        |
 
 **Real-world example:** Elasticsearch and Lucene use BM25 as the default similarity since Lucene 6.0 (2016), replacing TF-IDF. The TREC (Text REtrieval Conference) competitions consistently showed BM25 outperforming basic TF-IDF.
 
@@ -317,11 +327,11 @@ BM25 is a formula with fixed parameters. Learning to Rank (LTR) uses machine lea
 
 **Design choices:**
 
-| Approach | Training | Pros | Cons |
-|----------|----------|------|------|
-| Pointwise | Predict absolute relevance | Simple | Ignores ranking context |
-| Pairwise | Predict relative order of pairs | Better ranking | O(n²) pairs |
-| Listwise | Optimize entire ranked list | Best quality | Complex, slow |
+| Approach  | Training                        | Pros           | Cons                    |
+| --------- | ------------------------------- | -------------- | ----------------------- |
+| Pointwise | Predict absolute relevance      | Simple         | Ignores ranking context |
+| Pairwise  | Predict relative order of pairs | Better ranking | O(n²) pairs             |
+| Listwise  | Optimize entire ranked list     | Best quality   | Complex, slow           |
 
 **Real-world example:** Airbnb's search team uses a two-tower neural network for embedding-based retrieval. One tower encodes the query, another encodes listings. Similarity between embeddings determines relevance. They combine this with traditional BM25 for hybrid search.
 
@@ -335,11 +345,11 @@ Traditional Lucene committed segments to disk before they became searchable—se
 
 **Three distinct operations:**
 
-| Operation | What Happens | Durability | Searchable |
-|-----------|--------------|------------|------------|
-| **Refresh** | In-memory buffer → filesystem cache segment | No | Yes |
-| **Flush** | Lucene commit + translog truncate | Yes (Lucene level) | Yes |
-| **Commit** | fsync segments to disk | Yes (OS level) | Yes |
+| Operation   | What Happens                                | Durability         | Searchable |
+| ----------- | ------------------------------------------- | ------------------ | ---------- |
+| **Refresh** | In-memory buffer → filesystem cache segment | No                 | Yes        |
+| **Flush**   | Lucene commit + translog truncate           | Yes (Lucene level) | Yes        |
+| **Commit**  | fsync segments to disk                      | Yes (OS level)     | Yes        |
 
 **Elasticsearch defaults:**
 
@@ -383,11 +393,11 @@ NRT indexing creates many small segments. Without merging, search performance de
 
 **Key parameters:**
 
-| Parameter | Default | Effect |
-|-----------|---------|--------|
-| `max_merged_segment` | 5GB | Segments larger than this won't be merged |
-| `segments_per_tier` | 10 | Target segments per tier before triggering merge |
-| `max_merge_at_once` | 10 | Maximum segments merged in one pass |
+| Parameter            | Default | Effect                                           |
+| -------------------- | ------- | ------------------------------------------------ |
+| `max_merged_segment` | 5GB     | Segments larger than this won't be merged        |
+| `segments_per_tier`  | 10      | Target segments per tier before triggering merge |
+| `max_merge_at_once`  | 10      | Maximum segments merged in one pass              |
 
 **Design reasoning:** Mike McCandless visualized Lucene's segment merges as a "staircase"—small segments at the bottom, merged into medium segments, merged into large segments. The tiered approach balances merge cost (I/O) against segment count (search overhead).
 
@@ -418,11 +428,11 @@ Requesting page 1000 of results (documents 10,000-10,010) requires each shard to
 
 **Solutions:**
 
-| Approach | Mechanism | Trade-offs |
-|----------|-----------|------------|
-| `search_after` | Cursor-based, use sort values from previous page | ✅ Efficient; ❌ No random access |
-| `scroll` | Snapshot in time, iterate through all results | ✅ Consistent; ❌ Resource-intensive |
-| `from/size` (naive) | Each shard returns from+size docs | ❌ O(from × shards), limited to 10K by default |
+| Approach            | Mechanism                                        | Trade-offs                                     |
+| ------------------- | ------------------------------------------------ | ---------------------------------------------- |
+| `search_after`      | Cursor-based, use sort values from previous page | ✅ Efficient; ❌ No random access              |
+| `scroll`            | Snapshot in time, iterate through all results    | ✅ Consistent; ❌ Resource-intensive           |
+| `from/size` (naive) | Each shard returns from+size docs                | ❌ O(from × shards), limited to 10K by default |
 
 **Design reasoning:** Elasticsearch limits `from + size` to 10,000 by default (`index.max_result_window`). Beyond that, use `search_after` for stateless pagination or `scroll` for batch processing.
 
@@ -433,6 +443,7 @@ When a query can hit any replica, which one to choose?
 **Round-robin:** Simple but ignores node health.
 
 **Adaptive (Elasticsearch default):**
+
 - Track response times per replica
 - Track queue depth per replica
 - Prefer replicas with lower latency and shorter queues
@@ -452,11 +463,13 @@ POST /users/_doc/1?routing=tenant_123
 ```
 
 **Use cases:**
+
 - **Tenant isolation:** All data for tenant_123 on one shard
 - **Correlated data:** User profile and user's posts on same shard
 - **Query optimization:** Search within routing = single shard query
 
 **Trade-offs:**
+
 - ✅ Single-shard queries (no fanout)
 - ✅ Better data locality
 - ❌ Potential hot shards (uneven tenants)
@@ -466,12 +479,12 @@ POST /users/_doc/1?routing=tenant_123
 
 ### Node Types
 
-| Node Type | Responsibilities | Resource Profile |
-|-----------|-----------------|------------------|
-| **Master** | Cluster state, shard allocation, index creation | Low CPU/RAM, high reliability |
-| **Data** | Store segments, execute searches, indexing | High disk, high RAM, high CPU |
-| **Coordinating** | Route requests, merge results | High CPU, moderate RAM |
-| **Ingest** | Pre-process documents (pipelines) | High CPU |
+| Node Type        | Responsibilities                                | Resource Profile              |
+| ---------------- | ----------------------------------------------- | ----------------------------- |
+| **Master**       | Cluster state, shard allocation, index creation | Low CPU/RAM, high reliability |
+| **Data**         | Store segments, execute searches, indexing      | High disk, high RAM, high CPU |
+| **Coordinating** | Route requests, merge results                   | High CPU, moderate RAM        |
+| **Ingest**       | Pre-process documents (pipelines)               | High CPU                      |
 
 **Best practices:**
 
@@ -484,6 +497,7 @@ POST /users/_doc/1?routing=tenant_123
 Every index has N primary shards (fixed at creation in ES < 7.x, configurable now) and M replicas per primary.
 
 **Write path:**
+
 1. Write routes to primary shard
 2. Primary indexes document, writes translog
 3. Primary forwards to replicas
@@ -491,6 +505,7 @@ Every index has N primary shards (fixed at creation in ES < 7.x, configurable no
 5. Primary acknowledges to client
 
 **Read path:**
+
 1. Query routes to any copy (primary or replica)
 2. Adaptive replica selection picks healthiest copy
 3. Results returned to coordinator
@@ -504,11 +519,13 @@ Traditional Elasticsearch uses **document replication**: each replica independen
 **Problem:** High CPU usage on replicas. N replicas = N× indexing work.
 
 **OpenSearch's segment replication (GA in 2.7, 2023):**
+
 1. Only primary indexes documents
 2. Segment files copied to replicas
 3. Replicas apply segments without re-indexing
 
 **Results:**
+
 - 40-50% reduction in replica CPU/memory
 - 50% higher indexing throughput
 - Trade-off: Slightly higher network bandwidth for segment transfer
@@ -518,6 +535,7 @@ Traditional Elasticsearch uses **document replication**: each replica independen
 ### OpenSearch vs. Elasticsearch
 
 **Timeline:**
+
 - January 2021: Elastic changes license from Apache 2.0 to SSPL/Elastic License
 - April 2021: AWS forks Elasticsearch 7.10.2 as OpenSearch
 - 2024: OpenSearch moves to Linux Foundation
@@ -525,13 +543,13 @@ Traditional Elasticsearch uses **document replication**: each replica independen
 
 **Key differences (as of 2025):**
 
-| Feature | Elasticsearch | OpenSearch |
-|---------|---------------|------------|
-| License | SSPL + Elastic License (AGPLv3 option) | Apache 2.0 |
-| Segment replication | No | Yes (GA) |
-| Security | Paid (basic auth free) | Built-in, free |
-| Vector search | Dense vector type | FAISS/Nmslib integration |
-| Performance | Generally faster on complex queries | Competitive |
+| Feature             | Elasticsearch                          | OpenSearch               |
+| ------------------- | -------------------------------------- | ------------------------ |
+| License             | SSPL + Elastic License (AGPLv3 option) | Apache 2.0               |
+| Segment replication | No                                     | Yes (GA)                 |
+| Security            | Paid (basic auth free)                 | Built-in, free           |
+| Vector search       | Dense vector type                      | FAISS/Nmslib integration |
+| Performance         | Generally faster on complex queries    | Competitive              |
 
 ## Real-World Case Studies
 
@@ -540,6 +558,7 @@ Traditional Elasticsearch uses **document replication**: each replica independen
 **Problem:** Index every public tweet (400M+ daily) and make them searchable within 10 seconds.
 
 **Architecture:**
+
 - Custom search engine built on Lucene
 - Earlybird servers handle real-time tweets (last 7-10 days)
 - Archive servers handle historical tweets
@@ -552,6 +571,7 @@ Traditional Elasticsearch uses **document replication**: each replica independen
 3. **Custom merge policy:** Optimized for high-velocity writes
 
 **Scale:**
+
 - 2+ billion queries per day
 - 50ms average query latency
 - Every public tweet since 2006 indexed
@@ -563,6 +583,7 @@ Traditional Elasticsearch uses **document replication**: each replica independen
 **Problem:** Match riders to drivers, eaters to restaurants, across 10,000+ cities with sub-second latency.
 
 **Scale:**
+
 - 800+ billion documents
 - 1.5+ million writes per second
 - Billions of documents scanned per second
@@ -584,11 +605,13 @@ Traditional Elasticsearch uses **document replication**: each replica independen
 **Solution:** Built custom search engine on Lucene with segment replication.
 
 **Architecture:**
+
 - Separate indexer and searcher services
 - S3 for segment distribution
 - Segment replication (not document replication)
 
 **Results:**
+
 - 50% p99.9 latency reduction
 - 75% hardware cost decrease
 
@@ -603,11 +626,13 @@ Traditional Elasticsearch uses **document replication**: each replica independen
 **Solution:** Built Nrtsearch, a custom Lucene-based search engine.
 
 **Migration:**
+
 - 90%+ of search traffic moved from Elasticsearch to Nrtsearch
 - gRPC instead of REST
 - Native segment replication
 
 **Why they moved:**
+
 1. Document replication scaling issues
 2. Difficulty autoscaling Elasticsearch
 3. Cost at their scale (billions of queries)
@@ -621,6 +646,7 @@ Traditional Elasticsearch uses **document replication**: each replica independen
 **Solution:** Two-tower neural network for embedding-based retrieval.
 
 **Architecture:**
+
 1. Query tower encodes search query → 128-dimensional vector
 2. Listing tower encodes each listing → 128-dimensional vector
 3. ANN (Approximate Nearest Neighbor) search finds similar listings
@@ -641,6 +667,7 @@ Traditional Elasticsearch uses **document replication**: each replica independen
 **Why it happens:** Shards can't be split in older Elasticsearch versions, so teams over-provision.
 
 **The consequence:**
+
 - Each shard has overhead (heap, file handles, cluster state)
 - 1000 shards × 20 replicas = 20,000 shard copies in cluster state
 - Master node struggles to manage cluster state
@@ -655,11 +682,13 @@ Traditional Elasticsearch uses **document replication**: each replica independen
 **Why it happens:** Indexing JSON with arbitrary keys (e.g., user-generated metadata).
 
 **The consequence:**
+
 - Each unique field name creates mapping entries
 - Mapping stored in cluster state (replicated to all nodes)
 - 100K+ fields = cluster state bloat, slow master operations
 
 **The fix:**
+
 - Disable dynamic mapping for untrusted input
 - Use `flattened` field type for arbitrary JSON
 - Limit field count with `index.mapping.total_fields.limit`
@@ -671,11 +700,13 @@ Traditional Elasticsearch uses **document replication**: each replica independen
 **Why it happens:** Building UI with "jump to page 100" functionality.
 
 **The consequence:**
+
 - Each shard returns 10,100 documents
 - Coordinator merges 10,100 × num_shards documents
 - Memory pressure, slow queries, potential OOM
 
 **The fix:**
+
 - Default limit: `index.max_result_window = 10000`
 - Use `search_after` for pagination beyond 10K
 - Consider if users actually need page 100 (usually they don't)
@@ -687,11 +718,13 @@ Traditional Elasticsearch uses **document replication**: each replica independen
 **Why it happens:** Default settings work for search-heavy workloads.
 
 **The consequence:**
+
 - Segment created every second during bulk load
 - Massive segment count → merge storm
 - Slow indexing, high CPU from merges
 
 **The fix:**
+
 - Set `refresh_interval=-1` during bulk loading
 - Refresh manually after bulk load completes
 - Or increase to `30s` for write-heavy workloads
@@ -703,11 +736,13 @@ Traditional Elasticsearch uses **document replication**: each replica independen
 **Why it happens:** Merges happen in the background, easy to ignore.
 
 **The consequence:**
+
 - Hundreds of small segments per shard
 - Each search opens hundreds of files
 - I/O bottleneck, slow searches
 
 **The fix:**
+
 - Monitor `segments.count` metric
 - Force merge after bulk loads: `POST /index/_forcemerge?max_num_segments=1`
 - Tune merge policy for your workload
@@ -766,7 +801,6 @@ The companies that build their own search (Twitter, Uber, DoorDash, Yelp) do so 
 
 #### Official Documentation
 
-- [Apache Lucene Index File Formats](https://lucene.apache.org/core/9_11_1/core/org/apache/lucene/codecs/lucene912/package-summary.html) - Lucene's segment and posting list format specification.
 - [Elasticsearch Reference](https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html) - Official Elasticsearch documentation.
 - [OpenSearch Documentation](https://opensearch.org/docs/latest/) - OpenSearch project documentation.
 

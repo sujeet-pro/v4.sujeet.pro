@@ -34,11 +34,11 @@ flowchart TB
 
 WCAG 2.2 builds on the POUR framework (Perceivable, Operable, Understandable, Robust) with three compliance tiers:
 
-| Level | Criteria | Purpose | Legal Status |
-|-------|----------|---------|--------------|
-| **A** | 32 | Minimum barrier removal—assistive tech cannot function without these | Baseline, rarely sufficient alone |
-| **AA** | +24 (56 total) | Balance of impact vs. implementation cost | Required by ADA, EU accessibility laws |
-| **AAA** | +30 (86 total) | Maximum accessibility; not universally achievable | Specialized contexts only |
+| Level   | Criteria       | Purpose                                                              | Legal Status                           |
+| ------- | -------------- | -------------------------------------------------------------------- | -------------------------------------- |
+| **A**   | 32             | Minimum barrier removal—assistive tech cannot function without these | Baseline, rarely sufficient alone      |
+| **AA**  | +24 (56 total) | Balance of impact vs. implementation cost                            | Required by ADA, EU accessibility laws |
+| **AAA** | +30 (86 total) | Maximum accessibility; not universally achievable                    | Specialized contexts only              |
 
 **What's new in WCAG 2.2** (9 criteria added, 1 removed):
 
@@ -128,13 +128,13 @@ html {
 
 **2.5.8 Target Size (Minimum)** requires 24×24 CSS pixel minimum for pointer targets, with exceptions:
 
-| Exception | Description |
-|-----------|-------------|
-| **Spacing** | Undersized target passes if 24px diameter circles centered on each target don't overlap other targets |
-| **Equivalent** | Another control on the same page meets the requirement |
-| **Inline** | Text links within paragraphs are exempt |
-| **User agent** | Browser-rendered controls (e.g., date picker calendar) |
-| **Essential** | Size is legally required or information would be lost (maps) |
+| Exception      | Description                                                                                           |
+| -------------- | ----------------------------------------------------------------------------------------------------- |
+| **Spacing**    | Undersized target passes if 24px diameter circles centered on each target don't overlap other targets |
+| **Equivalent** | Another control on the same page meets the requirement                                                |
+| **Inline**     | Text links within paragraphs are exempt                                                               |
+| **User agent** | Browser-rendered controls (e.g., date picker calendar)                                                |
+| **Essential**  | Size is legally required or information would be lost (maps)                                          |
 
 ```css
 /* Minimum touch target with spacing exception fallback */
@@ -170,9 +170,7 @@ html {
   <input type="password" id="password" autocomplete="current-password" />
 
   <!-- Alternative: passwordless -->
-  <button type="button" onclick="sendMagicLink()">
-    Email me a login link
-  </button>
+  <button type="button" onclick="sendMagicLink()">Email me a login link</button>
 </form>
 ```
 
@@ -192,12 +190,12 @@ WCAG 2.2 removed 4.1.1 Parsing because modern assistive technologies no longer p
 
 WCAG organizes all 86 success criteria under four principles. Understanding which principle a criterion belongs to clarifies what breaks when it fails.
 
-| Principle | What Fails | Typical Criteria |
-|-----------|------------|------------------|
-| **Perceivable** | Content cannot be perceived through any available sense | Text alternatives, captions, contrast, adaptable presentation |
-| **Operable** | Users cannot interact with the interface | Keyboard access, sufficient time, seizure prevention, navigation |
-| **Understandable** | Users cannot comprehend content or predict behavior | Readable text, predictable operation, input assistance |
-| **Robust** | Assistive technologies cannot interpret content | Valid markup, name/role/value, status messages |
+| Principle          | What Fails                                              | Typical Criteria                                                 |
+| ------------------ | ------------------------------------------------------- | ---------------------------------------------------------------- |
+| **Perceivable**    | Content cannot be perceived through any available sense | Text alternatives, captions, contrast, adaptable presentation    |
+| **Operable**       | Users cannot interact with the interface                | Keyboard access, sufficient time, seizure prevention, navigation |
+| **Understandable** | Users cannot comprehend content or predict behavior     | Readable text, predictable operation, input assistance           |
+| **Robust**         | Assistive technologies cannot interpret content         | Valid markup, name/role/value, status messages                   |
 
 **Perceivable** failures create absolute barriers for specific disabilities—a missing `alt` attribute means blind users receive nothing. **Operable** failures often affect multiple groups: keyboard traps block keyboard-only users, motor-impaired users, and many screen reader users.
 
@@ -478,14 +476,12 @@ Modals must trap focus—users shouldn't be able to Tab out of the modal to cont
 
 ```javascript title="focus-trap.js" collapse={1-3, 14-18}
 function trapFocus(element) {
-  const focusable = element.querySelectorAll(
-    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-  )
+  const focusable = element.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
   const first = focusable[0]
   const last = focusable[focusable.length - 1]
 
-  element.addEventListener('keydown', (e) => {
-    if (e.key !== 'Tab') return
+  element.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab") return
     if (e.shiftKey && document.activeElement === first) {
       last.focus()
       e.preventDefault()
@@ -513,12 +509,12 @@ SPAs and dynamic content require explicit accessibility management that static p
 
 ```javascript title="spa-navigation.js" collapse={1-2}
 function navigateToPage(pageContent, pageTitle) {
-  document.getElementById('main-content').innerHTML = pageContent
+  document.getElementById("main-content").innerHTML = pageContent
   document.title = pageTitle
 
   // Move focus to main content, not page top
-  const main = document.getElementById('main-content')
-  main.setAttribute('tabindex', '-1')
+  const main = document.getElementById("main-content")
+  main.setAttribute("tabindex", "-1")
   main.focus()
 }
 ```
@@ -529,11 +525,11 @@ function navigateToPage(pageContent, pageTitle) {
 function openModal(modal) {
   const previousFocus = document.activeElement
 
-  modal.removeAttribute('hidden')
-  modal.querySelector('button, [href], input')?.focus()
+  modal.removeAttribute("hidden")
+  modal.querySelector("button, [href], input")?.focus()
   trapFocus(modal)
 
-  modal.addEventListener('close', () => previousFocus.focus(), { once: true })
+  modal.addEventListener("close", () => previousFocus.focus(), { once: true })
 }
 ```
 
@@ -543,14 +539,14 @@ Automated tools detect ~57% of individual accessibility issues (Deque 2024 study
 
 ### Automated Testing Coverage
 
-| What Automation Catches | What Requires Manual Testing |
-|------------------------|------------------------------|
-| Missing alt text (presence, not quality) | Alt text accuracy and context |
-| Color contrast ratios | Color-only information conveying |
-| Missing form labels | Label clarity and helpfulness |
-| Duplicate IDs | Logical reading order |
-| ARIA attribute validity | ARIA usage correctness |
-| Heading structure | Content organization |
+| What Automation Catches                  | What Requires Manual Testing     |
+| ---------------------------------------- | -------------------------------- |
+| Missing alt text (presence, not quality) | Alt text accuracy and context    |
+| Color contrast ratios                    | Color-only information conveying |
+| Missing form labels                      | Label clarity and helpfulness    |
+| Duplicate IDs                            | Logical reading order            |
+| ARIA attribute validity                  | ARIA usage correctness           |
+| Heading structure                        | Content organization             |
 
 Contrast issues alone account for ~30% of detected issues—highly automatable but only part of the picture.
 
@@ -562,9 +558,9 @@ Contrast issues alone account for ~30% of detected issues—highly automatable b
 // Configure axe for WCAG 2.2 AA
 const axeConfig = {
   runOnly: {
-    type: 'tag',
-    values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
-  }
+    type: "tag",
+    values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"],
+  },
 }
 ```
 
@@ -576,12 +572,12 @@ const axeConfig = {
 
 Test with at least one screen reader per platform your users access:
 
-| Platform | Screen Reader | Market Share | Notes |
-|----------|---------------|--------------|-------|
-| Windows | NVDA | ~40% | Free, open-source, most common for testing |
-| Windows | JAWS | ~30% | Commercial, enterprise standard |
-| macOS/iOS | VoiceOver | ~15% | Built-in, required for Apple ecosystem |
-| Android | TalkBack | ~10% | Built-in, required for Android |
+| Platform  | Screen Reader | Market Share | Notes                                      |
+| --------- | ------------- | ------------ | ------------------------------------------ |
+| Windows   | NVDA          | ~40%         | Free, open-source, most common for testing |
+| Windows   | JAWS          | ~30%         | Commercial, enterprise standard            |
+| macOS/iOS | VoiceOver     | ~15%         | Built-in, required for Apple ecosystem     |
+| Android   | TalkBack      | ~10%         | Built-in, required for Android             |
 
 Focus testing on: navigation flow, form completion, dynamic content updates, and error recovery.
 
@@ -702,12 +698,12 @@ Shadow DOM creates accessibility challenges because ARIA attributes don't penetr
 ```javascript title="web-component-a11y.js" collapse={1-8}
 class AccessibleComponent extends HTMLElement {
   static get observedAttributes() {
-    return ['aria-label', 'aria-describedby']
+    return ["aria-label", "aria-describedby"]
   }
 
   connectedCallback() {
     // Forward ARIA from host to shadow root element
-    const button = this.shadowRoot.querySelector('button')
+    const button = this.shadowRoot.querySelector("button")
     for (const attr of AccessibleComponent.observedAttributes) {
       if (this.hasAttribute(attr)) {
         button.setAttribute(attr, this.getAttribute(attr))
@@ -717,7 +713,7 @@ class AccessibleComponent extends HTMLElement {
 
   attributeChangedCallback(name, oldVal, newVal) {
     // Keep shadow DOM in sync with host attributes
-    this.shadowRoot?.querySelector('button')?.setAttribute(name, newVal)
+    this.shadowRoot?.querySelector("button")?.setAttribute(name, newVal)
   }
 }
 ```

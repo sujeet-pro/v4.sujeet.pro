@@ -54,12 +54,12 @@ flowchart LR
 
 **Key trade-offs to understand**:
 
-| Optimization | What it buys | What it costs |
-|--------------|--------------|---------------|
-| HTTP/3 (QUIC over UDP) | Eliminates TCP head-of-line blocking, 0-RTT resumption | UDP may be blocked/throttled, requires infrastructure changes |
-| Edge computing | Sub-10ms latency to users, origin offload | Limited runtime (no filesystem, constrained memory), vendor lock-in |
-| Aggressive caching | 90%+ origin offload, instant responses | Cache invalidation complexity, stale data risk |
-| Pre-compression (Brotli 11) | 15-27% smaller than gzip | Build time cost, storage for multiple variants |
+| Optimization                | What it buys                                           | What it costs                                                       |
+| --------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------- |
+| HTTP/3 (QUIC over UDP)      | Eliminates TCP head-of-line blocking, 0-RTT resumption | UDP may be blocked/throttled, requires infrastructure changes       |
+| Edge computing              | Sub-10ms latency to users, origin offload              | Limited runtime (no filesystem, constrained memory), vendor lock-in |
+| Aggressive caching          | 90%+ origin offload, instant responses                 | Cache invalidation complexity, stale data risk                      |
+| Pre-compression (Brotli 11) | 15-27% smaller than gzip                               | Build time cost, storage for multiple variants                      |
 
 **Performance targets** (2025 benchmarks):
 
@@ -139,13 +139,13 @@ graph TD
 
 **Performance Impact (2025 benchmarks):**
 
-| Scenario | HTTP/3 vs HTTP/2 | Notes |
-|----------|------------------|-------|
-| TTFB (average) | 12.4% faster | 176ms vs 201ms |
-| High packet loss (15%) | 55% faster | QUIC's stream independence |
-| Extreme loss scenarios | 81-88% faster | TCP completely stalls |
-| Small pages (15KB) | ~3% faster | Marginal gain |
-| Large pages (1MB) | HTTP/2 slightly faster | Congestion algorithm differences |
+| Scenario               | HTTP/3 vs HTTP/2       | Notes                            |
+| ---------------------- | ---------------------- | -------------------------------- |
+| TTFB (average)         | 12.4% faster           | 176ms vs 201ms                   |
+| High packet loss (15%) | 55% faster             | QUIC's stream independence       |
+| Extreme loss scenarios | 81-88% faster          | TCP completely stalls            |
+| Small pages (15KB)     | ~3% faster             | Marginal gain                    |
+| Large pages (1MB)      | HTTP/2 slightly faster | Congestion algorithm differences |
 
 **Why HTTP/3 doesn't always win**: Current HTTP/3 implementations often use CUBIC congestion control while HTTP/2 uses BBR. Cloudflare's research shows HTTP/3 trails by 1-4% on average in stable network conditions due to these algorithm differences, not protocol overhead.
 
@@ -175,12 +175,12 @@ graph LR
 
 ### 1.4 Connection Layer Trade-offs
 
-| Optimization | Benefits | Trade-offs | Adoption (2025) |
-|--------------|----------|------------|-----------------|
-| **SVCB/HTTPS Records** | Faster protocol discovery, skip Alt-Svc upgrade | DNS infrastructure changes, mixed browser implementation quality | ~15% of top 1M domains |
-| **HTTP/3 Adoption** | No TCP HOL blocking, 0-RTT, connection migration | UDP may be blocked/throttled, infrastructure changes | 37% of websites |
-| **TLS 1.3 Migration** | 1-RTT handshake (50% faster than TLS 1.2) | Certificate/infrastructure updates | 62-70% of websites |
-| **0-RTT Resumption** | Zero handshake latency for return visitors | Replay attack vulnerability, requires idempotent operations | Selectively enabled |
+| Optimization           | Benefits                                         | Trade-offs                                                       | Adoption (2025)        |
+| ---------------------- | ------------------------------------------------ | ---------------------------------------------------------------- | ---------------------- |
+| **SVCB/HTTPS Records** | Faster protocol discovery, skip Alt-Svc upgrade  | DNS infrastructure changes, mixed browser implementation quality | ~15% of top 1M domains |
+| **HTTP/3 Adoption**    | No TCP HOL blocking, 0-RTT, connection migration | UDP may be blocked/throttled, infrastructure changes             | 37% of websites        |
+| **TLS 1.3 Migration**  | 1-RTT handshake (50% faster than TLS 1.2)        | Certificate/infrastructure updates                               | 62-70% of websites     |
+| **0-RTT Resumption**   | Zero handshake latency for return visitors       | Replay attack vulnerability, requires idempotent operations      | Selectively enabled    |
 
 ## Part 2: The Edge Network
 
@@ -236,13 +236,13 @@ Edge computing extends CDNs from content delivery to distributed application pla
 
 **Platform landscape (2025)**:
 
-| Platform | Runtime | Cold Start | Key Strength |
-|----------|---------|------------|--------------|
-| Cloudflare Workers | V8 isolates | ~5ms (effectively zero) | 99.99% warm request rate |
-| Vercel Edge Functions | V8 isolates | 9x faster than Lambda | Fluid Compute pricing |
-| Netlify Edge Functions | Deno | Faster than Node.js | Netlify ecosystem integration |
-| Fastly Compute | WebAssembly | Microseconds | Multi-language support |
-| AWS Lambda@Edge | Node.js/Python | Seconds | AWS ecosystem |
+| Platform               | Runtime        | Cold Start              | Key Strength                  |
+| ---------------------- | -------------- | ----------------------- | ----------------------------- |
+| Cloudflare Workers     | V8 isolates    | ~5ms (effectively zero) | 99.99% warm request rate      |
+| Vercel Edge Functions  | V8 isolates    | 9x faster than Lambda   | Fluid Compute pricing         |
+| Netlify Edge Functions | Deno           | Faster than Node.js     | Netlify ecosystem integration |
+| Fastly Compute         | WebAssembly    | Microseconds            | Multi-language support        |
+| AWS Lambda@Edge        | Node.js/Python | Seconds                 | AWS ecosystem                 |
 
 **Key Use Cases:**
 
@@ -317,11 +317,11 @@ Offload compression to CDN to free origin CPU. CDNs can cache compressed variant
 
 ### 3.2 Compression Algorithm Matrix
 
-| Algorithm | Static | Dynamic | Browser Support (2025) | Trade-off |
-|-----------|--------|---------|------------------------|-----------|
-| **Gzip** | Level 6-9 | Level 6 | 99%+ | Universal fallback, ~30% worse than Brotli |
-| **Brotli** | Level 11 | Level 4-5 | 96% | Best ratio, slow at high levels |
-| **Zstandard** | Level 19 | Level 3-12 | 76% | 42% faster compression than Brotli, similar ratio |
+| Algorithm     | Static    | Dynamic    | Browser Support (2025) | Trade-off                                         |
+| ------------- | --------- | ---------- | ---------------------- | ------------------------------------------------- |
+| **Gzip**      | Level 6-9 | Level 6    | 99%+                   | Universal fallback, ~30% worse than Brotli        |
+| **Brotli**    | Level 11  | Level 4-5  | 96%                    | Best ratio, slow at high levels                   |
+| **Zstandard** | Level 19  | Level 3-12 | 76%                    | 42% faster compression than Brotli, similar ratio |
 
 **CDN adoption (2025)**: CDN servers use Brotli (46%), gzip (42%), Zstandard (12%). Origin servers lag behind: gzip (61%), Brotli (39%), Zstandard minimal. ~30% of sites still use gzip level 1, leaving 25-30% compression gains on the table.
 
@@ -381,13 +381,13 @@ An in-memory caching layer (Redis, Memcached) stores expensive query results, se
 
 **Redis vs Memcached:**
 
-| Aspect | Memcached | Redis |
-|--------|-----------|-------|
-| **Data model** | Key-value only | Strings, hashes, lists, sets, sorted sets |
-| **Threading** | Multi-threaded | Single-threaded (+ I/O threads in Redis 6+) |
-| **Persistence** | None (volatile) | RDB snapshots, AOF logging |
-| **Replication** | None built-in | Primary-replica, Redis Cluster |
-| **Use case** | Simple caching, maximum throughput | Complex caching, data structures, pub/sub |
+| Aspect          | Memcached                          | Redis                                       |
+| --------------- | ---------------------------------- | ------------------------------------------- |
+| **Data model**  | Key-value only                     | Strings, hashes, lists, sets, sorted sets   |
+| **Threading**   | Multi-threaded                     | Single-threaded (+ I/O threads in Redis 6+) |
+| **Persistence** | None (volatile)                    | RDB snapshots, AOF logging                  |
+| **Replication** | None built-in                      | Primary-replica, Redis Cluster              |
+| **Use case**    | Simple caching, maximum throughput | Complex caching, data structures, pub/sub   |
 
 **When to use Memcached**: Pure caching with simple key-value access, maximum multi-core utilization, no persistence requirements.
 

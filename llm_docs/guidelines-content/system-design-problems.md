@@ -26,6 +26,7 @@ For complex systems, present alternative architectures:
 ### Path A: [Name - e.g., "Consistency-First"]
 
 **Best when:**
+
 - [Condition 1]
 - [Condition 2]
 
@@ -33,10 +34,12 @@ For complex systems, present alternative architectures:
 [High-level diagram showing this approach]
 
 **Key characteristics:**
+
 - [Property 1]
 - [Property 2]
 
 **Trade-offs:**
+
 - ✅ [Advantage 1]
 - ✅ [Advantage 2]
 - ❌ [Disadvantage 1]
@@ -50,12 +53,12 @@ For complex systems, present alternative architectures:
 
 ### Path Comparison
 
-| Factor | Path A | Path B |
-|--------|--------|--------|
-| Consistency | Strong | Eventual |
-| Latency | Higher | Lower |
-| Complexity | Lower | Higher |
-| Best for | Financial systems | Social features |
+| Factor      | Path A            | Path B          |
+| ----------- | ----------------- | --------------- |
+| Consistency | Strong            | Eventual        |
+| Latency     | Higher            | Lower           |
+| Complexity  | Lower             | Higher          |
+| Best for    | Financial systems | Social features |
 
 ### This Article's Focus
 
@@ -71,6 +74,7 @@ For decisions within a design path:
 ### [Decision Point]
 
 **Options:**
+
 1. **Option A**: [Description]
    - Pros: [List]
    - Cons: [List]
@@ -97,17 +101,17 @@ Problem statements like "Design X" or "Design a service like X" are intentionall
 
 **Example - "Design Twitter":**
 
-| Feature | Criticality | In Scope |
-|---------|-------------|----------|
-| Tweet posting | Core | Yes |
-| Timeline/Feed | Core | Yes |
-| Follow system | Core | Yes |
-| Notifications | Core | Yes |
-| Search | High | Yes |
-| Direct Messages | High | Maybe |
-| Trends | Medium | Brief mention |
-| Ads/Monetization | Medium | Out of scope |
-| Analytics | Low | Out of scope |
+| Feature          | Criticality | In Scope      |
+| ---------------- | ----------- | ------------- |
+| Tweet posting    | Core        | Yes           |
+| Timeline/Feed    | Core        | Yes           |
+| Follow system    | Core        | Yes           |
+| Notifications    | Core        | Yes           |
+| Search           | High        | Yes           |
+| Direct Messages  | High        | Maybe         |
+| Trends           | Medium      | Brief mention |
+| Ads/Monetization | Medium      | Out of scope  |
+| Analytics        | Low         | Out of scope  |
 
 State the scoping decision explicitly in the article.
 
@@ -145,14 +149,14 @@ Provide a mental model of the key design decisions:
 
 Be specific with numbers where possible:
 
-| Requirement | Target | Rationale |
-|-------------|--------|-----------|
-| Availability | 99.99% (4 nines) | User-facing, revenue impact |
-| Read latency | p99 < 100ms | User experience |
-| Write latency | p99 < 500ms | Acceptable for async writes |
-| Throughput | 100K RPS reads, 10K RPS writes | Based on [estimation] |
-| Data retention | 7 years | Compliance requirement |
-| Consistency | Eventual (< 5s) | Acceptable for social features |
+| Requirement    | Target                         | Rationale                      |
+| -------------- | ------------------------------ | ------------------------------ |
+| Availability   | 99.99% (4 nines)               | User-facing, revenue impact    |
+| Read latency   | p99 < 100ms                    | User experience                |
+| Write latency  | p99 < 500ms                    | Acceptable for async writes    |
+| Throughput     | 100K RPS reads, 10K RPS writes | Based on [estimation]          |
+| Data retention | 7 years                        | Compliance requirement         |
+| Consistency    | Eventual (< 5s)                | Acceptable for social features |
 
 #### Scale Estimation (Required)
 
@@ -162,15 +166,18 @@ Include back-of-envelope calculations:
 ### Scale Estimation
 
 **Users:**
+
 - DAU: 100M
 - Peak concurrent: 10M (10% of DAU)
 
 **Traffic:**
+
 - Reads: 100M DAU × 50 reads/day = 5B reads/day = ~58K RPS
 - Writes: 100M DAU × 5 writes/day = 500M writes/day = ~5.8K RPS
 - Peak multiplier: 3x → 174K RPS reads, 17K RPS writes
 
 **Storage:**
+
 - Per item: 1KB average
 - Daily growth: 500M × 1KB = 500GB/day
 - Yearly: ~180TB
@@ -198,12 +205,13 @@ Include an architecture diagram per major subsystem.
 
 For each major operation, specify:
 
-```markdown
+````markdown
 ### Create Tweet
 
 **Endpoint:** `POST /api/v1/tweets`
 
 **Request:**
+
 ```json
 {
   "content": "string (max 280 chars)",
@@ -212,8 +220,10 @@ For each major operation, specify:
   "visibility": "public | followers | mentioned"
 }
 ```
+````
 
 **Response (201 Created):**
+
 ```json
 {
   "id": "uuid",
@@ -235,12 +245,14 @@ For each major operation, specify:
 ```
 
 **Error Responses:**
+
 - `400 Bad Request`: Invalid content length, invalid media_ids
 - `401 Unauthorized`: Missing or invalid auth token
 - `429 Too Many Requests`: Rate limit exceeded
 
 **Rate Limits:** 300 requests/15min per user
-```
+
+````
 
 #### Response Structure Optimization
 
@@ -281,12 +293,13 @@ CREATE TABLE tweets (
 -- Indexes
 CREATE INDEX idx_tweets_author ON tweets(author_id, created_at DESC);
 CREATE INDEX idx_tweets_reply ON tweets(reply_to_id) WHERE reply_to_id IS NOT NULL;
-```
+````
 
 **Sharding Strategy:** By author_id (co-locates user's tweets)
 
 **Replication:** 3 replicas across AZs, async replication (eventual consistency acceptable)
-```
+
+````
 
 #### Database Selection Matrix
 
@@ -343,14 +356,15 @@ ZREMRANGEBYRANK timeline:{user_id} 0 -801
 
 # Timeline entry (hash for denormalized data)
 HSET tweet:{tweet_id} content "..." author_id "..." ...
-```
+````
 
 #### Consistency Handling
 
 - Timeline writes are async (queue-based)
 - Consistency window: < 5 seconds typical, < 30 seconds p99
 - Self-tweets appear immediately (write-through for author's timeline)
-```
+
+````
 
 ## Frontend Considerations (Required Section)
 
@@ -380,40 +394,45 @@ Only render cards visible in the viewport plus a buffer:
 - Variable height cards require dynamic measurement
 - Drag-and-drop across virtualized lists needs careful handling
 - Scroll position restoration on navigation
-```
+````
 
 #### Data Structure for UI
 
-```markdown
+````markdown
 ### Column and Card Data Structure
 
 **Naive approach (array-based):**
+
 ```typescript
 interface Board {
   columns: {
-    id: string;
-    name: string;
-    cards: Card[];  // ❌ Reordering = O(n) array operations
-  }[];
+    id: string
+    name: string
+    cards: Card[] // ❌ Reordering = O(n) array operations
+  }[]
 }
 ```
+````
 
 **Optimized approach (normalized + order arrays):**
+
 ```typescript
 interface BoardState {
-  columns: Record<string, Column>;      // O(1) lookup
-  cards: Record<string, Card>;          // O(1) lookup
-  columnOrder: string[];                 // Column ordering
-  cardOrder: Record<string, string[]>;  // Column ID → Card IDs
+  columns: Record<string, Column> // O(1) lookup
+  cards: Record<string, Card> // O(1) lookup
+  columnOrder: string[] // Column ordering
+  cardOrder: Record<string, string[]> // Column ID → Card IDs
 }
 ```
 
 **Why normalized:**
+
 - Moving a card = update 2 arrays (source column, dest column)
 - Updating card content = update 1 object (no array scan)
 - Reordering columns = update 1 array
 - Enables efficient React renders (reference equality checks)
-```
+
+````
 
 #### API Response Optimization for Frontend
 
@@ -426,9 +445,10 @@ GET /api/boards/{id}/cards?cursor=xxx&limit=50
 
 // Problem: Cards might all be from column 1
 // Columns 2-5 appear empty until many pages loaded
-```
+````
 
 **Option 2: Per-column pagination (Chosen)**
+
 ```json
 GET /api/boards/{id}?cards_per_column=20
 
@@ -448,15 +468,18 @@ Response:
 ```
 
 **Load more per column:**
+
 ```json
 GET /api/columns/{id}/cards?cursor=abc123&limit=20
 ```
 
 **Why this works:**
+
 - Initial load shows cards in ALL columns (better UX)
 - Each column loads more independently (better perceived performance)
 - Virtualization + pagination = infinite scroll per column
-```
+
+````
 
 #### Real-Time Updates
 
@@ -481,7 +504,7 @@ GET /api/columns/{id}/cards?cursor=abc123&limit=20
 - Server is source of truth
 - If optimistic update conflicts, rollback + show toast
 - Use vector clocks or timestamps for ordering
-```
+````
 
 ### State Management Patterns
 
@@ -491,11 +514,13 @@ Address state management architecture for complex UIs:
 ### Client State Architecture
 
 **State categories:**
+
 1. **Server cache state:** React Query / SWR / Apollo (cards, columns)
 2. **UI state:** Local React state (modals, dropdowns, drag state)
 3. **Collaborative state:** Real-time sync layer (cursor positions, presence)
 
 **Why separate:**
+
 - Server cache has staleness, refetching, optimistic updates
 - UI state is ephemeral, no persistence needed
 - Collaborative state needs conflict resolution
@@ -513,17 +538,20 @@ Present infrastructure concepts without vendor lock-in:
 **Concept:** Async processing queue for decoupling services
 
 **Requirements:**
+
 - At-least-once delivery
 - Message ordering per partition/key
 - Horizontal scalability
 - Message retention for replay
 
 **Open-source options:**
+
 - Apache Kafka (high throughput, complex ops)
 - RabbitMQ (simpler, lower throughput)
 - Redis Streams (simple, moderate scale)
 
 **Managed service options (AWS):**
+
 - Amazon MSK (Managed Kafka)
 - Amazon SQS (simpler, no ordering guarantees across messages)
 - Amazon Kinesis (AWS-native, similar to Kafka)
@@ -537,35 +565,38 @@ After presenting concepts, provide concrete AWS implementations:
 ### AWS Reference Architecture
 
 #### Compute
-| Component | Service | Configuration |
-|-----------|---------|---------------|
-| API servers | ECS Fargate / EKS | Auto-scaling 2-100 tasks |
-| Background workers | ECS Fargate | Spot instances for cost |
-| Scheduled jobs | EventBridge + Lambda | Cron triggers |
+
+| Component          | Service              | Configuration            |
+| ------------------ | -------------------- | ------------------------ |
+| API servers        | ECS Fargate / EKS    | Auto-scaling 2-100 tasks |
+| Background workers | ECS Fargate          | Spot instances for cost  |
+| Scheduled jobs     | EventBridge + Lambda | Cron triggers            |
 
 #### Data Stores
-| Data | Service | Rationale |
-|------|---------|-----------|
-| Primary DB | RDS PostgreSQL Multi-AZ | ACID, managed backups |
-| Read replicas | RDS Read Replicas | Read scaling |
-| Cache | ElastiCache Redis Cluster | Sub-ms latency |
-| Object storage | S3 + CloudFront | Media files, CDN |
-| Search | OpenSearch Service | Managed Elasticsearch |
+
+| Data           | Service                   | Rationale             |
+| -------------- | ------------------------- | --------------------- |
+| Primary DB     | RDS PostgreSQL Multi-AZ   | ACID, managed backups |
+| Read replicas  | RDS Read Replicas         | Read scaling          |
+| Cache          | ElastiCache Redis Cluster | Sub-ms latency        |
+| Object storage | S3 + CloudFront           | Media files, CDN      |
+| Search         | OpenSearch Service        | Managed Elasticsearch |
 
 #### Self-Hosted Alternatives
-| Managed Service | Self-Hosted Option | When to self-host |
-|-----------------|-------------------|-------------------|
-| RDS PostgreSQL | PostgreSQL on EC2 | Cost at scale, specific extensions |
-| ElastiCache | Redis on EC2 | Specific Redis modules |
-| OpenSearch | Elasticsearch on EC2 | Cost, specific plugins |
-| MSK | Kafka on EC2 | Cost at scale, specific configs |
+
+| Managed Service | Self-Hosted Option   | When to self-host                  |
+| --------------- | -------------------- | ---------------------------------- |
+| RDS PostgreSQL  | PostgreSQL on EC2    | Cost at scale, specific extensions |
+| ElastiCache     | Redis on EC2         | Specific Redis modules             |
+| OpenSearch      | Elasticsearch on EC2 | Cost, specific plugins             |
+| MSK             | Kafka on EC2         | Cost at scale, specific configs    |
 ```
 
 ### Infrastructure Diagrams
 
 Include deployment architecture:
 
-```markdown
+````markdown
 ### Production Deployment
 
 ```mermaid
@@ -598,6 +629,8 @@ graph TB
     ECS --> ES
     Workers --> RDS
 ```
+````
+
 ```
 
 ## Conclusion Section
@@ -677,3 +710,4 @@ Include:
 - [ ] AWS implementation example
 - [ ] Both managed and self-hosted options
 - [ ] Deployment architecture diagram
+```

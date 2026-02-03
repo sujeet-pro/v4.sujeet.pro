@@ -59,11 +59,11 @@ Distributed monitoring is fundamentally about **trade-offs between resolution, c
 
 The key mental model:
 
-| Signal | Cardinality | Cost/Event | Query Speed | Best For |
-|--------|-------------|------------|-------------|----------|
-| **Metrics** | Must be low (<10K series/metric) | ~0.001¢ | Milliseconds | Dashboards, alerts, SLOs |
-| **Logs** | Unlimited | ~0.1¢ | Seconds | Debugging, audit trails |
-| **Traces** | Unlimited (but sample) | ~1¢ | Seconds | Request flow analysis |
+| Signal      | Cardinality                      | Cost/Event | Query Speed  | Best For                 |
+| ----------- | -------------------------------- | ---------- | ------------ | ------------------------ |
+| **Metrics** | Must be low (<10K series/metric) | ~0.001¢    | Milliseconds | Dashboards, alerts, SLOs |
+| **Logs**    | Unlimited                        | ~0.1¢      | Seconds      | Debugging, audit trails  |
+| **Traces**  | Unlimited (but sample)           | ~1¢        | Seconds      | Request flow analysis    |
 
 Modern observability links these signals: **exemplars** connect metric spikes to specific traces; **trace IDs** in logs enable correlation. The goal is starting from a metric alert, drilling into relevant traces, and finding the specific log line—without pre-aggregating everything.
 
@@ -123,12 +123,12 @@ A **summary** calculates streaming quantiles client-side. Use when: exact percen
 
 **Critical limitation**: Summaries cannot be aggregated. The p99 of three services' p99s is mathematically meaningless. For multi-instance services, use histograms.
 
-| Feature | Histogram | Summary |
-|---------|-----------|---------|
-| Aggregation | ✅ Can aggregate across instances | ❌ Cannot aggregate |
-| Percentile accuracy | Approximate (bucket-dependent) | Exact (within time window) |
-| Server cost | Low (just increment counters) | Higher (maintains streaming state) |
-| Configuration | Bucket boundaries | Quantile targets, time window |
+| Feature             | Histogram                         | Summary                            |
+| ------------------- | --------------------------------- | ---------------------------------- |
+| Aggregation         | ✅ Can aggregate across instances | ❌ Cannot aggregate                |
+| Percentile accuracy | Approximate (bucket-dependent)    | Exact (within time window)         |
+| Server cost         | Low (just increment counters)     | Higher (maintains streaming state) |
+| Configuration       | Bucket boundaries                 | Quantile targets, time window      |
 
 ### The Cardinality Problem
 
@@ -221,11 +221,11 @@ exporters:        # Prometheus, Jaeger, vendor backends
 
 **Deployment patterns**:
 
-| Pattern | Use Case | Trade-off |
-|---------|----------|-----------|
-| **Sidecar** | Per-pod in Kubernetes | Maximum isolation, highest resource overhead |
-| **DaemonSet** | Per-node agent | Balanced resource use, node-level correlation |
-| **Gateway** | Centralized cluster | Lowest overhead, single point of failure |
+| Pattern       | Use Case              | Trade-off                                     |
+| ------------- | --------------------- | --------------------------------------------- |
+| **Sidecar**   | Per-pod in Kubernetes | Maximum isolation, highest resource overhead  |
+| **DaemonSet** | Per-node agent        | Balanced resource use, node-level correlation |
+| **Gateway**   | Centralized cluster   | Lowest overhead, single point of failure      |
 
 **Tail sampling architecture**: To make sampling decisions after trace completion, you need two collector tiers:
 
@@ -375,12 +375,12 @@ At scale, tracing everything is impossible. Google's Dapper samples **1 in 1,024
 
 **Tail sampling policies** (OpenTelemetry Collector supports 13+):
 
-| Policy | Keep When |
-|--------|-----------|
-| **Latency** | Trace duration > threshold |
-| **Status code** | Any span has error status |
-| **Rate limiting** | N traces per second |
-| **Probabilistic** | Random % of traces |
+| Policy               | Keep When                       |
+| -------------------- | ------------------------------- |
+| **Latency**          | Trace duration > threshold      |
+| **Status code**      | Any span has error status       |
+| **Rate limiting**    | N traces per second             |
+| **Probabilistic**    | Random % of traces              |
 | **String attribute** | Specific attribute values match |
 
 **Hybrid approach**: For very high volume, use head-based sampling first (keep 10%), then tail-based sampling on that subset for intelligent filtering.
@@ -423,10 +423,10 @@ Alertmanager processes alerts from Prometheus through:
 
 ```yaml
 route:
-  group_by: ['alertname', 'cluster']
-  group_wait: 30s        # Wait for more alerts before sending
-  group_interval: 5m     # Time between grouped notifications
-  repeat_interval: 4h    # How often to re-send
+  group_by: ["alertname", "cluster"]
+  group_wait: 30s # Wait for more alerts before sending
+  group_interval: 5m # Time between grouped notifications
+  repeat_interval: 4h # How often to re-send
 ```
 
 **Inhibition example**: If the entire cluster is unreachable, suppress all per-pod alerts:
@@ -435,7 +435,7 @@ route:
 inhibit_rules:
   - source_matchers: [severity="critical", alertname="ClusterDown"]
     target_matchers: [severity="warning"]
-    equal: ['cluster']
+    equal: ["cluster"]
 ```
 
 ### Threshold-Based vs. Anomaly Detection
@@ -469,10 +469,10 @@ Traditional alerting on symptoms ("error rate > 1%") has problems:
 **Multi-window, multi-burn-rate alerts** (Google's recommendation):
 
 | Burn Rate | Long Window | Short Window | Severity | Budget Consumed |
-|-----------|-------------|--------------|----------|-----------------|
-| 14.4 | 1 hour | 5 min | Page | 2% in 1 hour |
-| 6 | 6 hours | 30 min | Page | 5% in 6 hours |
-| 1 | 3 days | 6 hours | Ticket | 10% in 3 days |
+| --------- | ----------- | ------------ | -------- | --------------- |
+| 14.4      | 1 hour      | 5 min        | Page     | 2% in 1 hour    |
+| 6         | 6 hours     | 30 min       | Page     | 5% in 6 hours   |
+| 1         | 3 days      | 6 hours      | Ticket   | 10% in 3 days   |
 
 **Why two windows?** The long window catches sustained issues. The short window prevents alerting on issues that already recovered.
 
@@ -532,23 +532,23 @@ Now Grafana can show "all logs for this trace" with a single click from the trac
 
 ### Collection Method
 
-| Factor | Pull (Prometheus) | Push (OTLP) | Hybrid (Collector) |
-|--------|-------------------|-------------|--------------------|
+| Factor                   | Pull (Prometheus)       | Push (OTLP)                 | Hybrid (Collector)     |
+| ------------------------ | ----------------------- | --------------------------- | ---------------------- |
 | Target health visibility | ✅ Built-in `up` metric | ❌ Requires separate checks | ✅ Via receiver health |
-| Works through firewalls | ❌ Needs network access | ✅ Outbound only | ✅ Configurable |
-| Short-lived jobs | ❌ May miss | ✅ Push before exit | ✅ Via Pushgateway |
-| Configuration location | Centralized | Per-application | Centralized |
+| Works through firewalls  | ❌ Needs network access | ✅ Outbound only            | ✅ Configurable        |
+| Short-lived jobs         | ❌ May miss             | ✅ Push before exit         | ✅ Via Pushgateway     |
+| Configuration location   | Centralized             | Per-application             | Centralized            |
 
 **Default recommendation**: Pull for long-running services (simpler, health built-in). Push via OpenTelemetry Collector for serverless/ephemeral workloads.
 
 ### Time-Series Database
 
-| Factor | Prometheus | VictoriaMetrics | Managed (Datadog, etc.) |
-|--------|------------|-----------------|-------------------------|
-| Cost | Infrastructure only | Infrastructure only | Per-metric pricing |
-| Operational burden | Moderate | Low-moderate | None |
-| High availability | Federation/Thanos | Built-in clustering | Built-in |
-| Cardinality limits | ~10M series | ~100M series | Soft limits + overage |
+| Factor             | Prometheus          | VictoriaMetrics     | Managed (Datadog, etc.) |
+| ------------------ | ------------------- | ------------------- | ----------------------- |
+| Cost               | Infrastructure only | Infrastructure only | Per-metric pricing      |
+| Operational burden | Moderate            | Low-moderate        | None                    |
+| High availability  | Federation/Thanos   | Built-in clustering | Built-in                |
+| Cardinality limits | ~10M series         | ~100M series        | Soft limits + overage   |
 
 **Scale thresholds**:
 
@@ -558,22 +558,22 @@ Now Grafana can show "all logs for this trace" with a single click from the trac
 
 ### Tracing Sampling
 
-| Approach | Overhead | Capture Rate | Complexity |
-|----------|----------|--------------|------------|
-| Head 100% | Highest | All traces | Simple |
-| Head 1% | Low | 1% random | Simple |
-| Tail-based | Medium | All errors + sampled | High (requires routing) |
-| Hybrid | Low | Best of both | Highest |
+| Approach   | Overhead | Capture Rate         | Complexity              |
+| ---------- | -------- | -------------------- | ----------------------- |
+| Head 100%  | Highest  | All traces           | Simple                  |
+| Head 1%    | Low      | 1% random            | Simple                  |
+| Tail-based | Medium   | All errors + sampled | High (requires routing) |
+| Hybrid     | Low      | Best of both         | Highest                 |
 
 **Default recommendation**: Start with head-based 10-100% sampling. Move to tail-based when you need to capture all errors or have volume requiring <1% sampling.
 
 ### Alerting Approach
 
-| Approach | False Positives | Actionability | Setup Effort |
-|----------|-----------------|---------------|--------------|
-| Static thresholds | Medium | High (clear trigger) | Low |
-| Anomaly detection | High | Medium (why alert?) | Medium |
-| SLO burn rate | Low | High (budget impact clear) | High |
+| Approach          | False Positives | Actionability              | Setup Effort |
+| ----------------- | --------------- | -------------------------- | ------------ |
+| Static thresholds | Medium          | High (clear trigger)       | Low          |
+| Anomaly detection | High            | Medium (why alert?)        | Medium       |
+| SLO burn rate     | Low             | High (budget impact clear) | High         |
 
 **Default recommendation**: SLO-based alerting with multi-window burn rates for critical services. Static thresholds for simpler cases where SLO definition is unclear.
 
@@ -620,10 +620,10 @@ expr: rate(requests_total[5m]) > 1000
 policies:
   - name: errors
     type: status_code
-    status_code: {status_codes: [ERROR]}
+    status_code: { status_codes: [ERROR] }
   - name: probabilistic
     type: probabilistic
-    probabilistic: {sampling_percentage: 1}
+    probabilistic: { sampling_percentage: 1 }
 ```
 
 ### Pitfall 4: Alert Fatigue from Noisy Alerts

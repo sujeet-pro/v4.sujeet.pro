@@ -59,13 +59,13 @@ API gateways solve the "N×M problem" in microservices: without a gateway, every
 
 The core trade-off: **centralization vs coupling**. A gateway simplifies clients but becomes a critical dependency. Design choices determine whether that dependency is an operational risk (single point of failure) or a resilience layer (circuit breaking, graceful degradation).
 
-| Concern | Gateway Responsibility | Why at Gateway |
-|---------|----------------------|----------------|
-| Authentication | JWT validation, API key lookup | Reject unauthorized requests before backend load |
-| Rate limiting | Token bucket, sliding window | Protect backends from abuse at edge |
-| Routing | Path/header-based dispatch | Decouple client URLs from service topology |
-| Transformation | Protocol translation, payload shaping | Adapt external formats to internal contracts |
-| Observability | Trace initiation, access logs | Capture full request context at entry point |
+| Concern        | Gateway Responsibility                | Why at Gateway                                   |
+| -------------- | ------------------------------------- | ------------------------------------------------ |
+| Authentication | JWT validation, API key lookup        | Reject unauthorized requests before backend load |
+| Rate limiting  | Token bucket, sliding window          | Protect backends from abuse at edge              |
+| Routing        | Path/header-based dispatch            | Decouple client URLs from service topology       |
+| Transformation | Protocol translation, payload shaping | Adapt external formats to internal contracts     |
+| Observability  | Trace initiation, access logs         | Capture full request context at entry point      |
 
 Key architectural patterns:
 
@@ -134,10 +134,10 @@ Gateways validate credentials before requests reach backends, rejecting unauthor
 
 **Authorization patterns:**
 
-| Pattern | Where | When |
-|---------|-------|------|
-| Coarse-grained at gateway | Gateway | Route-level access (can user call this endpoint?) |
-| Fine-grained at service | Backend | Resource-level access (can user access this specific record?) |
+| Pattern                   | Where   | When                                                          |
+| ------------------------- | ------- | ------------------------------------------------------------- |
+| Coarse-grained at gateway | Gateway | Route-level access (can user call this endpoint?)             |
+| Fine-grained at service   | Backend | Resource-level access (can user access this specific record?) |
 
 **Real-world:** AWS API Gateway supports JWT authorizers with <1ms validation latency when using cached public keys. Custom authorizers (Lambda) add 50-100ms cold start overhead.
 
@@ -233,12 +233,12 @@ key = hash(method + path + query_params + vary_headers)
 
 **TTL strategies:**
 
-| Content Type | TTL | Rationale |
-|--------------|-----|-----------|
-| Static assets | 1 week+ | Versioned URLs for cache busting |
-| User profile | 5-15 minutes | Balance freshness vs load |
+| Content Type   | TTL           | Rationale                             |
+| -------------- | ------------- | ------------------------------------- |
+| Static assets  | 1 week+       | Versioned URLs for cache busting      |
+| User profile   | 5-15 minutes  | Balance freshness vs load             |
 | Search results | 30-60 seconds | Rapidly changing, high request volume |
-| Real-time data | No cache | Freshness critical |
+| Real-time data | No cache      | Freshness critical                    |
 
 **Cache invalidation:**
 
@@ -348,15 +348,15 @@ Partner API → Partner BFF ┘
 
 ### API Gateway vs Service Mesh
 
-| Aspect | API Gateway | Service Mesh |
-|--------|-------------|--------------|
-| Traffic direction | North-south (external) | East-west (internal) |
-| Deployment | Centralized edge | Sidecar per service |
-| Auth focus | External credentials | Service identity (mTLS) |
-| Protocol | HTTP/REST/GraphQL | Any (TCP, gRPC, HTTP) |
-| Routing | Content-based | Service discovery |
-| Rate limiting | Per client/API key | Per service |
-| Observability | Request-level | Connection-level |
+| Aspect            | API Gateway            | Service Mesh            |
+| ----------------- | ---------------------- | ----------------------- |
+| Traffic direction | North-south (external) | East-west (internal)    |
+| Deployment        | Centralized edge       | Sidecar per service     |
+| Auth focus        | External credentials   | Service identity (mTLS) |
+| Protocol          | HTTP/REST/GraphQL      | Any (TCP, gRPC, HTTP)   |
+| Routing           | Content-based          | Service discovery       |
+| Rate limiting     | Per client/API key     | Per service             |
+| Observability     | Request-level          | Connection-level        |
 
 **Using both:** Gateway API (Kubernetes standard) enables unified configuration across ingress gateways and service mesh. Istio's ingress gateway implements Gateway API, providing consistent routing semantics edge-to-mesh.
 
@@ -427,30 +427,30 @@ Partner API Clients → Partner Gateway → Partner Services
 
 **Open-source gateways:**
 
-| Gateway | Strengths | Trade-offs |
-|---------|-----------|------------|
-| Kong | Plugin ecosystem (100+), Lua extensibility | Complex at scale |
-| Envoy | Performance (~100μs latency), cloud-native | Steep learning curve |
-| NGINX | Mature, high performance | Limited API gateway features without Kong |
-| Apache APISIX | Modern, dashboard, cloud-native | Smaller community |
+| Gateway       | Strengths                                  | Trade-offs                                |
+| ------------- | ------------------------------------------ | ----------------------------------------- |
+| Kong          | Plugin ecosystem (100+), Lua extensibility | Complex at scale                          |
+| Envoy         | Performance (~100μs latency), cloud-native | Steep learning curve                      |
+| NGINX         | Mature, high performance                   | Limited API gateway features without Kong |
+| Apache APISIX | Modern, dashboard, cloud-native            | Smaller community                         |
 
 **Managed gateways:**
 
-| Service | Strengths | Trade-offs |
-|---------|-----------|------------|
-| AWS API Gateway | Serverless, auto-scaling, 99.95% SLA | Cold starts, AWS lock-in |
-| Google Apigee | Full lifecycle management, analytics | Complex pricing, steep learning |
-| Azure API Management | Azure integration, hybrid deployment | Azure ecosystem dependency |
+| Service              | Strengths                            | Trade-offs                      |
+| -------------------- | ------------------------------------ | ------------------------------- |
+| AWS API Gateway      | Serverless, auto-scaling, 99.95% SLA | Cold starts, AWS lock-in        |
+| Google Apigee        | Full lifecycle management, analytics | Complex pricing, steep learning |
+| Azure API Management | Azure integration, hybrid deployment | Azure ecosystem dependency      |
 
 **Decision factors:**
 
-| Factor | Choose Managed | Choose Self-Hosted |
-|--------|----------------|-------------------|
-| Team ops capacity | Limited | Dedicated platform team |
-| Scale | < 1B requests/month | Cost-sensitive at scale |
-| Customization | Standard patterns | Unique requirements |
-| Compliance | Cloud-native apps | On-premises requirements |
-| Latency requirements | < 10ms acceptable | Sub-millisecond critical |
+| Factor               | Choose Managed      | Choose Self-Hosted       |
+| -------------------- | ------------------- | ------------------------ |
+| Team ops capacity    | Limited             | Dedicated platform team  |
+| Scale                | < 1B requests/month | Cost-sensitive at scale  |
+| Customization        | Standard patterns   | Unique requirements      |
+| Compliance           | Cloud-native apps   | On-premises requirements |
+| Latency requirements | < 10ms acceptable   | Sub-millisecond critical |
 
 **Cost crossover:** At ~1-10 billion requests/month, managed gateway costs often exceed self-hosted infrastructure + team costs.
 
@@ -529,11 +529,11 @@ Request → PRE filters → ROUTE filters → POST filters → Response
 
 **API types:**
 
-| Type | Use Case | Features |
-|------|----------|----------|
-| HTTP API | Simple proxy | Lower latency, lower cost, JWT auth |
-| REST API | Full features | Request validation, caching, WAF integration |
-| WebSocket | Real-time | Connection management, route selection |
+| Type      | Use Case      | Features                                     |
+| --------- | ------------- | -------------------------------------------- |
+| HTTP API  | Simple proxy  | Lower latency, lower cost, JWT auth          |
+| REST API  | Full features | Request validation, caching, WAF integration |
+| WebSocket | Real-time     | Connection management, route selection       |
 
 **Integration patterns:**
 
@@ -560,11 +560,11 @@ Response ← Log ← Body Transformation ← Header Transformation ← Response 
 
 **Rate limiting strategies:**
 
-| Strategy | Accuracy | Latency | Use Case |
-|----------|----------|---------|----------|
-| Local | Approximate | Lowest | High-throughput, slight overrun OK |
-| Cluster | Better | Medium | Multi-node, gossip sync |
-| Redis | Exact | Highest | Strict limits, distributed enforcement |
+| Strategy | Accuracy    | Latency | Use Case                               |
+| -------- | ----------- | ------- | -------------------------------------- |
+| Local    | Approximate | Lowest  | High-throughput, slight overrun OK     |
+| Cluster  | Better      | Medium  | Multi-node, gossip sync                |
+| Redis    | Exact       | Highest | Strict limits, distributed enforcement |
 
 **Consistent hashing integration:** Kong routes same client to same gateway node using consistent hashing, improving local rate limit accuracy without Redis overhead.
 
@@ -740,15 +740,15 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 
 **Baseline gateway overhead:**
 
-| Component | Latency |
-|-----------|---------|
-| Network hop | 0.1-1ms |
-| TLS termination | 0.5-2ms |
-| Auth (JWT validation) | 0.1-1ms |
-| Rate limit check (local) | <0.1ms |
-| Rate limit check (Redis) | 1-5ms |
-| Routing decision | <0.1ms |
-| Total baseline | 1-5ms |
+| Component                | Latency |
+| ------------------------ | ------- |
+| Network hop              | 0.1-1ms |
+| TLS termination          | 0.5-2ms |
+| Auth (JWT validation)    | 0.1-1ms |
+| Rate limit check (local) | <0.1ms  |
+| Rate limit check (Redis) | 1-5ms   |
+| Routing decision         | <0.1ms  |
+| Total baseline           | 1-5ms   |
 
 **Factors that increase latency:**
 
@@ -769,10 +769,10 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 
 ```yaml
 upstream backend:
-  max_connections: 100          # Total connections to all instances
-  max_connections_per_host: 10  # Connections per backend instance
-  idle_timeout: 60s             # Close idle connections after
-  connect_timeout: 5s           # Fail fast on connection issues
+  max_connections: 100 # Total connections to all instances
+  max_connections_per_host: 10 # Connections per backend instance
+  idle_timeout: 60s # Close idle connections after
+  connect_timeout: 5s # Fail fast on connection issues
 ```
 
 **HTTP/2 multiplexing:** Single connection handles multiple concurrent requests. Gateway-to-backend H2 reduces connection count while maintaining throughput.
@@ -787,12 +787,12 @@ upstream backend:
 
 **Mitigation strategies:**
 
-| Strategy | Latency Impact | Cost Impact |
-|----------|----------------|-------------|
-| Provisioned Concurrency | Eliminates cold start | Fixed cost for pre-warmed instances |
-| SnapStart (Java/.NET) | Reduces to <1s | Minimal |
-| Smaller packages | Reduces initialization | Effort to optimize |
-| Keep-warm pings | Reduces frequency | Unreliable, not recommended |
+| Strategy                | Latency Impact         | Cost Impact                         |
+| ----------------------- | ---------------------- | ----------------------------------- |
+| Provisioned Concurrency | Eliminates cold start  | Fixed cost for pre-warmed instances |
+| SnapStart (Java/.NET)   | Reduces to <1s         | Minimal                             |
+| Smaller packages        | Reduces initialization | Effort to optimize                  |
+| Keep-warm pings         | Reduces frequency      | Unreliable, not recommended         |
 
 **Provisioned Concurrency numbers:** AWS reports 75% improvement in p99 latency with provisioned concurrency. Cost is ~$0.000004/GB-second provisioned.
 
@@ -810,10 +810,10 @@ Gateway as circuit breaker enforcement point protects backends from cascade fail
 
 ```yaml
 circuit_breaker:
-  failure_threshold: 5          # Failures before opening
-  success_threshold: 3          # Successes to close
-  timeout: 30s                  # Time in open state before half-open
-  failure_rate_threshold: 50%   # Alternative: percentage-based
+  failure_threshold: 5 # Failures before opening
+  success_threshold: 3 # Successes to close
+  timeout: 30s # Time in open state before half-open
+  failure_rate_threshold: 50% # Alternative: percentage-based
 ```
 
 **Fallback strategies:**

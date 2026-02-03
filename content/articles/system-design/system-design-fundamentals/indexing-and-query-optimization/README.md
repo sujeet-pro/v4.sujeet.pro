@@ -66,17 +66,20 @@ B-tree (technically B+ tree in most implementations) is the default index type i
 **How it works:** Internal nodes contain keys and pointers to child nodes. Leaf nodes contain the actual key-value pairs (or pointers to heap tuples). All leaves are at the same depth, ensuring consistent access time regardless of key value.
 
 **Supported operations:**
+
 - Equality: `WHERE col = value`
 - Range: `WHERE col > value`, `BETWEEN`, `IN`
 - Prefix matching: `WHERE col LIKE 'prefix%'`
 - Sorting: `ORDER BY col` without additional sort step
 
 **Best when:**
+
 - Mixed read/write workloads
 - Need range queries or ordering
 - General-purpose indexing needs
 
 **Trade-offs:**
+
 - ✅ Supports both equality and range queries
 - ✅ Natural ordering enables efficient `ORDER BY`
 - ✅ Mature, well-understood, stable
@@ -91,14 +94,17 @@ B-tree (technically B+ tree in most implementations) is the default index type i
 Hash indexes compute a hash of the indexed value and store it in a hash table. This provides constant-time lookups for exact matches.
 
 **Supported operations:**
+
 - Equality only: `WHERE col = value`
 
 **Limitations:**
+
 - No range queries (`<`, `>`, `BETWEEN`)
 - No ordering (`ORDER BY`)
 - No prefix matching (`LIKE 'prefix%'`)
 
 **When to use:**
+
 - Point lookups on high-cardinality columns
 - Equality-only access patterns
 - When B-tree overhead is measurable
@@ -106,6 +112,7 @@ Hash indexes compute a hash of the indexed value and store it in a hash table. T
 > **PostgreSQL note:** Hash indexes were not crash-safe until PostgreSQL 10 and not logged to WAL until then. They're now fully supported but still rarely outperform B-trees in practice due to PostgreSQL's efficient B-tree implementation.
 
 **Trade-offs:**
+
 - ✅ O(1) lookup for equality
 - ✅ Smaller index size for certain data types
 - ❌ No range queries or ordering
@@ -117,6 +124,7 @@ Hash indexes compute a hash of the indexed value and store it in a hash table. T
 Log-Structured Merge (LSM) trees optimize for write-heavy workloads by buffering writes in memory before flushing to disk in sorted runs.
 
 **How it works:**
+
 1. Writes go to an in-memory buffer (memtable)
 2. When memtable fills, it's flushed to disk as an immutable sorted file (SSTable)
 3. Background compaction merges SSTables to maintain read performance
@@ -124,12 +132,14 @@ Log-Structured Merge (LSM) trees optimize for write-heavy workloads by buffering
 **Read path:** Check memtable → check each SSTable level → use Bloom filters to skip SSTables that definitely don't contain the key.
 
 **Databases using LSM trees:**
+
 - Cassandra, ScyllaDB
 - RocksDB (used by CockroachDB, TiKV)
 - LevelDB
 - HBase
 
 **Trade-offs:**
+
 - ✅ High write throughput (sequential I/O)
 - ✅ Better space efficiency with compaction
 - ✅ Write amplification amortized across batches
@@ -142,14 +152,14 @@ Log-Structured Merge (LSM) trees optimize for write-heavy workloads by buffering
 
 ### Decision Matrix: Index Data Structures
 
-| Factor | B-tree | Hash | LSM Tree |
-|--------|--------|------|----------|
-| Equality queries | O(log n) | O(1) | O(log n) + levels |
-| Range queries | Excellent | Not supported | Slower than B-tree |
-| Write throughput | Moderate | Moderate | Excellent |
-| Read throughput | Excellent | Excellent (equality) | Good with Bloom filters |
-| Space efficiency | Moderate | Good | Better (compaction) |
-| Operational complexity | Low | Low | Higher (compaction tuning) |
+| Factor                 | B-tree    | Hash                 | LSM Tree                   |
+| ---------------------- | --------- | -------------------- | -------------------------- |
+| Equality queries       | O(log n)  | O(1)                 | O(log n) + levels          |
+| Range queries          | Excellent | Not supported        | Slower than B-tree         |
+| Write throughput       | Moderate  | Moderate             | Excellent                  |
+| Read throughput        | Excellent | Excellent (equality) | Good with Bloom filters    |
+| Space efficiency       | Moderate  | Good                 | Better (compaction)        |
+| Operational complexity | Low       | Low                  | Higher (compaction tuning) |
 
 ## Specialized Index Types
 
@@ -158,6 +168,7 @@ Log-Structured Merge (LSM) trees optimize for write-heavy workloads by buffering
 GIN indexes map element values to the rows containing them—essentially an inverted index. Designed for composite values like arrays, JSONB, and full-text search.
 
 **Use cases:**
+
 - Full-text search: `WHERE document @@ to_tsquery('search terms')`
 - JSONB containment: `WHERE data @> '{"key": "value"}'`
 - Array membership: `WHERE tags @> ARRAY['tag1', 'tag2']`
@@ -165,6 +176,7 @@ GIN indexes map element values to the rows containing them—essentially an inve
 **How it works:** GIN breaks composite values into elements and creates an entry for each element pointing to all rows containing it. For JSONB, this means indexing each key-value pair separately.
 
 **Trade-offs:**
+
 - ✅ Fast containment queries on composite types
 - ✅ Supports complex operators (`@>`, `?`, `?|`, `?&`)
 - ❌ Higher write overhead (multiple index entries per row)
@@ -172,6 +184,7 @@ GIN indexes map element values to the rows containing them—essentially an inve
 - ❌ Slower to build than B-tree
 
 **JSONB operator classes:**
+
 - `jsonb_ops` (default): Supports all JSONB operators, larger index
 - `jsonb_path_ops`: Only supports `@>`, smaller and faster for containment
 
@@ -191,18 +204,19 @@ SELECT * FROM events WHERE data->>'type' = 'purchase';
 GiST provides a framework for building custom index types. PostgreSQL uses it for geometric types, range types, and full-text search.
 
 **Built-in GiST use cases:**
+
 - Geometric queries: `WHERE point <@ polygon`
 - Range overlaps: `WHERE daterange && '[2024-01-01, 2024-12-31]'`
 - Nearest-neighbor: `ORDER BY location <-> point '(x,y)' LIMIT 10`
 
 **GIN vs GiST for full-text search:**
 
-| Factor | GIN | GiST |
-|--------|-----|------|
-| Lookup speed | ~3x faster | Slower |
-| Build time | ~3x longer | Faster |
-| Update overhead | Higher | Lower |
-| Index size | Larger | Smaller |
+| Factor          | GIN        | GiST    |
+| --------------- | ---------- | ------- |
+| Lookup speed    | ~3x faster | Slower  |
+| Build time      | ~3x longer | Faster  |
+| Update overhead | Higher     | Lower   |
+| Index size      | Larger     | Smaller |
 
 **Recommendation:** GIN for read-heavy, GiST for write-heavy full-text search workloads.
 
@@ -213,11 +227,13 @@ BRIN (Block Range INdex) stores summary information about ranges of physical tab
 **How it works:** Divides table into block ranges and stores min/max values for each range. Query planner skips ranges that cannot contain matching rows.
 
 **Ideal for:**
+
 - Time-series data with append-only writes
 - Naturally ordered data (timestamps, sequential IDs)
 - Very large tables where B-tree overhead is prohibitive
 
 **Trade-offs:**
+
 - ✅ Tiny index size (orders of magnitude smaller than B-tree)
 - ✅ Minimal write overhead
 - ❌ Only effective when data is physically clustered
@@ -238,6 +254,7 @@ WHERE created_at BETWEEN '2024-01-01' AND '2024-01-02';
 Partial indexes include only rows matching a predicate. They reduce index size and maintenance overhead when queries consistently filter on specific conditions.
 
 **Use cases:**
+
 - Active records: `WHERE status = 'active'`
 - Unprocessed items: `WHERE processed = false`
 - Soft-deleted exclusion: `WHERE deleted_at IS NULL`
@@ -260,6 +277,7 @@ SELECT * FROM orders WHERE customer_id = 123 AND status = 'shipped';
 **Critical limitation:** The query's `WHERE` clause must logically imply the index predicate. If the planner cannot prove the implication, it won't use the partial index.
 
 **Trade-offs:**
+
 - ✅ Smaller index size (only indexed rows)
 - ✅ Lower write overhead (only maintains index for matching rows)
 - ✅ Better selectivity on indexed subset
@@ -277,6 +295,7 @@ Composite indexes are B-trees on multiple columns. The index sorts by the first 
 **Critical rule:** Queries can only use a composite index if they filter on a leftmost prefix of the index columns.
 
 For index `(a, b, c)`:
+
 - ✅ `WHERE a = 1` — uses index
 - ✅ `WHERE a = 1 AND b = 2` — uses index
 - ✅ `WHERE a = 1 AND b = 2 AND c = 3` — uses index (full)
@@ -339,11 +358,11 @@ Selectivity = 1 / Cardinality
 
 **Composite index selectivity:** The combined selectivity of multiple columns can make even low-cardinality columns index-worthy.
 
-| Column | Cardinality | Selectivity |
-|--------|-------------|-------------|
-| status | 5 | 20% |
-| customer_id | 100,000 | 0.001% |
-| (status, customer_id) | ~500,000 | 0.0002% |
+| Column                | Cardinality | Selectivity |
+| --------------------- | ----------- | ----------- |
+| status                | 5           | 20%         |
+| customer_id           | 100,000     | 0.001%      |
+| (status, customer_id) | ~500,000    | 0.0002%     |
 
 **Pitfall:** Don't index low-cardinality columns alone. A boolean flag with 50/50 distribution has 50% selectivity—the planner will likely prefer a sequential scan.
 
@@ -370,6 +389,7 @@ WHERE customer_id = 123 AND status = 'completed';
 **MySQL approach:** InnoDB secondary indexes automatically include primary key columns. For true covering indexes, include needed columns in the index definition.
 
 **Trade-offs:**
+
 - ✅ Eliminates heap access (major I/O savings)
 - ✅ Significant speedup for read-heavy queries
 - ❌ Larger index size (included columns stored in every leaf)
@@ -377,11 +397,13 @@ WHERE customer_id = 123 AND status = 'completed';
 - ❌ Increased write overhead
 
 **When to use:**
+
 - Frequently executed queries returning few columns
 - Read-heavy workloads with stable query patterns
 - Hot queries identified via `pg_stat_statements` or slow query log
 
 **When to avoid:**
+
 - Write-heavy tables with frequent updates
 - Large included columns (text, JSON)
 - Volatile query patterns
@@ -396,13 +418,13 @@ PostgreSQL's query planner estimates execution cost for each possible plan and c
 
 **Key cost parameters:**
 
-| Parameter | Default | Meaning |
-|-----------|---------|---------|
-| `seq_page_cost` | 1.0 | Cost of sequential disk page read |
-| `random_page_cost` | 4.0 | Cost of random disk page read |
-| `cpu_tuple_cost` | 0.01 | Cost of processing one row |
-| `cpu_index_tuple_cost` | 0.005 | Cost of processing one index entry |
-| `cpu_operator_cost` | 0.0025 | Cost of executing one operator |
+| Parameter              | Default | Meaning                            |
+| ---------------------- | ------- | ---------------------------------- |
+| `seq_page_cost`        | 1.0     | Cost of sequential disk page read  |
+| `random_page_cost`     | 4.0     | Cost of random disk page read      |
+| `cpu_tuple_cost`       | 0.01    | Cost of processing one row         |
+| `cpu_index_tuple_cost` | 0.005   | Cost of processing one index entry |
+| `cpu_operator_cost`    | 0.0025  | Cost of executing one operator     |
 
 **Why indexes get ignored:**
 
@@ -431,6 +453,7 @@ Execution Time: 0.045 ms
 ```
 
 **Key metrics:**
+
 - **cost:** Estimated startup cost..total cost (in arbitrary units)
 - **rows:** Estimated rows returned
 - **actual time:** Real execution time in milliseconds
@@ -439,13 +462,13 @@ Execution Time: 0.045 ms
 
 **Scan types:**
 
-| Scan Type | Description | When Used |
-|-----------|-------------|-----------|
-| Seq Scan | Full table scan | Low selectivity, small tables |
-| Index Scan | Traverse index, fetch from heap | High selectivity, single rows |
-| Index Only Scan | Index satisfies query entirely | Covering index, clean visibility map |
-| Bitmap Index Scan | Build bitmap of matching pages | Multiple conditions, moderate selectivity |
-| Bitmap Heap Scan | Fetch pages from bitmap | Follows Bitmap Index Scan |
+| Scan Type         | Description                     | When Used                                 |
+| ----------------- | ------------------------------- | ----------------------------------------- |
+| Seq Scan          | Full table scan                 | Low selectivity, small tables             |
+| Index Scan        | Traverse index, fetch from heap | High selectivity, single rows             |
+| Index Only Scan   | Index satisfies query entirely  | Covering index, clean visibility map      |
+| Bitmap Index Scan | Build bitmap of matching pages  | Multiple conditions, moderate selectivity |
+| Bitmap Heap Scan  | Fetch pages from bitmap         | Follows Bitmap Index Scan                 |
 
 ### When Planner Chooses Sequential Scan
 
@@ -457,9 +480,10 @@ Sequential Scan Cost ∝ (total_pages × seq_page_cost) + (total_rows × cpu_tup
 ```
 
 **Practical heuristics:**
+
 - <5% of rows: Index scan usually wins
 - 5-15% of rows: Depends on data distribution, correlation
-- >15% of rows: Sequential scan often wins
+- > 15% of rows: Sequential scan often wins
 
 **Forcing index usage (for testing only):**
 
@@ -476,21 +500,25 @@ SET enable_seqscan = on;   -- Re-enable for production
 The planner relies on statistics in `pg_statistic` (PostgreSQL) or `information_schema.STATISTICS` (MySQL). Stale statistics cause poor plans.
 
 **PostgreSQL statistics collection:**
+
 - `autovacuum` runs `ANALYZE` automatically based on row changes
 - Manual: `ANALYZE table_name;` or `ANALYZE table_name(column);`
 - Statistics are sampled, not exact (default: 100 sample pages)
 
 **Key statistics:**
+
 - **n_distinct:** Estimated number of distinct values
 - **most_common_vals:** Most frequent values and their frequencies
 - **histogram_bounds:** Distribution of non-common values
 
 **MySQL statistics:**
+
 - InnoDB samples 20 random pages by default
 - `ANALYZE TABLE` updates statistics
 - `innodb_stats_persistent` controls persistence across restarts
 
 **Symptoms of stale statistics:**
+
 - Planner estimates differ wildly from actual rows
 - Unexpected sequential scans on indexed columns
 - Nested loop joins on large tables
@@ -506,6 +534,7 @@ Every index adds overhead to write operations. With $n$ indexes on a table, each
 **MySQL InnoDB difference:** Secondary indexes store primary key values, not physical pointers. Row updates that don't change indexed columns or primary key require no secondary index updates.
 
 **Real-world impact:** Uber's PostgreSQL deployment had tables with 50+ indexes. A single row update triggered 50+ index modifications, causing:
+
 - 10x write amplification
 - Massive WAL (Write-Ahead Log) volume
 - Replication lag during peak traffic
@@ -548,6 +577,7 @@ Index `(a, b)` makes index `(a)` redundant for most queries. Tools like `pg_idx_
 **3. Consolidate overlapping indexes**
 
 Multiple indexes with similar column prefixes can often be merged:
+
 - `(a)`, `(a, b)`, `(a, b, c)` → Keep only `(a, b, c)` if all queries use leftmost prefix
 
 **4. Consider partial indexes for skewed data**
@@ -561,11 +591,13 @@ If 95% of queries filter on `status = 'active'` and only 5% of rows are active, 
 Index bloat occurs when deleted or updated rows leave dead space in index pages. PostgreSQL's MVCC creates dead tuples that remain until `VACUUM` cleans them.
 
 **Causes:**
+
 - High update/delete rates
 - Long-running transactions holding old snapshots
 - Aggressive `autovacuum` settings not keeping pace
 
 **Symptoms:**
+
 - Index size grows despite stable row count
 - Query performance degrades over time
 - Higher-than-expected I/O for index operations
@@ -602,12 +634,14 @@ REINDEX TABLE CONCURRENTLY orders;
 ```
 
 **REINDEX CONCURRENTLY:**
+
 - Builds new index alongside old
 - Multiple passes to capture concurrent changes
 - Swaps pointers atomically
 - Takes longer but allows reads/writes throughout
 
 **When to REINDEX:**
+
 - Bloat exceeds 20-30%
 - Query performance has degraded
 - After bulk deletes or large schema changes
@@ -618,12 +652,12 @@ REINDEX TABLE CONCURRENTLY orders;
 
 **Key parameters:**
 
-| Parameter | Default | Recommendation |
-|-----------|---------|----------------|
-| `autovacuum_vacuum_scale_factor` | 0.2 | Lower for large tables (0.01-0.05) |
-| `autovacuum_vacuum_threshold` | 50 | Keep default |
-| `autovacuum_naptime` | 1min | Keep default or lower |
-| `maintenance_work_mem` | 64MB | Increase for faster vacuum |
+| Parameter                        | Default | Recommendation                     |
+| -------------------------------- | ------- | ---------------------------------- |
+| `autovacuum_vacuum_scale_factor` | 0.2     | Lower for large tables (0.01-0.05) |
+| `autovacuum_vacuum_threshold`    | 50      | Keep default                       |
+| `autovacuum_naptime`             | 1min    | Keep default or lower              |
+| `maintenance_work_mem`           | 64MB    | Increase for faster vacuum         |
 
 **Per-table settings for hot tables:**
 
@@ -660,6 +694,7 @@ SELECT pg_stat_statements_reset();
 ```
 
 **Key metrics:**
+
 - `total_exec_time`: Cumulative execution time
 - `calls`: Number of executions
 - `mean_exec_time`: Average execution time
@@ -703,6 +738,7 @@ ORDER BY idx_scan DESC;
 ```
 
 **Alert thresholds:**
+
 - Index with 0 scans over 30 days → candidate for removal
 - Index scan count dropping → query pattern changed, investigate
 

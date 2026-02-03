@@ -47,15 +47,16 @@ flowchart TB
 
 API design is about matching communication patterns to constraints:
 
-| Protocol | Optimizes For | Sacrifices |
-|----------|---------------|------------|
-| **REST** | Cacheability, uniform interface, tooling | Flexibility, efficiency |
-| **gRPC** | Performance, type safety, streaming | Browser support, human readability |
-| **GraphQL** | Query flexibility, reducing round trips | Caching, complexity |
+| Protocol    | Optimizes For                            | Sacrifices                         |
+| ----------- | ---------------------------------------- | ---------------------------------- |
+| **REST**    | Cacheability, uniform interface, tooling | Flexibility, efficiency            |
+| **gRPC**    | Performance, type safety, streaming      | Browser support, human readability |
+| **GraphQL** | Query flexibility, reducing round trips  | Caching, complexity                |
 
 The core trade-off: **coupling vs efficiency**. REST's uniform interface decouples clients from servers but requires multiple round trips. gRPC's contract-first approach enables optimizations but couples clients to schema. GraphQL shifts query logic to clients but complicates server-side caching.
 
 **Decision heuristic:**
+
 - Public APIs: REST (tooling, cacheability, developer familiarity)
 - Internal microservices: gRPC (performance, type safety)
 - Mobile/frontend with varying data needs: GraphQL (reduce round trips)
@@ -69,16 +70,17 @@ REST (Representational State Transfer) is an architectural style defined by Roy 
 
 **The six constraints:**
 
-| Constraint | What It Means | Architectural Property |
-|------------|---------------|------------------------|
-| Client-Server | Separation of concerns | Independent evolution |
-| Stateless | No session state on server | Scalability, reliability |
-| Cacheable | Responses labeled cacheable/non-cacheable | Performance, reduced load |
-| Uniform Interface | Standardized resource interactions | Simplicity, visibility |
-| Layered System | Client unaware of intermediaries | Encapsulation, proxies |
-| Code-on-Demand | Optional executable code transfer | Extensibility |
+| Constraint        | What It Means                             | Architectural Property    |
+| ----------------- | ----------------------------------------- | ------------------------- |
+| Client-Server     | Separation of concerns                    | Independent evolution     |
+| Stateless         | No session state on server                | Scalability, reliability  |
+| Cacheable         | Responses labeled cacheable/non-cacheable | Performance, reduced load |
+| Uniform Interface | Standardized resource interactions        | Simplicity, visibility    |
+| Layered System    | Client unaware of intermediaries          | Encapsulation, proxies    |
+| Code-on-Demand    | Optional executable code transfer         | Extensibility             |
 
 **Why statelessness matters:** Each request contains all information needed to process it. Servers don't store session state between requests. This enables:
+
 - Horizontal scaling (any server can handle any request)
 - Simpler failure recovery (no session loss)
 - Better cacheability
@@ -113,18 +115,19 @@ HATEOAS (Hypermedia As The Engine Of Application State) is REST's most ignored c
 
 Leonard Richardson's maturity model (popularized by Martin Fowler) categorizes APIs by REST adherence:
 
-| Level | Name | Description | Example |
-|-------|------|-------------|---------|
-| 0 | Swamp of POX | Single URI, single verb (usually POST) | SOAP over HTTP |
-| 1 | Resources | Multiple URIs, but verbs ignored | `/getUser`, `/createUser` |
-| 2 | HTTP Verbs | Resources + proper verb semantics | GET `/users/123`, POST `/users` |
-| 3 | Hypermedia | Full HATEOAS with link navigation | GitHub API, PayPal |
+| Level | Name         | Description                            | Example                         |
+| ----- | ------------ | -------------------------------------- | ------------------------------- |
+| 0     | Swamp of POX | Single URI, single verb (usually POST) | SOAP over HTTP                  |
+| 1     | Resources    | Multiple URIs, but verbs ignored       | `/getUser`, `/createUser`       |
+| 2     | HTTP Verbs   | Resources + proper verb semantics      | GET `/users/123`, POST `/users` |
+| 3     | Hypermedia   | Full HATEOAS with link navigation      | GitHub API, PayPal              |
 
 **Production reality:** Most "REST" APIs are Level 2. Level 3 adds complexity without proportional benefit for APIs with stable contracts and good documentation.
 
 ### When REST Excels
 
 **Best for:**
+
 - Public APIs (universal tooling, curl-debuggable)
 - Cacheable resources (CDN integration, HTTP cache headers)
 - CRUD-dominant operations
@@ -133,6 +136,7 @@ Leonard Richardson's maturity model (popularized by Martin Fowler) categorizes A
 **Real-world:** Stripe, Twilio, and GitHub use REST for public APIs. Stripe's API has maintained backward compatibility since 2011 using REST's uniform interface combined with careful versioning.
 
 **Limitations:**
+
 - Over-fetching: Fixed response shapes waste bandwidth
 - Under-fetching: Multiple round trips for related data
 - No streaming: HTTP/1.1 request-response only
@@ -158,6 +162,7 @@ message User {
 ```
 
 **Encoding details:**
+
 - Field tags use varint encoding: numbers 1-15 take 1 byte, 16-2047 take 2 bytes
 - Strings are length-prefixed (no delimiters)
 - Default values (0, "", false) aren't transmitted
@@ -165,10 +170,10 @@ message User {
 
 **Size comparison (same user object):**
 
-| Format | Size | Parse Time |
-|--------|------|------------|
-| JSON | 95 bytes | 2.1 ms |
-| Protobuf | 28 bytes | 0.08 ms |
+| Format   | Size     | Parse Time |
+| -------- | -------- | ---------- |
+| JSON     | 95 bytes | 2.1 ms     |
+| Protobuf | 28 bytes | 0.08 ms    |
 
 ### HTTP/2 and Streaming Modes
 
@@ -178,12 +183,12 @@ gRPC mandates HTTP/2, enabling features impossible with HTTP/1.1:
 
 **Four communication patterns:**
 
-| Pattern | Use Case | Example |
-|---------|----------|---------|
-| Unary | Request-response | GetUser(id) → User |
-| Server streaming | Large result sets, real-time updates | ListOrders() → stream Order |
-| Client streaming | File upload, batched writes | stream Chunk → UploadResult |
-| Bidirectional | Chat, real-time sync | stream Message ↔ stream Message |
+| Pattern          | Use Case                             | Example                         |
+| ---------------- | ------------------------------------ | ------------------------------- |
+| Unary            | Request-response                     | GetUser(id) → User              |
+| Server streaming | Large result sets, real-time updates | ListOrders() → stream Order     |
+| Client streaming | File upload, batched writes          | stream Chunk → UploadResult     |
+| Bidirectional    | Chat, real-time sync                 | stream Message ↔ stream Message |
 
 **Server streaming example:**
 
@@ -198,6 +203,7 @@ Client receives orders as they're fetched from database—no need to buffer enti
 ### gRPC Performance in Production
 
 **Netflix:** Migrated recommendation serving to gRPC. Results:
+
 - 90% latency reduction for live predictions
 - 30,000 concurrent prediction requests per node
 - Recommendations delivered in <25ms
@@ -262,17 +268,17 @@ Naive execution:
 // DataLoader batches loads within same execution frame
 const userLoader = new DataLoader(async (userIds) => {
   // Single query: SELECT * FROM users WHERE id IN (1, 2, 3, ...)
-  const users = await db.users.findByIds(userIds);
+  const users = await db.users.findByIds(userIds)
   // Return in same order as input keys (DataLoader contract)
-  return userIds.map(id => users.find(u => u.id === id));
-});
+  return userIds.map((id) => users.find((u) => u.id === id))
+})
 
 // In resolver
 const resolvers = {
   Order: {
-    user: (order) => userLoader.load(order.userId)
-  }
-};
+    user: (order) => userLoader.load(order.userId),
+  },
+}
 ```
 
 **Critical rule:** Create new DataLoader instance per request. Sharing loaders leaks data between users.
@@ -284,6 +290,7 @@ const resolvers = {
 **HTTP caching doesn't work:** GraphQL uses POST for all queries (to send query body). POST responses aren't cached by CDNs or browsers.
 
 **Solutions:**
+
 1. **Persisted queries:** Hash queries server-side, clients send hash instead of full query. Enables GET requests and CDN caching.
 2. **Response caching:** Cache at resolver level (per-field), not HTTP level.
 3. **Client-side:** Apollo Client normalizes responses into entity cache.
@@ -293,16 +300,19 @@ const resolvers = {
 ### When GraphQL Fits
 
 **Best for:**
+
 - Mobile apps with varying data requirements (reduce round trips)
 - Aggregating multiple backend services (BFF pattern)
 - Rapidly evolving frontends (no backend changes for new field combinations)
 
 **Not suitable for:**
+
 - Simple CRUD APIs (overhead not justified)
 - File uploads (requires multipart extensions)
 - Public APIs (attack surface for malicious queries)
 
 **Query complexity protection:** Production GraphQL servers must limit:
+
 - Query depth (prevent deeply nested queries)
 - Query complexity (weighted field costs)
 - Rate limiting per query cost, not just requests
@@ -316,11 +326,13 @@ const resolvers = {
 **Mechanism:** Version in URL path: `/v1/users`, `/v2/users`
 
 **When to use:**
+
 - Public APIs with long-lived versions
 - Need to run multiple versions simultaneously
 - Clear separation between versions
 
 **Trade-offs:**
+
 - ✅ Explicit, impossible to miss
 - ✅ Easy routing at load balancer/gateway
 - ✅ Different versions can be separate deployments
@@ -339,11 +351,13 @@ Accept: application/vnd.myapi.v2+json
 ```
 
 **When to use:**
+
 - Clean URLs are priority
 - Gradual migration between versions
 - Same resource, different representations
 
 **Trade-offs:**
+
 - ✅ URLs remain stable
 - ✅ Easier version negotiation
 - ❌ Hidden—easy to forget
@@ -366,6 +380,7 @@ Stripe-Version: 2024-01-28
 ```
 
 **Why it works for Stripe:**
+
 - Breaking changes are rare (biannual)
 - Version modules handle transformation at edges
 - Core code stays clean—versions are an adapter layer
@@ -378,6 +393,7 @@ Stripe-Version: 2024-01-28
 ### Breaking Change Management
 
 **What constitutes a breaking change:**
+
 - Removing fields
 - Changing field types
 - Changing field semantics
@@ -385,6 +401,7 @@ Stripe-Version: 2024-01-28
 - Changing error codes
 
 **Safe changes (additive):**
+
 - Adding new fields
 - Adding new endpoints
 - Adding new optional parameters
@@ -418,11 +435,13 @@ GET /orders?limit=20&offset=40
 ```
 
 **When to use:**
+
 - Small datasets (<10K records)
 - Need "jump to page X" functionality
 - Data changes infrequently
 
 **Trade-offs:**
+
 - ✅ Simple to implement
 - ✅ Supports arbitrary page access
 - ✅ Easy to calculate total pages
@@ -440,16 +459,19 @@ GET /orders?limit=20&after=eyJpZCI6MTIzNH0=
 ```
 
 **How it works:**
+
 1. Encode last item's sort key as cursor (often base64 JSON)
 2. Query: `WHERE id > cursor_id ORDER BY id LIMIT 20`
 3. Return `next_cursor` with response
 
 **When to use:**
+
 - Large datasets
 - Infinite scroll / real-time feeds
 - Data changes frequently
 
 **Trade-offs:**
+
 - ✅ Consistent performance regardless of page depth
 - ✅ Stable results despite concurrent inserts
 - ✅ 17x faster than offset for deep pagination (measured on 1M rows)
@@ -469,6 +491,7 @@ GET /orders?limit=20&created_after=2024-01-15T10:30:00Z&id_after=12345
 **Why two columns:** Timestamps alone aren't unique. Tie-breaker (usually ID) ensures deterministic ordering.
 
 **Query:**
+
 ```sql
 SELECT * FROM orders
 WHERE (created_at, id) > ('2024-01-15T10:30:00Z', 12345)
@@ -479,6 +502,7 @@ LIMIT 20
 **Requires:** Composite index on `(created_at, id)`
 
 **Trade-offs:**
+
 - ✅ Same performance benefits as cursor
 - ✅ Debuggable (values visible, not encoded)
 - ❌ Exposes internal schema
@@ -486,14 +510,14 @@ LIMIT 20
 
 ### Decision Matrix
 
-| Factor | Offset | Cursor | Keyset |
-|--------|--------|--------|--------|
-| Dataset size | <10K | Any | Any |
-| Page depth | Shallow only | Any | Any |
-| Jump to page | ✅ | ❌ | ❌ |
-| Real-time data | ❌ | ✅ | ✅ |
-| Implementation | Simple | Medium | Medium |
-| Performance (deep) | O(offset) | O(1) | O(1) |
+| Factor             | Offset       | Cursor | Keyset |
+| ------------------ | ------------ | ------ | ------ |
+| Dataset size       | <10K         | Any    | Any    |
+| Page depth         | Shallow only | Any    | Any    |
+| Jump to page       | ✅           | ❌     | ❌     |
+| Real-time data     | ❌           | ✅     | ✅     |
+| Implementation     | Simple       | Medium | Medium |
+| Performance (deep) | O(offset)    | O(1)   | O(1)   |
 
 ## Rate Limiting Algorithms
 
@@ -502,10 +526,12 @@ LIMIT 20
 **Mechanism:** Bucket holds tokens. Each request consumes a token. Tokens refill at fixed rate up to bucket capacity.
 
 **Parameters:**
+
 - Bucket capacity: Maximum burst size
 - Refill rate: Sustained request rate
 
 **Behavior:**
+
 - Allows bursts up to capacity
 - After burst, rate limited to refill rate
 - Unused capacity accumulates (up to max)
@@ -519,6 +545,7 @@ t=10: 7 tokens (2 + 5 refilled)
 ```
 
 **Trade-offs:**
+
 - ✅ Allows legitimate bursts
 - ✅ Simple state (count + timestamp)
 - ✅ Memory efficient
@@ -534,6 +561,7 @@ t=10: 7 tokens (2 + 5 refilled)
 **Key difference from token bucket:** Output rate is constant, not bursty.
 
 **Trade-offs:**
+
 - ✅ Smooth, predictable output rate
 - ✅ Protects downstream from bursts
 - ❌ No burst allowance—legitimate spikes rejected
@@ -556,10 +584,10 @@ Effective count: 30 + (50 × 35/60) = 59.2 requests
 
 **Trade-offs:**
 
-| Variant | Memory | Accuracy | Burst Handling |
-|---------|--------|----------|----------------|
-| Log | O(requests) | Exact | Smooth |
-| Counter | O(1) | Approximate | Smooth |
+| Variant | Memory      | Accuracy    | Burst Handling |
+| ------- | ----------- | ----------- | -------------- |
+| Log     | O(requests) | Exact       | Smooth         |
+| Counter | O(1)        | Approximate | Smooth         |
 
 **Real-world:** Redis-based rate limiters often use sliding window counter for balance of accuracy and memory efficiency.
 
@@ -584,12 +612,14 @@ Retry-After: 30
 **Current version:** OpenAPI 3.1 (2021) achieved full JSON Schema compatibility.
 
 **What it defines:**
+
 - Endpoints, methods, parameters
 - Request/response schemas
 - Authentication methods
 - Server URLs
 
 **Tooling ecosystem:**
+
 - Code generation (client SDKs, server stubs)
 - Documentation (Swagger UI, Redoc)
 - Testing (Postman, Insomnia import)
@@ -602,6 +632,7 @@ Retry-After: 30
 **Purpose:** OpenAPI equivalent for message-based APIs (Kafka, RabbitMQ, WebSockets).
 
 **Key differences from OpenAPI:**
+
 - Channels instead of paths
 - Messages instead of request/response
 - Bindings for protocol-specific config
@@ -633,6 +664,7 @@ channels:
 **Problem:** Needed real-time messaging, REST-like simplicity for integrations, efficient mobile sync.
 
 **Solution:**
+
 - **Web API:** REST for third-party integrations (familiar, cacheable)
 - **RTM API:** WebSocket for real-time events
 - **Events API:** Webhooks for server-to-server
@@ -644,6 +676,7 @@ channels:
 **Scale:** 100% internal traffic uses gRPC.
 
 **Why:**
+
 - Multilingual services (Java, Node, Python) need shared contract
 - Built-in load balancing and health checking
 - Streaming for large recommendation payloads
@@ -658,6 +691,7 @@ channels:
 **Solution:** GraphQL API alongside REST.
 
 **Implementation details:**
+
 - Persisted queries for mobile (reduced payload, enabled caching)
 - Query complexity limits (prevent abuse)
 - REST API maintained for backward compatibility
@@ -716,16 +750,17 @@ query {
 
 Protocol selection requires matching characteristics to constraints:
 
-| Constraint | REST | gRPC | GraphQL |
-|------------|------|------|---------|
-| Public API | ✅ Best | ❌ Proxy needed | ⚠️ Query limits required |
-| Internal services | ⚠️ Verbose | ✅ Best | ⚠️ Overkill |
-| Mobile apps | ⚠️ Many round trips | ✅ Efficient | ✅ Flexible |
-| Browser direct | ✅ Native | ❌ gRPC-Web | ✅ Works |
-| Streaming | ❌ Workarounds | ✅ Native | ⚠️ Subscriptions |
-| Caching | ✅ HTTP native | ❌ Custom | ⚠️ Complex |
+| Constraint        | REST                | gRPC            | GraphQL                  |
+| ----------------- | ------------------- | --------------- | ------------------------ |
+| Public API        | ✅ Best             | ❌ Proxy needed | ⚠️ Query limits required |
+| Internal services | ⚠️ Verbose          | ✅ Best         | ⚠️ Overkill              |
+| Mobile apps       | ⚠️ Many round trips | ✅ Efficient    | ✅ Flexible              |
+| Browser direct    | ✅ Native           | ❌ gRPC-Web     | ✅ Works                 |
+| Streaming         | ❌ Workarounds      | ✅ Native       | ⚠️ Subscriptions         |
+| Caching           | ✅ HTTP native      | ❌ Custom       | ⚠️ Complex               |
 
 **The pragmatic approach:**
+
 - REST for public APIs and browser-direct calls
 - gRPC for internal service mesh
 - GraphQL when client flexibility outweighs server complexity
@@ -752,7 +787,6 @@ Versioning, pagination, and rate limiting aren't optional add-ons—they're fund
 
 ### References
 
-- [Fielding Dissertation: REST Architectural Style](https://ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm) - Original REST definition
 - [Martin Fowler: Richardson Maturity Model](https://martinfowler.com/articles/richardsonMaturityModel.html) - REST maturity levels explained
 - [gRPC Core Concepts](https://grpc.io/docs/what-is-grpc/core-concepts/) - Official gRPC documentation
 - [Protocol Buffers Encoding](https://protobuf.dev/programming-guides/encoding/) - Wire format specification

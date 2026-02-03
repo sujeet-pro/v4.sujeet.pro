@@ -64,12 +64,12 @@ flowchart LR
 
 **Technology selection rationale:**
 
-| Component       | Choice                 | Why                                                                                           |
-| --------------- | ---------------------- | --------------------------------------------------------------------------------------------- |
-| Image processor | Sharp 0.34+ (libvips)  | 26x faster than jimp, 4-5x faster than ImageMagick, ~50MB memory per worker                   |
-| Distributed lock| Redlock                | Sufficient for efficiency (not correctness); simpler than etcd/ZooKeeper                      |
-| Formats         | AVIF → WebP → JPEG     | AVIF: 94.89% browser support, 50% smaller than JPEG. WebP: 95.93% support, 25-34% savings     |
-| Database        | PostgreSQL + JSONB     | Row-level security, flexible policy storage, proven at scale                                  |
+| Component        | Choice                | Why                                                                                       |
+| ---------------- | --------------------- | ----------------------------------------------------------------------------------------- |
+| Image processor  | Sharp 0.34+ (libvips) | 26x faster than jimp, 4-5x faster than ImageMagick, ~50MB memory per worker               |
+| Distributed lock | Redlock               | Sufficient for efficiency (not correctness); simpler than etcd/ZooKeeper                  |
+| Formats          | AVIF → WebP → JPEG    | AVIF: 94.89% browser support, 50% smaller than JPEG. WebP: 95.93% support, 25-34% savings |
+| Database         | PostgreSQL + JSONB    | Row-level security, flexible policy storage, proven at scale                              |
 
 ## System Overview
 
@@ -175,11 +175,11 @@ flowchart LR
 
 #### Image Processing Library
 
-| Technology          | Pros                                                      | Cons                     | Recommendation             |
-| ------------------- | --------------------------------------------------------- | ------------------------ | -------------------------- |
-| **Sharp (libvips)** | 26x faster than jimp, low memory (~50MB), modern formats  | Linux-focused build      | ✅ **Recommended**         |
-| ImageMagick         | Feature-rich, mature                                      | 4-5x slower than Sharp   | Use for complex operations |
-| Jimp                | Pure JavaScript, portable                                 | Very slow, limited formats | Development only         |
+| Technology          | Pros                                                     | Cons                       | Recommendation             |
+| ------------------- | -------------------------------------------------------- | -------------------------- | -------------------------- |
+| **Sharp (libvips)** | 26x faster than jimp, low memory (~50MB), modern formats | Linux-focused build        | ✅ **Recommended**         |
+| ImageMagick         | Feature-rich, mature                                     | 4-5x slower than Sharp     | Use for complex operations |
+| Jimp                | Pure JavaScript, portable                                | Very slow, limited formats | Development only           |
 
 **Choice**: **Sharp 0.34+** (latest: 0.34.5, November 2025) with libvips 8.18 for primary processing.
 
@@ -285,12 +285,12 @@ import crypto from "crypto"
 
 #### Distributed Locking
 
-| Technology          | Pros                          | Cons                                     | Recommendation         |
-| ------------------- | ----------------------------- | ---------------------------------------- | ---------------------- |
-| **Redlock (Redis)** | Simple, Redis-based           | No fencing tokens, clock skew risk       | ✅ For efficiency only |
-| etcd                | Linearizable, fencing tokens  | Separate service, higher latency         | Safety-critical use    |
-| ZooKeeper           | Strong consistency, mature    | Complex operations, JVM dependency       | Safety-critical use    |
-| Database locks      | Simple, transactional         | Contention, less scalable                | Development only       |
+| Technology          | Pros                         | Cons                               | Recommendation         |
+| ------------------- | ---------------------------- | ---------------------------------- | ---------------------- |
+| **Redlock (Redis)** | Simple, Redis-based          | No fencing tokens, clock skew risk | ✅ For efficiency only |
+| etcd                | Linearizable, fencing tokens | Separate service, higher latency   | Safety-critical use    |
+| ZooKeeper           | Strong consistency, mature   | Complex operations, JVM dependency | Safety-critical use    |
+| Database locks      | Simple, transactional        | Contention, less scalable          | Development only       |
 
 **Choice**: **Redlock** with Redis for transform deduplication (efficiency), **not** for safety-critical mutual exclusion.
 
@@ -571,12 +571,12 @@ Use JWT (JSON Web Token) instead of HMAC signatures. The edge can decode and val
 
 **CDN-specific implementation notes:**
 
-| CDN             | Edge Auth Capability                                      | Cache Key Normalization         |
-| --------------- | --------------------------------------------------------- | ------------------------------- |
-| CloudFlare      | Workers (full JS), Rules (limited)                        | `cf.cacheKey` in Workers        |
-| CloudFront      | Functions (limited JS), Lambda@Edge (full Node.js)        | `cache-policy` with query keys  |
-| Fastly          | Compute@Edge (Rust/JS/Go), VCL                            | `req.hash` manipulation in VCL  |
-| Akamai          | EdgeWorkers (JS), Property Manager                        | Cache ID modification           |
+| CDN        | Edge Auth Capability                               | Cache Key Normalization        |
+| ---------- | -------------------------------------------------- | ------------------------------ |
+| CloudFlare | Workers (full JS), Rules (limited)                 | `cf.cacheKey` in Workers       |
+| CloudFront | Functions (limited JS), Lambda@Edge (full Node.js) | `cache-policy` with query keys |
+| Fastly     | Compute@Edge (Rust/JS/Go), VCL                     | `req.hash` manipulation in VCL |
+| Akamai     | EdgeWorkers (JS), Property Manager                 | Cache ID modification          |
 
 ---
 
@@ -2853,6 +2853,7 @@ LIMIT 100;
 **Scenario**: Asset updated, but stale version persists in CDN edge caches.
 
 **Root causes**:
+
 - Invalidation API rate limits exceeded
 - Propagation delays (CDNs quote 0-60 seconds, but outliers exist)
 - Wildcard invalidation missed specific paths
@@ -2958,15 +2959,15 @@ This architecture provides a production-ready foundation for building a cloud-ag
 
 ### Terminology
 
-| Term                    | Definition                                                                                      |
-| ----------------------- | ----------------------------------------------------------------------------------------------- |
-| **Asset**               | An original uploaded image, stored with its content hash                                        |
-| **Derived Asset**       | A transformed version of an asset, identified by the hash of (original + operations)           |
-| **Content-Addressed**   | Storage keyed by content hash rather than arbitrary ID; same content → same key                 |
-| **Fencing Token**       | Monotonically increasing token used to detect stale lock holders                                |
-| **Operations Hash**     | SHA-256 of (canonical operation string + original content hash + output format)                 |
-| **Signed URL**          | URL with cryptographic signature proving authorization; includes expiration timestamp           |
-| **Storage Tier**        | Access latency class: hot (ms), warm (seconds), cold (minutes to hours)                         |
+| Term                           | Definition                                                                                    |
+| ------------------------------ | --------------------------------------------------------------------------------------------- |
+| **Asset**                      | An original uploaded image, stored with its content hash                                      |
+| **Derived Asset**              | A transformed version of an asset, identified by the hash of (original + operations)          |
+| **Content-Addressed**          | Storage keyed by content hash rather than arbitrary ID; same content → same key               |
+| **Fencing Token**              | Monotonically increasing token used to detect stale lock holders                              |
+| **Operations Hash**            | SHA-256 of (canonical operation string + original content hash + output format)               |
+| **Signed URL**                 | URL with cryptographic signature proving authorization; includes expiration timestamp         |
+| **Storage Tier**               | Access latency class: hot (ms), warm (seconds), cold (minutes to hours)                       |
 | **Transform Canonicalization** | Normalizing operation parameters to ensure equivalent transforms produce identical cache keys |
 
 ### Summary

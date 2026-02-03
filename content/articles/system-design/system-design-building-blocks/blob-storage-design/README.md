@@ -59,15 +59,15 @@ The fundamental trade-off: **storage overhead vs. durability vs. access latency*
 
 ### Object vs. Block vs. File Storage
 
-| Characteristic | Object Storage | Block Storage | File Storage |
-|----------------|----------------|---------------|--------------|
-| **Data model** | Objects (key → binary data + metadata) | Fixed-size blocks with unique IDs | Hierarchical files and directories |
-| **Access** | REST API (HTTP) | iSCSI / Fibre Channel | NFS / SMB |
-| **Namespace** | Flat (bucket + key) | Volume + block address | Directory tree |
-| **Best for** | Unstructured data, backups, media | Databases, VMs, transactional | Shared filesystems, content management |
-| **Latency** | Milliseconds | Sub-millisecond | Milliseconds |
-| **Scalability** | Exabytes | Petabytes | Petabytes |
-| **Modification** | Replace entire object | In-place block update | In-place file update |
+| Characteristic   | Object Storage                         | Block Storage                     | File Storage                           |
+| ---------------- | -------------------------------------- | --------------------------------- | -------------------------------------- |
+| **Data model**   | Objects (key → binary data + metadata) | Fixed-size blocks with unique IDs | Hierarchical files and directories     |
+| **Access**       | REST API (HTTP)                        | iSCSI / Fibre Channel             | NFS / SMB                              |
+| **Namespace**    | Flat (bucket + key)                    | Volume + block address            | Directory tree                         |
+| **Best for**     | Unstructured data, backups, media      | Databases, VMs, transactional     | Shared filesystems, content management |
+| **Latency**      | Milliseconds                           | Sub-millisecond                   | Milliseconds                           |
+| **Scalability**  | Exabytes                               | Petabytes                         | Petabytes                              |
+| **Modification** | Replace entire object                  | In-place block update             | In-place file update                   |
 
 **Design reasoning:** Object storage chose a flat namespace and immutable objects specifically to simplify distribution. Without directory hierarchies, there's no need to maintain tree consistency across nodes. Without in-place updates, writes are append-only—eliminating write conflicts and enabling aggressive caching.
 
@@ -113,12 +113,12 @@ An object consists of:
 
 **Chunk size trade-offs:**
 
-| Chunk Size | Metadata Overhead | Dedup Potential | Network Efficiency | Use Case |
-|------------|-------------------|-----------------|--------------------|-----------|
-| 4 KB | Very high | Maximum | Poor (high overhead per transfer) | Databases |
-| 64 KB - 1 MB | Moderate | High | Good | General purpose |
-| 4-8 MB | Low | Moderate | Optimal for large files | Backups, media |
-| 64 MB | Very low | Low | Best throughput | Analytics, logs |
+| Chunk Size   | Metadata Overhead | Dedup Potential | Network Efficiency                | Use Case        |
+| ------------ | ----------------- | --------------- | --------------------------------- | --------------- |
+| 4 KB         | Very high         | Maximum         | Poor (high overhead per transfer) | Databases       |
+| 64 KB - 1 MB | Moderate          | High            | Good                              | General purpose |
+| 4-8 MB       | Low               | Moderate        | Optimal for large files           | Backups, media  |
+| 64 MB        | Very low          | Low             | Best throughput                   | Analytics, logs |
 
 #### Content-Defined Chunking (CDC)
 
@@ -142,11 +142,11 @@ An object consists of:
 
 **CDC Algorithms:**
 
-| Algorithm | Speed | Dedup Ratio | Implementation |
-|-----------|-------|-------------|----------------|
-| Rabin Fingerprinting | Baseline | Best | Polynomial division, complex |
-| Gear-based | 2× Rabin | Near-Rabin | Bit operations, simpler |
-| FastCDC | 10× Rabin | Near-Rabin | Optimized hash judgment |
+| Algorithm            | Speed     | Dedup Ratio | Implementation               |
+| -------------------- | --------- | ----------- | ---------------------------- |
+| Rabin Fingerprinting | Baseline  | Best        | Polynomial division, complex |
+| Gear-based           | 2× Rabin  | Near-Rabin  | Bit operations, simpler      |
+| FastCDC              | 10× Rabin | Near-Rabin  | Optimized hash judgment      |
 
 **FastCDC innovations (USENIX ATC 2016):**
 
@@ -225,6 +225,7 @@ Result: 10× faster than Rabin-based CDC with near-identical deduplication ratio
 **Memory requirements comparison:**
 
 For 1 PB data with 8 KB average chunks:
+
 - Block-level: ~125 billion chunks × 48 bytes/entry ≈ 6 TB index
 - File-level (1 KB avg file): ~1 trillion files × 48 bytes/entry ≈ 48 TB index
 - File-level (1 MB avg file): ~1 billion files × 48 bytes/entry ≈ 48 GB index
@@ -276,13 +277,13 @@ Bloom filter in RAM filters 99%+ of lookups before hitting disk.
 
 Data and metadata have fundamentally different access patterns:
 
-| Characteristic | Metadata | Data |
-|----------------|----------|------|
-| **Access pattern** | Random, high IOPS | Sequential, high throughput |
-| **Size per operation** | Bytes to kilobytes | Kilobytes to megabytes |
-| **Consistency** | Strong (must be correct) | Eventually consistent (okay) |
-| **Update frequency** | High (listings, stats) | Low (write-once) |
-| **Scaling dimension** | IOPS | Bandwidth |
+| Characteristic         | Metadata                 | Data                         |
+| ---------------------- | ------------------------ | ---------------------------- |
+| **Access pattern**     | Random, high IOPS        | Sequential, high throughput  |
+| **Size per operation** | Bytes to kilobytes       | Kilobytes to megabytes       |
+| **Consistency**        | Strong (must be correct) | Eventually consistent (okay) |
+| **Update frequency**   | High (listings, stats)   | Low (write-once)             |
+| **Scaling dimension**  | IOPS                     | Bandwidth                    |
 
 Separating them enables independent optimization and scaling.
 
@@ -339,11 +340,11 @@ Separating them enables independent optimization and scaling.
 
 ### Consistency Models
 
-| System | Consistency Model | Guarantee |
-|--------|-------------------|-----------|
-| AWS S3 | Read-after-write (new objects), eventual (overwrites/deletes) | New object immediately visible; overwrites may show old value briefly |
-| Azure Blob | Strong consistency | Write immediately visible to all subsequent reads |
-| Google Cloud Storage | Strong consistency | Write immediately visible after success response |
+| System               | Consistency Model                                             | Guarantee                                                             |
+| -------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------- |
+| AWS S3               | Read-after-write (new objects), eventual (overwrites/deletes) | New object immediately visible; overwrites may show old value briefly |
+| Azure Blob           | Strong consistency                                            | Write immediately visible to all subsequent reads                     |
+| Google Cloud Storage | Strong consistency                                            | Write immediately visible after success response                      |
 
 **Design reasoning:** Strong consistency simplifies application logic (no retry loops checking if write succeeded). The cost is coordination overhead. S3's weaker guarantee for overwrites enables higher throughput.
 
@@ -419,6 +420,7 @@ Azure innovation (USENIX ATC 2012) optimizing for common single-failure case.
 Standard Reed-Solomon (12,4): Reconstruct 1 failed chunk → read 12 chunks.
 
 LRC (12,4,2):
+
 - 12 data + 4 parity = 16 total
 - Data split into 2 local groups of 6
 - Each group has 1 local parity
@@ -512,12 +514,12 @@ Incomplete multipart uploads create orphaned parts. Lifecycle rule `AbortIncompl
 
 ### Storage Tiers
 
-| Tier | Access Frequency | Retrieval Time | Storage Cost | Retrieval Cost | Use Case |
-|------|------------------|----------------|--------------|----------------|----------|
-| **Hot** | Frequent | Milliseconds | $$$ | Free | Active datasets |
-| **Warm** | Monthly | Milliseconds | $$ | $ | Quarterly reports |
-| **Cold** | Quarterly | Minutes | $ | $$ | Compliance archives |
-| **Archive** | Yearly | Hours | ¢ | $$$ | Legal holds |
+| Tier        | Access Frequency | Retrieval Time | Storage Cost | Retrieval Cost | Use Case            |
+| ----------- | ---------------- | -------------- | ------------ | -------------- | ------------------- |
+| **Hot**     | Frequent         | Milliseconds   | $$$          | Free           | Active datasets     |
+| **Warm**    | Monthly          | Milliseconds   | $$           | $              | Quarterly reports   |
+| **Cold**    | Quarterly        | Minutes        | $            | $$             | Compliance archives |
+| **Archive** | Yearly           | Hours          | ¢            | $$$            | Legal holds         |
 
 ### Automatic Tiering
 

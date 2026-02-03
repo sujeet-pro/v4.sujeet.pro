@@ -100,15 +100,15 @@ The W3C Design Tokens Community Group (DTCG) specification reached its first sta
 
 [Style Dictionary v4](https://styledictionary.com/) is the industry-standard build system for design tokens. Key changes from v3:
 
-| Change | v3 Behavior | v4 Behavior | Why It Matters |
-| ------ | ----------- | ----------- | -------------- |
-| **Format** | Custom `value`/`type` properties | DTCG `$value`/`$type` support | Tool interoperability |
-| **CTI Coupling** | Hard-coded Category-Type-Item structure | Uses `token.type` property | Flexible naming |
-| **Transforms** | Limited chaining | Transitive transforms resolve reference chains | Complex aliases work |
+| Change           | v3 Behavior                             | v4 Behavior                                    | Why It Matters        |
+| ---------------- | --------------------------------------- | ---------------------------------------------- | --------------------- |
+| **Format**       | Custom `value`/`type` properties        | DTCG `$value`/`$type` support                  | Tool interoperability |
+| **CTI Coupling** | Hard-coded Category-Type-Item structure | Uses `token.type` property                     | Flexible naming       |
+| **Transforms**   | Limited chaining                        | Transitive transforms resolve reference chains | Complex aliases work  |
 
 ```javascript title="style-dictionary.config.mjs" collapse={1-2, 22-35}
 // Style Dictionary v4 configuration with DTCG support
-import StyleDictionary from 'style-dictionary';
+import StyleDictionary from "style-dictionary"
 
 export default {
   source: ["tokens/**/*.json"],
@@ -116,11 +116,13 @@ export default {
     css: {
       transformGroup: "css",
       buildPath: "dist/css/",
-      files: [{
-        destination: "variables.css",
-        format: "css/variables",
-        options: { outputReferences: true }, // Preserve aliases: --color-action: var(--color-blue-500)
-      }],
+      files: [
+        {
+          destination: "variables.css",
+          format: "css/variables",
+          options: { outputReferences: true }, // Preserve aliases: --color-action: var(--color-blue-500)
+        },
+      ],
     },
     js: {
       transformGroup: "js",
@@ -139,26 +141,26 @@ export default {
       files: [{ destination: "tokens.xml", format: "android/resources" }],
     },
   },
-};
+}
 ```
 
 **Three-Tier Token Architecture:**
 
-| Tier | Purpose | Example | When to Add |
-| ---- | ------- | ------- | ----------- |
-| **Primitives** | Raw values defining what styles exist | `color-blue-500: #0070f3` | Always (foundation) |
-| **Semantics** | Intent-based mappings | `color-action-primary: {color.blue.500}` | Always (enables theming) |
-| **Components** | Element-specific bindings | `button-background: {color.action.primary}` | Only for multi-brand/white-label |
+| Tier           | Purpose                               | Example                                     | When to Add                      |
+| -------------- | ------------------------------------- | ------------------------------------------- | -------------------------------- |
+| **Primitives** | Raw values defining what styles exist | `color-blue-500: #0070f3`                   | Always (foundation)              |
+| **Semantics**  | Intent-based mappings                 | `color-action-primary: {color.blue.500}`    | Always (enables theming)         |
+| **Components** | Element-specific bindings             | `button-background: {color.action.primary}` | Only for multi-brand/white-label |
 
 **Design reasoning**: Most systems operate well with primitives and semantic tokens alone. Component tokens multiply maintenance overhead—a 200-token semantic layer can balloon to 2000+ with component tokens. Only introduce the third tier when multi-brand theming or white-labeling requires granular per-component customization.
 
 **Measuring Token Effectiveness**
 
-| Metric | Target | Why It Matters |
-| ------ | ------ | -------------- |
-| Token Coverage | >90% of UI | Below 90% indicates adoption gaps or missing tokens |
-| Theme Count | ≥2 functional themes | Validates the token architecture actually enables theming |
-| Build Time | <10s for full rebuild | Slow builds discourage iteration and CI feedback |
+| Metric         | Target                | Why It Matters                                            |
+| -------------- | --------------------- | --------------------------------------------------------- |
+| Token Coverage | >90% of UI            | Below 90% indicates adoption gaps or missing tokens       |
+| Theme Count    | ≥2 functional themes  | Validates the token architecture actually enables theming |
+| Build Time     | <10s for full rebuild | Slow builds discourage iteration and CI feedback          |
 
 ### Component Library Implementation
 
@@ -172,11 +174,11 @@ React remains the dominant choice for design system component libraries, with Ty
 
 Building accessible components from scratch is expensive and error-prone. The pragmatic choice is standing on the shoulders of accessibility experts:
 
-| Library | Approach | Weekly Downloads | Best For |
-| ------- | -------- | ---------------- | -------- |
-| **Radix UI** | Unstyled primitives + optional Radix Themes | 2M+ | Teams wanting maximum styling control |
-| **React Aria** | Hooks + optional components | 260K+ | Complex ARIA patterns, i18n |
-| **Headless UI** | Tailwind-focused components | 500K+ | Tailwind-native teams |
+| Library         | Approach                                    | Weekly Downloads | Best For                              |
+| --------------- | ------------------------------------------- | ---------------- | ------------------------------------- |
+| **Radix UI**    | Unstyled primitives + optional Radix Themes | 2M+              | Teams wanting maximum styling control |
+| **React Aria**  | Hooks + optional components                 | 260K+            | Complex ARIA patterns, i18n           |
+| **Headless UI** | Tailwind-focused components                 | 500K+            | Tailwind-native teams                 |
 
 **Design reasoning**: These libraries handle focus management, keyboard navigation, and ARIA attributes correctly. Radix now offers a unified `radix-ui` package with tree-shakeable exports. React Aria's `react-aria-components` layer provides simpler consumption than raw hooks.
 
@@ -187,14 +189,14 @@ RSC is production-ready in Next.js 15+. Design systems must consider the server/
 ```tsx title="RSC-compatible component pattern" collapse={1-4}
 // Server-safe: no useState, useEffect, event handlers
 // Client components need 'use client' directive
-'use client';
+"use client"
 
-import { useState } from 'react';
-import { Button as RadixButton } from '@radix-ui/react-button';
+import { useState } from "react"
+import { Button as RadixButton } from "@radix-ui/react-button"
 
 export function InteractiveButton({ children, ...props }) {
-  const [loading, setLoading] = useState(false);
-  return <RadixButton {...props}>{loading ? 'Loading...' : children}</RadixButton>;
+  const [loading, setLoading] = useState(false)
+  return <RadixButton {...props}>{loading ? "Loading..." : children}</RadixButton>
 }
 ```
 
@@ -236,29 +238,29 @@ export function ConfirmDialog({ title, description, onConfirm, onCancel }) {
 
 Storybook 8 (released March 2024, with 8.2+ updates through 2025) is the standard development environment for design systems. Key features for implementation:
 
-| Feature | Benefit | Configuration |
-| ------- | ------- | ------------- |
-| **Visual Tests Addon** | Chromatic integration built-in | `@chromatic-com/storybook` |
-| **RSC Support** | Experimental React Server Components | Next.js framework only |
-| **Autodocs** | 25-50% faster React docgen | `tags: ['autodocs']` |
-| **Test Builds** | 2-4x faster CI | SWC support for Webpack |
+| Feature                | Benefit                              | Configuration              |
+| ---------------------- | ------------------------------------ | -------------------------- |
+| **Visual Tests Addon** | Chromatic integration built-in       | `@chromatic-com/storybook` |
+| **RSC Support**        | Experimental React Server Components | Next.js framework only     |
+| **Autodocs**           | 25-50% faster React docgen           | `tags: ['autodocs']`       |
+| **Test Builds**        | 2-4x faster CI                       | SWC support for Webpack    |
 
 ```typescript title=".storybook/main.ts" collapse={1-2}
-import type { StorybookConfig } from "@storybook/react-vite";
+import type { StorybookConfig } from "@storybook/react-vite"
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.@(ts|tsx)"],
   addons: [
     "@storybook/addon-essentials",
-    "@storybook/addon-a11y",           // Automated accessibility checks
-    "@storybook/addon-interactions",    // Interactive testing
-    "@chromatic-com/storybook",         // Visual regression (Storybook 8+)
+    "@storybook/addon-a11y", // Automated accessibility checks
+    "@storybook/addon-interactions", // Interactive testing
+    "@chromatic-com/storybook", // Visual regression (Storybook 8+)
   ],
   framework: "@storybook/react-vite",
   docs: { autodocs: "tag" },
-};
+}
 
-export default config;
+export default config
 ```
 
 **Story Organization for Scale**
@@ -272,10 +274,10 @@ Organize stories by function (Forms, Navigation, Feedback) rather than implement
 
 **Visual Regression Testing (2025 Pricing)**
 
-| Tool | Cost | Key Differentiator |
-| ---- | ---- | ------------------ |
-| **Chromatic** | $0.006/snapshot | Git-based baselines, Storybook-native |
-| **Percy** | $0.036/screenshot | OCR-based detection, cross-browser |
+| Tool          | Cost              | Key Differentiator                    |
+| ------------- | ----------------- | ------------------------------------- |
+| **Chromatic** | $0.006/snapshot   | Git-based baselines, Storybook-native |
+| **Percy**     | $0.036/screenshot | OCR-based detection, cross-browser    |
 
 **Design reasoning**: Chromatic's Git-based baseline management means baselines persist through branches and merges like code changes. Percy's OCR detection eliminates false positives from minor text rendering differences. Choose Chromatic for Storybook-centric workflows; Percy for full-page cross-browser validation.
 
@@ -501,7 +503,7 @@ new ModuleFederationPlugin({
     "react-dom": { singleton: true, requiredVersion: "^18.0.0" },
     "@company/design-system": { singleton: true, requiredVersion: "^3.0.0" },
   },
-});
+})
 ```
 
 This creates upgrade coupling: to upgrade the design system, all microfrontends must be compatible with the new version. If microfrontend A requires design system v4 but microfrontend B hasn't been tested with v4, the upgrade blocks.
@@ -1119,16 +1121,16 @@ Design system implementation succeeds when architecture anticipates change, dist
 
 ### Terminology
 
-| Term | Definition |
-| ---- | ---------- |
-| **DTCG** | Design Tokens Community Group—W3C community group authoring the token specification (v2025.10 stable) |
-| **RSC** | React Server Components—React architecture where components render on the server, reducing client bundle size |
-| **Headless Components** | UI components providing behavior and accessibility without styling (Radix, React Aria, Headless UI) |
-| **Codemod** | Programmatic code transformation using AST manipulation, typically via jscodeshift |
-| **Strangler Fig Pattern** | Migration strategy where new functionality uses the new system while legacy is incrementally replaced |
-| **Module Federation** | Webpack/Vite feature enabling runtime sharing of JavaScript modules across separately deployed applications |
-| **Changesets** | Versioning tool for monorepos that tracks changes at PR time and automates version bumps and changelogs |
-| **Detachment Rate** | Percentage of component instances where teams override or disconnect from the design system version |
+| Term                      | Definition                                                                                                    |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **DTCG**                  | Design Tokens Community Group—W3C community group authoring the token specification (v2025.10 stable)         |
+| **RSC**                   | React Server Components—React architecture where components render on the server, reducing client bundle size |
+| **Headless Components**   | UI components providing behavior and accessibility without styling (Radix, React Aria, Headless UI)           |
+| **Codemod**               | Programmatic code transformation using AST manipulation, typically via jscodeshift                            |
+| **Strangler Fig Pattern** | Migration strategy where new functionality uses the new system while legacy is incrementally replaced         |
+| **Module Federation**     | Webpack/Vite feature enabling runtime sharing of JavaScript modules across separately deployed applications   |
+| **Changesets**            | Versioning tool for monorepos that tracks changes at PR time and automates version bumps and changelogs       |
+| **Detachment Rate**       | Percentage of component instances where teams override or disconnect from the design system version           |
 
 ### Summary
 
@@ -1159,7 +1161,6 @@ Design system implementation succeeds when architecture anticipates change, dist
 **Core Maintainer Content**
 
 - [Martin Fowler - Strangler Fig Application](https://martinfowler.com/bliki/StranglerFigApplication.html) - Original pattern description
-- [Martin Fowler - Codemods for API Refactoring](https://martinfowler.com/articles/codemods-api-refactoring.html) - Programmatic code transformation
 - [Nathan Curtis - Team Models for Scaling](https://medium.com/eightshapes-llc/team-models-for-scaling-a-design-system-2cf9d03be6a0) - Centralized, federated, and hybrid models
 
 **Migration Patterns**

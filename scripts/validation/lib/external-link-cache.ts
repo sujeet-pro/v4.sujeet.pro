@@ -1,6 +1,18 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 
+// Internal domains that should never be cached in external link cache
+const INTERNAL_DOMAINS = ["sujeet.pro", "www.sujeet.pro", "localhost", "127.0.0.1"]
+
+function isInternalUrl(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase()
+    return INTERNAL_DOMAINS.some((domain) => hostname === domain || hostname.endsWith(`.${domain}`))
+  } catch {
+    return false
+  }
+}
+
 export interface ExternalLinkCacheEntry {
   status: number | null
   ok: boolean
@@ -39,6 +51,7 @@ export function loadExternalLinkCache(cachePath: string = DEFAULT_CACHE_PATH): E
 
 export function saveExternalLinkCache(cache: ExternalLinkCacheFile, cachePath: string = DEFAULT_CACHE_PATH) {
   const sortedEntries = Object.keys(cache.entries)
+    .filter((url) => !isInternalUrl(url)) // Filter out internal site URLs
     .sort()
     .reduce<Record<string, ExternalLinkCacheEntry>>((acc, key) => {
       const entry = cache.entries[key]

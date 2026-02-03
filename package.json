@@ -24,7 +24,7 @@
     "validate:content:vanity": "npx tsx scripts/validation/validate-content-vanity.ts",
     "validate:content:links": "npx tsx scripts/validation/validate-content-links.ts",
     "validate:content": "npx tsx scripts/validation/validate-content.ts",
-    "validate:local": "npx tsx scripts/validation/validate-live-site.ts http://localhost:4322",
+    "validate:local": "npx tsx scripts/validation/validate-live-site.ts http://localhost:4321",
     "validate:prod": "npx tsx scripts/validation/validate-live-site.ts https://sujeet.pro",
     "validate:hosted": "npm run validate:local && npm run validate:prod",
     "validate": "npx tsx scripts/validation/validate.ts",

@@ -76,12 +76,12 @@ When you type `j 123` and press Enter, Chrome substitutes `123` for `%s` and nav
 
 ### AI Tools
 
-| Tool           | Keyword  | URL Template                            | Status (January 2026)             |
-| :------------- | :------- | :-------------------------------------- | :-------------------------------- |
-| **Perplexity** | `p`      | `https://www.perplexity.ai/search?q=%s` | Works; auto-submits               |
-| **Claude**     | `c`      | `https://claude.ai/new?q=%s`            | Broken since October 2025         |
+| Tool           | Keyword  | URL Template                            | Status (January 2026)              |
+| :------------- | :------- | :-------------------------------------- | :--------------------------------- |
+| **Perplexity** | `p`      | `https://www.perplexity.ai/search?q=%s` | Works; auto-submits                |
+| **Claude**     | `c`      | `https://claude.ai/new?q=%s`            | Broken since October 2025          |
 | **ChatGPT**    | `gpt`    | `https://chatgpt.com/?q=%s`             | Restricted; security modifications |
-| **Gemini**     | `gemini` | Use `@gemini` in omnibox                | Requires Chrome's native shortcut |
+| **Gemini**     | `gemini` | Use `@gemini` in omnibox                | Requires Chrome's native shortcut  |
 
 **Current status by tool:**
 
@@ -165,8 +165,8 @@ Browser-agnostic tools are essential for developers who test across Chrome, Fire
 
 ### Development
 
-| Extension                                                                                                                    | Purpose                                                                                                                                                                                                                                      |
-| :--------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Extension                                                                                                                    | Purpose                                                                                                                                                                                                                                            |
+| :--------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **[React Developer Tools](https://chromewebstore.google.com/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi)** | Adds "Components" and "Profiler" tabs to DevTools. Inspect component hierarchy, props, state; profile render performance. Version 7.0.1 (October 2025) adds full React 19 support including `useActionState`, `useOptimistic`, and the `use` hook. |
 | **[uBlock Origin Lite](https://chromewebstore.google.com/detail/ublock-origin-lite/ddkjiahejlhfcafbddmgiahcphecmpfh)**       | MV3 ad blocker using Declarative Net Request (DNR) API. Limited to 30,000 filtering rules (vs. unlimited in full uBlock Origin). Blocks ~60% of what the full version catches—adequate for basic ads, insufficient for sophisticated ad networks.  |
 
@@ -181,9 +181,9 @@ Browser-agnostic tools are essential for developers who test across Chrome, Fire
 
 **The Manifest V3 reality (June 2025):** Chrome removed MV2 support entirely in Chrome 139 (June 2025). The original uBlock Origin is no longer available on Chrome Web Store and cannot be re-enabled.
 
-| Timeline               | Event                                                          |
-| :--------------------- | :------------------------------------------------------------- |
-| October 2024           | Gradual MV2 disabling began in Chrome stable                   |
+| Timeline               | Event                                                           |
+| :--------------------- | :-------------------------------------------------------------- |
+| October 2024           | Gradual MV2 disabling began in Chrome stable                    |
 | June 2025 (Chrome 139) | MV2 support removed entirely; enterprise policy exemption ended |
 
 **Why MV3 limits ad blockers:** MV2's `webRequest` API allowed extensions to intercept and modify network requests dynamically—this powered uBlock Origin's context-aware blocking. MV3's Declarative Net Request (DNR) API requires extensions to declare static filtering rules in advance, capped at 30,000 rules. The result: uBlock Origin Lite cannot perform the dynamic blocking that made the original effective against sophisticated ad networks.
@@ -214,12 +214,12 @@ The extension operates in a side panel while you browse. Key features:
 
 **Model availability (January 2026):**
 
-| Plan                    | Available Models                              |
-| :---------------------- | :-------------------------------------------- |
-| **Free**                | Haiku 4.5                                     |
-| **Pro** ($20/month)     | Sonnet 4, Opus 4.1, Haiku 4.5                 |
-| **Max** ($100-200/month)| Full lineup including Opus 4.5, higher limits |
-| **Team, Enterprise**    | All models, admin controls                    |
+| Plan                     | Available Models                              |
+| :----------------------- | :-------------------------------------------- |
+| **Free**                 | Haiku 4.5                                     |
+| **Pro** ($20/month)      | Sonnet 4, Opus 4.1, Haiku 4.5                 |
+| **Max** ($100-200/month) | Full lineup including Opus 4.5, higher limits |
+| **Team, Enterprise**     | All models, admin controls                    |
 
 **Model deprecation note:** Claude 3 Opus (February 2024) and Claude 3.5 Sonnet were retired January 5, 2026. Opus 4.5, released November 24, 2025, is the current flagship model with improvements in coding and workplace tasks.
 

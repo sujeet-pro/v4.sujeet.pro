@@ -63,15 +63,15 @@ Understanding HTTP caching is foundational—application-level caching builds on
 
 The `Cache-Control` header governs how browsers and intermediaries cache responses. Key directives from RFC 9111:
 
-| Directive | Meaning | Use Case |
-| --- | --- | --- |
-| `max-age=N` | Response fresh for N seconds | Static assets, API responses with known TTL |
-| `no-cache` | Must revalidate before use | Dynamic content that might change |
-| `no-store` | Never cache | Sensitive data, user-specific responses |
-| `private` | Only browser can cache | User-specific data (not CDN-cacheable) |
-| `public` | Any cache can store | Static assets, public API responses |
-| `s-maxage=N` | Shared cache (CDN) TTL | Different TTL for edge vs browser |
-| `stale-while-revalidate=N` | Serve stale while revalidating | RFC 5861 extension for async refresh |
+| Directive                  | Meaning                        | Use Case                                    |
+| -------------------------- | ------------------------------ | ------------------------------------------- |
+| `max-age=N`                | Response fresh for N seconds   | Static assets, API responses with known TTL |
+| `no-cache`                 | Must revalidate before use     | Dynamic content that might change           |
+| `no-store`                 | Never cache                    | Sensitive data, user-specific responses     |
+| `private`                  | Only browser can cache         | User-specific data (not CDN-cacheable)      |
+| `public`                   | Any cache can store            | Static assets, public API responses         |
+| `s-maxage=N`               | Shared cache (CDN) TTL         | Different TTL for edge vs browser           |
+| `stale-while-revalidate=N` | Serve stale while revalidating | RFC 5861 extension for async refresh        |
 
 > **RFC 9111 replaced RFC 7234 in June 2022** with clarifications but no breaking changes. The stale-while-revalidate extension remains defined in RFC 5861.
 
@@ -131,10 +131,7 @@ The core pattern is simple: store the in-flight promise, return it to all caller
 const inflightRequests = new Map<string, Promise<unknown>>()
 
 // Deduplicated fetch function
-async function fetchWithDeduplication<T>(
-  key: string,
-  fetcher: () => Promise<T>
-): Promise<T> {
+async function fetchWithDeduplication<T>(key: string, fetcher: () => Promise<T>): Promise<T> {
   // Return existing promise if request in flight
   const existing = inflightRequests.get(key)
   if (existing) return existing as Promise<T>
@@ -253,9 +250,9 @@ const mutation = useMutation({
   mutationFn: updateUser,
   onSuccess: () => {
     // Invalidate and refetch all user queries
-    queryClient.invalidateQueries({ queryKey: ['users'] })
+    queryClient.invalidateQueries({ queryKey: ["users"] })
     // Or be specific
-    queryClient.invalidateQueries({ queryKey: ['users', userId] })
+    queryClient.invalidateQueries({ queryKey: ["users", userId] })
   },
 })
 ```
@@ -266,23 +263,21 @@ Queries declare what tags they provide; mutations declare what tags they invalid
 
 ```ts title="rtk-query-tags.ts" collapse={1-6, 22-30}
 const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
-  tagTypes: ['User', 'Post'],
+  baseQuery: fetchBaseQuery({ baseUrl: "/api" }),
+  tagTypes: ["User", "Post"],
   endpoints: (builder) => ({
     getUsers: builder.query({
-      query: () => 'users',
+      query: () => "users",
       providesTags: (result) =>
-        result
-          ? [...result.map(({ id }) => ({ type: 'User' as const, id })), 'User']
-          : ['User'],
+        result ? [...result.map(({ id }) => ({ type: "User" as const, id })), "User"] : ["User"],
     }),
     updateUser: builder.mutation({
       query: ({ id, ...body }) => ({
         url: `users/${id}`,
-        method: 'PUT',
+        method: "PUT",
         body,
       }),
-      invalidatesTags: (result, error, { id }) => [{ type: 'User', id }],
+      invalidatesTags: (result, error, { id }) => [{ type: "User", id }],
     }),
   }),
 })
@@ -317,11 +312,11 @@ Without garbage collection, caches grow unbounded. Libraries implement automatic
 
 Browser memory varies significantly:
 
-| Device | Typical Heap Limit |
-| --- | --- |
-| Desktop Chrome (64-bit) | 4-16 GB |
-| Mobile Safari (iPhone 7+) | 1-2 GB |
-| Older mobile devices | 645 MB - 1 GB |
+| Device                    | Typical Heap Limit |
+| ------------------------- | ------------------ |
+| Desktop Chrome (64-bit)   | 4-16 GB            |
+| Mobile Safari (iPhone 7+) | 1-2 GB             |
+| Older mobile devices      | 645 MB - 1 GB      |
 
 **Practical implications**:
 
@@ -366,7 +361,7 @@ sequenceDiagram
 
 ```ts title="stale-time.ts" collapse={1-2}
 const { data, isStale, isFetching } = useQuery({
-  queryKey: ['users'],
+  queryKey: ["users"],
   queryFn: fetchUsers,
   staleTime: 60_000, // Data fresh for 60 seconds
   refetchOnWindowFocus: true, // Revalidate when tab regains focus
@@ -380,12 +375,12 @@ const { data, isStale, isFetching } = useQuery({
 
 **Revalidation triggers**:
 
-| Trigger | TanStack Query | SWR | Apollo |
-| --- | --- | --- | --- |
-| Mount | `refetchOnMount` | `revalidateOnMount` | `fetchPolicy` |
-| Window focus | `refetchOnWindowFocus` | `revalidateOnFocus` | Manual |
-| Network reconnect | `refetchOnReconnect` | `revalidateOnReconnect` | Manual |
-| Interval | `refetchInterval` | `refreshInterval` | `pollInterval` |
+| Trigger           | TanStack Query         | SWR                     | Apollo         |
+| ----------------- | ---------------------- | ----------------------- | -------------- |
+| Mount             | `refetchOnMount`       | `revalidateOnMount`     | `fetchPolicy`  |
+| Window focus      | `refetchOnWindowFocus` | `revalidateOnFocus`     | Manual         |
+| Network reconnect | `refetchOnReconnect`   | `revalidateOnReconnect` | Manual         |
+| Interval          | `refetchInterval`      | `refreshInterval`       | `pollInterval` |
 
 **Why window focus matters**: Users frequently switch tabs. When they return, cached data might be minutes old. Focus-triggered revalidation ensures they see current data without explicit refresh.
 
@@ -401,23 +396,23 @@ const mutation = useMutation({
   // Optimistically update cache before mutation completes
   onMutate: async (newUser) => {
     // Cancel in-flight refetches
-    await queryClient.cancelQueries({ queryKey: ['users', newUser.id] })
+    await queryClient.cancelQueries({ queryKey: ["users", newUser.id] })
 
     // Snapshot current value for rollback
-    const previousUser = queryClient.getQueryData(['users', newUser.id])
+    const previousUser = queryClient.getQueryData(["users", newUser.id])
 
     // Optimistically update
-    queryClient.setQueryData(['users', newUser.id], newUser)
+    queryClient.setQueryData(["users", newUser.id], newUser)
 
     return { previousUser }
   },
   // Rollback on error
   onError: (err, newUser, context) => {
-    queryClient.setQueryData(['users', newUser.id], context?.previousUser)
+    queryClient.setQueryData(["users", newUser.id], context?.previousUser)
   },
   // Refetch after success to ensure consistency
   onSettled: () => {
-    queryClient.invalidateQueries({ queryKey: ['users'] })
+    queryClient.invalidateQueries({ queryKey: ["users"] })
   },
 })
 ```
@@ -454,12 +449,12 @@ GET /api/posts?cursor=eyJpZCI6MTIzfQ&limit=20
 
 **Performance comparison** (real-world benchmarks):
 
-| Offset | Query Time |
-| --- | --- |
-| 0 | 5ms |
-| 10,000 | 50ms |
-| 100,000 | 500ms |
-| 1,000,000 | 5,000ms |
+| Offset    | Query Time |
+| --------- | ---------- |
+| 0         | 5ms        |
+| 10,000    | 50ms       |
+| 100,000   | 500ms      |
+| 1,000,000 | 5,000ms    |
 
 Cursor pagination maintains ~5ms regardless of position.
 
@@ -521,7 +516,7 @@ const cache = new InMemoryCache({
     Query: {
       fields: {
         posts: {
-          keyArgs: ['authorId'], // Different cache entries per author
+          keyArgs: ["authorId"], // Different cache entries per author
           merge(existing = { edges: [] }, incoming) {
             return {
               ...incoming,
@@ -546,7 +541,7 @@ const queryClient = useQueryClient()
 function usePrefetchNextPage(currentCursor: string, threshold = 5) {
   useEffect(() => {
     queryClient.prefetchInfiniteQuery({
-      queryKey: ['posts'],
+      queryKey: ["posts"],
       queryFn: ({ pageParam }) => fetchPosts({ cursor: pageParam }),
       initialPageParam: currentCursor,
     })
@@ -563,11 +558,7 @@ Network requests fail. Robust data fetching requires systematic error handling a
 **Exponential backoff with jitter** (AWS recommended pattern):
 
 ```ts title="exponential-backoff.ts"
-function calculateBackoff(
-  attempt: number,
-  baseDelay = 1000,
-  maxDelay = 30000
-): number {
+function calculateBackoff(attempt: number, baseDelay = 1000, maxDelay = 30000): number {
   // Exponential: 1s, 2s, 4s, 8s, 16s...
   const exponentialDelay = baseDelay * Math.pow(2, attempt)
   // Cap at maximum
@@ -582,30 +573,30 @@ function calculateBackoff(
 
 **Library defaults**:
 
-| Library | Default Retries | Backoff |
-| --- | --- | --- |
-| TanStack Query | 3 | Exponential (1s, 2s, 4s) |
-| SWR | 0 (no automatic retry) | N/A |
-| Apollo | 0 (link-level config) | Configurable |
-| RTK Query | 0 | N/A |
+| Library        | Default Retries        | Backoff                  |
+| -------------- | ---------------------- | ------------------------ |
+| TanStack Query | 3                      | Exponential (1s, 2s, 4s) |
+| SWR            | 0 (no automatic retry) | N/A                      |
+| Apollo         | 0 (link-level config)  | Configurable             |
+| RTK Query      | 0                      | N/A                      |
 
 ### Retryable vs. Non-Retryable Errors
 
 Not all errors should trigger retries:
 
-| Status Code | Retryable | Reason |
-| --- | --- | --- |
-| 408 Request Timeout | Yes | Transient, likely succeeds on retry |
-| 429 Too Many Requests | Yes (with backoff) | Rate limit, wait and retry |
-| 500-503 Server Error | Yes | Server issue, might recover |
-| 400 Bad Request | No | Client error, won't change |
-| 401 Unauthorized | No | Auth issue, retry won't help |
-| 403 Forbidden | No | Permission denied |
-| 404 Not Found | No | Resource doesn't exist |
+| Status Code           | Retryable          | Reason                              |
+| --------------------- | ------------------ | ----------------------------------- |
+| 408 Request Timeout   | Yes                | Transient, likely succeeds on retry |
+| 429 Too Many Requests | Yes (with backoff) | Rate limit, wait and retry          |
+| 500-503 Server Error  | Yes                | Server issue, might recover         |
+| 400 Bad Request       | No                 | Client error, won't change          |
+| 401 Unauthorized      | No                 | Auth issue, retry won't help        |
+| 403 Forbidden         | No                 | Permission denied                   |
+| 404 Not Found         | No                 | Resource doesn't exist              |
 
 ```ts title="retry-condition.ts" collapse={1-3, 15-20}
 const { data } = useQuery({
-  queryKey: ['users'],
+  queryKey: ["users"],
   queryFn: fetchUsers,
   retry: (failureCount, error) => {
     // Don't retry client errors
@@ -627,11 +618,11 @@ Retrying non-idempotent requests (POST, PATCH) risks duplicate side effects. The
 async function createPayment(amount: number) {
   const idempotencyKey = crypto.randomUUID()
 
-  const response = await fetch('/api/payments', {
-    method: 'POST',
+  const response = await fetch("/api/payments", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Idempotency-Key': idempotencyKey,
+      "Content-Type": "application/json",
+      "Idempotency-Key": idempotencyKey,
     },
     body: JSON.stringify({ amount }),
   })
@@ -657,19 +648,19 @@ Prevent cascading failures when a service is down:
 class CircuitBreaker {
   private failures = 0
   private lastFailure: number | null = null
-  private state: 'closed' | 'open' | 'half-open' = 'closed'
+  private state: "closed" | "open" | "half-open" = "closed"
 
   constructor(
     private threshold = 5,
-    private timeout = 30000
+    private timeout = 30000,
   ) {}
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
-    if (this.state === 'open') {
+    if (this.state === "open") {
       if (Date.now() - (this.lastFailure ?? 0) > this.timeout) {
-        this.state = 'half-open'
+        this.state = "half-open"
       } else {
-        throw new Error('Circuit breaker is open')
+        throw new Error("Circuit breaker is open")
       }
     }
 
@@ -685,14 +676,14 @@ class CircuitBreaker {
 
   private onSuccess() {
     this.failures = 0
-    this.state = 'closed'
+    this.state = "closed"
   }
 
   private onFailure() {
     this.failures++
     this.lastFailure = Date.now()
     if (this.failures >= this.threshold) {
-      this.state = 'open'
+      this.state = "open"
     }
   }
 }
@@ -760,14 +751,14 @@ const cache = new InMemoryCache({
   typePolicies: {
     User: {
       // Use email as unique identifier instead of id
-      keyFields: ['email'],
+      keyFields: ["email"],
     },
     Product: {
       fields: {
         // Compute displayPrice from cached price
         displayPrice: {
           read(_, { readField }) {
-            const price = readField<number>('price')
+            const price = readField<number>("price")
             return price ? `$${price.toFixed(2)}` : null
           },
         },
@@ -794,15 +785,15 @@ const cache = new InMemoryCache({
 
 ### Decision Matrix
 
-| Factor | TanStack Query | SWR | Apollo | RTK Query |
-| --- | --- | --- | --- | --- |
-| Bundle size | ~13KB | ~4KB | ~50KB | ~15KB + Redux |
-| Learning curve | Low | Very low | Medium | Medium |
-| GraphQL | Via plugin | Via plugin | Native | Via plugin |
-| Normalization | No | No | Yes | No |
-| DevTools | Excellent | Good | Excellent | Good |
-| Framework support | React, Vue, Solid, Svelte | React | React, iOS, Kotlin | React |
-| Best for | Most REST/GraphQL apps | Simple apps | GraphQL-heavy apps | Redux apps |
+| Factor            | TanStack Query            | SWR         | Apollo             | RTK Query     |
+| ----------------- | ------------------------- | ----------- | ------------------ | ------------- |
+| Bundle size       | ~13KB                     | ~4KB        | ~50KB              | ~15KB + Redux |
+| Learning curve    | Low                       | Very low    | Medium             | Medium        |
+| GraphQL           | Via plugin                | Via plugin  | Native             | Via plugin    |
+| Normalization     | No                        | No          | Yes                | No            |
+| DevTools          | Excellent                 | Good        | Excellent          | Good          |
+| Framework support | React, Vue, Solid, Svelte | React       | React, iOS, Kotlin | React         |
+| Best for          | Most REST/GraphQL apps    | Simple apps | GraphQL-heavy apps | Redux apps    |
 
 ## Conclusion
 

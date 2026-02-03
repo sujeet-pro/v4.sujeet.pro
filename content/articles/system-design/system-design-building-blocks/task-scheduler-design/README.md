@@ -49,18 +49,18 @@ Distributed task scheduling is fundamentally about **coordination without conten
 
 The key mental model:
 
-- **Scheduling** is separate from **execution**. Schedulers determine *what* runs and *when*; workers perform the actual computation. This separation enables independent scaling.
+- **Scheduling** is separate from **execution**. Schedulers determine _what_ runs and _when_; workers perform the actual computation. This separation enables independent scaling.
 - **Exactly-once execution is a lie**. In practice, systems provide **at-least-once delivery + idempotent handlers** = effectively once. True exactly-once requires distributed transactions with unacceptable overhead.
 - **The database is your coordination primitive**. Modern schedulers (Airflow, Quartz, db-scheduler) use `SELECT ... FOR UPDATE SKIP LOCKED` rather than consensus algorithms. The operational simplicity outweighs the theoretical elegance of Raft/Paxos.
 - **Time is unreliable**. Clock skew between nodes means "run at 3:00 PM" can trigger at 3:00:00.000 on one node and 3:00:00.500 on another. Robust schedulers detect clock anomalies and use logical ordering where physical time fails.
 
 The trade-off space:
 
-| Guarantee | Cost | Use When |
-|-----------|------|----------|
-| At-most-once | Lowest latency | Analytics, non-critical metrics |
-| At-least-once | Requires idempotency | Most production workloads |
-| Exactly-once | 10-50% throughput hit | Financial transactions, billing |
+| Guarantee     | Cost                  | Use When                        |
+| ------------- | --------------------- | ------------------------------- |
+| At-most-once  | Lowest latency        | Analytics, non-critical metrics |
+| At-least-once | Requires idempotency  | Most production workloads       |
+| Exactly-once  | 10-50% throughput hit | Financial transactions, billing |
 
 ## Scheduling Models
 
@@ -87,7 +87,7 @@ The trade-off space:
 
 ### Interval-Based (Fixed Delay)
 
-**Mechanism:** Tasks run at fixed intervals *from the completion of the previous run* (e.g., "every 30 minutes after last success"). The next execution time = previous completion + interval.
+**Mechanism:** Tasks run at fixed intervals _from the completion of the previous run_ (e.g., "every 30 minutes after last success"). The next execution time = previous completion + interval.
 
 **Best when:**
 
@@ -312,11 +312,11 @@ CREATE INDEX idx_pending_tasks ON scheduled_tasks (scheduled_at, priority)
 
 **Broker comparison:**
 
-| Broker | Model | Durability | Throughput | Best For |
-|--------|-------|------------|------------|----------|
-| **Redis** | Push (lists/streams) | Optional (RDB/AOF) | 100K+ ops/sec | Low-latency, simple queues |
-| **RabbitMQ** | Push (AMQP) | Mirrored queues | 50K+ msg/sec | Complex routing, reliability |
-| **Kafka** | Pull (log) | Replicated partitions | 1M+ msg/sec | High-volume, replay needed |
+| Broker       | Model                | Durability            | Throughput    | Best For                     |
+| ------------ | -------------------- | --------------------- | ------------- | ---------------------------- |
+| **Redis**    | Push (lists/streams) | Optional (RDB/AOF)    | 100K+ ops/sec | Low-latency, simple queues   |
+| **RabbitMQ** | Push (AMQP)          | Mirrored queues       | 50K+ msg/sec  | Complex routing, reliability |
+| **Kafka**    | Pull (log)           | Replicated partitions | 1M+ msg/sec   | High-volume, replay needed   |
 
 ### Option 3: Hybrid (Database + Broker)
 
@@ -364,7 +364,7 @@ CREATE INDEX idx_pending_tasks ON scheduled_tasks (scheduled_at, priority)
 3. Worker acknowledges (status → `completed`)
 4. If heartbeat missed or timeout, task returns to queue
 
-**The idempotency requirement:** At-least-once means tasks *may run multiple times*. Your handlers must be idempotent:
+**The idempotency requirement:** At-least-once means tasks _may run multiple times_. Your handlers must be idempotent:
 
 ```python
 # ❌ BAD: Creates duplicate charges
@@ -406,11 +406,11 @@ def process_payment(order_id, amount):
 
 **Configuration guidelines:**
 
-| Parameter | Typical Value | Rationale |
-|-----------|---------------|-----------|
-| Heartbeat interval | 2-3 seconds | Frequent enough to detect failures quickly |
-| Failure threshold | 3 missed beats | Avoid false positives from network hiccups |
-| Time to detection | 6-9 seconds | Interval × threshold |
+| Parameter          | Typical Value  | Rationale                                  |
+| ------------------ | -------------- | ------------------------------------------ |
+| Heartbeat interval | 2-3 seconds    | Frequent enough to detect failures quickly |
+| Failure threshold  | 3 missed beats | Avoid false positives from network hiccups |
+| Time to detection  | 6-9 seconds    | Interval × threshold                       |
 
 **Two models:**
 
@@ -437,22 +437,22 @@ delay = min(base_delay * (2 ^ attempt) + random_jitter, max_delay)
 ```
 
 | Attempt | Base Delay | With Jitter (±20%) |
-|---------|------------|-------------------|
-| 1 | 1s | 0.8-1.2s |
-| 2 | 2s | 1.6-2.4s |
-| 3 | 4s | 3.2-4.8s |
-| 4 | 8s | 6.4-9.6s |
-| 5 | 16s | 12.8-19.2s |
+| ------- | ---------- | ------------------ |
+| 1       | 1s         | 0.8-1.2s           |
+| 2       | 2s         | 1.6-2.4s           |
+| 3       | 4s         | 3.2-4.8s           |
+| 4       | 8s         | 6.4-9.6s           |
+| 5       | 16s        | 12.8-19.2s         |
 
 **Why jitter matters:** Without jitter, all failed tasks retry at the same moment (thundering herd). Random jitter spreads retries over time, preventing synchronized load spikes.
 
 **Distinguishing error types:**
 
-| Error Type | Retryable | Example |
-|------------|-----------|---------|
-| **Transient** | Yes | Network timeout, rate limit, temporary unavailability |
-| **Permanent** | No | Invalid input, missing resource, authentication failure |
-| **Unknown** | Conservative yes | Unexpected exceptions, unclear error codes |
+| Error Type    | Retryable        | Example                                                 |
+| ------------- | ---------------- | ------------------------------------------------------- |
+| **Transient** | Yes              | Network timeout, rate limit, temporary unavailability   |
+| **Permanent** | No               | Invalid input, missing resource, authentication failure |
+| **Unknown**   | Conservative yes | Unexpected exceptions, unclear error codes              |
 
 ### Dead Letter Queue (DLQ)
 
@@ -540,12 +540,12 @@ Google's Spanner uses GPS receivers and atomic clocks to bound clock uncertainty
 
 When a scheduled task takes longer than its interval, multiple instances may overlap. Schedulers handle this differently:
 
-| Policy | Behavior | Use When |
-|--------|----------|----------|
-| **Allow** | Multiple concurrent runs | Tasks are independent, parallel OK |
-| **Forbid/Skip** | Skip if previous running | Idempotency concerns, resource limits |
-| **Replace/Cancel** | Stop previous, start new | Latest data more important |
-| **Buffer** | Queue for after current finishes | Must process every trigger |
+| Policy             | Behavior                         | Use When                              |
+| ------------------ | -------------------------------- | ------------------------------------- |
+| **Allow**          | Multiple concurrent runs         | Tasks are independent, parallel OK    |
+| **Forbid/Skip**    | Skip if previous running         | Idempotency concerns, resource limits |
+| **Replace/Cancel** | Stop previous, start new         | Latest data more important            |
+| **Buffer**         | Queue for after current finishes | Must process every trigger            |
 
 **Temporal's overlap policies:**
 
@@ -559,8 +559,8 @@ When a scheduled task takes longer than its interval, multiple instances may ove
 
 ```yaml
 spec:
-  concurrencyPolicy: Forbid  # Skip if previous job still running
-  startingDeadlineSeconds: 200  # Fail if can't start within 200s of schedule
+  concurrencyPolicy: Forbid # Skip if previous job still running
+  startingDeadlineSeconds: 200 # Fail if can't start within 200s of schedule
 ```
 
 ## Real-World Case Studies
@@ -622,7 +622,7 @@ spec:
 
 2. **Store state in Paxos-based system**: Cron configuration and execution state live in a globally consistent store.
 
-3. **Decouple scheduling from execution**: Cron service determines *when* to launch; separate infrastructure handles *how* to run.
+3. **Decouple scheduling from execution**: Cron service determines _when_ to launch; separate infrastructure handles _how_ to run.
 
 ## Common Pitfalls
 
@@ -701,13 +701,13 @@ spec:
 
 **Decision matrix:**
 
-| Requirement | Celery | Airflow | Temporal | DB-only |
-|-------------|--------|---------|----------|---------|
-| Simple async tasks | ✅ Best | ⚠️ Overkill | ⚠️ Overkill | ✅ Good |
-| Complex workflows | ⚠️ Limited | ✅ Best | ✅ Best | ❌ Poor |
-| Long-running (hours+) | ❌ Poor | ⚠️ Limited | ✅ Best | ❌ Poor |
-| Exactly-once needed | ❌ Poor | ⚠️ Via hooks | ✅ Best | ⚠️ Manual |
-| Operational simplicity | ✅ Good | ⚠️ Medium | ⚠️ Medium | ✅ Best |
+| Requirement            | Celery     | Airflow      | Temporal    | DB-only   |
+| ---------------------- | ---------- | ------------ | ----------- | --------- |
+| Simple async tasks     | ✅ Best    | ⚠️ Overkill  | ⚠️ Overkill | ✅ Good   |
+| Complex workflows      | ⚠️ Limited | ✅ Best      | ✅ Best     | ❌ Poor   |
+| Long-running (hours+)  | ❌ Poor    | ⚠️ Limited   | ✅ Best     | ❌ Poor   |
+| Exactly-once needed    | ❌ Poor    | ⚠️ Via hooks | ✅ Best     | ⚠️ Manual |
+| Operational simplicity | ✅ Good    | ⚠️ Medium    | ⚠️ Medium   | ✅ Best   |
 
 ## Conclusion
 

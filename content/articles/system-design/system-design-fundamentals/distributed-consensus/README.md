@@ -41,11 +41,11 @@ Distributed consensus solves a coordination problem: ensuring multiple nodes agr
 
 - **Leader-Based vs. Leaderless**: Paxos can be leaderless (any node proposes), Raft requires a leader. Leaders simplify reasoning but create a single point of failure that requires election.
 
-| Algorithm | Model | Fault Tolerance | Message Complexity | Primary Use |
-|-----------|-------|-----------------|-------------------|-------------|
-| Paxos | Leaderless/Multi-leader | f crashes (2f+1 nodes) | O(n) per value | Theoretical foundation |
-| Raft | Leader-based | f crashes (2f+1 nodes) | O(n) per value | Production systems |
-| PBFT | Leader-based BFT | f Byzantine (3f+1 nodes) | O(n²) per value | Untrusted environments |
+| Algorithm | Model                   | Fault Tolerance          | Message Complexity | Primary Use            |
+| --------- | ----------------------- | ------------------------ | ------------------ | ---------------------- |
+| Paxos     | Leaderless/Multi-leader | f crashes (2f+1 nodes)   | O(n) per value     | Theoretical foundation |
+| Raft      | Leader-based            | f crashes (2f+1 nodes)   | O(n) per value     | Production systems     |
+| PBFT      | Leader-based BFT        | f Byzantine (3f+1 nodes) | O(n²) per value    | Untrusted environments |
 
 ## Why Consensus Is Hard: FLP Impossibility
 
@@ -56,6 +56,7 @@ The Fischer-Lynch-Paterson theorem (1985) proves that in an asynchronous system 
 FLP shows that any consensus protocol has some execution where it never terminates. The proof constructs an adversarial message scheduler that keeps the system perpetually "on the fence" between deciding 0 and 1.
 
 **Key assumptions:**
+
 - Fully asynchronous network (messages can be delayed arbitrarily)
 - Deterministic algorithms only
 - At least one node may crash
@@ -66,7 +67,7 @@ FLP shows that any consensus protocol has some execution where it never terminat
 
 Real systems circumvent FLP through:
 
-**Partial Synchrony**: Assume the network is asynchronous *most of the time* but eventually becomes synchronous long enough to make progress. This is the DLS (Dwork-Lynch-Stockmeyer) model—safety holds always, liveness holds eventually.
+**Partial Synchrony**: Assume the network is asynchronous _most of the time_ but eventually becomes synchronous long enough to make progress. This is the DLS (Dwork-Lynch-Stockmeyer) model—safety holds always, liveness holds eventually.
 
 **Randomization**: Use coin flips to break symmetry. Ben-Or's algorithm achieves consensus with probability 1, even if individual rounds may fail.
 
@@ -81,6 +82,7 @@ Paxos, described by Lamport in 1989 (published 1998), is the first consensus alg
 ### Protocol Mechanics
 
 Paxos separates three roles (often colocated on same nodes):
+
 - **Proposers**: Initiate proposals
 - **Acceptors**: Vote on proposals
 - **Learners**: Learn decided values
@@ -125,6 +127,7 @@ Lamport's "Paxos Made Simple" is 14 pages. Google's "Paxos Made Live" describes 
 > "There are significant gaps between the description of the Paxos algorithm and the needs of a real-world system... the final system will be based on an unproven protocol."
 
 **Practical challenges:**
+
 - Liveness: Competing proposers can livelock (each invalidating the other's prepare)
 - Multi-Paxos: Extending single-value to log replication requires careful handling of leader stability
 - Disk durability: Every promise/accept must be durable before responding
@@ -146,6 +149,7 @@ Basic Paxos requires two round-trips per value. Multi-Paxos elects a stable lead
 ZooKeeper uses Zab (Zookeeper Atomic Broadcast), a Paxos variant optimized for its use case:
 
 **Key differences from canonical Paxos:**
+
 - Explicit leader (not symmetric)
 - Primary-order: all writes go through leader in sequence
 - Prefix property: if message m is delivered, all messages before m are delivered
@@ -164,12 +168,12 @@ Raft (2014) was explicitly designed to be easier to understand than Paxos while 
 
 Raft makes several choices that sacrifice generality for clarity:
 
-| Paxos | Raft | Rationale |
-|-------|------|-----------|
-| Any node can propose | Only leader proposes | Simpler reasoning about conflicts |
-| Symmetric roles | Explicit leader/follower | Clearer responsibility |
-| Complex leader election | Randomized timeout + voting | Statistically avoids split vote |
-| Logs can have gaps | Logs are sequential | Simplifies recovery |
+| Paxos                   | Raft                        | Rationale                         |
+| ----------------------- | --------------------------- | --------------------------------- |
+| Any node can propose    | Only leader proposes        | Simpler reasoning about conflicts |
+| Symmetric roles         | Explicit leader/follower    | Clearer responsibility            |
+| Complex leader election | Randomized timeout + voting | Statistically avoids split vote   |
+| Logs can have gaps      | Logs are sequential         | Simplifies recovery               |
 
 ### Leader Election
 
@@ -178,6 +182,7 @@ Raft nodes exist in three states: Follower, Candidate, Leader.
 **Election trigger**: Follower times out waiting for leader heartbeat.
 
 **Election process:**
+
 1. Follower becomes Candidate, increments term number
 2. Votes for itself, sends RequestVote to all peers
 3. Wins if receives majority votes
@@ -188,6 +193,7 @@ Raft nodes exist in three states: Follower, Candidate, Leader.
 **Randomized timeout**: Each node chooses election timeout randomly from range (e.g., 150-300ms). This statistically prevents split votes where multiple candidates tie.
 
 **Configuration guidance:**
+
 - Local datacenter: Election timeout 1000ms, heartbeat 100-200ms
 - Cross-datacenter: Election timeout = 5× heartbeat, heartbeat ≈ RTT
 
@@ -203,6 +209,7 @@ Follower 3: [1:X] [2:Y]              ✓ can catch up
 ```
 
 **Replication steps:**
+
 1. Leader receives client write, appends to log
 2. Leader sends AppendEntries RPC with new entries
 3. Followers append entries, respond with success
@@ -228,6 +235,7 @@ Adding or removing nodes risks split-brain if done naively (old majority and new
 etcd (CoreOS, now CNCF) is the most widely deployed Raft implementation, powering Kubernetes cluster state.
 
 **Performance characteristics:**
+
 - Throughput bound by disk fsync latency—99th percentile fsync should be <20ms
 - Slow disks cause leader to miss heartbeats, triggering false elections
 - `MaxInflightBytes` controls pipelining: 100ms RTT + 1MB limit = 10 MB/s throughput
@@ -235,6 +243,7 @@ etcd (CoreOS, now CNCF) is the most widely deployed Raft implementation, powerin
 **Real incident pattern**: etcd cluster instability despite healthy network—root cause is disk latency from noisy neighbors or slow storage. Monitor `wal_fsync_duration_seconds` and `backend_commit_duration_seconds`.
 
 **Production guidance:**
+
 - Use SSDs with predictable latency
 - Isolate etcd nodes from other workloads
 - Monitor disk latency histograms, not just averages
@@ -247,21 +256,23 @@ Quorums are the mathematical foundation of fault-tolerant consensus.
 ### Basic Quorum Arithmetic
 
 For a system of N nodes tolerating f failures:
+
 - Need N ≥ 2f + 1 (majority remains after f failures)
 - Read quorum Qr and write quorum Qw must overlap: Qr + Qw > N
 
 **Example (5 nodes, f=2):**
+
 - Write quorum = 3 (majority)
 - Read quorum = 3 (majority)
 - Any read intersects any write—ensures seeing latest value
 
 ### Read/Write Trade-offs
 
-| Configuration | Read Quorum | Write Quorum | Trade-off |
-|--------------|-------------|--------------|-----------|
-| Read-heavy | 1 | N | Fast reads, slow writes |
-| Write-heavy | N | 1 | Fast writes, slow reads |
-| Balanced | (N+1)/2 | (N+1)/2 | Equal latency |
+| Configuration | Read Quorum | Write Quorum | Trade-off               |
+| ------------- | ----------- | ------------ | ----------------------- |
+| Read-heavy    | 1           | N            | Fast reads, slow writes |
+| Write-heavy   | N           | 1            | Fast writes, slow reads |
+| Balanced      | (N+1)/2     | (N+1)/2      | Equal latency           |
 
 **Design choice**: Dynamo-style systems (Cassandra, Riak) expose quorum configuration (R, W, N). Consensus systems like Raft/Paxos fix Qr = Qw = majority.
 
@@ -281,12 +292,12 @@ Crash fault tolerance assumes failed nodes stop responding. Byzantine Fault Tole
 
 ### When BFT Is Needed
 
-| Scenario | Fault Model | Why |
-|----------|-------------|-----|
-| Private datacenter | Crash | Nodes controlled by same operator, no incentive to lie |
-| Multi-tenant cloud | Crash | Provider controls hypervisor, tenants isolated |
-| Public blockchain | Byzantine | Untrusted participants, economic incentives to cheat |
-| Military/critical | Byzantine | Adversary may compromise nodes |
+| Scenario           | Fault Model | Why                                                    |
+| ------------------ | ----------- | ------------------------------------------------------ |
+| Private datacenter | Crash       | Nodes controlled by same operator, no incentive to lie |
+| Multi-tenant cloud | Crash       | Provider controls hypervisor, tenants isolated         |
+| Public blockchain  | Byzantine   | Untrusted participants, economic incentives to cheat   |
+| Military/critical  | Byzantine   | Adversary may compromise nodes                         |
 
 ### BFT Cost
 
@@ -299,6 +310,7 @@ To tolerate f Byzantine nodes: N ≥ 3f + 1 (vs. 2f + 1 for crash faults)
 Castro and Liskov (1999) made BFT practical for small clusters:
 
 **Three-phase protocol:**
+
 1. **Pre-prepare**: Leader assigns sequence number to request
 2. **Prepare**: Replicas broadcast prepare message if they accept leader's proposal
 3. **Commit**: Once 2f+1 prepares received, replicas broadcast commit
@@ -321,23 +333,25 @@ HotStuff (2018) reduces complexity through pipelining:
 
 ### System Comparison
 
-| System | Protocol | Data Model | Consistency | Best For |
-|--------|----------|------------|-------------|----------|
-| ZooKeeper | Zab | Hierarchical (znodes) | Linearizable | Coordination primitives |
-| etcd | Raft | Flat key-value | Linearizable | Kubernetes, config |
-| Consul | Raft + Gossip | Flat key-value | Strong (Raft) | Service discovery |
-| CockroachDB | MultiRaft | SQL | Serializable | Distributed ACID |
+| System      | Protocol      | Data Model            | Consistency   | Best For                |
+| ----------- | ------------- | --------------------- | ------------- | ----------------------- |
+| ZooKeeper   | Zab           | Hierarchical (znodes) | Linearizable  | Coordination primitives |
+| etcd        | Raft          | Flat key-value        | Linearizable  | Kubernetes, config      |
+| Consul      | Raft + Gossip | Flat key-value        | Strong (Raft) | Service discovery       |
+| CockroachDB | MultiRaft     | SQL                   | Serializable  | Distributed ACID        |
 
 ### etcd: Configuration and Kubernetes
 
 **Use case**: Kubernetes stores all cluster state—pods, services, secrets, configmaps—in etcd.
 
 **Why etcd over ZooKeeper**:
+
 - Raft simpler to reason about than Zab
 - gRPC API more modern than ZooKeeper's Java-centric model
 - Watch API efficient for Kubernetes controller pattern
 
 **Operational reality**: etcd is often the most operationally challenging component in Kubernetes. Typical issues:
+
 - Disk latency causing leader election storms
 - Large values (secrets) causing slow snapshots
 - Watch storms from misbehaving controllers
@@ -353,6 +367,7 @@ Consul uses two protocols:
 **Serf (Gossip)**: Membership and failure detection. Nodes periodically exchange state with random peers. Converges in O(log N) rounds.
 
 **Why hybrid**: Different consistency needs for different data:
+
 - Service registration: needs strong consistency (Raft)
 - Node health: eventual consistency acceptable, but needs fast propagation (Gossip)
 
@@ -371,6 +386,7 @@ CockroachDB needs per-range consensus (each range is a Raft group) plus distribu
 This enables linearizable reads from a single node—critical for performance.
 
 **Parallel Commits**: CockroachDB's transaction protocol uses Raft for durability but adds a parallel commit phase to reduce latency:
+
 1. Write intents (uncommitted values) via Raft to each range
 2. Transaction record committed via Raft
 3. Intents asynchronously resolved
@@ -424,6 +440,7 @@ This enables linearizable reads from a single node—critical for performance.
 Distributed consensus enables building reliable systems from unreliable components. The algorithms are mathematically elegant, but production reality demands attention to failure modes, performance tuning, and operational simplicity.
 
 Key insights for practitioners:
+
 - FLP means consensus needs timing assumptions to make progress
 - Leader-based protocols (Raft) trade generality for understandability
 - Quorum math is fundamental—wrong sizing breaks fault tolerance guarantees
@@ -464,7 +481,6 @@ The choice between ZooKeeper, etcd, and Consul depends on your ecosystem (Hadoop
 - [Paxos Made Simple](https://lamport.azurewebsites.net/pubs/paxos-simple.pdf) - Lamport (2001)
 - [Paxos Made Live](https://www.cs.utexas.edu/users/lorenzo/corsi/cs380d/papers/paper2-1.pdf) - Chandra, Griesemer, Redstone (2007)
 - [In Search of an Understandable Consensus Algorithm (Raft)](https://raft.github.io/raft.pdf) - Ongaro, Ousterhout (2014)
-- [Practical Byzantine Fault Tolerance](https://pmg.csail.mit.edu/papers/osdi99.pdf) - Castro, Liskov (1999)
 - [HotStuff: BFT Consensus with Linearity and Responsiveness](https://arxiv.org/abs/1803.05069) - Yin et al. (2019)
 - [ZooKeeper: Wait-free coordination for Internet-scale systems](https://www.usenix.org/legacy/event/atc10/tech/full_papers/Hunt.pdf) - Hunt et al. (2010)
 - [etcd: A Distributed Reliable Key-Value Store](https://etcd.io/docs/)

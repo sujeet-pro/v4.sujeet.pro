@@ -56,11 +56,11 @@ The stub resolver is the DNS client library on your machine—`gethostbyname()`,
 
 **Timeout behavior varies by platform:**
 
-| Platform | Default Timeout | Retries | Notes |
-|----------|-----------------|---------|-------|
-| Linux (glibc) | 5 seconds | 2 | Configurable via `options timeout:N` in resolv.conf |
-| macOS | 5 seconds | 2 | mDNSResponder adds complexity |
-| Windows | 1 second | 2 | Per-server, then cycles |
+| Platform      | Default Timeout | Retries | Notes                                               |
+| ------------- | --------------- | ------- | --------------------------------------------------- |
+| Linux (glibc) | 5 seconds       | 2       | Configurable via `options timeout:N` in resolv.conf |
+| macOS         | 5 seconds       | 2       | mDNSResponder adds complexity                       |
+| Windows       | 1 second        | 2       | Per-server, then cycles                             |
 
 The stub resolver is intentionally simple. It offloads complexity to the recursive resolver, which has the resources to cache, validate DNSSEC, and handle iterative resolution.
 
@@ -183,15 +183,15 @@ The authoritative server returns the final answer with the AA flag set. The recu
 
 ### Resolution Latency Breakdown
 
-| Hop | Typical Latency | Notes |
-|-----|-----------------|-------|
-| Stub → Recursive | 1-50ms | LAN or ISP network |
-| Cache lookup | <1ms | In-memory hash table |
-| Recursive → Root | 10-30ms | Anycast, well-distributed |
-| Recursive → TLD | 10-50ms | .com has many anycast instances |
-| Recursive → Authoritative | 10-200ms | Depends on server location |
-| **Total (uncached)** | **50-400ms** | Varies significantly |
-| **Total (cached)** | **1-50ms** | Cache hit at recursive |
+| Hop                       | Typical Latency | Notes                           |
+| ------------------------- | --------------- | ------------------------------- |
+| Stub → Recursive          | 1-50ms          | LAN or ISP network              |
+| Cache lookup              | <1ms            | In-memory hash table            |
+| Recursive → Root          | 10-30ms         | Anycast, well-distributed       |
+| Recursive → TLD           | 10-50ms         | .com has many anycast instances |
+| Recursive → Authoritative | 10-200ms        | Depends on server location      |
+| **Total (uncached)**      | **50-400ms**    | Varies significantly            |
+| **Total (cached)**        | **1-50ms**      | Cache hit at recursive          |
 
 ## Caching Layers and TTL Mechanics
 
@@ -207,11 +207,11 @@ TTL (Time To Live) is a 32-bit unsigned integer specifying the maximum duration 
 
 **TTL at each layer:**
 
-| Layer | Behavior | Typical Values |
-|-------|----------|----------------|
-| Authoritative | Sets TTL in zone file; value is constant | 300-86400 seconds |
-| Recursive | Caches with countdown; honors TTL from response | Respects authoritative TTL |
-| Stub | Minimal caching, OS-dependent | Seconds to minutes |
+| Layer         | Behavior                                        | Typical Values             |
+| ------------- | ----------------------------------------------- | -------------------------- |
+| Authoritative | Sets TTL in zone file; value is constant        | 300-86400 seconds          |
+| Recursive     | Caches with countdown; honors TTL from response | Respects authoritative TTL |
+| Stub          | Minimal caching, OS-dependent                   | Seconds to minutes         |
 
 ### Negative Caching
 
@@ -230,6 +230,7 @@ Authoritative servers MUST include the SOA record in the Authority section of ne
 RFC 9520 (December 2023) introduces mandatory caching of resolution failures—situations where no useful response was received (timeouts, SERVFAIL from all servers). This prevents "query storms" where failed authoritative servers receive 10x normal load from retrying resolvers.
 
 **Distinction:**
+
 - **NXDOMAIN/NODATA**: Not failures—the server provided a useful (negative) answer
 - **Resolution failure**: No useful response received; cache to prevent retry floods
 
@@ -237,11 +238,11 @@ RFC 9520 (December 2023) introduces mandatory caching of resolution failures—s
 
 Modern resolvers prefetch records before TTL expiry to eliminate cache-miss latency for popular domains:
 
-| Resolver | Trigger Condition | Eligibility |
-|----------|-------------------|-------------|
-| BIND | 2 seconds remaining TTL | Original TTL > 9 seconds |
-| Unbound | 10% of original TTL remaining | All records |
-| PowerDNS | Configurable percentage | Popular domains |
+| Resolver | Trigger Condition             | Eligibility              |
+| -------- | ----------------------------- | ------------------------ |
+| BIND     | 2 seconds remaining TTL       | Original TTL > 9 seconds |
+| Unbound  | 10% of original TTL remaining | All records              |
+| PowerDNS | Configurable percentage       | Popular domains          |
 
 ### Serve-Stale (RFC 8767)
 
@@ -259,14 +260,14 @@ This improves resilience during authoritative outages at the cost of potentially
 
 DNS responses include a 4-bit RCODE (Response Code) field. The primary values from RFC 1035:
 
-| RCODE | Name | Meaning |
-|-------|------|---------|
-| 0 | NOERROR | Query succeeded (may or may not have answer data) |
-| 1 | FORMERR | Server couldn't parse the query |
-| 2 | SERVFAIL | Server failed to complete the query |
-| 3 | NXDOMAIN | Domain does not exist |
-| 4 | NOTIMP | Query type not implemented |
-| 5 | REFUSED | Server refuses to answer (policy) |
+| RCODE | Name     | Meaning                                           |
+| ----- | -------- | ------------------------------------------------- |
+| 0     | NOERROR  | Query succeeded (may or may not have answer data) |
+| 1     | FORMERR  | Server couldn't parse the query                   |
+| 2     | SERVFAIL | Server failed to complete the query               |
+| 3     | NXDOMAIN | Domain does not exist                             |
+| 4     | NOTIMP   | Query type not implemented                        |
+| 5     | REFUSED  | Server refuses to answer (policy)                 |
 
 ### When Each Failure Occurs
 
@@ -337,6 +338,7 @@ RFC 1035 leaves retry logic to implementations. Typical patterns:
 All root servers and most major TLD/public resolvers use anycast—multiple servers share a single IP address, and BGP routes queries to the topologically nearest instance.
 
 **Benefits:**
+
 - Reduces RTT by routing to nearby instances
 - Distributes DDoS traffic across instances
 - Improves availability (instance failure → traffic reroutes)
@@ -345,13 +347,13 @@ All root servers and most major TLD/public resolvers use anycast—multiple serv
 
 ### Mitigation Strategies
 
-| Strategy | Mechanism | Trade-off |
-|----------|-----------|-----------|
-| **Aggressive caching** | Longer TTLs | Slower propagation of changes |
-| **Prefetching** | Refresh before expiry | Additional background queries |
-| **Serve-stale** | Return expired data during outages | Risk of stale data |
-| **Multiple authoritative servers** | Geographic distribution | Operational complexity |
-| **Low TTL during migrations** | 60-300 seconds temporarily | Higher authoritative load |
+| Strategy                           | Mechanism                          | Trade-off                     |
+| ---------------------------------- | ---------------------------------- | ----------------------------- |
+| **Aggressive caching**             | Longer TTLs                        | Slower propagation of changes |
+| **Prefetching**                    | Refresh before expiry              | Additional background queries |
+| **Serve-stale**                    | Return expired data during outages | Risk of stale data            |
+| **Multiple authoritative servers** | Geographic distribution            | Operational complexity        |
+| **Low TTL during migrations**      | 60-300 seconds temporarily         | Higher authoritative load     |
 
 ### Browser DNS Prefetching
 
@@ -380,6 +382,7 @@ api.example.com.    300    IN    A    93.184.216.50
 ```
 
 Key fields:
+
 - `status: NOERROR` — Query succeeded
 - `flags: qr rd ra` — Query Response, Recursion Desired, Recursion Available
 - `Query time: 23 msec` — Round-trip to recursive resolver
@@ -441,6 +444,7 @@ DoH encapsulates DNS queries in HTTPS, providing:
 DoH uses the `application/dns-message` media type with standard DNS wire format. It integrates with HTTP caching—HTTP freshness lifetime MUST be ≤ smallest Answer TTL.
 
 **Trade-offs:**
+
 - Pro: Bypasses network-level DNS interception/filtering
 - Con: Centralizes DNS at browser-configured resolver (often Cloudflare or Google)
 - Con: Breaks enterprise DNS policies and split-horizon setups
@@ -479,18 +483,18 @@ DNS resolution is deceptively simple on the surface—a name goes in, an IP come
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **Stub resolver** | DNS client library that forwards queries to a recursive resolver |
-| **Recursive resolver** | Server that performs iterative resolution and maintains cache |
-| **Authoritative server** | Server that holds definitive records for a zone |
-| **TTL** | Time To Live; seconds a record may be cached |
-| **RCODE** | Response Code; 4-bit field indicating query result |
-| **Glue record** | A/AAAA record embedded in referral to break circular dependencies |
-| **Anycast** | Routing technique where multiple servers share one IP address |
-| **DNSSEC** | DNS Security Extensions; cryptographic authentication of DNS data |
-| **DoH** | DNS over HTTPS (RFC 8484) |
-| **DoT** | DNS over TLS (RFC 7858) |
+| Term                     | Definition                                                        |
+| ------------------------ | ----------------------------------------------------------------- |
+| **Stub resolver**        | DNS client library that forwards queries to a recursive resolver  |
+| **Recursive resolver**   | Server that performs iterative resolution and maintains cache     |
+| **Authoritative server** | Server that holds definitive records for a zone                   |
+| **TTL**                  | Time To Live; seconds a record may be cached                      |
+| **RCODE**                | Response Code; 4-bit field indicating query result                |
+| **Glue record**          | A/AAAA record embedded in referral to break circular dependencies |
+| **Anycast**              | Routing technique where multiple servers share one IP address     |
+| **DNSSEC**               | DNS Security Extensions; cryptographic authentication of DNS data |
+| **DoH**                  | DNS over HTTPS (RFC 8484)                                         |
+| **DoT**                  | DNS over TLS (RFC 7858)                                           |
 
 ### Summary
 

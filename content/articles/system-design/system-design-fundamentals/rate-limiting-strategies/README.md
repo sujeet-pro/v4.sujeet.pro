@@ -69,7 +69,7 @@ function tryConsume(
   bucket: TokenBucket,
   capacity: number,
   refillRate: number, // tokens per second
-  tokensRequested: number = 1
+  tokensRequested: number = 1,
 ): boolean {
   const now = Date.now()
   const elapsed = (now - bucket.lastRefill) / 1000
@@ -90,11 +90,12 @@ const bucket: TokenBucket = { tokens: 100, lastRefill: Date.now() }
 const allowed = tryConsume(bucket, 100, 10, 1) // capacity=100, rate=10/s
 ```
 
-The lazy refill pattern avoids background timers. Instead of continuously adding tokens, calculate how many *would have been* added since the last request. This makes token bucket O(1) time and O(1) space per client.
+The lazy refill pattern avoids background timers. Instead of continuously adding tokens, calculate how many _would have been_ added since the last request. This makes token bucket O(1) time and O(1) space per client.
 
 ### Production Configurations
 
 **AWS API Gateway** uses hierarchical token buckets:
+
 - Regional: 10,000 req/s baseline (AWS-managed)
 - Account: 10,000 req/s steady, 5,000 burst (configurable)
 - Stage/Method: Per-API limits
@@ -103,6 +104,7 @@ The lazy refill pattern avoids background timers. Instead of continuously adding
 The narrowest limit applies. A stage-level limit of 100 req/s overrides the account-level 10,000 req/s.
 
 **Stripe** runs four distinct rate limiters, all token bucket:
+
 1. **Request rate:** Maximum requests per second
 2. **Concurrent requests:** Maximum in-flight (e.g., 20 concurrent)
 3. **Fleet load shedder:** Reserves capacity for critical operations
@@ -137,7 +139,7 @@ Leaky bucket enforces smooth, constant-rate output regardless of input burstines
 
 Requests enter a queue (the "bucket"). The queue drains at a fixed rate. If the queue is full, new requests are rejected.
 
-Unlike token bucket, leaky bucket doesn't store burst capacity—it stores *pending requests*. A full bucket means requests are waiting, not that capacity is available.
+Unlike token bucket, leaky bucket doesn't store burst capacity—it stores _pending requests_. A full bucket means requests are waiting, not that capacity is available.
 
 ### Two Variants
 
@@ -152,7 +154,7 @@ type LeakyBucket = { count: number; lastLeak: number }
 function tryConsume(
   bucket: LeakyBucket,
   capacity: number,
-  leakRate: number // requests per second
+  leakRate: number, // requests per second
 ): boolean {
   const now = Date.now()
   const elapsed = (now - bucket.lastLeak) / 1000
@@ -172,6 +174,7 @@ function tryConsume(
 ### When to Use
 
 Leaky bucket suits scenarios requiring predictable, smooth throughput:
+
 - **Network traffic shaping:** Original use case in telecommunications
 - **Database write batching:** Prevent write spikes from overwhelming storage
 - **Third-party API calls:** Stay within strict rate limits that don't allow bursts
@@ -224,6 +227,7 @@ This isn't theoretical—attackers actively exploit window boundaries. A 2020 an
 ### When Acceptable
 
 Fixed window works when:
+
 - Precision isn't critical (internal services, development)
 - Combined with finer-grained limits (2 req/s + 100 req/min)
 - Traffic is naturally distributed (no coordinated clients)
@@ -240,16 +244,12 @@ Sliding window log stores the timestamp of every request, providing exact rate l
 // Sliding window log - exact counting
 type SlidingWindowLog = { timestamps: number[] }
 
-function tryConsume(
-  log: SlidingWindowLog,
-  windowMs: number,
-  limit: number
-): boolean {
+function tryConsume(log: SlidingWindowLog, windowMs: number, limit: number): boolean {
   const now = Date.now()
   const windowStart = now - windowMs
 
   // Remove timestamps outside window
-  log.timestamps = log.timestamps.filter(t => t > windowStart)
+  log.timestamps = log.timestamps.filter((t) => t > windowStart)
 
   if (log.timestamps.length < limit) {
     log.timestamps.push(now)
@@ -268,6 +268,7 @@ const allowed = tryConsume(log, 60_000, 100)
 The fatal flaw: O(n) memory where n is requests per window.
 
 At 10,000 requests/second with a 60-second window:
+
 - 600,000 timestamps per client
 - 8 bytes per timestamp = 4.8 MB per client
 - 1 million clients = 4.8 TB
@@ -318,11 +319,7 @@ type SlidingWindowCounter = {
   previousCount: number
 }
 
-function tryConsume(
-  counter: SlidingWindowCounter,
-  windowMs: number,
-  limit: number
-): boolean {
+function tryConsume(counter: SlidingWindowCounter, windowMs: number, limit: number): boolean {
   const now = Date.now()
   const currentWindow = Math.floor(now / windowMs)
 
@@ -336,7 +333,7 @@ function tryConsume(
   // Calculate weighted estimate
   const elapsedInWindow = now % windowMs
   const previousWeight = (windowMs - elapsedInWindow) / windowMs
-  const estimate = (counter.previousCount * previousWeight) + counter.currentCount
+  const estimate = counter.previousCount * previousWeight + counter.currentCount
 
   if (estimate < limit) {
     counter.currentCount += 1
@@ -349,6 +346,7 @@ function tryConsume(
 ### Accuracy
 
 Cloudflare tested sliding window counter against sliding window log on 400 million requests:
+
 - **Error rate:** 0.003% of requests miscategorized
 - **Average difference:** 6% from true rate
 
@@ -367,32 +365,36 @@ The approximation works because most requests don't arrive exactly at window bou
 
 ### Algorithm Selection Matrix
 
-| Factor | Token Bucket | Leaky Bucket | Fixed Window | Sliding Window Counter |
-|--------|--------------|--------------|--------------|----------------------|
-| **Burst tolerance** | Excellent | None | Boundary exploit | Good |
-| **Memory per client** | O(1) | O(1) | O(1) | O(1) |
-| **Accuracy** | Burst-aware | Strict | Low | High |
-| **Distributed complexity** | Medium | Hard | Easy | Medium |
-| **Best for** | APIs, CDNs | Traffic shaping | Simple cases | General purpose |
+| Factor                     | Token Bucket | Leaky Bucket    | Fixed Window     | Sliding Window Counter |
+| -------------------------- | ------------ | --------------- | ---------------- | ---------------------- |
+| **Burst tolerance**        | Excellent    | None            | Boundary exploit | Good                   |
+| **Memory per client**      | O(1)         | O(1)            | O(1)             | O(1)                   |
+| **Accuracy**               | Burst-aware  | Strict          | Low              | High                   |
+| **Distributed complexity** | Medium       | Hard            | Easy             | Medium                 |
+| **Best for**               | APIs, CDNs   | Traffic shaping | Simple cases     | General purpose        |
 
 ### How to Choose
 
 **Start with token bucket if:**
+
 - Traffic is naturally bursty (user-facing APIs)
 - You need separate burst and sustained limits
 - Backend can handle temporary overload
 
 **Use sliding window counter if:**
+
 - Precision matters more than burst handling
 - You're migrating from fixed window and hitting boundary exploits
 - Memory constraints prevent sliding window log
 
 **Use leaky bucket if:**
+
 - Output must be perfectly smooth (downstream rate limits)
 - Bursts would overwhelm the next system in the chain
 - You're shaping network traffic
 
 **Fixed window only if:**
+
 - Simplicity trumps precision
 - Combined with other limits (per-second + per-minute)
 - Internal/trusted clients only
@@ -401,16 +403,17 @@ The approximation works because most requests don't arrive exactly at window bou
 
 Rate limit keys determine what gets limited:
 
-| Strategy | Pros | Cons | Use Case |
-|----------|------|------|----------|
-| **IP address** | No auth required, stops bots | Shared IPs (NAT, proxies), easy to rotate | DDoS protection, anonymous abuse |
-| **API key** | Fine-grained control, billing integration | Requires key infrastructure | SaaS APIs, metered services |
-| **User ID** | Fair per-user limits | Requires authentication | Authenticated APIs |
-| **Composite** | Defense in depth | Complex configuration | High-security APIs |
+| Strategy       | Pros                                      | Cons                                      | Use Case                         |
+| -------------- | ----------------------------------------- | ----------------------------------------- | -------------------------------- |
+| **IP address** | No auth required, stops bots              | Shared IPs (NAT, proxies), easy to rotate | DDoS protection, anonymous abuse |
+| **API key**    | Fine-grained control, billing integration | Requires key infrastructure               | SaaS APIs, metered services      |
+| **User ID**    | Fair per-user limits                      | Requires authentication                   | Authenticated APIs               |
+| **Composite**  | Defense in depth                          | Complex configuration                     | High-security APIs               |
 
 **Composite example:** Limit by `(user_id, endpoint)` to prevent one user from monopolizing expensive endpoints while allowing high volume on cheap ones.
 
 **Multi-layer pattern:** Apply limits at multiple levels:
+
 1. Global: 10,000 req/s across all clients (infrastructure protection)
 2. Per-IP: 100 req/s (anonymous abuse prevention)
 3. Per-user: 1,000 req/s (fair usage)
@@ -476,29 +479,21 @@ For fixed or sliding window counters, simpler operations suffice:
 ```ts title="redis-counter.ts" collapse={1-4, 25-30}
 // Sliding window counter in Redis
 // Requires two keys: current window and previous window
-import Redis from 'ioredis'
+import Redis from "ioredis"
 
-async function tryConsume(
-  redis: Redis,
-  key: string,
-  windowSec: number,
-  limit: number
-): Promise<boolean> {
+async function tryConsume(redis: Redis, key: string, windowSec: number, limit: number): Promise<boolean> {
   const now = Date.now()
   const currentWindow = Math.floor(now / 1000 / windowSec)
   const elapsedInWindow = (now / 1000) % windowSec
   const previousWeight = (windowSec - elapsedInWindow) / windowSec
 
-  const [current, previous] = await redis.mget(
-    `${key}:${currentWindow}`,
-    `${key}:${currentWindow - 1}`
-  )
+  const [current, previous] = await redis.mget(`${key}:${currentWindow}`, `${key}:${currentWindow - 1}`)
 
-  const estimate = (parseInt(previous || '0') * previousWeight) +
-                   parseInt(current || '0')
+  const estimate = parseInt(previous || "0") * previousWeight + parseInt(current || "0")
 
   if (estimate < limit) {
-    await redis.multi()
+    await redis
+      .multi()
       .incr(`${key}:${currentWindow}`)
       .expire(`${key}:${currentWindow}`, windowSec * 2)
       .exec()
@@ -555,6 +550,7 @@ Stripe initially ran rate limiting on a single Redis instance. The problem:
 The solution: migrate to Redis Cluster with 10 nodes.
 
 **Key decisions:**
+
 - Use Redis Cluster's 16,384 hash slots distributed across nodes
 - Client calculates `CRC16(key) mod 16384` to route requests
 - Keys for the same user land on the same node (use `{user_id}:*` to force slot)
@@ -664,13 +660,14 @@ X-RateLimit-Reset-After: 1.234
 
 GitHub's API has explicit tiers:
 
-| Tier | Limit | Use Case |
-|------|-------|----------|
-| Unauthenticated | 60/hour | Public data scraping |
-| Authenticated | 5,000/hour | Normal API usage |
-| GitHub App (Enterprise) | 15,000/hour | Heavy automation |
+| Tier                    | Limit       | Use Case             |
+| ----------------------- | ----------- | -------------------- |
+| Unauthenticated         | 60/hour     | Public data scraping |
+| Authenticated           | 5,000/hour  | Normal API usage     |
+| GitHub App (Enterprise) | 15,000/hour | Heavy automation     |
 
 **Secondary limits:** Beyond request count, GitHub limits:
+
 - Concurrent requests (per user)
 - CPU time consumption (expensive queries)
 - Per-endpoint rates (abuse prevention)
@@ -720,14 +717,17 @@ Retry-After: Wed, 01 Jan 2025 00:00:30 GMT  ← Risky: requires clock sync
 The emerging standard (draft-10, as of 2025) defines:
 
 **RateLimit-Policy:** Server's quota policy
+
 ```
 RateLimit-Policy: 100;w=60;burst=20
 ```
+
 - `100`: quota units
 - `w=60`: window in seconds
 - `burst=20`: burst allowance
 
 **RateLimit:** Current state
+
 ```
 RateLimit: limit=100, remaining=45, reset=30
 ```
@@ -746,10 +746,7 @@ Well-behaved clients implement:
 ```ts title="client-rate-limiting.ts" collapse={1-3, 25-30}
 // Client-side rate limit handling
 // Respects Retry-After and implements exponential backoff
-async function fetchWithRateLimit(
-  url: string,
-  maxRetries: number = 5
-): Promise<Response> {
+async function fetchWithRateLimit(url: string, maxRetries: number = 5): Promise<Response> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     const response = await fetch(url)
 
@@ -757,16 +754,14 @@ async function fetchWithRateLimit(
       return response
     }
 
-    const retryAfter = response.headers.get('Retry-After')
-    const waitMs = retryAfter
-      ? parseInt(retryAfter) * 1000
-      : Math.min(1000 * Math.pow(2, attempt), 60000)
+    const retryAfter = response.headers.get("Retry-After")
+    const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : Math.min(1000 * Math.pow(2, attempt), 60000)
 
     // Add jitter: ±10% of wait time
     const jitter = waitMs * 0.1 * (Math.random() * 2 - 1)
     await sleep(waitMs + jitter)
   }
-  throw new Error('Rate limit exceeded after max retries')
+  throw new Error("Rate limit exceeded after max retries")
 }
 ```
 

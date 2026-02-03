@@ -56,17 +56,18 @@ flowchart TD
 
 Text exists at three abstraction layers, and JavaScript operates at the wrong one for user-facing operations:
 
-| Layer | What It Represents | JavaScript API | `'👨‍👩‍👧‍👦'` |
-|-------|-------------------|----------------|-------------|
-| **Grapheme clusters** | User-perceived characters | `Intl.Segmenter` | 1 |
-| **Code points** | Unicode abstract characters | `[...str]`, `codePointAt()` | 7 |
-| **Code units** | UTF-16 encoding units | `string.length`, `charAt()` | 11 |
+| Layer                 | What It Represents          | JavaScript API              | `'👨‍👩‍👧‍👦'` |
+| --------------------- | --------------------------- | --------------------------- | ------ |
+| **Grapheme clusters** | User-perceived characters   | `Intl.Segmenter`            | 1      |
+| **Code points**       | Unicode abstract characters | `[...str]`, `codePointAt()` | 7      |
+| **Code units**        | UTF-16 encoding units       | `string.length`, `charAt()` | 11     |
 
 **The design constraint**: JavaScript adopted Java's UCS-2 encoding in 1995 when Unicode fit in 16 bits. When Unicode expanded (UTF-16, 1996), JavaScript preserved backward compatibility by exposing surrogate pairs as separate characters rather than breaking existing code.
 
 **The solution**: Use `Intl.Segmenter` (Baseline April 2024) for grapheme-aware operations. For code point operations, use spread `[...str]` or the `u` regex flag. Reserve `string.length` for byte-level operations only.
 
 **Critical gotchas**:
+
 - `string.slice(0, n)` can corrupt emoji by splitting surrogate pairs
 - `split('')` breaks supplementary plane characters into invalid halves
 - ES2024 added `isWellFormed()` and `toWellFormed()` to detect and fix lone surrogates
@@ -154,13 +155,13 @@ invalid.isWellFormed() // false (ES2024)
 
 Unicode allocates 1,114,112 code points across 17 planes. Only planes 0-3 and 14-16 are currently assigned:
 
-| Plane | Range            | Name                                   | JavaScript Implications                    |
-| ----- | ---------------- | -------------------------------------- | ------------------------------------------ |
-| 0     | U+0000–U+FFFF    | Basic Multilingual Plane (BMP)         | 1 code unit per character                  |
-| 1     | U+10000–U+1FFFF  | Supplementary Multilingual Plane (SMP) | 2 code units; contains most emoji          |
-| 2-3   | U+20000–U+3FFFF  | Ideographic Extension Planes           | 2 code units; rare CJK characters          |
-| 14    | U+E0000–U+EFFFF  | Special-purpose Plane                  | Variation selectors, language tags         |
-| 15-16 | U+F0000–U+10FFFF | Private Use Areas                      | Application-defined; 2 code units          |
+| Plane | Range            | Name                                   | JavaScript Implications            |
+| ----- | ---------------- | -------------------------------------- | ---------------------------------- |
+| 0     | U+0000–U+FFFF    | Basic Multilingual Plane (BMP)         | 1 code unit per character          |
+| 1     | U+10000–U+1FFFF  | Supplementary Multilingual Plane (SMP) | 2 code units; contains most emoji  |
+| 2-3   | U+20000–U+3FFFF  | Ideographic Extension Planes           | 2 code units; rare CJK characters  |
+| 14    | U+E0000–U+EFFFF  | Special-purpose Plane                  | Variation selectors, language tags |
+| 15-16 | U+F0000–U+10FFFF | Private Use Areas                      | Application-defined; 2 code units  |
 
 ### Surrogate Pair Encoding
 
@@ -170,13 +171,13 @@ Supplementary characters (U+10000+) are encoded using a mathematical transformat
 // Encoding algorithm for code point → surrogate pair
 function toSurrogatePair(codePoint: number): [number, number] {
   const temp = codePoint - 0x10000
-  const high = Math.floor(temp / 0x400) + 0xD800 // D800-DBFF
-  const low = (temp % 0x400) + 0xDC00            // DC00-DFFF
+  const high = Math.floor(temp / 0x400) + 0xd800 // D800-DBFF
+  const low = (temp % 0x400) + 0xdc00 // DC00-DFFF
   return [high, low]
 }
 
 // U+1F4A9 (💩) → [0xD83D, 0xDCA9]
-toSurrogatePair(0x1F4A9) // [55357, 56489]
+toSurrogatePair(0x1f4a9) // [55357, 56489]
 
 // Verification
 "💩".charCodeAt(0) // 55357 (0xD83D) - high surrogate
@@ -238,13 +239,13 @@ const wellFormed = "Hello 💩"
 const illFormed = "Hello \uD800" // lone high surrogate
 
 wellFormed.isWellFormed() // true
-illFormed.isWellFormed()  // false
+illFormed.isWellFormed() // false
 
 // Fix by replacing lone surrogates with U+FFFD (replacement character)
 illFormed.toWellFormed() // "Hello �"
 
 // Use case: encodeURI throws on ill-formed strings
-encodeURI(illFormed)            // URIError
+encodeURI(illFormed) // URIError
 encodeURI(illFormed.toWellFormed()) // "Hello%20%EF%BF%BD"
 ```
 
@@ -300,17 +301,17 @@ The `u` flag (ES6) enables code point matching and Unicode property escapes:
 Unicode allows multiple representations of the same visual character. Normalize before comparison:
 
 ```typescript
-const e1 = "é"       // U+00E9 (precomposed: single code point)
+const e1 = "é" // U+00E9 (precomposed: single code point)
 const e2 = "e\u0301" // U+0065 + U+0301 (decomposed: base + combining acute)
 
-e1 === e2                          // false (different code points)
-e1.normalize() === e2.normalize()  // true (NFC: canonical composition)
-e1.length                          // 1
-e2.length                          // 2
+e1 === e2 // false (different code points)
+e1.normalize() === e2.normalize() // true (NFC: canonical composition)
+e1.length // 1
+e2.length // 2
 
 // Normalization forms
-"é".normalize("NFC")  // Canonical Composition (default)
-"é".normalize("NFD")  // Canonical Decomposition
+"é".normalize("NFC") // Canonical Composition (default)
+"é".normalize("NFD") // Canonical Decomposition
 "é".normalize("NFKC") // Compatibility Composition
 "é".normalize("NFKD") // Compatibility Decomposition
 ```
@@ -342,8 +343,8 @@ res.setHeader("Content-Type", "application/json; charset=utf-8")
 
 // Normalize input at system boundary
 const sanitized = userInput
-  .normalize("NFC")           // Canonical composition
-  .replace(/\p{C}/gu, "")     // Remove control characters
+  .normalize("NFC") // Canonical composition
+  .replace(/\p{C}/gu, "") // Remove control characters
 
 // Validate well-formedness before external APIs
 if (!sanitized.isWellFormed()) {
@@ -398,10 +399,10 @@ Different scripts contain visually identical characters:
 
 ```typescript
 const cyrillicA = "а" // U+0430 (Cyrillic Small Letter A)
-const latinA = "a"    // U+0061 (Latin Small Letter A)
+const latinA = "a" // U+0061 (Latin Small Letter A)
 
-cyrillicA === latinA                          // false
-cyrillicA.normalize() === latinA.normalize()  // false (different scripts)
+cyrillicA === latinA // false
+cyrillicA.normalize() === latinA.normalize() // false (different scripts)
 
 // Detecting mixed scripts
 function detectMixedScripts(text: string): boolean {
@@ -425,8 +426,8 @@ UTF-8 byte length differs from code unit count:
 ```typescript
 // Code units vs UTF-8 bytes
 const text = "Hello 💩"
-text.length                        // 8 code units
-Buffer.byteLength(text, "utf8")    // 10 bytes (💩 = 4 bytes in UTF-8)
+text.length // 8 code units
+Buffer.byteLength(text, "utf8") // 10 bytes (💩 = 4 bytes in UTF-8)
 
 // Safe buffer allocation
 function safeBuffer(text: string): Buffer {
@@ -435,7 +436,7 @@ function safeBuffer(text: string): Buffer {
 
 // Dangerous: assumes code units = bytes
 const buf = Buffer.alloc(text.length) // Only 8 bytes
-buf.write(text)                        // Truncation risk
+buf.write(text) // Truncation risk
 ```
 
 ### Combining Characters and Length
@@ -443,10 +444,10 @@ buf.write(text)                        // Truncation risk
 Combining marks attach to preceding base characters:
 
 ```typescript
-const composed = "é"        // U+00E9 (1 code point)
+const composed = "é" // U+00E9 (1 code point)
 const decomposed = "e\u0301" // U+0065 + U+0301 (2 code points)
 
-composed.length   // 1
+composed.length // 1
 decomposed.length // 2
 
 // Both render identically, but different lengths
@@ -464,10 +465,12 @@ function truncateGraphemes(text: string, maxGraphemes: number, ellipsis = "…")
 
   if (segments.length <= maxGraphemes) return text
 
-  return segments
-    .slice(0, maxGraphemes - 1)
-    .map(s => s.segment)
-    .join("") + ellipsis
+  return (
+    segments
+      .slice(0, maxGraphemes - 1)
+      .map((s) => s.segment)
+      .join("") + ellipsis
+  )
 }
 
 truncateGraphemes("Hello 👨‍👩‍👧‍👦 World", 8) // "Hello 👨‍👩‍👧‍👦…"
@@ -522,7 +525,7 @@ class TextProcessor {
   // Internal processing on normalized text
   static process(text: string): string {
     // Safe to use code point iteration here
-    return [...text].map(c => c.toUpperCase()).join("")
+    return [...text].map((c) => c.toUpperCase()).join("")
   }
 
   // Ensure well-formed output

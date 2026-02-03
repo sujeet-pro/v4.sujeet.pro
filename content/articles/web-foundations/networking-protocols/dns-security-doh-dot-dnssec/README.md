@@ -58,12 +58,12 @@ DNS security operates on two orthogonal axes:
 
 Key trade-offs:
 
-| Goal | DNSSEC | DoH | DoT |
-|------|--------|-----|-----|
-| **Prevents response spoofing** | ✓ | ✗ | ✗ |
-| **Prevents eavesdropping** | ✗ | ✓ | ✓ |
+| Goal                                   | DNSSEC                    | DoH                       | DoT                       |
+| -------------------------------------- | ------------------------- | ------------------------- | ------------------------- |
+| **Prevents response spoofing**         | ✓                         | ✗                         | ✗                         |
+| **Prevents eavesdropping**             | ✗                         | ✓                         | ✓                         |
 | **Works with existing infrastructure** | ✓ (authoritative signing) | Requires resolver support | Requires resolver support |
-| **Enterprise policy compatible** | ✓ | Problematic (port 443) | Manageable (port 853) |
+| **Enterprise policy compatible**       | ✓                         | Problematic (port 443)    | Manageable (port 853)     |
 
 Mental model: DNSSEC is like a notarized signature on a letter—anyone can read it, but you can verify the sender. DoH/DoT is like a sealed envelope—observers can't read the contents, but you're trusting whoever opens it.
 
@@ -101,10 +101,10 @@ Root Zone (trust anchor)
 
 DNSSEC uses two key types per RFC 4033:
 
-| Key Type | Purpose | Rollover Impact | Typical Validity |
-|----------|---------|-----------------|------------------|
-| **KSK** (Key Signing Key) | Signs the DNSKEY RRset | Requires DS update at parent | 1-2 years |
-| **ZSK** (Zone Signing Key) | Signs all other zone data | No parent interaction | 1-3 months |
+| Key Type                   | Purpose                   | Rollover Impact              | Typical Validity |
+| -------------------------- | ------------------------- | ---------------------------- | ---------------- |
+| **KSK** (Key Signing Key)  | Signs the DNSKEY RRset    | Requires DS update at parent | 1-2 years        |
+| **ZSK** (Zone Signing Key) | Signs all other zone data | No parent interaction        | 1-3 months       |
 
 **Why two keys?** Separating responsibilities allows frequent ZSK rotation (limiting exposure if compromised) without the operational overhead of updating DS records at the registrar. The KSK only signs the DNSKEY RRset, so it can be kept more secure (HSM, offline) and rolled less frequently.
 
@@ -120,13 +120,13 @@ DNSSEC uses two key types per RFC 4033:
 
 RFC 8624 specifies algorithm requirements for DNSSEC implementations:
 
-| Algorithm | ID | Signing Status | Validation Status | Notes |
-|-----------|-----|----------------|-------------------|-------|
-| **RSASHA256** | 8 | MUST | MUST | Legacy, larger signatures |
-| **ECDSAP256SHA256** | 13 | MUST | MUST | Recommended for new deployments |
-| **ECDSAP384SHA384** | 14 | MAY | RECOMMENDED | Higher security margin |
-| **ED25519** | 15 | RECOMMENDED | RECOMMENDED | Smallest signatures, modern |
-| **ED448** | 16 | MAY | RECOMMENDED | Highest security |
+| Algorithm           | ID  | Signing Status | Validation Status | Notes                           |
+| ------------------- | --- | -------------- | ----------------- | ------------------------------- |
+| **RSASHA256**       | 8   | MUST           | MUST              | Legacy, larger signatures       |
+| **ECDSAP256SHA256** | 13  | MUST           | MUST              | Recommended for new deployments |
+| **ECDSAP384SHA384** | 14  | MAY            | RECOMMENDED       | Higher security margin          |
+| **ED25519**         | 15  | RECOMMENDED    | RECOMMENDED       | Smallest signatures, modern     |
+| **ED448**           | 16  | MAY            | RECOMMENDED       | Highest security                |
 
 **Design decision—why ECDSA over RSA?** ECDSA P-256 produces 64-byte signatures versus 256+ bytes for RSA-2048. Smaller signatures mean smaller DNS responses, reducing truncation and TCP fallback. For a zone with 1000 records, ECDSA can reduce signed zone size by 50-70%.
 
@@ -160,13 +160,13 @@ Zone walking requires reversing cryptographic hashes—computationally expensive
 
 When DNSSEC validation fails, resolvers return SERVFAIL—the same error code used for unreachable servers, timeout, and other failures. RFC 8914 Extended DNS Errors (EDE) provides more detail:
 
-| EDE Code | Meaning |
-|----------|---------|
-| 6 | DNSSEC Bogus (validation failed) |
-| 7 | Signature Expired |
-| 8 | Signature Not Yet Valid |
-| 9 | DNSKEY Missing |
-| 10 | RRSIGs Missing |
+| EDE Code | Meaning                          |
+| -------- | -------------------------------- |
+| 6        | DNSSEC Bogus (validation failed) |
+| 7        | Signature Expired                |
+| 8        | Signature Not Yet Valid          |
+| 9        | DNSKEY Missing                   |
+| 10       | RRSIGs Missing                   |
 
 **Checking for DNSSEC issues**:
 
@@ -188,13 +188,13 @@ dig example.com +cd
 
 As of 2024:
 
-| Metric | Rate | Notes |
-|--------|------|-------|
-| **Global validation** | ~35% | Percentage of users behind validating resolvers |
-| **EU validation** | ~49% | Higher in regions with regulatory drivers |
-| **.com signing** | ~4% | Low despite TLD support |
-| **Sweden validation** | >80% | Highest national adoption |
-| **Netherlands .nl signing** | >50% | Incentive program (lower registry fees) |
+| Metric                      | Rate | Notes                                           |
+| --------------------------- | ---- | ----------------------------------------------- |
+| **Global validation**       | ~35% | Percentage of users behind validating resolvers |
+| **EU validation**           | ~49% | Higher in regions with regulatory drivers       |
+| **.com signing**            | ~4%  | Low despite TLD support                         |
+| **Sweden validation**       | >80% | Highest national adoption                       |
+| **Netherlands .nl signing** | >50% | Incentive program (lower registry fees)         |
 
 **Why low adoption?** DNSSEC adds operational complexity (key management, rollover procedures, signature expiration monitoring) with no visible user benefit when it works correctly. Failures are catastrophic—a misconfigured zone becomes unreachable to validating resolvers. Risk/reward calculus discourages adoption.
 
@@ -249,12 +249,12 @@ DoH leverages HTTP caching, but with DNS-specific constraints:
 
 Major browsers implemented DoH between 2019-2020:
 
-| Browser | Default Behavior | Fallback | Enterprise Control |
-|---------|------------------|----------|-------------------|
-| **Firefox** | Enabled in US (2020) | Falls back to OS resolver | Group Policy, canary domain |
-| **Chrome** | Enabled if resolver supports DoH | Upgrades existing resolver | Group Policy, managed devices |
-| **Safari** | No built-in toggle | System configuration profiles | MDM profiles |
-| **Edge** | Configurable | Upgrades existing resolver | Group Policy |
+| Browser     | Default Behavior                 | Fallback                      | Enterprise Control            |
+| ----------- | -------------------------------- | ----------------------------- | ----------------------------- |
+| **Firefox** | Enabled in US (2020)             | Falls back to OS resolver     | Group Policy, canary domain   |
+| **Chrome**  | Enabled if resolver supports DoH | Upgrades existing resolver    | Group Policy, managed devices |
+| **Safari**  | No built-in toggle               | System configuration profiles | MDM profiles                  |
+| **Edge**    | Configurable                     | Upgrades existing resolver    | Group Policy                  |
 
 **Canary domain** (`use-application-dns.net`): Networks can return NXDOMAIN for this domain to signal that DoH should be disabled. Browsers check this domain before enabling DoH automatically. This only affects automatic enablement—users who manually configure DoH bypass the check.
 
@@ -320,14 +320,14 @@ Client → try port 853 → success? use DoT : fallback to port 53
 
 ### DoT vs DoH Comparison
 
-| Aspect | DoT | DoH |
-|--------|-----|-----|
-| **Port** | 853 (dedicated) | 443 (shared with HTTPS) |
-| **Network visibility** | Identifiable as DNS | Indistinguishable from HTTPS |
-| **Blocking** | Block port 853 | Requires blocking all HTTPS |
-| **Enterprise management** | Can firewall/monitor | Difficult to distinguish |
-| **HTTP features** | None | Caching, multiplexing (HTTP/2) |
-| **Latency** | TLS handshake per connection | HTTP/2 multiplexing reduces RTTs |
+| Aspect                    | DoT                          | DoH                              |
+| ------------------------- | ---------------------------- | -------------------------------- |
+| **Port**                  | 853 (dedicated)              | 443 (shared with HTTPS)          |
+| **Network visibility**    | Identifiable as DNS          | Indistinguishable from HTTPS     |
+| **Blocking**              | Block port 853               | Requires blocking all HTTPS      |
+| **Enterprise management** | Can firewall/monitor         | Difficult to distinguish         |
+| **HTTP features**         | None                         | Caching, multiplexing (HTTP/2)   |
+| **Latency**               | TLS handshake per connection | HTTP/2 multiplexing reduces RTTs |
 
 **Enterprise preference**: DoT's dedicated port makes it manageable. Security teams can allow DoT to approved resolvers while blocking it to unknown destinations. DoH's use of port 443 makes this impossible without deep packet inspection.
 
@@ -351,13 +351,13 @@ DoQ runs DNS over QUIC on UDP port 853 (same port number as DoT's TCP port, diff
 
 DoQ is newer than DoH/DoT with limited deployment:
 
-| Component | DoQ Support |
-|-----------|-------------|
-| **AdGuard DNS** | Production (first major public resolver) |
-| **dnsdist 1.9+** | Production |
-| **Technitium DNS Server** | Production |
-| **dnspython 2.7+** | Library support |
-| **Major browsers** | Not yet (as of January 2025) |
+| Component                 | DoQ Support                              |
+| ------------------------- | ---------------------------------------- |
+| **AdGuard DNS**           | Production (first major public resolver) |
+| **dnsdist 1.9+**          | Production                               |
+| **Technitium DNS Server** | Production                               |
+| **dnspython 2.7+**        | Library support                          |
+| **Major browsers**        | Not yet (as of January 2025)             |
 
 **Adoption barrier**: QUIC stack complexity. DoH leverages existing HTTP/2 implementations; DoQ requires QUIC support that many systems lack.
 
@@ -380,11 +380,11 @@ ECH encrypts the ClientHello's SNI using a key obtained from DNS:
 
 **Browser support (2024-2025)**:
 
-| Browser | Status |
-|---------|--------|
-| Chrome | Ramping up |
-| Firefox | Ramping up |
-| Edge | Depends on server availability |
+| Browser | Status                         |
+| ------- | ------------------------------ |
+| Chrome  | Ramping up                     |
+| Firefox | Ramping up                     |
+| Edge    | Depends on server availability |
 
 Approximately 59% of browsers support ECH. Server-side support is concentrated at Cloudflare (~70% of ECH-capable sites).
 
@@ -399,6 +399,7 @@ Split-horizon (split-brain) DNS returns different responses based on query sourc
 **Problem**: When a laptop uses Firefox's default DoH (Cloudflare), queries for `internal.corp.example.com` go to Cloudflare instead of the corporate resolver. Cloudflare returns NXDOMAIN because internal zones aren't published externally.
 
 **Symptoms**:
+
 - Internal applications fail to resolve
 - Internal DNS names leak to external providers
 - Security monitoring gaps (DNS queries bypass internal logging)
@@ -407,24 +408,24 @@ Split-horizon (split-brain) DNS returns different responses based on query sourc
 
 NSA guidance (January 2021) outlines enterprise options:
 
-| Approach | Mechanism | Trade-off |
-|----------|-----------|-----------|
-| **Block DoT** | Firewall TCP/UDP 853 | Works for DoT; ineffective for DoH |
-| **Block known DoH endpoints** | IP/domain blocking | Cat-and-mouse; endpoints proliferate |
-| **Internal encrypted resolver** | DoH/DoT to internal resolver | Best balance; requires infrastructure |
-| **Endpoint policy** | MDM/GPO disable per-app DoH | Requires managed devices |
-| **Canary domain** | NXDOMAIN for `use-application-dns.net` | Only affects auto-enabled DoH |
+| Approach                        | Mechanism                              | Trade-off                             |
+| ------------------------------- | -------------------------------------- | ------------------------------------- |
+| **Block DoT**                   | Firewall TCP/UDP 853                   | Works for DoT; ineffective for DoH    |
+| **Block known DoH endpoints**   | IP/domain blocking                     | Cat-and-mouse; endpoints proliferate  |
+| **Internal encrypted resolver** | DoH/DoT to internal resolver           | Best balance; requires infrastructure |
+| **Endpoint policy**             | MDM/GPO disable per-app DoH            | Requires managed devices              |
+| **Canary domain**               | NXDOMAIN for `use-application-dns.net` | Only affects auto-enabled DoH         |
 
 **Practical approach**: Deploy an internal resolver that supports DoH/DoT. Configure endpoints to use it. Block external DoT (port 853). Accept that DoH to port 443 is unblockable without breaking the web.
 
 ### Resolver Selection Strategy
 
-| Use Case | Resolver Choice | Rationale |
-|----------|-----------------|-----------|
+| Use Case                       | Resolver Choice                | Rationale                        |
+| ------------------------------ | ------------------------------ | -------------------------------- |
 | **Enterprise managed devices** | Internal resolver with DoH/DoT | Maintains split-horizon, logging |
-| **Privacy-focused users** | Cloudflare (1.1.1.1) or Quad9 | No ECS, privacy policies |
-| **CDN-optimal routing** | Google (8.8.8.8) with ECS | ECS improves GeoDNS accuracy |
-| **Malware blocking** | Quad9 (9.9.9.9) | Threat intelligence filtering |
+| **Privacy-focused users**      | Cloudflare (1.1.1.1) or Quad9  | No ECS, privacy policies         |
+| **CDN-optimal routing**        | Google (8.8.8.8) with ECS      | ECS improves GeoDNS accuracy     |
+| **Malware blocking**           | Quad9 (9.9.9.9)                | Threat intelligence filtering    |
 
 **EDNS Client Subnet (ECS)**: Cloudflare intentionally doesn't send ECS (privacy). Google does. ECS improves CDN routing by letting authoritative servers know the client's approximate location—but leaks that information to the authoritative server.
 
@@ -472,12 +473,12 @@ kdig @dns.adguard-dns.com example.com +quic
 
 Key metrics for DNS security monitoring:
 
-| Metric | Healthy Value | Alert Condition |
-|--------|---------------|-----------------|
-| DNSSEC validation success rate | >99.9% | <99% |
-| RRSIG time to expiry | >7 days | <3 days |
-| DS record match | 100% | Any mismatch |
-| DoH/DoT connection failures | <1% | >5% |
+| Metric                         | Healthy Value | Alert Condition |
+| ------------------------------ | ------------- | --------------- |
+| DNSSEC validation success rate | >99.9%        | <99%            |
+| RRSIG time to expiry           | >7 days       | <3 days         |
+| DS record match                | 100%          | Any mismatch    |
+| DoH/DoT connection failures    | <1%           | >5%             |
 
 **RRSIG expiration**: The most common DNSSEC outage is expired signatures. Monitor `RRSIG` expiration dates and alert before they expire:
 
@@ -502,30 +503,30 @@ The complete privacy stack—DNSSEC + DoH + ECH—protects DNS authenticity, que
 
 ### Prerequisites
 
-- DNS resolution fundamentals (see [DNS Resolution Path](/articles/web-foundations/networking-protocols/dns-resolution-path))
-- TLS handshake basics (see [TLS 1.3 Handshake](/articles/web-foundations/networking-protocols/tls-1-3-handshake-and-https))
+- DNS resolution fundamentals (see [DNS Resolution Path](../dns-resolution-path/README.md))
+- TLS handshake basics (see [TLS 1.3 Handshake](../tls-1-3-handshake-and-https/README.md))
 - Understanding of public key cryptography (asymmetric keys, digital signatures)
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **DNSSEC** | Domain Name System Security Extensions; cryptographic authentication of DNS responses |
-| **KSK** | Key Signing Key; signs the DNSKEY RRset, hash published as DS in parent zone |
-| **ZSK** | Zone Signing Key; signs zone data, rolled more frequently than KSK |
-| **DS** | Delegation Signer; hash of child zone's KSK, published in parent zone |
-| **RRSIG** | Resource Record Signature; cryptographic signature over an RRset |
-| **DNSKEY** | DNS public key record; contains KSK and ZSK public keys |
-| **NSEC/NSEC3** | Next Secure; records proving non-existence of names |
-| **DoH** | DNS over HTTPS (RFC 8484); DNS queries tunneled through HTTPS |
-| **DoT** | DNS over TLS (RFC 7858); DNS queries over TLS on port 853 |
-| **DoQ** | DNS over QUIC (RFC 9250); DNS queries over QUIC |
-| **ODoH** | Oblivious DoH (RFC 9230); privacy-preserving DoH with proxy separation |
-| **ECH** | Encrypted ClientHello; encrypts TLS SNI field |
-| **ECS** | EDNS Client Subnet (RFC 7871); forwards client subnet to authoritative for GeoDNS |
-| **AD flag** | Authenticated Data; set when DNSSEC validation succeeded |
-| **CD flag** | Checking Disabled; client requests validation be skipped |
-| **Trust anchor** | Pre-configured trusted public key (root zone KSK) |
+| Term             | Definition                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| **DNSSEC**       | Domain Name System Security Extensions; cryptographic authentication of DNS responses |
+| **KSK**          | Key Signing Key; signs the DNSKEY RRset, hash published as DS in parent zone          |
+| **ZSK**          | Zone Signing Key; signs zone data, rolled more frequently than KSK                    |
+| **DS**           | Delegation Signer; hash of child zone's KSK, published in parent zone                 |
+| **RRSIG**        | Resource Record Signature; cryptographic signature over an RRset                      |
+| **DNSKEY**       | DNS public key record; contains KSK and ZSK public keys                               |
+| **NSEC/NSEC3**   | Next Secure; records proving non-existence of names                                   |
+| **DoH**          | DNS over HTTPS (RFC 8484); DNS queries tunneled through HTTPS                         |
+| **DoT**          | DNS over TLS (RFC 7858); DNS queries over TLS on port 853                             |
+| **DoQ**          | DNS over QUIC (RFC 9250); DNS queries over QUIC                                       |
+| **ODoH**         | Oblivious DoH (RFC 9230); privacy-preserving DoH with proxy separation                |
+| **ECH**          | Encrypted ClientHello; encrypts TLS SNI field                                         |
+| **ECS**          | EDNS Client Subnet (RFC 7871); forwards client subnet to authoritative for GeoDNS     |
+| **AD flag**      | Authenticated Data; set when DNSSEC validation succeeded                              |
+| **CD flag**      | Checking Disabled; client requests validation be skipped                              |
+| **Trust anchor** | Pre-configured trusted public key (root zone KSK)                                     |
 
 ### Summary
 

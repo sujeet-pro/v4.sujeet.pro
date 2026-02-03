@@ -58,15 +58,15 @@ The CAP theorem forces the choice: partition tolerance is mandatory across regio
 
 **Key numbers to remember:**
 
-| Metric | Typical Value |
-|--------|---------------|
-| Cross-region RTT (US-East to EU-West) | 80-120ms |
-| Sync replication latency penalty | 2× RTT per write |
-| Async replication lag (normal) | 10ms - 1s |
-| Async replication lag (degraded) | Minutes to hours |
-| Active-active failover | Seconds |
-| Active-passive failover | Minutes (scale-up) |
-| Cell-based failover (Slack) | < 5 minutes |
+| Metric                                | Typical Value      |
+| ------------------------------------- | ------------------ |
+| Cross-region RTT (US-East to EU-West) | 80-120ms           |
+| Sync replication latency penalty      | 2× RTT per write   |
+| Async replication lag (normal)        | 10ms - 1s          |
+| Async replication lag (degraded)      | Minutes to hours   |
+| Active-active failover                | Seconds            |
+| Active-passive failover               | Minutes (scale-up) |
+| Cell-based failover (Slack)           | < 5 minutes        |
 
 ## The Problem
 
@@ -164,13 +164,13 @@ flowchart LR
 
 **Trade-offs vs active-active:**
 
-| Aspect | Active-Passive | Active-Active |
-|--------|----------------|---------------|
-| Write latency | Lowest (single region) | Higher if sync, same if async |
-| RTO | Minutes | Seconds |
-| Operational complexity | Lower | Higher |
-| Cost | Lower | Higher |
-| Consistency model | Strong | Eventually consistent or complex |
+| Aspect                 | Active-Passive         | Active-Active                    |
+| ---------------------- | ---------------------- | -------------------------------- |
+| Write latency          | Lowest (single region) | Higher if sync, same if async    |
+| RTO                    | Minutes                | Seconds                          |
+| Operational complexity | Lower                  | Higher                           |
+| Cost                   | Lower                  | Higher                           |
+| Consistency model      | Strong                 | Eventually consistent or complex |
 
 **Real-world consideration:** AWS Elastic Disaster Recovery achieves RTO in minutes and RPO in seconds for active-passive setups. Azure Site Recovery provides 5-minute crash-consistent recovery points. These tools automate the failover process but still require standby scale-up time.
 
@@ -225,12 +225,12 @@ flowchart TB
 
 **Conflict resolution strategies:**
 
-| Strategy | How It Works | Trade-offs |
-|----------|--------------|------------|
-| Last-Write-Wins (LWW) | Timestamp-based; later write wins | Simple but loses earlier concurrent writes |
-| Application-level merge | Custom logic per data type | Flexible but complex to implement correctly |
-| CRDTs | Mathematically guaranteed convergence | Limited data structures, can grow unbounded |
-| Quorum writes | Majority must agree | Higher latency, reduced availability |
+| Strategy                | How It Works                          | Trade-offs                                  |
+| ----------------------- | ------------------------------------- | ------------------------------------------- |
+| Last-Write-Wins (LWW)   | Timestamp-based; later write wins     | Simple but loses earlier concurrent writes  |
+| Application-level merge | Custom logic per data type            | Flexible but complex to implement correctly |
+| CRDTs                   | Mathematically guaranteed convergence | Limited data structures, can grow unbounded |
+| Quorum writes           | Majority must agree                   | Higher latency, reduced availability        |
 
 **Real-world example (Netflix):**
 
@@ -247,13 +247,13 @@ Result: Invisible failover to users; routine Chaos Kong tests drop entire region
 
 **Trade-offs vs active-passive:**
 
-| Aspect | Active-Active | Active-Passive |
-|--------|---------------|----------------|
-| RTO | Seconds | Minutes |
-| Conflict handling | Required | None (single writer) |
-| Data consistency | Eventual (typically) | Strong |
-| Resource utilization | Higher (all regions active) | Lower |
-| Operational complexity | Higher | Lower |
+| Aspect                 | Active-Active               | Active-Passive       |
+| ---------------------- | --------------------------- | -------------------- |
+| RTO                    | Seconds                     | Minutes              |
+| Conflict handling      | Required                    | None (single writer) |
+| Data consistency       | Eventual (typically)        | Strong               |
+| Resource utilization   | Higher (all regions active) | Lower                |
+| Operational complexity | Higher                      | Lower                |
 
 ### Path 3: Cell-Based Architecture
 
@@ -310,11 +310,11 @@ flowchart TB
 
 **Cell sizing considerations:**
 
-| Cell Size | Blast Radius | Cost Efficiency | Operational Overhead |
-|-----------|--------------|-----------------|---------------------|
-| Small (1% of users) | Minimal | Lower | Higher (more cells) |
-| Medium (10% of users) | Moderate | Balanced | Moderate |
-| Large (25% of users) | Higher | Higher | Lower |
+| Cell Size             | Blast Radius | Cost Efficiency | Operational Overhead |
+| --------------------- | ------------ | --------------- | -------------------- |
+| Small (1% of users)   | Minimal      | Lower           | Higher (more cells)  |
+| Medium (10% of users) | Moderate     | Balanced        | Moderate             |
+| Large (25% of users)  | Higher       | Higher          | Lower                |
 
 **Real-world example (Slack):**
 
@@ -362,12 +362,12 @@ flowchart TD
 
 **Quick decision matrix:**
 
-| If you need... | Choose... |
-|----------------|-----------|
-| Simplest operations, minutes RTO OK | Active-Passive |
-| Seconds RTO, can handle conflicts | Active-Active |
-| Seconds RTO, no conflicts | Active-Active with data partitioning |
-| Limit blast radius | Add Cell-Based to any pattern |
+| If you need...                      | Choose...                            |
+| ----------------------------------- | ------------------------------------ |
+| Simplest operations, minutes RTO OK | Active-Passive                       |
+| Seconds RTO, can handle conflicts   | Active-Active                        |
+| Seconds RTO, no conflicts           | Active-Active with data partitioning |
+| Limit blast radius                  | Add Cell-Based to any pattern        |
 
 ## Data Replication Strategies
 
@@ -419,13 +419,13 @@ Write latency = local processing only (microseconds to milliseconds)
 
 **Replication lag:**
 
-| Condition | Typical Lag |
-|-----------|-------------|
-| Normal operation | 10ms - 1s |
-| Network congestion | Seconds to minutes |
-| Region degradation | Minutes to hours |
-| Uber HiveSync P99 | ~20 minutes (batch) |
-| AWS Aurora Global | Sub-second (streaming) |
+| Condition          | Typical Lag            |
+| ------------------ | ---------------------- |
+| Normal operation   | 10ms - 1s              |
+| Network congestion | Seconds to minutes     |
+| Region degradation | Minutes to hours       |
+| Uber HiveSync P99  | ~20 minutes (batch)    |
+| AWS Aurora Global  | Sub-second (streaming) |
 
 **When to use:**
 
@@ -492,11 +492,11 @@ flowchart LR
 <figcaption>Replication topologies: Star (primary to all replicas), Chain (reduces primary load), Mesh (multi-primary active-active).</figcaption>
 </figure>
 
-| Topology | Use Case | Trade-off |
-|----------|----------|-----------|
-| Star | Active-passive, read replicas | Primary is bottleneck |
-| Chain | Reduce primary replication load | Higher lag to end of chain |
-| Mesh | Active-active multi-primary | Complex conflict resolution |
+| Topology | Use Case                        | Trade-off                   |
+| -------- | ------------------------------- | --------------------------- |
+| Star     | Active-passive, read replicas   | Primary is bottleneck       |
+| Chain    | Reduce primary replication load | Higher lag to end of chain  |
+| Mesh     | Active-active multi-primary     | Complex conflict resolution |
 
 ## Conflict Resolution
 
@@ -517,12 +517,12 @@ Both writes succeed locally. When replication happens, which value wins?
 
 ```typescript
 type LWWValue<T> = {
-  value: T;
-  timestamp: number; // Hybrid logical clock recommended
-};
+  value: T
+  timestamp: number // Hybrid logical clock recommended
+}
 
 function merge<T>(local: LWWValue<T>, remote: LWWValue<T>): LWWValue<T> {
-  return local.timestamp >= remote.timestamp ? local : remote;
+  return local.timestamp >= remote.timestamp ? local : remote
 }
 ```
 
@@ -545,18 +545,18 @@ function merge<T>(local: LWWValue<T>, remote: LWWValue<T>): LWWValue<T> {
 ```typescript
 function mergeShoppingCart(local: Cart, remote: Cart): Cart {
   // Union of items; for duplicates, sum quantities
-  const merged = new Map<ItemId, CartItem>();
+  const merged = new Map<ItemId, CartItem>()
 
   for (const item of [...local.items, ...remote.items]) {
-    const existing = merged.get(item.id);
+    const existing = merged.get(item.id)
     if (existing) {
-      existing.quantity += item.quantity;
+      existing.quantity += item.quantity
     } else {
-      merged.set(item.id, { ...item });
+      merged.set(item.id, { ...item })
     }
   }
 
-  return { items: Array.from(merged.values()) };
+  return { items: Array.from(merged.values()) }
 }
 ```
 
@@ -572,36 +572,36 @@ function mergeShoppingCart(local: Cart, remote: Cart): Cart {
 
 **Core CRDT types:**
 
-| CRDT | Use Case | Behavior |
-|------|----------|----------|
-| G-Counter | Increment-only counter | Each node tracks own count; merge = max per node |
-| PN-Counter | Counter with decrement | Two G-Counters (positive, negative); value = P - N |
-| G-Set | Add-only set | Union on merge |
-| OR-Set (Observed-Remove) | Set with remove | Tracks add/remove per element with unique tags |
-| LWW-Register | Single value | Last-write-wins with timestamp |
-| MV-Register | Multi-value register | Keeps all concurrent values |
+| CRDT                     | Use Case               | Behavior                                           |
+| ------------------------ | ---------------------- | -------------------------------------------------- |
+| G-Counter                | Increment-only counter | Each node tracks own count; merge = max per node   |
+| PN-Counter               | Counter with decrement | Two G-Counters (positive, negative); value = P - N |
+| G-Set                    | Add-only set           | Union on merge                                     |
+| OR-Set (Observed-Remove) | Set with remove        | Tracks add/remove per element with unique tags     |
+| LWW-Register             | Single value           | Last-write-wins with timestamp                     |
+| MV-Register              | Multi-value register   | Keeps all concurrent values                        |
 
 **G-Counter example:**
 
 ```typescript
-type GCounter = Map<NodeId, number>;
+type GCounter = Map<NodeId, number>
 
 function increment(counter: GCounter, nodeId: NodeId): GCounter {
-  const newCounter = new Map(counter);
-  newCounter.set(nodeId, (counter.get(nodeId) ?? 0) + 1);
-  return newCounter;
+  const newCounter = new Map(counter)
+  newCounter.set(nodeId, (counter.get(nodeId) ?? 0) + 1)
+  return newCounter
 }
 
 function merge(a: GCounter, b: GCounter): GCounter {
-  const merged = new Map<NodeId, number>();
+  const merged = new Map<NodeId, number>()
   for (const nodeId of new Set([...a.keys(), ...b.keys()])) {
-    merged.set(nodeId, Math.max(a.get(nodeId) ?? 0, b.get(nodeId) ?? 0));
+    merged.set(nodeId, Math.max(a.get(nodeId) ?? 0, b.get(nodeId) ?? 0))
   }
-  return merged;
+  return merged
 }
 
 function value(counter: GCounter): number {
-  return Array.from(counter.values()).reduce((sum, n) => sum + n, 0);
+  return Array.from(counter.values()).reduce((sum, n) => sum + n, 0)
 }
 ```
 
@@ -617,17 +617,17 @@ function value(counter: GCounter): number {
 - **Redis CRDB:** CRDTs for active-active geo-distribution
 - **Figma:** Operation-based CRDTs for collaborative editing
 
-See [CRDTs for Collaborative Systems](../crdt-for-collaborative-systems) for deep-dive.
+See [CRDTs for Collaborative Systems](../crdt-for-collaborative-systems/README.md) for deep-dive.
 
 ### Choosing a Conflict Resolution Strategy
 
-| Scenario | Recommended Strategy |
-|----------|---------------------|
-| User profile updates | LWW (last update wins is expected) |
-| Shopping cart | Application merge (union of items) |
-| Counters (likes, views) | G-Counter CRDT |
-| Collaborative documents | Operation-based CRDTs or OT |
-| Financial balances | Avoid conflict (single writer or quorum) |
+| Scenario                | Recommended Strategy                     |
+| ----------------------- | ---------------------------------------- |
+| User profile updates    | LWW (last update wins is expected)       |
+| Shopping cart           | Application merge (union of items)       |
+| Counters (likes, views) | G-Counter CRDT                           |
+| Collaborative documents | Operation-based CRDTs or OT              |
+| Financial balances      | Avoid conflict (single writer or quorum) |
 
 ## Global Load Balancing
 
@@ -723,11 +723,11 @@ GSLB considers:
 
 **Trade-off vs simpler approaches:**
 
-| Approach | Failover Speed | Health Awareness | Complexity |
-|----------|---------------|------------------|------------|
-| GeoDNS | Minutes (TTL) | None | Low |
-| Anycast | Seconds (BGP) | Route-level | High |
-| GSLB | Seconds-Minutes | Application-level | Medium |
+| Approach | Failover Speed  | Health Awareness  | Complexity |
+| -------- | --------------- | ----------------- | ---------- |
+| GeoDNS   | Minutes (TTL)   | None              | Low        |
+| Anycast  | Seconds (BGP)   | Route-level       | High       |
+| GSLB     | Seconds-Minutes | Application-level | Medium     |
 
 ## Production Implementations
 
@@ -743,12 +743,12 @@ GSLB considers:
 
 **Key design decisions:**
 
-| Decision | Rationale |
-|----------|-----------|
-| Async replication | Write latency critical for UX |
-| Regional service discovery | Eliminates cross-region call latency |
-| Idempotent operations | Safe to retry; handles duplicate processing |
-| Eventual consistency | Accepted temporary divergence for availability |
+| Decision                   | Rationale                                      |
+| -------------------------- | ---------------------------------------------- |
+| Async replication          | Write latency critical for UX                  |
+| Regional service discovery | Eliminates cross-region call latency           |
+| Idempotent operations      | Safe to retry; handles duplicate processing    |
+| Eventual consistency       | Accepted temporary divergence for availability |
 
 **Data handling:**
 
@@ -805,10 +805,10 @@ No cross-cell communication
 
 **Failover capabilities:**
 
-| Metric | Value |
-|--------|-------|
-| Drain affected AZ | < 5 minutes |
-| Traffic shift granularity | 1% |
+| Metric                        | Value               |
+| ----------------------------- | ------------------- |
+| Drain affected AZ             | < 5 minutes         |
+| Traffic shift granularity     | 1%                  |
 | Request handling during drain | Graceful completion |
 
 **Implementation details:**
@@ -835,11 +835,11 @@ Cross-region batch replication for data lake:
 
 **Performance:**
 
-| Metric | Target | Actual |
-|--------|--------|--------|
-| Replication SLA | 4 hours | Met |
-| P99 lag | - | ~20 minutes |
-| Cross-region accuracy | - | 99.99% |
+| Metric                | Target  | Actual      |
+| --------------------- | ------- | ----------- |
+| Replication SLA       | 4 hours | Met         |
+| P99 lag               | -       | ~20 minutes |
+| Cross-region accuracy | -       | 99.99%      |
 
 **Data Reparo Service:**
 
@@ -876,12 +876,12 @@ Multi-Active Availability: all replicas handle reads AND writes.
 
 **Key features:**
 
-| Feature | Description |
-|---------|-------------|
-| Transparent failover | Region failure handled without application changes |
-| Zero RPO | Majority-commit means no data loss |
-| Near-zero RTO | Automatic leader election |
-| Non-voting replicas | Follow Raft log without quorum participation; reduces write latency |
+| Feature              | Description                                                         |
+| -------------------- | ------------------------------------------------------------------- |
+| Transparent failover | Region failure handled without application changes                  |
+| Zero RPO             | Majority-commit means no data loss                                  |
+| Near-zero RTO        | Automatic leader election                                           |
+| Non-voting replicas  | Follow Raft log without quorum participation; reduces write latency |
 
 **Multi-region topology patterns:**
 
@@ -931,13 +931,13 @@ Higher write latency (cross-region Paxos) in exchange for strongest consistency 
 
 ### Implementation Comparison
 
-| Aspect | Netflix | Slack | Uber | CockroachDB | Spanner |
-|--------|---------|-------|------|-------------|---------|
-| Pattern | Active-Active | Cell-Based | Hybrid | Multi-Active | Multi-Active |
-| Consistency | Eventual | Eventual | Eventual (batch) | Strong | External |
-| RTO | Seconds | < 5 min | Varies | Near-zero | Near-zero |
-| RPO | Near-zero | Near-zero | Minutes (batch) | Zero | Zero |
-| Complexity | High | High | High | Medium | High |
+| Aspect      | Netflix       | Slack      | Uber             | CockroachDB  | Spanner      |
+| ----------- | ------------- | ---------- | ---------------- | ------------ | ------------ |
+| Pattern     | Active-Active | Cell-Based | Hybrid           | Multi-Active | Multi-Active |
+| Consistency | Eventual      | Eventual   | Eventual (batch) | Strong       | External     |
+| RTO         | Seconds       | < 5 min    | Varies           | Near-zero    | Near-zero    |
+| RPO         | Near-zero     | Near-zero  | Minutes (batch)  | Zero         | Zero         |
+| Complexity  | High          | High       | High             | Medium       | High         |
 
 ## Common Pitfalls
 
@@ -1058,18 +1058,18 @@ The meta-lesson: **design for failure from the start**. Assume regions will fail
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **RTO (Recovery Time Objective)** | Maximum acceptable time system can be down during failure |
-| **RPO (Recovery Point Objective)** | Maximum acceptable data loss measured in time |
-| **Active-Passive** | Architecture where one region serves traffic; others are standby |
-| **Active-Active** | Architecture where all regions serve traffic simultaneously |
-| **Cell-Based Architecture** | Isolated deployments (cells) each serving subset of users |
-| **CRDT** | Conflict-free Replicated Data Type; data structure that merges automatically |
-| **Anycast** | Routing technique where multiple locations share same IP; network routes to closest |
-| **GeoDNS** | DNS that returns different IPs based on client's geographic location |
-| **Split-Brain** | Failure mode where partitioned nodes operate independently, causing divergence |
-| **Quorum** | Majority of nodes that must agree for operation to succeed |
+| Term                               | Definition                                                                          |
+| ---------------------------------- | ----------------------------------------------------------------------------------- |
+| **RTO (Recovery Time Objective)**  | Maximum acceptable time system can be down during failure                           |
+| **RPO (Recovery Point Objective)** | Maximum acceptable data loss measured in time                                       |
+| **Active-Passive**                 | Architecture where one region serves traffic; others are standby                    |
+| **Active-Active**                  | Architecture where all regions serve traffic simultaneously                         |
+| **Cell-Based Architecture**        | Isolated deployments (cells) each serving subset of users                           |
+| **CRDT**                           | Conflict-free Replicated Data Type; data structure that merges automatically        |
+| **Anycast**                        | Routing technique where multiple locations share same IP; network routes to closest |
+| **GeoDNS**                         | DNS that returns different IPs based on client's geographic location                |
+| **Split-Brain**                    | Failure mode where partitioned nodes operate independently, causing divergence      |
+| **Quorum**                         | Majority of nodes that must agree for operation to succeed                          |
 
 ### Summary
 

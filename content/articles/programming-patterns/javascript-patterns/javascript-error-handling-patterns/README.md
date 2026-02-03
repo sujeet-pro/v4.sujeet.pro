@@ -56,13 +56,13 @@ The core decision in JavaScript error handling is **where failure information li
 
 **The trade-off matrix**:
 
-| Criterion       | try/catch                    | [data, error]          | Result Monad             |
-| --------------- | ---------------------------- | ---------------------- | ------------------------ |
-| Type safety     | `catch` receives `unknown`   | Convention-based       | Compiler-enforced        |
-| Composability   | Imperative nesting           | Repetitive `if (err)`  | Fluent chaining          |
-| Failure forcing | Easy to ignore               | Easy to ignore         | Linting can enforce      |
-| Performance     | Stack unwinding              | Value return           | Value return             |
-| Debugging       | Native stack traces          | May lose stack context | Errors are values        |
+| Criterion       | try/catch                  | [data, error]          | Result Monad        |
+| --------------- | -------------------------- | ---------------------- | ------------------- |
+| Type safety     | `catch` receives `unknown` | Convention-based       | Compiler-enforced   |
+| Composability   | Imperative nesting         | Repetitive `if (err)`  | Fluent chaining     |
+| Failure forcing | Easy to ignore             | Easy to ignore         | Linting can enforce |
+| Performance     | Stack unwinding            | Value return           | Value return        |
+| Debugging       | Native stack traces        | May lose stack context | Errors are values   |
 
 **Recommendation**: Use `neverthrow` (v8.x) for new TypeScript code—it balances type safety with ergonomics and has ESLint rules that enforce Result consumption. Reserve `try/catch` for external boundaries (parsing user input, calling throwing APIs) and convert immediately to Result types.
 
@@ -125,10 +125,10 @@ surprising() // Returns "finally wins", no error thrown
 // This makes catch blocks fundamentally untyped
 
 // Anti-patterns (still legal):
-throw "Something went wrong"  // string
-throw 404                     // number
-throw { code: "E_FAIL" }      // plain object
-throw null                    // null (breaks error.message access)
+throw "Something went wrong" // string
+throw 404 // number
+throw { code: "E_FAIL" } // plain object
+throw null // null (breaks error.message access)
 
 // Correct pattern:
 throw new Error("Something went wrong")
@@ -142,12 +142,14 @@ throw new TypeError("Expected string, got number")
   - `AggregateError` (ES2021, for `Promise.any` rejections)
 
 Each instance captures:
+
 - `message`: Human-readable description
 - `name`: Error type name (e.g., "TypeError")
 - `stack`: Non-standard but universally implemented stack trace
 - `cause` (ES2022): Optional chained error for wrapping
 
 > **ES2022 addition**: The `cause` option enables error chaining without losing the original stack:
+>
 > ```javascript
 > throw new Error("High-level failure", { cause: originalError })
 > ```
@@ -190,14 +192,17 @@ async function fetchData() {
 **Critical edge cases and failure modes**:
 
 1. **Unhandled rejection** (silent failure pre-Node 15):
+
    ```javascript
    async function leaky() {
      fetch("/api/data") // No await, no catch - rejection lost!
    }
    ```
+
    > **Node.js evolution**: Prior to Node.js 15, unhandled rejections only emitted warnings. Node.js 15+ crashes the process by default (`--unhandled-rejections=throw`).
 
 2. **Promise constructor anti-pattern**:
+
    ```javascript
    // Exceptions in Promise executor are caught and become rejections
    new Promise((resolve) => {
@@ -213,6 +218,7 @@ async function fetchData() {
    ```
 
 3. **Concurrent await gotcha**:
+
    ```javascript collapse={1-3}
    // Sequential: Second fetch waits for first
    // If first fails, second never starts
@@ -222,8 +228,8 @@ async function fetchData() {
    // Concurrent: Both start immediately
    // First rejection wins, second rejection is unhandled!
    const [a, b] = await Promise.all([
-     fetch("/a"),  // Rejects
-     fetch("/b"),  // Also rejects - this rejection is "lost"
+     fetch("/a"), // Rejects
+     fetch("/b"), // Also rejects - this rejection is "lost"
    ])
 
    // Fix: Use Promise.allSettled for independent operations
@@ -252,6 +258,7 @@ const result = processData(input) // Might throw!
 **2. Stack unwinding is expensive**
 
 When an exception is thrown, the runtime must:
+
 1. Allocate an Error object and capture the stack trace
 2. Search up the call stack for a `catch` handler
 3. Unwind each stack frame, running any `finally` blocks
@@ -266,7 +273,7 @@ When an exception is thrown, the runtime must:
 // Anti-pattern: using exceptions for control flow
 function findItem(arr, predicate) {
   try {
-    arr.forEach(item => {
+    arr.forEach((item) => {
       if (predicate(item)) throw item // Don't do this
     })
   } catch (found) {
@@ -411,8 +418,8 @@ The `Result` monad (or `Either` in Haskell/fp-ts terminology) formalizes error-a
 
 ```typescript
 type Result<T, E> =
-  | { ok: true; value: T }      // Success
-  | { ok: false; error: E }     // Failure
+  | { ok: true; value: T } // Success
+  | { ok: false; error: E } // Failure
 ```
 
 This structure makes invalid states **impossible at the type level**. You cannot have both value and error, or neither.
@@ -445,38 +452,40 @@ flowchart LR
 // Each transforms or short-circuits based on Ok/Err state
 
 const result = parseNumber("10")
-  .map((x) => x * 2)           // Transform Ok value (Err passes through)
-  .andThen((x) =>              // Chain fallible operation
-    x > 15 ? ok(x) : err("Value too small"))
-  .orElse((e) => ok(defaultValue))  // Recover from error
+  .map((x) => x * 2) // Transform Ok value (Err passes through)
+  .andThen(
+    (
+      x, // Chain fallible operation
+    ) => (x > 15 ? ok(x) : err("Value too small")),
+  )
+  .orElse((e) => ok(defaultValue)) // Recover from error
   .match(
-    (value) => `Success: ${value}`,   // Handle Ok
-    (error) => `Error: ${error}`,     // Handle Err
+    (value) => `Success: ${value}`, // Handle Ok
+    (error) => `Error: ${error}`, // Handle Err
   )
 ```
 
 **Core methods explained**:
 
-| Method | Also Known As | Behavior |
-|--------|--------------|----------|
-| `.map(fn)` | `fmap` | Transform `Ok` value; `Err` passes through unchanged |
-| `.andThen(fn)` | `chain`, `flatMap`, `>>=` | Chain fallible operation; `fn` returns `Result` |
-| `.orElse(fn)` | `recover` | Transform `Err`; `Ok` passes through unchanged |
-| `.match(onOk, onErr)` | `fold`, `cata` | Exit the monad—extract a value by handling both cases |
+| Method                | Also Known As             | Behavior                                              |
+| --------------------- | ------------------------- | ----------------------------------------------------- |
+| `.map(fn)`            | `fmap`                    | Transform `Ok` value; `Err` passes through unchanged  |
+| `.andThen(fn)`        | `chain`, `flatMap`, `>>=` | Chain fallible operation; `fn` returns `Result`       |
+| `.orElse(fn)`         | `recover`                 | Transform `Err`; `Ok` passes through unchanged        |
+| `.match(onOk, onErr)` | `fold`, `cata`            | Exit the monad—extract a value by handling both cases |
 
 **Why `.andThen()` is the key operation**: It prevents nested Result types. Without it:
 
 ```typescript
 // .map() on a fallible function produces nested Results
-const nested: Result<Result<number, string>, ParseError> =
-  parseNumber("10").map((n) => validateRange(n)) // validateRange returns Result
+const nested: Result<Result<number, string>, ParseError> = parseNumber("10").map((n) => validateRange(n)) // validateRange returns Result
 
 // .andThen() flattens automatically
-const flat: Result<number, string | ParseError> =
-  parseNumber("10").andThen((n) => validateRange(n))
+const flat: Result<number, string | ParseError> = parseNumber("10").andThen((n) => validateRange(n))
 ```
 
 **Monad laws** (for the mathematically inclined): Any proper Result implementation must satisfy:
+
 1. **Left identity**: `ok(a).andThen(f) ≡ f(a)`
 2. **Right identity**: `m.andThen(ok) ≡ m`
 3. **Associativity**: `m.andThen(f).andThen(g) ≡ m.andThen(x => f(x).andThen(g))`
@@ -515,11 +524,13 @@ const result = pipe(
 ```
 
 **fp-ts strengths**:
+
 - Mathematically rigorous (follows Haskell patterns)
 - Rich ecosystem: `Option`, `Task`, `Reader`, `State`, etc.
 - Strong tree-shaking via module imports
 
 **fp-ts weaknesses**:
+
 - Steep learning curve—requires understanding FP vocabulary
 - Verbose for simple cases
 - `pipe()` syntax unfamiliar to OOP developers
@@ -549,6 +560,7 @@ const result = parseNumber("10")
 ```
 
 **neverthrow v8.x changes** (breaking from v7):
+
 - `.orElse()` can now change the `Ok` type (requires explicit type arguments in some cases)
 - `safeTry` no longer requires `.safeUnwrap()` call
 - New `.orTee()` method for side effects on errors (v8.2.0)
@@ -577,8 +589,8 @@ import { ResultAsync, okAsync, errAsync } from "neverthrow"
 
 const fetchUser = (id: string): ResultAsync<User, FetchError> =>
   ResultAsync.fromPromise(
-    fetch(`/api/users/${id}`).then(r => r.json()),
-    (e) => new FetchError(e)
+    fetch(`/api/users/${id}`).then((r) => r.json()),
+    (e) => new FetchError(e),
   )
 
 // Chains work across async boundaries
@@ -589,24 +601,24 @@ const result = await fetchUser("123")
 
 ### 3.3 The Broader Ecosystem
 
-| Library | Focus | API Style | Notes |
-|---------|-------|-----------|-------|
-| [ts-results](https://github.com/vultix/ts-results) | Minimal Result | Method chaining | Lightweight, zero dependencies |
-| [oxide.ts](https://github.com/traverse1984/oxide.ts) | Rust-like | Method chaining | Closer to Rust's std::result API |
-| [Effect-TS](https://effect.website/) | Full effect system | Method + generator | fp-ts successor, comprehensive |
-| [true-myth](https://github.com/true-myth/true-myth) | Maybe + Result | Method chaining | Good documentation |
+| Library                                              | Focus              | API Style          | Notes                            |
+| ---------------------------------------------------- | ------------------ | ------------------ | -------------------------------- |
+| [ts-results](https://github.com/vultix/ts-results)   | Minimal Result     | Method chaining    | Lightweight, zero dependencies   |
+| [oxide.ts](https://github.com/traverse1984/oxide.ts) | Rust-like          | Method chaining    | Closer to Rust's std::result API |
+| [Effect-TS](https://effect.website/)                 | Full effect system | Method + generator | fp-ts successor, comprehensive   |
+| [true-myth](https://github.com/true-myth/true-myth)  | Maybe + Result     | Method chaining    | Good documentation               |
 
 ### 3.4 Comparative Analysis
 
-| Criterion       | try/catch            | [data, error]          | fp-ts Either                 | neverthrow                |
-| --------------- | -------------------- | ---------------------- | ---------------------------- | ------------------------- |
-| Type safety     | `unknown` in catch   | Convention-based       | Compiler-enforced            | Compiler + lint enforced  |
-| Ergonomics      | High (simple cases)  | Low (verbose checks)   | Medium (learning curve)      | High (familiar API)       |
-| Composability   | Poor (imperative)    | Poor (manual chains)   | Excellent (designed for it)  | Excellent (fluent chains) |
-| Performance     | ~1-2μs per throw     | ~10-50ns per return    | ~10-50ns per return          | ~10-50ns per return       |
-| Bundle size     | 0 (native)           | 0 (native)             | ~15KB (tree-shaken)          | ~5KB (tree-shaken)        |
-| ESLint support  | Basic                | None                   | None                         | Full consumption rules    |
-| Async support   | Native async/await   | Manual wrapping        | TaskEither                   | ResultAsync               |
+| Criterion      | try/catch           | [data, error]        | fp-ts Either                | neverthrow                |
+| -------------- | ------------------- | -------------------- | --------------------------- | ------------------------- |
+| Type safety    | `unknown` in catch  | Convention-based     | Compiler-enforced           | Compiler + lint enforced  |
+| Ergonomics     | High (simple cases) | Low (verbose checks) | Medium (learning curve)     | High (familiar API)       |
+| Composability  | Poor (imperative)   | Poor (manual chains) | Excellent (designed for it) | Excellent (fluent chains) |
+| Performance    | ~1-2μs per throw    | ~10-50ns per return  | ~10-50ns per return         | ~10-50ns per return       |
+| Bundle size    | 0 (native)          | 0 (native)           | ~15KB (tree-shaken)         | ~5KB (tree-shaken)        |
+| ESLint support | Basic               | None                 | None                        | Full consumption rules    |
+| Async support  | Native async/await  | Manual wrapping      | TaskEither                  | ResultAsync               |
 
 **Decision matrix**:
 
@@ -681,6 +693,7 @@ const message = match (result) {
 ```
 
 **Key features**:
+
 - **Exhaustiveness**: Missing cases trigger TypeErrors (or compile errors with tooling)
 - **Binding patterns**: `let v` binds matched values
 - **Custom matchers**: `Symbol.customMatcher` enables library integration
@@ -723,15 +736,18 @@ async function processUserRequest(requestId) {
 ```
 
 **Tuple semantics**:
+
 - Success: `[null, value]`
 - Failure: `[error, undefined]`
 
 **Why it's interesting**:
+
 - Works with existing throwing code—no refactoring needed
 - Familiar to Go developers
 - `Symbol.result` enables library integration (neverthrow, etc.)
 
 **Why it may not succeed**:
+
 1. **Still verbose**: Requires `if (err)` after each operation—same as Go, worse than `.andThen()`
 2. **No composition**: Doesn't chain like Result monads
 3. **Type system limitations**: `[T | null, E | null]` has the same four-state problem as manual tuples
@@ -754,14 +770,14 @@ Allows `throw` in expression contexts:
 // TypeScript already supports this syntax
 
 // Default parameters
-const greet = (name = throw new Error("Required")) => `Hello, ${name}`;
+const greet = (name = throw new Error("Required")) => `Hello, ${name}`
 
 // Arrow functions (single expression)
-const fail = () => throw new Error("Not implemented");
+const fail = () => throw new Error("Not implemented")
 
 // Ternary and logical operators
-const value = condition ? result : throw new Error("Failed");
-const required = maybeValue || throw new Error("Missing");
+const value = condition ? result : throw new Error("Failed")
+const required = maybeValue || throw new Error("Missing")
 ```
 
 **Grammar restriction**: Binary operators cannot directly follow `throw` without parentheses—use `(throw expr)` in complex expressions.
@@ -778,7 +794,7 @@ function getUserId(blob) {
     try {
       JSON.parse(blob)
     } catch {
-      null  // Last value is the expression result
+      null // Last value is the expression result
     }
   }
   return obj?.userId
@@ -792,16 +808,19 @@ function getUserId(blob) {
 ### 5.1 Decision Framework
 
 **When to use try/catch**:
+
 - API boundaries (parsing user input, calling external APIs)
 - Top-level application safety nets
 - When immediate conversion to Result types isn't practical
 
 **When to use Go-style tuples**:
+
 - Scripts and prototypes where dependencies are undesirable
 - Simple, linear operations with 1-2 fallible calls
 - When team consensus on Result types hasn't been reached
 
 **When to use Result types (neverthrow, fp-ts)**:
+
 - Business logic with multiple fallible operations
 - Data processing pipelines
 - Any code path where "forgot to check error" would cause production issues
@@ -809,12 +828,12 @@ function getUserId(blob) {
 
 **Library selection**:
 
-| Scenario | Recommendation |
-|----------|----------------|
+| Scenario                 | Recommendation                              |
+| ------------------------ | ------------------------------------------- |
 | Most TypeScript projects | neverthrow — best ergonomics/safety balance |
-| Full FP commitment | fp-ts or Effect-TS |
-| Minimal bundle size | ts-results (~2KB) |
-| Rust API familiarity | oxide.ts |
+| Full FP commitment       | fp-ts or Effect-TS                          |
+| Minimal bundle size      | ts-results (~2KB)                           |
+| Rust API familiarity     | oxide.ts                                    |
 
 ### 5.2 Migration Strategy
 
@@ -868,14 +887,14 @@ The investment in learning Result types pays dividends in reduced production err
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **Discriminated union** | A union type where each variant has a literal field (tag) enabling type narrowing |
-| **Monad** | An abstraction providing `unit` (wrap value) and `bind` (chain operations) satisfying identity and associativity laws |
+| Term                             | Definition                                                                                                            |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Discriminated union**          | A union type where each variant has a literal field (tag) enabling type narrowing                                     |
+| **Monad**                        | An abstraction providing `unit` (wrap value) and `bind` (chain operations) satisfying identity and associativity laws |
 | **Railway Oriented Programming** | Error handling pattern where success/failure are parallel tracks, with failures bypassing subsequent success handlers |
-| **Result/Either** | Discriminated union with exactly two variants: success (`Ok`/`Right`) and failure (`Err`/`Left`) |
-| **ThrowCompletion** | ECMA-262 term for the completion record created when `throw` executes |
-| **Topic reference** | In Hack pipes, the placeholder (`%`) representing the value from the previous pipeline step |
+| **Result/Either**                | Discriminated union with exactly two variants: success (`Ok`/`Right`) and failure (`Err`/`Left`)                      |
+| **ThrowCompletion**              | ECMA-262 term for the completion record created when `throw` executes                                                 |
+| **Topic reference**              | In Hack pipes, the placeholder (`%`) representing the value from the previous pipeline step                           |
 
 ### Summary
 
@@ -901,7 +920,6 @@ The investment in learning Result types pays dividends in reduced production err
 - [Pattern Matching (Stage 1)](https://github.com/tc39/proposal-pattern-matching) — `match` expression
 - [throw expressions (Stage 2)](https://github.com/tc39/proposal-throw-expressions) — throw in expression contexts
 - [do expressions (Stage 1)](https://github.com/tc39/proposal-do-expressions) — Block statements as expressions
-- [Error.isError (Stage 4)](https://github.com/nicolo-ribaudo/proposal-error-iserror) — Cross-realm error detection
 - [Safe Assignment Operator](https://github.com/arthurfiorette/proposal-try-operator) — Community proposal for `?=`
 
 **Libraries**

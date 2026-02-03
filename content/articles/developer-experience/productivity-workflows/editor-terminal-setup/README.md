@@ -423,12 +423,12 @@ Git evaluates `gitdir:` against the repository's `.git` directory path. Any repo
 
 **Available conditions** (as of Git 2.48):
 
-| Condition                      | Since    | Use Case                                |
-| ------------------------------ | -------- | --------------------------------------- |
-| `gitdir:`                      | Git 2.13 | Match by repo path                      |
-| `gitdir/i:`                    | Git 2.13 | Case-insensitive (Windows)              |
-| `onbranch:`                    | Git 2.23 | Match by current branch                 |
-| `hasconfig:remote.*.url:`      | Git 2.36 | Match by remote URL pattern             |
+| Condition                 | Since    | Use Case                    |
+| ------------------------- | -------- | --------------------------- |
+| `gitdir:`                 | Git 2.13 | Match by repo path          |
+| `gitdir/i:`               | Git 2.13 | Case-insensitive (Windows)  |
+| `onbranch:`               | Git 2.23 | Match by current branch     |
+| `hasconfig:remote.*.url:` | Git 2.36 | Match by remote URL pattern |
 
 The `hasconfig:remote.*.url:` condition is useful when repos aren't organized by directory but by remote (e.g., all `github.com/mycompany/*` repos should use work email regardless of local path).
 

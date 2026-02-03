@@ -60,7 +60,7 @@ API design determines whether teams adopt your library or route around it. The g
 The compound component pattern solves the "prop explosion" problem. Instead of passing every option to a single component, related pieces compose together:
 
 ```tsx title="Dialog compound components" collapse={1-4, 18-20}
-import { Dialog } from "@acme/ui";
+import { Dialog } from "@acme/ui"
 
 // Usage - explicit, composable structure
 function ConfirmDialog({ onConfirm, onCancel }) {
@@ -77,7 +77,7 @@ function ConfirmDialog({ onConfirm, onCancel }) {
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
-  );
+  )
 }
 ```
 
@@ -93,9 +93,9 @@ Components should support both controlled and uncontrolled modes. Controlled com
 
 ```tsx title="Controlled input" {3,5}
 function ControlledExample() {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState("")
 
-  return <Input value={value} onChange={(e) => setValue(e.target.value)} />;
+  return <Input value={value} onChange={(e) => setValue(e.target.value)} />
 }
 ```
 
@@ -103,9 +103,9 @@ Uncontrolled components manage state internally:
 
 ```tsx title="Uncontrolled input" {3}
 function UncontrolledExample() {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  return <Input ref={inputRef} defaultValue="" />;
+  return <Input ref={inputRef} defaultValue="" />
 }
 ```
 
@@ -185,17 +185,17 @@ Deprecation requires lead time. The standard flow:
 **Rolling deprecation** spreads impact over time. Instead of deprecating 10 components simultaneously, deprecate 2-3 per minor release. Teams can plan updates incrementally.
 
 ```tsx title="Deprecation warning pattern" collapse={1-2, 9-12}
-import { useEffect } from "react";
+import { useEffect } from "react"
 
 function DeprecatedCard(props) {
   useEffect(() => {
     console.warn(
       "[ACME UI] Card is deprecated and will be removed in v4.0. " +
-        "Use Surface instead: https://acme.design/migration/card"
-    );
-  }, []);
+        "Use Surface instead: https://acme.design/migration/card",
+    )
+  }, [])
 
-  return <Surface {...props} />;
+  return <Surface {...props} />
 }
 ```
 
@@ -208,18 +208,18 @@ jscodeshift is the primary tool. A codemod for renaming a prop:
 ```js title="Codemod: rename 'size' to 'scale'" collapse={1-2}
 // Run: npx jscodeshift -t rename-size-prop.js src/**/*.tsx
 export default function transformer(file, api) {
-  const j = api.jscodeshift;
+  const j = api.jscodeshift
 
   return j(file.source)
     .find(j.JSXAttribute, { name: { name: "size" } })
     .filter((path) => {
-      const parent = path.parentPath.value;
-      return parent.name?.name === "Button";
+      const parent = path.parentPath.value
+      return parent.name?.name === "Button"
     })
     .forEach((path) => {
-      path.node.name.name = "scale";
+      path.node.name.name = "scale"
     })
-    .toSource();
+    .toSource()
 }
 ```
 
@@ -303,28 +303,28 @@ Storybook provides a UI development environment for isolated component developme
 **Story patterns**:
 
 ```tsx title="Button.stories.tsx" collapse={1-3, 10-20}
-import type { Meta, StoryObj } from "@storybook/react";
-import { Button } from "./Button";
+import type { Meta, StoryObj } from "@storybook/react"
+import { Button } from "./Button"
 
 const meta: Meta<typeof Button> = {
   component: Button,
   tags: ["autodocs"],
-};
+}
 
-export default meta;
-type Story = StoryObj<typeof Button>;
+export default meta
+type Story = StoryObj<typeof Button>
 
 export const Primary: Story = {
   args: { variant: "primary", children: "Primary Action" },
-};
+}
 
 export const Disabled: Story = {
   args: { variant: "primary", disabled: true, children: "Cannot Click" },
-};
+}
 
 export const AsLink: Story = {
   args: { as: "a", href: "/dashboard", children: "Navigate" },
-};
+}
 ```
 
 The `autodocs` tag generates API documentation from TypeScript props. Custom doc blocks add prose explanations, usage guidelines, and accessibility notes.
@@ -341,13 +341,13 @@ export interface ButtonProps {
    * Visual style variant.
    * @default 'primary'
    */
-  variant?: "primary" | "secondary" | "ghost";
+  variant?: "primary" | "secondary" | "ghost"
 
   /**
    * Prevents interaction and applies disabled styling.
    * Sets `aria-disabled` when true.
    */
-  disabled?: boolean;
+  disabled?: boolean
 }
 ```
 
@@ -368,19 +368,19 @@ Quality gates automate enforcement. Manual review doesn't scale; automated check
 **axe-core** scans for accessibility issues based on WCAG standards. Integration with Jest via `jest-axe`:
 
 ```tsx title="Button.a11y.test.tsx" collapse={1-4, 14-16}
-import { render } from "@testing-library/react";
-import { axe, toHaveNoViolations } from "jest-axe";
-import { Button } from "./Button";
+import { render } from "@testing-library/react"
+import { axe, toHaveNoViolations } from "jest-axe"
+import { Button } from "./Button"
 
-expect.extend(toHaveNoViolations);
+expect.extend(toHaveNoViolations)
 
 describe("Button accessibility", () => {
   it("has no axe violations", async () => {
-    const { container } = render(<Button>Click me</Button>);
-    const results = await axe(container);
-    expect(results).toHaveNoViolations();
-  });
-});
+    const { container } = render(<Button>Click me</Button>)
+    const results = await axe(container)
+    expect(results).toHaveNoViolations()
+  })
+})
 ```
 
 **Limitation**: Automated testing catches approximately 57% of WCAG issues on average (per axe-core's own documentation). Manual audits remain essential. Automated tests catch regressions on known issues and provide immediate feedback during development.
@@ -529,7 +529,6 @@ Start with strong API conventions. Add governance when contribution volume deman
 - [MUI API Design Guide](https://mui.com/material-ui/guides/api/) - Prop spreading and polymorphic patterns
 - [Semantic Versioning Specification](https://semver.org/) - MAJOR.MINOR.PATCH semantics
 - [Versioning Design Systems](https://medium.com/eightshapes-llc/versioning-design-systems-48cceb5ace4d) - Nathan Curtis on monolithic vs per-component versioning
-- [Codemods for API Refactoring](https://martinfowler.com/articles/codemods-api-refactoring/) - Martin Fowler on programmatic code transformation
 - [Design System Governance Process](https://bradfrost.com/blog/post/a-design-system-governance-process/) - Brad Frost on RFC and review workflows
 - [Carbon Design System RFCs](https://github.com/carbon-design-system/rfcs) - IBM's public RFC repository
 - [Atlassian Design System Contribution](https://atlassian.design/contribution/) - Acceptance criteria and federated model

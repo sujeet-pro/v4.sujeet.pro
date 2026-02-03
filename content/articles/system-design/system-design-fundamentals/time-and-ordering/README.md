@@ -53,12 +53,12 @@ The fundamental challenge: there is no global clock in a distributed system. Mes
 
 - **Hybrid Logical Clocks (HLC)** combine physical time with logical counters—monotonic, bounded drift from wall-clock, and constant space. The dominant choice for modern distributed databases.
 
-| Approach | Space per Event | Detects Concurrency | Wall-Clock Bound | Use Case |
-|----------|-----------------|---------------------|------------------|----------|
-| Physical only | O(1) | No | Yes | Single datacenter, GPS clocks |
-| Lamport | O(1) | No | No | Causally ordered logs |
-| Vector | O(n) | Yes | No | Conflict detection, CRDTs |
-| HLC | O(1) | Partial | Yes | Distributed databases |
+| Approach      | Space per Event | Detects Concurrency | Wall-Clock Bound | Use Case                      |
+| ------------- | --------------- | ------------------- | ---------------- | ----------------------------- |
+| Physical only | O(1)            | No                  | Yes              | Single datacenter, GPS clocks |
+| Lamport       | O(1)            | No                  | No               | Causally ordered logs         |
+| Vector        | O(n)            | Yes                 | No               | Conflict detection, CRDTs     |
+| HLC           | O(1)            | Partial             | Yes              | Distributed databases         |
 
 **Key insight:** The choice depends on what you need to detect. Lamport is sufficient for causal ordering. Vector clocks when you need to detect and resolve conflicts. HLC when you need wall-clock approximation with causal guarantees.
 
@@ -131,11 +131,11 @@ NTP, defined in [RFC 5905](https://datatracker.ietf.org/doc/html/rfc5905), synch
 
 **Accuracy achievable:**
 
-| Scenario | Typical Accuracy | Limiting Factor |
-|----------|------------------|-----------------|
-| LAN, dedicated NTP server | 0.1-1ms | Network jitter |
-| Internet, stratum 2 | 10-50ms | Asymmetric routing |
-| Internet, public pool | 50-100ms | Server load variance |
+| Scenario                  | Typical Accuracy | Limiting Factor      |
+| ------------------------- | ---------------- | -------------------- |
+| LAN, dedicated NTP server | 0.1-1ms          | Network jitter       |
+| Internet, stratum 2       | 10-50ms          | Asymmetric routing   |
+| Internet, public pool     | 50-100ms         | Server load variance |
 
 **Stratum hierarchy**: Stratum 0 = atomic clocks/GPS. Stratum 1 = directly connected to stratum 0. Each hop adds uncertainty.
 
@@ -144,6 +144,7 @@ NTP, defined in [RFC 5905](https://datatracker.ietf.org/doc/html/rfc5905), synch
 IEEE 1588 PTP achieves sub-microsecond accuracy by using hardware timestamping:
 
 **Key differences from NTP:**
+
 - Timestamps at the NIC, not in software
 - Eliminates OS scheduling jitter
 - Requires PTP-capable hardware
@@ -158,12 +159,14 @@ IEEE 1588 PTP achieves sub-microsecond accuracy by using hardware timestamping:
 TrueTime, used by Spanner, provides an interval rather than a point: `TT.now()` returns `[earliest, latest]` where true time is guaranteed within the interval.
 
 **Implementation:**
+
 - GPS receivers in each datacenter
 - Atomic clocks (rubidium, later cesium) as backup
 - Multiple time masters per datacenter for redundancy
 - Daemon on each machine polls time masters
 
 **Uncertainty bounds:**
+
 - Typical ε (epsilon, half-interval width): 1-7ms
 - After GPS outage: ε grows at clock drift rate (~200μs/s)
 - Worst case before resync: ~10ms
@@ -184,12 +187,12 @@ AWS provides a time sync service at 169.254.169.123 for EC2 instances:
 
 ### Design Choice: Physical Time Strategy
 
-| Strategy | Accuracy | Cost | Best For |
-|----------|----------|------|----------|
-| Public NTP pools | 50-100ms | Free | Non-critical timing |
-| Dedicated NTP infrastructure | 1-10ms | Medium | Most distributed systems |
-| PTP with hardware timestamping | <1μs | High | Financial, telecom |
-| TrueTime-style (GPS + atomic) | ~7ms with bounds | Very high | Global databases |
+| Strategy                       | Accuracy         | Cost      | Best For                 |
+| ------------------------------ | ---------------- | --------- | ------------------------ |
+| Public NTP pools               | 50-100ms         | Free      | Non-critical timing      |
+| Dedicated NTP infrastructure   | 1-10ms           | Medium    | Most distributed systems |
+| PTP with hardware timestamping | <1μs             | High      | Financial, telecom       |
+| TrueTime-style (GPS + atomic)  | ~7ms with bounds | Very high | Global databases         |
 
 ## Logical Clocks
 
@@ -198,12 +201,14 @@ AWS provides a time sync service at 169.254.169.123 for EC2 instances:
 Lamport's logical clock (1978) captures the happens-before relation without physical time.
 
 **Algorithm:**
+
 1. Each process maintains a counter `C`
 2. Before any event (internal, send, or receive): `C = C + 1`
 3. When sending message m: attach timestamp `C` to m
 4. When receiving message m with timestamp `T`: `C = max(C, T) + 1`
 
 **Properties:**
+
 - If A → B, then L(A) < L(B) (soundness)
 - Converse is NOT true: L(A) < L(B) does NOT imply A → B
 
@@ -228,12 +233,14 @@ P2's event at logical time [4] appears "after" P3's event at [2], but they're co
 Vector clocks, independently developed by Fidge (1988) and Mattern (1989), capture complete causal history.
 
 **Algorithm:**
+
 1. Each process i maintains vector V[1..n] initialized to zeros
 2. Before any event: `V[i] = V[i] + 1`
 3. When sending: attach V to message
 4. When receiving message with vector U: `V[j] = max(V[j], U[j])` for all j, then `V[i] = V[i] + 1`
 
 **Comparison:**
+
 - V(A) < V(B) (A causally precedes B) iff: V(A)[i] ≤ V(B)[i] for all i, and V(A) ≠ V(B)
 - A ‖ B (concurrent) iff: neither V(A) < V(B) nor V(B) < V(A)
 
@@ -267,13 +274,13 @@ Pure vector clocks don't scale. Production systems use variations:
 
 ### When Vector Clocks Are Worth the Cost
 
-| Scenario | Use Vector Clocks? | Rationale |
-|----------|-------------------|-----------|
-| Multi-master replication | Yes | Need to detect write conflicts |
-| CRDT-based storage | Yes | Merge semantics require causality |
-| Single-leader replication | No | Leader serializes all writes |
-| Event sourcing | No | Global sequence number suffices |
-| Distributed cache | No | Last-write-wins acceptable |
+| Scenario                  | Use Vector Clocks? | Rationale                         |
+| ------------------------- | ------------------ | --------------------------------- |
+| Multi-master replication  | Yes                | Need to detect write conflicts    |
+| CRDT-based storage        | Yes                | Merge semantics require causality |
+| Single-leader replication | No                 | Leader serializes all writes      |
+| Event sourcing            | No                 | Global sequence number suffices   |
+| Distributed cache         | No                 | Last-write-wins acceptable        |
 
 ## Hybrid Logical Clocks
 
@@ -282,6 +289,7 @@ Pure vector clocks don't scale. Production systems use variations:
 Hybrid Logical Clocks, proposed by [Kulkarni et al. (2014)](https://cse.buffalo.edu/tech-reports/2014-04.pdf), combine physical and logical time:
 
 **Structure**: Each timestamp is a pair `(l, c)` where:
+
 - `l` = physical time component (wall-clock bound)
 - `c` = logical counter
 
@@ -312,6 +320,7 @@ receive event with timestamp (l_m, c_m):
 ```
 
 **Properties:**
+
 1. **Monotonic**: HLC timestamps only increase
 2. **Bounded drift**: `l - pt.now() ≤ ε` where ε is maximum clock skew
 3. **Causality**: If A → B, then HLC(A) < HLC(B)
@@ -321,16 +330,17 @@ receive event with timestamp (l_m, c_m):
 
 ### HLC vs. Alternatives
 
-| Property | Lamport | Vector | HLC |
-|----------|---------|--------|-----|
-| Detects concurrency | No | Yes | Partial* |
-| Wall-clock approximation | No | No | Yes |
-| Space per timestamp | O(1) | O(n) | O(1) |
-| Comparison complexity | O(1) | O(n) | O(1) |
+| Property                 | Lamport | Vector | HLC       |
+| ------------------------ | ------- | ------ | --------- |
+| Detects concurrency      | No      | Yes    | Partial\* |
+| Wall-clock approximation | No      | No     | Yes       |
+| Space per timestamp      | O(1)    | O(n)   | O(1)      |
+| Comparison complexity    | O(1)    | O(n)   | O(1)      |
 
-*HLC can detect some concurrent events when physical times differ significantly, but not all.
+\*HLC can detect some concurrent events when physical times differ significantly, but not all.
 
 **Design rationale**: HLC trades perfect concurrency detection for practical benefits:
+
 1. Timestamps are meaningful to humans (close to wall time)
 2. Constant space regardless of cluster size
 3. Efficient lexicographic comparison
@@ -341,11 +351,13 @@ receive event with timestamp (l_m, c_m):
 CockroachDB uses HLC for transaction timestamps and MVCC (Multi-Version Concurrency Control):
 
 **Timestamp assignment:**
+
 - Transactions get HLC timestamp at start
 - Reads see data as of transaction's timestamp
 - Writes are tagged with transaction's timestamp
 
 **Clock skew handling:**
+
 - Maximum allowed skew configurable (default 500ms)
 - If received timestamp > local clock + max_offset, reject the message
 - Read refresh: if transaction reads stale data due to clock skew, retry with updated timestamp
@@ -355,6 +367,7 @@ CockroachDB uses HLC for transaction timestamps and MVCC (Multi-Version Concurre
 ### HLC Implementation Details
 
 **Timestamp encoding**: CockroachDB encodes HLC as a single 96-bit value:
+
 - 64 bits: wall time (nanoseconds since Unix epoch)
 - 32 bits: logical counter
 
@@ -371,6 +384,7 @@ CockroachDB uses HLC for transaction timestamps and MVCC (Multi-Version Concurre
 Total order broadcast ensures all nodes deliver messages in the same order.
 
 **Specification:**
+
 - **Validity**: If a correct process broadcasts m, all correct processes eventually deliver m
 - **Agreement**: If a correct process delivers m, all correct processes eventually deliver m
 - **Total Order**: If processes p and q both deliver m1 and m2, they deliver them in the same order
@@ -378,14 +392,17 @@ Total order broadcast ensures all nodes deliver messages in the same order.
 **Implementation approaches:**
 
 **1. Sequencer-based**: Single node assigns sequence numbers
+
 - Pro: Simple, fast in happy path
 - Con: Single point of failure, bottleneck
 
 **2. Lamport timestamps + conflict resolution**: Use Lamport clock, break ties with node ID
+
 - Pro: No single point of failure
 - Con: Requires all-to-all communication
 
 **3. Consensus-based**: Use Paxos/Raft for each message ordering decision
+
 - Pro: Fault-tolerant, well-understood
 - Con: Higher latency (consensus rounds)
 
@@ -394,6 +411,7 @@ Total order broadcast ensures all nodes deliver messages in the same order.
 Causal broadcast provides weaker guarantees—only causally related messages need ordering.
 
 **Specification:**
+
 - If send(m1) → send(m2), then deliver(m1) → deliver(m2) at all nodes
 
 **Implementation**: Attach vector clock to messages. Hold delivery until all causally preceding messages are delivered.
@@ -405,6 +423,7 @@ Causal broadcast provides weaker guarantees—only causally related messages nee
 FIFO (First-In-First-Out) broadcast orders messages from the same sender:
 
 **Specification:**
+
 - If process p sends m1 then m2, all processes deliver m1 before m2
 
 **Implementation**: Sequence number per sender. Simple but doesn't order across senders.
@@ -429,6 +448,7 @@ Ordered events often need globally unique identifiers. The choice of ID scheme a
 **Ordering**: Partially time-ordered but timestamp bits aren't in MSB position, breaking lexicographic sorting.
 
 **Trade-offs:**
+
 - ✅ Globally unique without coordination
 - ✅ Embeds creation time
 - ❌ Not lexicographically sortable
@@ -441,6 +461,7 @@ Ordered events often need globally unique identifiers. The choice of ID scheme a
 **Ordering**: None—completely random.
 
 **Trade-offs:**
+
 - ✅ Simple, no coordination
 - ✅ No information leakage
 - ❌ Poor index locality (scattered inserts)
@@ -455,6 +476,7 @@ Ordered events often need globally unique identifiers. The choice of ID scheme a
 **Ordering**: Lexicographically sortable by creation time.
 
 **Trade-offs:**
+
 - ✅ Time-ordered for index locality
 - ✅ Standard format
 - ✅ No coordination needed
@@ -466,6 +488,7 @@ Ordered events often need globally unique identifiers. The choice of ID scheme a
 Twitter's Snowflake (2010) was designed for high-throughput, sortable IDs:
 
 **Structure** (64 bits total):
+
 - 1 bit: unused (sign bit)
 - 41 bits: timestamp (ms since custom epoch, ~69 years)
 - 10 bits: machine ID
@@ -474,6 +497,7 @@ Twitter's Snowflake (2010) was designed for high-throughput, sortable IDs:
 **Throughput**: 4,096,000 IDs/second per machine.
 
 **Trade-offs:**
+
 - ✅ Compact (64-bit fits in long)
 - ✅ K-sortable (mostly time-ordered)
 - ✅ High throughput
@@ -490,13 +514,13 @@ Twitter's Snowflake (2010) was designed for high-throughput, sortable IDs:
 
 ### ID Generation Decision Matrix
 
-| Requirement | Recommended | Rationale |
-|-------------|-------------|-----------|
-| Globally unique, no coordination | UUIDv4 or ULID | Random bits ensure uniqueness |
-| Time-sortable, standard format | UUIDv7 | RFC standard, lexicographic sort |
-| Compact, high throughput | Snowflake | 64-bit, 4M IDs/s/machine |
-| Database primary key | UUIDv7 or Snowflake | Good index locality |
-| Cryptographic randomness needed | UUIDv4 | Maximum entropy |
+| Requirement                      | Recommended         | Rationale                        |
+| -------------------------------- | ------------------- | -------------------------------- |
+| Globally unique, no coordination | UUIDv4 or ULID      | Random bits ensure uniqueness    |
+| Time-sortable, standard format   | UUIDv7              | RFC standard, lexicographic sort |
+| Compact, high throughput         | Snowflake           | 64-bit, 4M IDs/s/machine         |
+| Database primary key             | UUIDv7 or Snowflake | Good index locality              |
+| Cryptographic randomness needed  | UUIDv4              | Maximum entropy                  |
 
 ## Real-World Implementations
 
@@ -507,6 +531,7 @@ Twitter's Snowflake (2010) was designed for high-throughput, sortable IDs:
 **Approach**: TrueTime provides bounded clock uncertainty. Commit-wait ensures transaction T2 that starts after T1 commits has timestamp > T1's timestamp.
 
 **Implementation details:**
+
 - TrueTime servers with GPS and atomic clocks
 - Client libraries expose uncertainty interval
 - Commit-wait duration = 2 × uncertainty
@@ -523,6 +548,7 @@ Twitter's Snowflake (2010) was designed for high-throughput, sortable IDs:
 **Approach**: Hybrid Logical Clocks + read refresh + clock skew limits.
 
 **Implementation:**
+
 - Default max clock offset: 500ms
 - Transactions read at HLC timestamp
 - If read encounters write in uncertainty interval, transaction restarts
@@ -552,6 +578,7 @@ If too many refreshes, abort and retry transaction
 **Chosen approach**: Hybrid Logical Clocks for message timestamps.
 
 **Implementation:**
+
 - Each message gets HLC timestamp from sending server
 - Messages displayed in HLC order within channel
 - HLC's physical component provides rough wall-clock time for UI
@@ -566,6 +593,7 @@ If too many refreshes, abort and retry transaction
 **Approach**: Modified Snowflake IDs.
 
 **Structure:**
+
 - 41 bits: timestamp (ms since Discord epoch)
 - 5 bits: datacenter ID
 - 5 bits: worker ID
@@ -574,6 +602,7 @@ If too many refreshes, abort and retry transaction
 **Why not UUID**: UUIDs are 128 bits (twice the storage), not sortable (UUIDv7 didn't exist), and have poor index locality.
 
 **Clock rollback handling**: If system clock goes backward:
+
 1. Detect via comparing new time to last generated timestamp
 2. If small rollback (<5s), spin-wait
 3. If large rollback, log error and generate based on last timestamp + sequence
@@ -623,6 +652,7 @@ If too many refreshes, abort and retry transaction
 **The consequence**: VM migration, NTP step adjustment, or leap second handling can roll clock back. Snowflake-style IDs collide. Timestamps go backward.
 
 **The fix**:
+
 - Use monotonic clock source for durations
 - Detect rollback and handle (wait, use sequence, abort)
 - Monitor for clock anomalies
@@ -636,6 +666,7 @@ If too many refreshes, abort and retry transaction
 **The consequence**: Each timestamp is O(n). With 10,000 clients, each timestamp is 40KB. Storage and bandwidth explode.
 
 **The fix**:
+
 - Limit vector clock participants (replicas, not clients)
 - Use HLC if full causality detection isn't needed
 - Consider interval tree clocks for dynamic node sets
@@ -655,6 +686,7 @@ If too many refreshes, abort and retry transaction
 ### Step 1: Identify Ordering Requirements
 
 **Questions to ask:**
+
 1. Do you need global total order or just causal order?
 2. What's the cost of incorrect ordering? (Data loss? User confusion? Audit failure?)
 3. Do you need to detect concurrent events for conflict resolution?
@@ -662,33 +694,33 @@ If too many refreshes, abort and retry transaction
 
 ### Step 2: Map Requirements to Approach
 
-| If you need... | Consider... |
-|----------------|-------------|
-| Causal ordering only | Lamport timestamps |
-| Conflict detection (multi-master) | Vector clocks or CRDT-friendly approach |
-| Sortable IDs with time approximation | Snowflake / UUIDv7 |
-| Database transaction timestamps | HLC |
-| True global ordering | Consensus (Raft/Paxos) or TrueTime |
+| If you need...                       | Consider...                             |
+| ------------------------------------ | --------------------------------------- |
+| Causal ordering only                 | Lamport timestamps                      |
+| Conflict detection (multi-master)    | Vector clocks or CRDT-friendly approach |
+| Sortable IDs with time approximation | Snowflake / UUIDv7                      |
+| Database transaction timestamps      | HLC                                     |
+| True global ordering                 | Consensus (Raft/Paxos) or TrueTime      |
 
 ### Step 3: Consider Scale and Constraints
 
-| Scale Factor | Recommendation |
-|--------------|----------------|
-| <10 nodes in consensus group | Vector clocks manageable |
-| 10-1000 nodes | HLC, avoid per-node vectors |
-| >1000 nodes | HLC with bounded clock skew |
-| Single leader | Sequence numbers sufficient |
-| Multi-region | Account for 100ms+ RTT in skew bounds |
+| Scale Factor                 | Recommendation                        |
+| ---------------------------- | ------------------------------------- |
+| <10 nodes in consensus group | Vector clocks manageable              |
+| 10-1000 nodes                | HLC, avoid per-node vectors           |
+| >1000 nodes                  | HLC with bounded clock skew           |
+| Single leader                | Sequence numbers sufficient           |
+| Multi-region                 | Account for 100ms+ RTT in skew bounds |
 
 ### Step 4: Choose ID Generation Strategy
 
-| Primary need | Recommendation |
-|--------------|----------------|
-| Database primary keys | UUIDv7 or Snowflake |
-| Distributed tracing | UUIDv4 (randomness needed) |
-| User-visible IDs | Snowflake variant (compact) |
-| No ID coordination | UUIDv7 |
-| Maximum throughput | Snowflake |
+| Primary need          | Recommendation              |
+| --------------------- | --------------------------- |
+| Database primary keys | UUIDv7 or Snowflake         |
+| Distributed tracing   | UUIDv4 (randomness needed)  |
+| User-visible IDs      | Snowflake variant (compact) |
+| No ID coordination    | UUIDv7                      |
+| Maximum throughput    | Snowflake                   |
 
 ## Conclusion
 
@@ -735,8 +767,6 @@ The key insight is that you rarely need perfect global ordering. Understanding w
 #### Foundational Papers
 
 - [Time, Clocks, and the Ordering of Events in a Distributed System](https://lamport.azurewebsites.net/pubs/time-clocks.pdf) - Lamport (1978). Defines happens-before, introduces logical clocks.
-- [Timestamps in Message-Passing Systems That Preserve the Partial Ordering](https://fileadmin.cs.lth.se/cs/Personal/Amr_Ergawy/dist-algos-papers/4.pdf) - Fidge (1988). Introduces vector clocks.
-- [Virtual Time and Global States of Distributed Systems](https://www.vs.inf.ethz.ch/publ/papers/VssV.pdf) - Mattern (1989). Independent vector clock development.
 - [Logical Physical Clocks and Consistent Snapshots in Globally Distributed Databases](https://cse.buffalo.edu/tech-reports/2014-04.pdf) - Kulkarni et al. (2014). Defines Hybrid Logical Clocks.
 
 #### System Papers

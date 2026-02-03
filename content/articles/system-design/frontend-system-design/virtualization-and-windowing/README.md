@@ -62,12 +62,12 @@ Layout is the bottleneck. As documented in Chrome DevTools performance analysis,
 
 ### When Virtualization Becomes Necessary
 
-| Item Count | Without Virtualization | With Virtualization |
-|------------|----------------------|---------------------|
-| 50-100 | Acceptable on desktop, measure on mobile | Optional |
-| 500+ | Noticeable jank on scroll | Recommended |
-| 1,000+ | Severe degradation, blocked frames | Required |
-| 10,000+ | Unusable | Only viable path |
+| Item Count | Without Virtualization                   | With Virtualization |
+| ---------- | ---------------------------------------- | ------------------- |
+| 50-100     | Acceptable on desktop, measure on mobile | Optional            |
+| 500+       | Noticeable jank on scroll                | Recommended         |
+| 1,000+     | Severe degradation, blocked frames       | Required            |
+| 10,000+    | Unusable                                 | Only viable path    |
 
 ### User Experience Requirements
 
@@ -143,13 +143,13 @@ function FixedVirtualizer<T>({
 
 **Performance characteristics:**
 
-| Metric | Value |
-|--------|-------|
-| DOM nodes | O(viewport) — typically 20-50 |
-| Layout time | 1-3ms per frame |
-| Memory | O(viewport) — no caching needed |
-| Scroll performance | Consistent 60fps |
-| Implementation complexity | Low |
+| Metric                    | Value                           |
+| ------------------------- | ------------------------------- |
+| DOM nodes                 | O(viewport) — typically 20-50   |
+| Layout time               | 1-3ms per frame                 |
+| Memory                    | O(viewport) — no caching needed |
+| Scroll performance        | Consistent 60fps                |
+| Implementation complexity | Low                             |
 
 **Best for:**
 
@@ -177,14 +177,14 @@ VS Code's minimap uses fixed-height line rendering. Each line is represented at 
 Items are measured as they render using ResizeObserver. A height cache stores measurements indexed by item. Unmeasured items use an estimated height.
 
 ```typescript title="variable-height-virtualizer.ts" collapse={1-5,60-80}
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from "react"
 
 interface VariableVirtualizerProps<T> {
-  items: T[];
-  estimatedItemHeight: number;
-  containerHeight: number;
-  overscan?: number;
-  renderItem: (item: T, index: number, measureRef: (el: HTMLElement | null) => void) => React.ReactNode;
+  items: T[]
+  estimatedItemHeight: number
+  containerHeight: number
+  overscan?: number
+  renderItem: (item: T, index: number, measureRef: (el: HTMLElement | null) => void) => React.ReactNode
 }
 
 function VariableVirtualizer<T>({
@@ -194,62 +194,66 @@ function VariableVirtualizer<T>({
   overscan = 3,
   renderItem,
 }: VariableVirtualizerProps<T>) {
-  const [scrollTop, setScrollTop] = useState(0);
-  const [heightCache, setHeightCache] = useState<Map<number, number>>(new Map());
+  const [scrollTop, setScrollTop] = useState(0)
+  const [heightCache, setHeightCache] = useState<Map<number, number>>(new Map())
 
   // Calculate positions with measured or estimated heights
   const getItemOffset = (index: number): number => {
-    let offset = 0;
+    let offset = 0
     for (let i = 0; i < index; i++) {
-      offset += heightCache.get(i) ?? estimatedItemHeight;
+      offset += heightCache.get(i) ?? estimatedItemHeight
     }
-    return offset;
-  };
+    return offset
+  }
 
   // Binary search to find start index from scroll position
   const findStartIndex = (scrollPos: number): number => {
-    let low = 0, high = items.length - 1;
+    let low = 0,
+      high = items.length - 1
     while (low < high) {
-      const mid = Math.floor((low + high) / 2);
+      const mid = Math.floor((low + high) / 2)
       if (getItemOffset(mid + 1) <= scrollPos) {
-        low = mid + 1;
+        low = mid + 1
       } else {
-        high = mid;
+        high = mid
       }
     }
-    return Math.max(0, low - overscan);
-  };
+    return Math.max(0, low - overscan)
+  }
 
-  const startIndex = findStartIndex(scrollTop);
+  const startIndex = findStartIndex(scrollTop)
 
   // Find end index by accumulating heights until we exceed viewport
-  let endIndex = startIndex;
-  let accumulatedHeight = 0;
+  let endIndex = startIndex
+  let accumulatedHeight = 0
   while (endIndex < items.length && accumulatedHeight < containerHeight + overscan * estimatedItemHeight) {
-    accumulatedHeight += heightCache.get(endIndex) ?? estimatedItemHeight;
-    endIndex++;
+    accumulatedHeight += heightCache.get(endIndex) ?? estimatedItemHeight
+    endIndex++
   }
-  endIndex = Math.min(items.length, endIndex + overscan);
+  endIndex = Math.min(items.length, endIndex + overscan)
 
-  const totalHeight = getItemOffset(items.length);
-  const offsetY = getItemOffset(startIndex);
+  const totalHeight = getItemOffset(items.length)
+  const offsetY = getItemOffset(startIndex)
 
   // Measure items as they render
-  const measureElement = useCallback((index: number) => (el: HTMLElement | null) => {
-    if (el) {
-      const observer = new ResizeObserver(([entry]) => {
-        const height = entry.contentRect.height;
-        setHeightCache(prev => {
-          if (prev.get(index) === height) return prev;
-          const next = new Map(prev);
-          next.set(index, height);
-          return next;
-        });
-      });
-      observer.observe(el);
-      return () => observer.disconnect();
-    }
-  }, []);
+  const measureElement = useCallback(
+    (index: number) => (el: HTMLElement | null) => {
+      if (el) {
+        const observer = new ResizeObserver(([entry]) => {
+          const height = entry.contentRect.height
+          setHeightCache((prev) => {
+            if (prev.get(index) === height) return prev
+            const next = new Map(prev)
+            next.set(index, height)
+            return next
+          })
+        })
+        observer.observe(el)
+        return () => observer.disconnect()
+      }
+    },
+    [],
+  )
 
   // ... scroll handler and render logic
 }
@@ -268,13 +272,13 @@ When users drag the scrollbar to an arbitrary position, the virtualizer must ren
 
 **Performance characteristics:**
 
-| Metric | Value |
-|--------|-------|
-| DOM nodes | O(viewport) — typically 20-50 |
-| Layout time | 2-5ms (measurement overhead) |
-| Memory | O(n) for height cache in worst case |
-| Scroll performance | 30-60fps depending on measurement frequency |
-| Implementation complexity | High |
+| Metric                    | Value                                       |
+| ------------------------- | ------------------------------------------- |
+| DOM nodes                 | O(viewport) — typically 20-50               |
+| Layout time               | 2-5ms (measurement overhead)                |
+| Memory                    | O(n) for height cache in worst case         |
+| Scroll performance        | 30-60fps depending on measurement frequency |
+| Implementation complexity | High                                        |
 
 **Best for:**
 
@@ -303,28 +307,28 @@ Instead of creating and destroying DOM elements as items enter/exit the viewport
 ```typescript title="dom-recycling-concept.ts"
 // Conceptual representation - production implementations are more complex
 class DOMRecycler {
-  private pool: HTMLElement[] = [];
-  private poolSize: number;
+  private pool: HTMLElement[] = []
+  private poolSize: number
 
   constructor(viewportSize: number, overscan: number) {
     // Fixed pool size based on viewport, never grows
-    this.poolSize = viewportSize + overscan * 2;
-    this.initializePool();
+    this.poolSize = viewportSize + overscan * 2
+    this.initializePool()
   }
 
   private initializePool() {
     for (let i = 0; i < this.poolSize; i++) {
-      const element = document.createElement('div');
-      element.className = 'virtual-item';
-      this.pool.push(element);
+      const element = document.createElement("div")
+      element.className = "virtual-item"
+      this.pool.push(element)
     }
   }
 
   // When item scrolls out of view
   recycleElement(element: HTMLElement, newItem: Item, newPosition: number) {
     // Reuse same DOM node - update content, reposition
-    element.textContent = newItem.content;
-    element.style.transform = `translateY(${newPosition}px)`;
+    element.textContent = newItem.content
+    element.style.transform = `translateY(${newPosition}px)`
     // No DOM creation/destruction - just property updates
   }
 }
@@ -338,11 +342,11 @@ class DOMRecycler {
 
 **Performance characteristics:**
 
-| Metric | Value |
-|--------|-------|
-| DOM nodes | Fixed pool size (constant) |
-| GC pauses | Eliminated during scroll |
-| Memory pattern | Flat—no growth with scroll |
+| Metric         | Value                           |
+| -------------- | ------------------------------- |
+| DOM nodes      | Fixed pool size (constant)      |
+| GC pauses      | Eliminated during scroll        |
+| Memory pattern | Flat—no growth with scroll      |
 | Initial render | Slightly slower (pool creation) |
 
 **Real-world example:**
@@ -378,25 +382,25 @@ All major browsers (Chrome 85+, Firefox 109+, Safari 17.4+) support `content-vis
 
 **Performance characteristics:**
 
-| Metric | Value |
-|--------|-------|
-| DOM nodes | All items remain in DOM |
-| Layout time | O(viewport) for painting, full DOM for style |
-| Memory | O(n) — all items exist |
-| Find-in-page | ✅ Works natively |
-| Anchor links | ✅ Works natively |
-| Implementation complexity | Low (CSS only) |
+| Metric                    | Value                                        |
+| ------------------------- | -------------------------------------------- |
+| DOM nodes                 | All items remain in DOM                      |
+| Layout time               | O(viewport) for painting, full DOM for style |
+| Memory                    | O(n) — all items exist                       |
+| Find-in-page              | ✅ Works natively                            |
+| Anchor links              | ✅ Works natively                            |
+| Implementation complexity | Low (CSS only)                               |
 
 **Trade-offs vs virtualization:**
 
-| Capability | Virtualization | content-visibility |
-|------------|---------------|-------------------|
-| Find-in-page (Ctrl+F) | ❌ Broken | ✅ Works |
-| Anchor links (#id) | ❌ Broken | ✅ Works |
-| Memory usage | O(viewport) | O(n) |
-| Bundle size impact | Library required | Zero (CSS) |
-| Browser support | Universal | Modern browsers |
-| Accessibility | Requires ARIA | Native |
+| Capability            | Virtualization   | content-visibility |
+| --------------------- | ---------------- | ------------------ |
+| Find-in-page (Ctrl+F) | ❌ Broken        | ✅ Works           |
+| Anchor links (#id)    | ❌ Broken        | ✅ Works           |
+| Memory usage          | O(viewport)      | O(n)               |
+| Bundle size impact    | Library required | Zero (CSS)         |
+| Browser support       | Universal        | Modern browsers    |
+| Accessibility         | Requires ARIA    | Native             |
 
 **When to use `content-visibility` over virtualization:**
 
@@ -412,15 +416,15 @@ web.dev reports a 7x rendering performance improvement on the Chrome DevRel blog
 
 ### Decision Matrix
 
-| Factor | Fixed-Height | Variable-Height | DOM Recycling | content-visibility |
-|--------|-------------|-----------------|---------------|-------------------|
-| Item count limit | Unlimited | Unlimited | Unlimited | ~10K (memory) |
-| Dynamic heights | ❌ | ✅ | ✅ | ✅ |
-| Find-in-page | ❌ | ❌ | ❌ | ✅ |
-| Memory efficiency | ⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ⭐ |
-| Implementation effort | Low | High | High | Trivial |
-| GC pauses | Possible | Possible | Eliminated | Possible |
-| Browser support | Universal | Universal | Universal | Modern |
+| Factor                | Fixed-Height | Variable-Height | DOM Recycling | content-visibility |
+| --------------------- | ------------ | --------------- | ------------- | ------------------ |
+| Item count limit      | Unlimited    | Unlimited       | Unlimited     | ~10K (memory)      |
+| Dynamic heights       | ❌           | ✅              | ✅            | ✅                 |
+| Find-in-page          | ❌           | ❌              | ❌            | ✅                 |
+| Memory efficiency     | ⭐⭐⭐       | ⭐⭐            | ⭐⭐⭐        | ⭐                 |
+| Implementation effort | Low          | High            | High          | Trivial            |
+| GC pauses             | Possible     | Possible        | Eliminated    | Possible           |
+| Browser support       | Universal    | Universal       | Universal     | Modern             |
 
 ### Decision Framework
 
@@ -445,20 +449,17 @@ ResizeObserver reports element size changes asynchronously, avoiding the perform
 
 ```typescript title="resize-observer-measurement.ts" collapse={1-2,20-25}
 // Height measurement pattern used by react-virtuoso
-function measureItemHeight(
-  element: HTMLElement,
-  onMeasure: (height: number) => void
-): () => void {
+function measureItemHeight(element: HTMLElement, onMeasure: (height: number) => void): () => void {
   const observer = new ResizeObserver((entries) => {
     // contentRect excludes padding and border
-    const height = entries[0].contentRect.height;
-    onMeasure(height);
-  });
+    const height = entries[0].contentRect.height
+    onMeasure(height)
+  })
 
-  observer.observe(element);
+  observer.observe(element)
 
   // Cleanup function
-  return () => observer.disconnect();
+  return () => observer.disconnect()
 }
 ```
 
@@ -467,10 +468,10 @@ function measureItemHeight(
 ResizeObserver's `contentRect` reports the content box (excluding padding, border, margin). If items have margins, add them manually:
 
 ```typescript title="margin-aware-measurement.ts"
-const computedStyle = getComputedStyle(element);
-const marginTop = parseFloat(computedStyle.marginTop);
-const marginBottom = parseFloat(computedStyle.marginBottom);
-const totalHeight = entry.contentRect.height + marginTop + marginBottom;
+const computedStyle = getComputedStyle(element)
+const marginTop = parseFloat(computedStyle.marginTop)
+const marginBottom = parseFloat(computedStyle.marginBottom)
+const totalHeight = entry.contentRect.height + marginTop + marginBottom
 ```
 
 **Infinite loop prevention:**
@@ -483,24 +484,21 @@ IntersectionObserver detects when elements enter or exit the viewport without tr
 
 ```typescript title="intersection-observer-sentinel.ts" collapse={1-2}
 // Sentinel pattern for infinite scroll loading
-function setupLoadMoreTrigger(
-  sentinel: HTMLElement,
-  onVisible: () => void
-) {
+function setupLoadMoreTrigger(sentinel: HTMLElement, onVisible: () => void) {
   const observer = new IntersectionObserver(
     (entries) => {
       if (entries[0].isIntersecting) {
-        onVisible(); // Load more items
+        onVisible() // Load more items
       }
     },
     {
-      rootMargin: '200px', // Trigger 200px before visible
+      rootMargin: "200px", // Trigger 200px before visible
       threshold: 0,
-    }
-  );
+    },
+  )
 
-  observer.observe(sentinel);
-  return () => observer.disconnect();
+  observer.observe(sentinel)
+  return () => observer.disconnect()
 }
 ```
 
@@ -515,18 +513,18 @@ function setupLoadMoreTrigger(
 Scroll events fire many times per frame. RAF throttles updates to the frame rate naturally.
 
 ```typescript title="raf-scroll-handling.ts"
-let scheduled = false;
-let lastScrollTop = 0;
+let scheduled = false
+let lastScrollTop = 0
 
 function handleScroll(e: Event) {
-  lastScrollTop = (e.target as HTMLElement).scrollTop;
+  lastScrollTop = (e.target as HTMLElement).scrollTop
 
   if (!scheduled) {
-    scheduled = true;
+    scheduled = true
     requestAnimationFrame(() => {
-      updateVisibleRange(lastScrollTop);
-      scheduled = false;
-    });
+      updateVisibleRange(lastScrollTop)
+      scheduled = false
+    })
   }
 }
 ```
@@ -552,25 +550,23 @@ const heightEstimates: Record<ItemType, number> = {
   image: 300,
   video: 400,
   card: 150,
-};
+}
 
 function estimateHeight(item: Item): number {
-  return heightEstimates[item.type] ?? 100;
+  return heightEstimates[item.type] ?? 100
 }
 
 // Strategy 2: Running average
-let totalMeasured = 0;
-let measurementCount = 0;
+let totalMeasured = 0
+let measurementCount = 0
 
 function updateEstimate(measuredHeight: number) {
-  totalMeasured += measuredHeight;
-  measurementCount++;
+  totalMeasured += measuredHeight
+  measurementCount++
 }
 
 function getEstimate(): number {
-  return measurementCount > 0
-    ? totalMeasured / measurementCount
-    : defaultEstimate;
+  return measurementCount > 0 ? totalMeasured / measurementCount : defaultEstimate
 }
 ```
 
@@ -581,33 +577,32 @@ function getEstimate(): number {
 **Solution**: Track logical focus (item index) separately from DOM focus. When scrolling brings the focused item back into view, restore DOM focus.
 
 ```typescript title="focus-management.ts" collapse={1-3,25-35}
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from "react"
 
 function useFocusManagement(visibleRange: { start: number; end: number }) {
-  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
-  const itemRefs = useRef<Map<number, HTMLElement>>(new Map());
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null)
+  const itemRefs = useRef<Map<number, HTMLElement>>(new Map())
 
   // Track which item should have focus (logical, not DOM)
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'ArrowDown' && focusedIndex !== null) {
-      setFocusedIndex(focusedIndex + 1);
-    } else if (e.key === 'ArrowUp' && focusedIndex !== null) {
-      setFocusedIndex(Math.max(0, focusedIndex - 1));
-    }
-  }, [focusedIndex]);
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "ArrowDown" && focusedIndex !== null) {
+        setFocusedIndex(focusedIndex + 1)
+      } else if (e.key === "ArrowUp" && focusedIndex !== null) {
+        setFocusedIndex(Math.max(0, focusedIndex - 1))
+      }
+    },
+    [focusedIndex],
+  )
 
   // Restore DOM focus when focused item becomes visible
   useEffect(() => {
-    if (
-      focusedIndex !== null &&
-      focusedIndex >= visibleRange.start &&
-      focusedIndex <= visibleRange.end
-    ) {
-      itemRefs.current.get(focusedIndex)?.focus();
+    if (focusedIndex !== null && focusedIndex >= visibleRange.start && focusedIndex <= visibleRange.end) {
+      itemRefs.current.get(focusedIndex)?.focus()
     }
-  }, [focusedIndex, visibleRange]);
+  }, [focusedIndex, visibleRange])
 
-  return { focusedIndex, setFocusedIndex, itemRefs, handleKeyDown };
+  return { focusedIndex, setFocusedIndex, itemRefs, handleKeyDown }
 }
 ```
 
@@ -618,12 +613,7 @@ function useFocusManagement(visibleRange: { start: number; end: number }) {
 **ARIA live regions**: Announce content changes to screen readers.
 
 ```html title="aria-live-regions.html"
-<div
-  role="list"
-  aria-label="Messages"
-  aria-live="polite"
-  aria-relevant="additions"
->
+<div role="list" aria-label="Messages" aria-live="polite" aria-relevant="additions">
   <!-- Virtualized items here -->
   <!-- Screen reader announces when new items are added -->
 </div>
@@ -631,19 +621,17 @@ function useFocusManagement(visibleRange: { start: number; end: number }) {
 
 **ARIA attributes for virtualized lists:**
 
-| Attribute | Purpose |
-|-----------|---------|
-| `role="list"` | Identifies container as a list |
-| `aria-live="polite"` | Announce changes when user is idle |
-| `aria-relevant="additions"` | Only announce new items, not removals |
-| `aria-busy="true"` | Indicate loading state |
-| `aria-setsize` | Total number of items (including virtualized) |
-| `aria-posinset` | Position of each visible item in full list |
+| Attribute                   | Purpose                                       |
+| --------------------------- | --------------------------------------------- |
+| `role="list"`               | Identifies container as a list                |
+| `aria-live="polite"`        | Announce changes when user is idle            |
+| `aria-relevant="additions"` | Only announce new items, not removals         |
+| `aria-busy="true"`          | Indicate loading state                        |
+| `aria-setsize`              | Total number of items (including virtualized) |
+| `aria-posinset`             | Position of each visible item in full list    |
 
 ```html title="aria-positioning.html"
-<div role="listitem" aria-setsize="10000" aria-posinset="42">
-  Item 42 of 10,000
-</div>
+<div role="listitem" aria-setsize="10000" aria-posinset="42">Item 42 of 10,000</div>
 ```
 
 **Ongoing standards work**: The WICG (Web Incubator Community Group) is developing a `<virtual-scroller>` web component to provide native browser support for virtualization with built-in accessibility.
@@ -658,12 +646,10 @@ function useFocusManagement(visibleRange: { start: number; end: number }) {
 
 ```typescript title="custom-search.ts"
 function searchAndScroll(query: string, items: Item[], virtualizer: Virtualizer) {
-  const matchIndex = items.findIndex(item =>
-    item.content.toLowerCase().includes(query.toLowerCase())
-  );
+  const matchIndex = items.findIndex((item) => item.content.toLowerCase().includes(query.toLowerCase()))
 
   if (matchIndex !== -1) {
-    virtualizer.scrollToIndex(matchIndex, { align: 'center' });
+    virtualizer.scrollToIndex(matchIndex, { align: "center" })
   }
 }
 ```
@@ -681,20 +667,20 @@ function searchAndScroll(query: string, items: Item[], virtualizer: Virtualizer)
 ```typescript title="scroll-anchoring.ts"
 function addHistoryItems(newItems: Item[], existingItems: Item[]) {
   // Record current scroll position and reference item
-  const scrollContainer = containerRef.current;
-  const currentScrollTop = scrollContainer.scrollTop;
-  const anchorItem = findFirstVisibleItem();
-  const anchorOffset = getItemOffset(anchorItem.index);
+  const scrollContainer = containerRef.current
+  const currentScrollTop = scrollContainer.scrollTop
+  const anchorItem = findFirstVisibleItem()
+  const anchorOffset = getItemOffset(anchorItem.index)
 
   // Add items to beginning
-  const combined = [...newItems, ...existingItems];
+  const combined = [...newItems, ...existingItems]
 
   // After render, adjust scroll to maintain anchor position
   requestAnimationFrame(() => {
-    const newAnchorOffset = getItemOffset(anchorItem.index + newItems.length);
-    const adjustment = newAnchorOffset - anchorOffset;
-    scrollContainer.scrollTop = currentScrollTop + adjustment;
-  });
+    const newAnchorOffset = getItemOffset(anchorItem.index + newItems.length)
+    const adjustment = newAnchorOffset - anchorOffset
+    scrollContainer.scrollTop = currentScrollTop + adjustment
+  })
 }
 ```
 
@@ -749,20 +735,20 @@ Overscan renders additional items beyond the viewport to prevent blank areas dur
 
 **Trade-off**: Higher overscan = smoother scrolling but more rendering work per frame.
 
-| Scroll Speed | Recommended Overscan |
-|--------------|---------------------|
-| Slow/moderate | 1-2 items |
-| Fast scrolling expected | 3-5 items |
-| Scrollbar drag support | 5-10 items |
+| Scroll Speed            | Recommended Overscan |
+| ----------------------- | -------------------- |
+| Slow/moderate           | 1-2 items            |
+| Fast scrolling expected | 3-5 items            |
+| Scrollbar drag support  | 5-10 items           |
 
 **Direction-aware overscan**: Render more items in the scroll direction for better perceived smoothness.
 
 ```typescript title="directional-overscan.ts"
-function calculateOverscan(scrollDirection: 'up' | 'down') {
+function calculateOverscan(scrollDirection: "up" | "down") {
   return {
-    overscanBefore: scrollDirection === 'up' ? 5 : 2,
-    overscanAfter: scrollDirection === 'down' ? 5 : 2,
-  };
+    overscanBefore: scrollDirection === "up" ? 5 : 2,
+    overscanAfter: scrollDirection === "down" ? 5 : 2,
+  }
 }
 ```
 
@@ -771,14 +757,14 @@ function calculateOverscan(scrollDirection: 'up' | 'down') {
 **RAF throttling (recommended)**:
 
 ```typescript title="raf-throttle.ts"
-let rafId: number | null = null;
+let rafId: number | null = null
 
 function handleScroll(e: Event) {
   if (rafId === null) {
     rafId = requestAnimationFrame(() => {
-      updateVisibleItems();
-      rafId = null;
-    });
+      updateVisibleItems()
+      rafId = null
+    })
   }
 }
 ```
@@ -786,7 +772,7 @@ function handleScroll(e: Event) {
 **Passive event listeners**: Improve scroll performance by indicating the handler won't call `preventDefault()`.
 
 ```typescript title="passive-scroll.ts"
-container.addEventListener('scroll', handleScroll, { passive: true });
+container.addEventListener("scroll", handleScroll, { passive: true })
 ```
 
 ### GPU-Accelerated Positioning
@@ -817,30 +803,30 @@ container.addEventListener('scroll', handleScroll, { passive: true });
 
 ```typescript title="segment-cache.ts"
 class SegmentedHeightCache {
-  private segments: Map<number, Map<number, number>> = new Map();
-  private segmentSize = 1000;
-  private maxSegments = 10;
+  private segments: Map<number, Map<number, number>> = new Map()
+  private segmentSize = 1000
+  private maxSegments = 10
 
   get(index: number): number | undefined {
-    const segmentId = Math.floor(index / this.segmentSize);
-    const segment = this.segments.get(segmentId);
-    return segment?.get(index);
+    const segmentId = Math.floor(index / this.segmentSize)
+    const segment = this.segments.get(segmentId)
+    return segment?.get(index)
   }
 
   set(index: number, height: number) {
-    const segmentId = Math.floor(index / this.segmentSize);
+    const segmentId = Math.floor(index / this.segmentSize)
     if (!this.segments.has(segmentId)) {
       if (this.segments.size >= this.maxSegments) {
-        this.evictOldest();
+        this.evictOldest()
       }
-      this.segments.set(segmentId, new Map());
+      this.segments.set(segmentId, new Map())
     }
-    this.segments.get(segmentId)!.set(index, height);
+    this.segments.get(segmentId)!.set(index, height)
   }
 
   private evictOldest() {
-    const firstKey = this.segments.keys().next().value;
-    this.segments.delete(firstKey);
+    const firstKey = this.segments.keys().next().value
+    this.segments.delete(firstKey)
   }
 }
 ```
@@ -853,12 +839,12 @@ Grid virtualization requires windowing both rows AND columns simultaneously.
 
 ```typescript title="grid-virtualizer.ts" collapse={1-3,35-45}
 interface GridVirtualizerProps {
-  rowCount: number;
-  columnCount: number;
-  rowHeight: number;
-  columnWidth: number;
-  containerWidth: number;
-  containerHeight: number;
+  rowCount: number
+  columnCount: number
+  rowHeight: number
+  columnWidth: number
+  containerWidth: number
+  containerHeight: number
 }
 
 function calculateVisibleGrid({
@@ -871,22 +857,16 @@ function calculateVisibleGrid({
   rowCount,
   columnCount,
 }: GridVirtualizerProps & { scrollTop: number; scrollLeft: number }) {
-  const startRow = Math.floor(scrollTop / rowHeight);
-  const endRow = Math.min(
-    rowCount,
-    Math.ceil((scrollTop + containerHeight) / rowHeight) + 1
-  );
+  const startRow = Math.floor(scrollTop / rowHeight)
+  const endRow = Math.min(rowCount, Math.ceil((scrollTop + containerHeight) / rowHeight) + 1)
 
-  const startCol = Math.floor(scrollLeft / columnWidth);
-  const endCol = Math.min(
-    columnCount,
-    Math.ceil((scrollLeft + containerWidth) / columnWidth) + 1
-  );
+  const startCol = Math.floor(scrollLeft / columnWidth)
+  const endCol = Math.min(columnCount, Math.ceil((scrollLeft + containerWidth) / columnWidth) + 1)
 
   return {
     visibleRows: { start: startRow, end: endRow },
     visibleCols: { start: startCol, end: endCol },
-  };
+  }
 }
 ```
 
@@ -897,8 +877,8 @@ function calculateVisibleGrid({
 ```typescript title="header-sync.ts"
 // Sync column header horizontal scroll with body
 function syncHeaders(bodyScrollLeft: number, bodyScrollTop: number) {
-  columnHeaderRef.current.scrollLeft = bodyScrollLeft;
-  rowHeaderRef.current.scrollTop = bodyScrollTop;
+  columnHeaderRef.current.scrollLeft = bodyScrollLeft
+  rowHeaderRef.current.scrollTop = bodyScrollTop
 }
 ```
 
@@ -1016,12 +996,12 @@ function syncHeaders(bodyScrollLeft: number, bodyScrollTop: number) {
 
 ### Library Decision Matrix
 
-| Library | Bundle Size | Variable Height | Auto-measure | Framework | Best For |
-|---------|-------------|-----------------|--------------|-----------|----------|
-| react-window | 6KB | Manual | ❌ | React | Simple lists |
-| react-virtuoso | 15KB | Built-in | ✅ | React | Dynamic content |
-| @tanstack/virtual | 10KB | Built-in | ✅ | Any | Multi-framework |
-| vue-virtual-scroller | 12KB | Built-in | ✅ | Vue | Vue apps |
+| Library              | Bundle Size | Variable Height | Auto-measure | Framework | Best For        |
+| -------------------- | ----------- | --------------- | ------------ | --------- | --------------- |
+| react-window         | 6KB         | Manual          | ❌           | React     | Simple lists    |
+| react-virtuoso       | 15KB        | Built-in        | ✅           | React     | Dynamic content |
+| @tanstack/virtual    | 10KB        | Built-in        | ✅           | Any       | Multi-framework |
+| vue-virtual-scroller | 12KB        | Built-in        | ✅           | Vue       | Vue apps        |
 
 ## Conclusion
 
@@ -1046,13 +1026,13 @@ The implementation details matter: use `transform` over `top`, RAF-throttle scro
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| Virtualization | Rendering only visible items plus buffer |
-| Windowing | Synonym for virtualization in this context |
-| Overscan | Extra items rendered beyond visible viewport |
-| DOM recycling | Reusing DOM elements instead of create/destroy |
-| Height cache | Storage of measured item heights for positioning |
+| Term             | Definition                                                      |
+| ---------------- | --------------------------------------------------------------- |
+| Virtualization   | Rendering only visible items plus buffer                        |
+| Windowing        | Synonym for virtualization in this context                      |
+| Overscan         | Extra items rendered beyond visible viewport                    |
+| DOM recycling    | Reusing DOM elements instead of create/destroy                  |
+| Height cache     | Storage of measured item heights for positioning                |
 | Scroll anchoring | Maintaining visual position when items are added above viewport |
 
 ### Summary

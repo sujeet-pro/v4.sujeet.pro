@@ -19,16 +19,18 @@ Each pattern has multiple valid implementations with different trade-offs. The a
 
 For each pattern, show the decision tree:
 
-```markdown
+````markdown
 ## Design Paths
 
 ### Path 1: [Variant Name]
 
 **When to choose this path:**
+
 - [Specific condition]
 - [Specific condition]
 
 **Key characteristics:**
+
 - [Property 1]
 - [Property 2]
 
@@ -37,9 +39,10 @@ For each pattern, show the decision tree:
 
 **Real-world example:**
 [Company] uses this variant because [reason]. Their specific implementation:
+
 - [Detail 1]
 - [Detail 2]
-Result: [Measurable outcome]
+  Result: [Measurable outcome]
 
 **Trade-offs vs other paths:**
 | Aspect | This Path | Alternative Path |
@@ -62,7 +65,9 @@ graph TD
     D -->|< 10ms| E[Path 2]
     D -->|< 100ms| F[Path 3]
 ```
-```
+````
+
+````
 
 ## Required Article Structure
 
@@ -72,7 +77,7 @@ graph TD
 # [Pattern Name]
 
 Deep-dive into [pattern]: understanding variants, implementation choices, and production trade-offs.
-```
+````
 
 ### 2. Problem Statement
 
@@ -84,10 +89,12 @@ Why does this pattern exist?
 ### Why Naive Solutions Fail
 
 **Approach 1: [Naive approach]**
+
 - Fails because: [Specific failure mode]
 - Example: [Concrete scenario]
 
 **Approach 2: [Another naive approach]**
+
 - Fails because: [Specific failure mode]
 
 ### The Core Challenge
@@ -115,8 +122,8 @@ The canonical form of the pattern:
 
 ### Failure Modes
 
-| Failure | Impact | Mitigation |
-|---------|--------|------------|
+| Failure     | Impact        | Mitigation      |
+| ----------- | ------------- | --------------- |
 | [Failure 1] | [What breaks] | [How to handle] |
 | [Failure 2] | [What breaks] | [How to handle] |
 ```
@@ -125,7 +132,7 @@ The canonical form of the pattern:
 
 This is the heart of the article. Cover ALL major implementation paths:
 
-```markdown
+````markdown
 ## Design Paths
 
 ### State-Based vs Operation-Based [Example for CRDT]
@@ -136,41 +143,42 @@ This is the heart of the article. Cover ALL major implementation paths:
 [Detailed mechanism]
 
 **Data structure example:**
+
 ```typescript
 // G-Counter state-based implementation
 interface GCounter {
-  counts: Map<NodeId, number>;  // Each node tracks its own counter
+  counts: Map<NodeId, number> // Each node tracks its own counter
 }
 
 function increment(counter: GCounter, nodeId: NodeId): GCounter {
   return {
-    counts: new Map(counter.counts).set(
-      nodeId,
-      (counter.counts.get(nodeId) ?? 0) + 1
-    )
-  };
+    counts: new Map(counter.counts).set(nodeId, (counter.counts.get(nodeId) ?? 0) + 1),
+  }
 }
 
 function merge(a: GCounter, b: GCounter): GCounter {
-  const merged = new Map<NodeId, number>();
+  const merged = new Map<NodeId, number>()
   for (const [nodeId, count] of [...a.counts, ...b.counts]) {
-    merged.set(nodeId, Math.max(merged.get(nodeId) ?? 0, count));
+    merged.set(nodeId, Math.max(merged.get(nodeId) ?? 0, count))
   }
-  return { counts: merged };
+  return { counts: merged }
 }
 
 function value(counter: GCounter): number {
-  return [...counter.counts.values()].reduce((a, b) => a + b, 0);
+  return [...counter.counts.values()].reduce((a, b) => a + b, 0)
 }
 ```
+````
 
 **When to choose:**
+
 - Network partitions are common
 - Bandwidth is limited (send full state periodically)
 - Merge function is cheap
 - State size is bounded
 
 **Trade-offs:**
+
 - ✅ Simple delivery requirements (any order, duplicates OK)
 - ✅ Easy to reason about (state is self-describing)
 - ❌ State can grow unbounded (tombstones, actor IDs)
@@ -185,24 +193,27 @@ function value(counter: GCounter): number {
 [Detailed mechanism]
 
 **Data structure example:**
+
 ```typescript
 // G-Counter operation-based
-type Operation = { type: 'increment'; nodeId: NodeId; };
+type Operation = { type: "increment"; nodeId: NodeId }
 
 function apply(counter: number, op: Operation): number {
-  return counter + 1;
+  return counter + 1
 }
 
 // Requires exactly-once, causal delivery
 ```
 
 **When to choose:**
+
 - Reliable message delivery available
 - Operations are small
 - Want immediate propagation
 - Can guarantee causal ordering
 
 **Trade-offs:**
+
 - ✅ Small message size (just the operation)
 - ✅ Immediate propagation possible
 - ❌ Requires reliable, causal delivery layer
@@ -213,13 +224,13 @@ function apply(counter: number, op: Operation): number {
 
 ### Comparison Matrix
 
-| Factor | State-Based | Operation-Based |
-|--------|-------------|-----------------|
-| Message size | Full state | Single operation |
-| Delivery requirement | Any | Exactly-once, causal |
-| Late joiner handling | Send current state | Replay history |
-| Complexity | In merge function | In delivery layer |
-| Latency | Higher (batched) | Lower (immediate) |
+| Factor               | State-Based        | Operation-Based      |
+| -------------------- | ------------------ | -------------------- |
+| Message size         | Full state         | Single operation     |
+| Delivery requirement | Any                | Exactly-once, causal |
+| Late joiner handling | Send current state | Replay history       |
+| Complexity           | In merge function  | In delivery layer    |
+| Latency              | Higher (batched)   | Lower (immediate)    |
 
 ### Hybrid Approaches
 
@@ -230,7 +241,8 @@ Used by: Riak 2.0+, Akka Distributed Data
 **Operation-based with checkpoints:**
 Periodically checkpoint state, new nodes get checkpoint + recent ops.
 Used by: Many collaborative editors
-```
+
+````
 
 ### 5. Production Implementations Section (Required)
 
@@ -251,16 +263,19 @@ Show how real systems implement this pattern:
 **Architecture:**
 ```mermaid
 [Diagram of their implementation]
-```
+````
 
 **Specific details:**
+
 - [Technical detail 1]
 - [Technical detail 2]
 
 **What worked:**
+
 - [Outcome 1]
 
 **What was hard:**
+
 - [Challenge 1] — solved by [solution]
 
 **Source:** [Engineering blog/talk with link]
@@ -271,14 +286,15 @@ Show how real systems implement this pattern:
 
 ### Implementation Comparison
 
-| Aspect | System 1 | System 2 | System 3 |
-|--------|----------|----------|----------|
-| Variant | State-based | Op-based | Hybrid |
-| Scale | 10K ops/s | 100K ops/s | 1M ops/s |
-| Latency | 100ms | 10ms | 50ms |
-| Complexity | Low | High | Medium |
-| Team size | 2 | 10 | 5 |
-```
+| Aspect     | System 1    | System 2   | System 3 |
+| ---------- | ----------- | ---------- | -------- |
+| Variant    | State-based | Op-based   | Hybrid   |
+| Scale      | 10K ops/s   | 100K ops/s | 1M ops/s |
+| Latency    | 100ms       | 10ms       | 50ms     |
+| Complexity | Low         | High       | Medium   |
+| Team size  | 2           | 10         | 5        |
+
+````
 
 ### 6. Implementation Guide
 
@@ -300,30 +316,33 @@ graph TD
     F --> G[If JS: Yjs, Automerge]
     F --> H[If Erlang: Riak DT]
     F --> I[If JVM: Akka]
-```
+````
 
 ### Library Options
 
-| Library | Language | Variant | Maturity | Notes |
-|---------|----------|---------|----------|-------|
-| Yjs | JS | Op-based | Production | Best for collaborative editing |
-| Automerge | JS | State-based | Production | Best for offline-first |
-| Riak DT | Erlang | State-based | Production | Battle-tested |
+| Library   | Language | Variant     | Maturity   | Notes                          |
+| --------- | -------- | ----------- | ---------- | ------------------------------ |
+| Yjs       | JS       | Op-based    | Production | Best for collaborative editing |
+| Automerge | JS       | State-based | Production | Best for offline-first         |
+| Riak DT   | Erlang   | State-based | Production | Battle-tested                  |
 
 ### Building Custom
 
 **When to build custom:**
+
 - Existing libraries don't fit data model
 - Performance requirements exceed library capabilities
 - Need specific guarantees libraries don't provide
 
 **Implementation checklist:**
+
 - [ ] Define merge semantics precisely
 - [ ] Prove commutativity/associativity/idempotence
 - [ ] Handle clock skew
 - [ ] Plan garbage collection strategy
 - [ ] Test with network partition simulation
-```
+
+````
 
 ### 7. Common Pitfalls
 
@@ -351,20 +370,24 @@ graph TD
 - Design for concurrent operations from the start
 - Use causal consistency, not wall-clock ordering
 - Test with artificial latency injection
-```
+````
 
 ### 8. Appendix Requirements
 
 #### Prerequisites
+
 - Link to foundational articles (e.g., "consistency-and-cap-theorem")
 
 #### Summary
+
 - Pattern core insight
 - Key decision factors
 - Recommended starting point
 
 #### References
+
 Prioritized:
+
 1. Original papers (with specific section references)
 2. Production implementation blog posts
 3. Library documentation
@@ -373,24 +396,28 @@ Prioritized:
 ## Quality Checklist
 
 ### Design Paths
+
 - [ ] All major variants covered (not just textbook version)
 - [ ] Clear decision criteria for each path
 - [ ] Code examples for critical mechanisms
 - [ ] Trade-off comparison matrix
 
 ### Production Examples
+
 - [ ] At least 2 contrasting real-world implementations
 - [ ] Specific numbers (scale, latency, team size)
 - [ ] What worked AND what was hard
 - [ ] Sources linked
 
 ### Implementation Guidance
+
 - [ ] Decision tree for choosing approach
 - [ ] Library recommendations with criteria
 - [ ] When to build custom
 - [ ] Checklist for implementation
 
 ### Depth
+
 - [ ] Failure modes covered
 - [ ] Common pitfalls with examples
 - [ ] Edge cases addressed

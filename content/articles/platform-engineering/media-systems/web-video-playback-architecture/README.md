@@ -58,11 +58,11 @@ Video streaming solves a fundamental tension: high-quality video requires high b
 
 **Latency trade-off summary:**
 
-| Approach | Latency | Why |
-|----------|---------|-----|
-| Traditional HLS/DASH | 6-15s | Segment duration (4-6s) × buffer depth (2-3 segments) |
-| LL-HLS/LL-DASH | 2-4s | Partial segments (~200ms) + HTTP long-polling |
-| WebRTC | <500ms | UDP transport + minimal buffering + no HTTP overhead |
+| Approach             | Latency | Why                                                   |
+| -------------------- | ------- | ----------------------------------------------------- |
+| Traditional HLS/DASH | 6-15s   | Segment duration (4-6s) × buffer depth (2-3 segments) |
+| LL-HLS/LL-DASH       | 2-4s    | Partial segments (~200ms) + HTTP long-polling         |
+| WebRTC               | <500ms  | UDP transport + minimal buffering + no HTTP overhead  |
 
 ## Introduction
 
@@ -75,6 +75,7 @@ However, both of these early models shared a fatal flaw: they were built around 
 This pressure gave rise to ABR streaming, the foundational technology of all modern video platforms. ABR inverted the delivery model. Instead of the server pushing a single file, the video is pre-processed into multiple versions at different quality levels. Each version is then broken into small, discrete segments. The client player is given a manifest file—a map to all available segments—and is empowered to dynamically request the most appropriate segment based on its real-time assessment of network conditions, screen size, and CPU capabilities.
 
 **Design rationale for segmentation:** Small segments (typically 2-10 seconds) enable several critical capabilities:
+
 - **Fast quality switching**: Client can change bitrate at segment boundaries without seeking
 - **Parallel CDN caching**: Each segment is independently cacheable with unique URLs
 - **Error recovery**: A corrupted segment affects only a few seconds of playback
@@ -87,6 +88,7 @@ The trade-off is manifest overhead and increased request count. For a 2-hour mov
 At the most fundamental layer of the video stack lies the codec (coder-decoder), the compression algorithm that makes transmission of high-resolution video over bandwidth-constrained networks possible. Codecs work by removing spatial and temporal redundancy from video data, dramatically reducing file size.
 
 **How codecs achieve compression:**
+
 - **Intra-frame (I-frames)**: Compress individual frames independently using spatial redundancy (similar adjacent pixels)
 - **Inter-frame (P/B-frames)**: Encode only the differences between frames using temporal redundancy (motion vectors)
 - **Transform coding**: Convert pixel blocks to frequency domain (DCT/Discrete Cosine Transform), quantize, and entropy-code
@@ -101,13 +103,13 @@ Standardized in 2003 by ITU-T/ISO (ITU-T H.264 | ISO/IEC 14496-10), H.264 remain
 
 **Key Characteristics:**
 
-| Attribute | Value |
-|-----------|-------|
-| Compression Efficiency | Baseline (reference point) |
-| Ideal Use Case | Universal compatibility, live streaming, ads |
-| Licensing | MPEG LA patent pool (reasonable rates) |
-| Hardware Support | Ubiquitous (100% of devices) |
-| Typical Bitrate (1080p30) | 5-10 Mbps |
+| Attribute                 | Value                                        |
+| ------------------------- | -------------------------------------------- |
+| Compression Efficiency    | Baseline (reference point)                   |
+| Ideal Use Case            | Universal compatibility, live streaming, ads |
+| Licensing                 | MPEG LA patent pool (reasonable rates)       |
+| Hardware Support          | Ubiquitous (100% of devices)                 |
+| Typical Bitrate (1080p30) | 5-10 Mbps                                    |
 
 **Design trade-off:** H.264 prioritized decode simplicity over compression efficiency. The spec defines multiple profiles (Baseline, Main, High) with increasing complexity. Baseline profile can be decoded on the most constrained hardware; High profile enables better compression but requires more capable decoders.
 
@@ -119,13 +121,13 @@ Standardized in 2013 (ITU-T H.265 | ISO/IEC 23008-2), HEVC was designed for 4K a
 
 **Key Characteristics:**
 
-| Attribute | Value |
-|-----------|-------|
-| Compression Efficiency | ~50% better than H.264 |
-| Ideal Use Case | 4K/UHD & HDR streaming |
-| Licensing | Multiple patent pools (MPEG LA, HEVC Advance, Velos Media) |
-| Hardware Support | Widespread (NVIDIA, AMD, Intel, Apple Silicon, Qualcomm) |
-| Typical Bitrate (1080p30) | 3-5 Mbps |
+| Attribute                 | Value                                                      |
+| ------------------------- | ---------------------------------------------------------- |
+| Compression Efficiency    | ~50% better than H.264                                     |
+| Ideal Use Case            | 4K/UHD & HDR streaming                                     |
+| Licensing                 | Multiple patent pools (MPEG LA, HEVC Advance, Velos Media) |
+| Hardware Support          | Widespread (NVIDIA, AMD, Intel, Apple Silicon, Qualcomm)   |
+| Typical Bitrate (1080p30) | 3-5 Mbps                                                   |
 
 **Design trade-off:** HEVC achieves better compression through larger coding tree units (CTU, up to 64×64 vs. H.264's 16×16 macroblocks) and more sophisticated prediction modes. This increases encoder complexity by 5-10x, making real-time encoding expensive.
 
@@ -137,15 +139,16 @@ Released in 2018 by the Alliance for Open Media (AOM)—Google, Netflix, Amazon,
 
 **Key Characteristics:**
 
-| Attribute | Value |
-|-----------|-------|
-| Compression Efficiency | ~30% better than HEVC |
-| Ideal Use Case | High-volume VOD, bandwidth savings |
-| Licensing | Royalty-free (AOM patent commitment) |
-| Hardware Support | ~10% of smartphones (Q2 2024), 88% of Netflix-certified TVs |
-| Typical Bitrate (1080p30) | 2-3 Mbps |
+| Attribute                 | Value                                                       |
+| ------------------------- | ----------------------------------------------------------- |
+| Compression Efficiency    | ~30% better than HEVC                                       |
+| Ideal Use Case            | High-volume VOD, bandwidth savings                          |
+| Licensing                 | Royalty-free (AOM patent commitment)                        |
+| Hardware Support          | ~10% of smartphones (Q2 2024), 88% of Netflix-certified TVs |
+| Typical Bitrate (1080p30) | 2-3 Mbps                                                    |
 
 **Adoption status (2024-2025):**
+
 - YouTube: 75%+ of videos encoded in AV1
 - Netflix: 30% of streams
 - Hardware decode: iPhone 15 Pro (A17 chip), Snapdragon 8 Gen 2+, Intel Arc, NVIDIA RTX 40-series
@@ -160,14 +163,14 @@ Released in 2018 by the Alliance for Open Media (AOM)—Google, Netflix, Amazon,
 
 AAC is the de facto standard for audio in video streaming. Standardized in MPEG-2 Part 7 and MPEG-4 Part 3, it's the default audio codec for MP4 containers and supported by nearly every device.
 
-| Attribute | Value |
-|-----------|-------|
-| Primary Use Case | VOD, music streaming |
-| Low Bitrate (<96kbps) | Fair; quality degrades noticeably |
-| High Bitrate (>128kbps) | Excellent; industry standard |
-| Latency | ~100-200ms (not ideal for real-time) |
-| Compatibility | Near-universal |
-| Licensing | MPEG LA patent pool |
+| Attribute               | Value                                |
+| ----------------------- | ------------------------------------ |
+| Primary Use Case        | VOD, music streaming                 |
+| Low Bitrate (<96kbps)   | Fair; quality degrades noticeably    |
+| High Bitrate (>128kbps) | Excellent; industry standard         |
+| Latency                 | ~100-200ms (not ideal for real-time) |
+| Compatibility           | Near-universal                       |
+| Licensing               | MPEG LA patent pool                  |
 
 **Profile variants:** AAC-LC (Low Complexity) is most common. HE-AAC (High Efficiency) adds spectral band replication for better low-bitrate performance. HE-AACv2 adds parametric stereo.
 
@@ -175,14 +178,14 @@ AAC is the de facto standard for audio in video streaming. Standardized in MPEG-
 
 Opus (IETF RFC 6716) is a royalty-free codec developed for real-time communication. Its standout feature is exceptional performance at low bitrates while maintaining sub-20ms algorithmic latency.
 
-| Attribute | Value |
-|-----------|-------|
-| Primary Use Case | WebRTC, VoIP, low-latency streaming |
-| Low Bitrate (<96kbps) | Excellent; maintains intelligibility |
-| High Bitrate (>128kbps) | Competitive with AAC |
-| Latency | 2.5-60ms (configurable) |
-| Compatibility | All modern browsers, limited hardware support |
-| Licensing | Royalty-free, BSD-licensed |
+| Attribute               | Value                                         |
+| ----------------------- | --------------------------------------------- |
+| Primary Use Case        | WebRTC, VoIP, low-latency streaming           |
+| Low Bitrate (<96kbps)   | Excellent; maintains intelligibility          |
+| High Bitrate (>128kbps) | Competitive with AAC                          |
+| Latency                 | 2.5-60ms (configurable)                       |
+| Compatibility           | All modern browsers, limited hardware support |
+| Licensing               | Royalty-free, BSD-licensed                    |
 
 **Design rationale:** Opus combines two compression technologies—SILK (speech-optimized, from Skype) and CELT (music-optimized). The encoder dynamically switches based on content characteristics, achieving good quality across voice, music, and mixed content.
 
@@ -197,6 +200,7 @@ Once the audio and video have been compressed by their respective codecs, they m
 MPEG-TS is the traditional container for HLS. Its origins lie in digital broadcast (DVB), where its structure of small, fixed-size 188-byte packets was designed for resilience against transmission errors over unreliable networks.
 
 **Design characteristics:**
+
 - Fixed packet size enables recovery from partial data loss
 - Self-synchronizing (sync byte 0x47 every 188 bytes)
 - Designed for continuous streams, not random access
@@ -253,14 +257,14 @@ ffmpeg is the workhorse of video processing. Here's a multi-bitrate HLS encoding
 
 **Key parameters explained:**
 
-| Parameter | Purpose |
-|-----------|---------|
-| `split=7` | Creates 7 parallel encoding pipelines from one input |
-| `scale=WxH` | Resizes to target resolution |
-| `-c:v:N h264 -b:v:N Xk` | Sets codec and target bitrate for variant N |
-| `-hls_time 6` | Target segment duration (actual duration varies by keyframe) |
-| `-var_stream_map` | Groups video/audio variants for ABR playlist generation |
-| `-master_pl_name` | Generates master playlist referencing all variants |
+| Parameter               | Purpose                                                      |
+| ----------------------- | ------------------------------------------------------------ |
+| `split=7`               | Creates 7 parallel encoding pipelines from one input         |
+| `scale=WxH`             | Resizes to target resolution                                 |
+| `-c:v:N h264 -b:v:N Xk` | Sets codec and target bitrate for variant N                  |
+| `-hls_time 6`           | Target segment duration (actual duration varies by keyframe) |
+| `-var_stream_map`       | Groups video/audio variants for ABR playlist generation      |
+| `-master_pl_name`       | Generates master playlist referencing all variants           |
 
 **Gotcha: Keyframe alignment.** Segments can only split at keyframes (I-frames). If your source has keyframes every 10 seconds but you request 6-second segments, actual segment duration will be 10 seconds. Always set keyframe interval at encode time: `-g 180` for 6-second GOP (Group of Pictures) at 30fps.
 
@@ -288,13 +292,13 @@ HLS uses a two-level playlist structure:
 
 **Key tags explained:**
 
-| Tag | Purpose |
-|-----|---------|
-| `EXT-X-VERSION` | HLS protocol version (3 is widely compatible; 7+ for fMP4) |
-| `EXT-X-STREAM-INF` | Describes a variant stream |
-| `BANDWIDTH` | Peak bitrate in bits/second (used for ABR selection) |
-| `AVERAGE-BANDWIDTH` | Average bitrate (more accurate for buffer estimation) |
-| `CODECS` | RFC 6381 codec string (critical for playback capability check) |
+| Tag                 | Purpose                                                        |
+| ------------------- | -------------------------------------------------------------- |
+| `EXT-X-VERSION`     | HLS protocol version (3 is widely compatible; 7+ for fMP4)     |
+| `EXT-X-STREAM-INF`  | Describes a variant stream                                     |
+| `BANDWIDTH`         | Peak bitrate in bits/second (used for ABR selection)           |
+| `AVERAGE-BANDWIDTH` | Average bitrate (more accurate for buffer estimation)          |
+| `CODECS`            | RFC 6381 codec string (critical for playback capability check) |
 
 **Media Playlist** (lists segments for one variant):
 
@@ -304,12 +308,12 @@ HLS uses a two-level playlist structure:
 
 **Critical tags for playback:**
 
-| Tag | Purpose |
-|-----|---------|
-| `EXT-X-TARGETDURATION` | Maximum segment duration (player uses for buffer calculations) |
+| Tag                    | Purpose                                                            |
+| ---------------------- | ------------------------------------------------------------------ |
+| `EXT-X-TARGETDURATION` | Maximum segment duration (player uses for buffer calculations)     |
 | `EXT-X-MEDIA-SEQUENCE` | Sequence number of first segment (critical for live edge tracking) |
-| `EXTINF` | Actual segment duration |
-| `EXT-X-ENDLIST` | Indicates VOD content (no more segments will be added) |
+| `EXTINF`               | Actual segment duration                                            |
+| `EXT-X-ENDLIST`        | Indicates VOD content (no more segments will be added)             |
 
 **Live streaming behavior:** For live streams, `EXT-X-ENDLIST` is absent. The player periodically re-fetches the playlist to discover new segments. The refresh interval is typically `target duration / 2` per the spec.
 
@@ -365,18 +369,18 @@ Dynamic Adaptive Streaming over HTTP (DASH) is standardized as ISO/IEC 23009-1 (
 
 ### HLS vs. DASH: Technical Comparison
 
-| Feature | HLS | MPEG-DASH |
-|---------|-----|-----------|
-| **Spec Owner** | Apple (RFC 8216) | ISO/IEC 23009-1 |
-| **Manifest Format** | Text-based (.m3u8) | XML-based (.mpd) |
-| **Manifest Size** | Smaller (10-50 KB live) | Larger (20-100 KB complex) |
-| **Codec Support** | H.264, HEVC, limited others | Any codec (agnostic) |
-| **Container Support** | MPEG-TS, fMP4/CMAF | fMP4/CMAF, WebM |
-| **Native DRM** | FairPlay | Widevine, PlayReady |
-| **Safari/iOS** | Native | Not supported |
+| Feature                     | HLS                                        | MPEG-DASH                               |
+| --------------------------- | ------------------------------------------ | --------------------------------------- |
+| **Spec Owner**              | Apple (RFC 8216)                           | ISO/IEC 23009-1                         |
+| **Manifest Format**         | Text-based (.m3u8)                         | XML-based (.mpd)                        |
+| **Manifest Size**           | Smaller (10-50 KB live)                    | Larger (20-100 KB complex)              |
+| **Codec Support**           | H.264, HEVC, limited others                | Any codec (agnostic)                    |
+| **Container Support**       | MPEG-TS, fMP4/CMAF                         | fMP4/CMAF, WebM                         |
+| **Native DRM**              | FairPlay                                   | Widevine, PlayReady                     |
+| **Safari/iOS**              | Native                                     | Not supported                           |
 | **Manifest Expressiveness** | Limited (extensions for advanced features) | Rich (periods, segment timelines, etc.) |
-| **Low-Latency Extension** | LL-HLS | LL-DASH |
-| **Industry Adoption** | Dominant (Apple ecosystem requirement) | Strong (Android, smart TVs, web) |
+| **Low-Latency Extension**   | LL-HLS                                     | LL-DASH                                 |
+| **Industry Adoption**       | Dominant (Apple ecosystem requirement)     | Strong (Android, smart TVs, web)        |
 
 **Practical implication:** Most production systems support both. CMAF enables shared media segments; only the manifest differs. The choice often comes down to DRM requirements and target platform mix.
 
@@ -388,11 +392,11 @@ For premium content, preventing unauthorized copying and distribution is a busin
 
 Three major DRM systems dominate, each tied to a specific ecosystem:
 
-| DRM System | Ecosystem | Browser | Mobile | TV/STB |
-|------------|-----------|---------|--------|--------|
-| **Widevine** (Google) | Chrome, Android | Chrome, Firefox, Edge | Android | Android TV, Chromecast |
-| **FairPlay** (Apple) | Apple | Safari | iOS | Apple TV |
-| **PlayReady** (Microsoft) | Windows | Edge | — | Xbox, Smart TVs |
+| DRM System                | Ecosystem       | Browser               | Mobile  | TV/STB                 |
+| ------------------------- | --------------- | --------------------- | ------- | ---------------------- |
+| **Widevine** (Google)     | Chrome, Android | Chrome, Firefox, Edge | Android | Android TV, Chromecast |
+| **FairPlay** (Apple)      | Apple           | Safari                | iOS     | Apple TV               |
+| **PlayReady** (Microsoft) | Windows         | Edge                  | —       | Xbox, Smart TVs        |
 
 **Why three systems?** Each platform vendor controls the secure execution environment (TEE/Trusted Execution Environment) on their hardware. DRM requires hardware-backed security for premium content (4K, HDR). No vendor will trust another vendor's TEE implementation.
 
@@ -401,6 +405,7 @@ Three major DRM systems dominate, each tied to a specific ecosystem:
 DRM systems define security levels based on where decryption occurs:
 
 **Widevine Levels:**
+
 - **L1 (Hardware):** Decryption in TEE; keys never exposed to main CPU. Required for HD/4K on most services.
 - **L2 (Hybrid):** Partial hardware protection. Uncommon in practice.
 - **L3 (Software):** Decryption in browser process. No hardware protection. Limited to SD resolution on premium services.
@@ -408,6 +413,7 @@ DRM systems define security levels based on where decryption occurs:
 **FairPlay:** Leverages Apple's Secure Enclave for hardware-backed security on all modern devices.
 
 **PlayReady Levels:**
+
 - **SL3000:** TEE-based, hardware protection (introduced with PlayReady 3.0 in 2015)
 - **SL2000:** Software-based protection
 
@@ -418,11 +424,13 @@ DRM systems define security levels based on where decryption occurs:
 CENC (ISO/IEC 23001-7:2023) enables a single encrypted file to work with multiple DRM systems. This is the key technology making multi-DRM practical.
 
 **How CENC works:**
+
 1. Content is encrypted once with AES-128 (same encrypted bytes for all DRM systems)
 2. Each DRM system's metadata (PSSH box) is embedded in the init segment
 3. At playback, the player detects available DRM systems, requests a license from the appropriate server, and decrypts using the returned key
 
 **Encryption modes:**
+
 - **cenc (CTR mode):** Default. Parallelizable, suitable for streaming. No padding required.
 - **cbcs (CBC mode with subsample patterns):** Required by FairPlay. Encrypts only a subset of bytes, leaving NAL headers in plaintext for codec inspection.
 
@@ -433,6 +441,7 @@ CENC (ISO/IEC 23001-7:2023) enables a single encrypted file to work with multipl
 Encrypted Media Extensions (EME) is the W3C API that connects JavaScript to the platform's Content Decryption Module (CDM).
 
 **Flow:**
+
 1. Player detects encrypted content (via `encrypted` event)
 2. Calls `navigator.requestMediaKeySystemAccess()` to check DRM availability
 3. Creates `MediaKeys` and `MediaKeySession`
@@ -448,14 +457,14 @@ Traditional HLS/DASH has 6-15+ seconds of latency (segment duration × buffer de
 
 ### Understanding Latency Sources
 
-| Component | Traditional | Low-Latency | WebRTC |
-|-----------|-------------|-------------|--------|
-| Encoding | 1-2s (segment duration) | 200-500ms (partial segment) | 20-100ms (per-frame) |
-| Packaging | ~1s | <100ms | N/A |
-| CDN Edge | 1-2s | 500ms-1s | N/A (SFU direct) |
-| Manifest Update | 2-3s | 200-500ms (blocking reload) | N/A |
-| Player Buffer | 6-12s (2-3 segments) | 1-3s (parts + safety) | 50-200ms (jitter buffer) |
-| **Total** | **10-20s** | **2-5s** | **100-500ms** |
+| Component       | Traditional             | Low-Latency                 | WebRTC                   |
+| --------------- | ----------------------- | --------------------------- | ------------------------ |
+| Encoding        | 1-2s (segment duration) | 200-500ms (partial segment) | 20-100ms (per-frame)     |
+| Packaging       | ~1s                     | <100ms                      | N/A                      |
+| CDN Edge        | 1-2s                    | 500ms-1s                    | N/A (SFU direct)         |
+| Manifest Update | 2-3s                    | 200-500ms (blocking reload) | N/A                      |
+| Player Buffer   | 6-12s (2-3 segments)    | 1-3s (parts + safety)       | 50-200ms (jitter buffer) |
+| **Total**       | **10-20s**              | **2-5s**                    | **100-500ms**            |
 
 ### Low-Latency HLS (LL-HLS)
 
@@ -503,6 +512,7 @@ The server tells the player the URI of the next part before it exists:
 The player can issue a request immediately. The server holds the request open until the part is ready. This eliminates the round-trip between playlist update and segment request.
 
 **Latency budget:**
+
 - Part generation: ~500ms
 - CDN propagation: ~200ms
 - Blocking playlist: ~0ms (pre-positioned)
@@ -534,13 +544,13 @@ WebRTC is fundamentally different from HTTP streaming. It's designed for true re
 
 **Key architectural differences:**
 
-| Aspect | HLS/DASH | WebRTC |
-|--------|----------|--------|
-| Transport | TCP (HTTP) | UDP (SRTP) |
-| Connection Model | Stateless request/response | Stateful peer connections |
-| Error Handling | Retransmit on loss | Skip or interpolate lost data |
-| Buffering | Seconds of buffer | Milliseconds (jitter buffer) |
-| Scaling | CDN (millions of viewers) | SFU/MCU (hundreds per server) |
+| Aspect           | HLS/DASH                   | WebRTC                        |
+| ---------------- | -------------------------- | ----------------------------- |
+| Transport        | TCP (HTTP)                 | UDP (SRTP)                    |
+| Connection Model | Stateless request/response | Stateful peer connections     |
+| Error Handling   | Retransmit on loss         | Skip or interpolate lost data |
+| Buffering        | Seconds of buffer          | Milliseconds (jitter buffer)  |
+| Scaling          | CDN (millions of viewers)  | SFU/MCU (hundreds per server) |
 
 **Why UDP for low latency?** TCP's reliability (retransmission, ordering) introduces head-of-line blocking. A lost packet blocks all subsequent packets until retransmitted. For live video, it's better to skip a frame than delay the entire stream.
 
@@ -548,13 +558,13 @@ WebRTC is fundamentally different from HTTP streaming. It's designed for true re
 
 ### Latency Technology Selection
 
-| Use Case | Technology | Latency | Trade-off |
-|----------|------------|---------|-----------|
-| VOD | Traditional HLS/DASH | 6-15s | Maximum compatibility, CDN caching |
-| Live Sports | LL-HLS/LL-DASH | 2-5s | Scalable, some latency |
-| Live Auctions | LL-HLS/LL-DASH | 2-3s | HTTP infrastructure |
-| Video Conferencing | WebRTC | <500ms | Requires SFU infrastructure |
-| Gaming/Interactive | WebRTC | <200ms | Limited scale per server |
+| Use Case           | Technology           | Latency | Trade-off                          |
+| ------------------ | -------------------- | ------- | ---------------------------------- |
+| VOD                | Traditional HLS/DASH | 6-15s   | Maximum compatibility, CDN caching |
+| Live Sports        | LL-HLS/LL-DASH       | 2-5s    | Scalable, some latency             |
+| Live Auctions      | LL-HLS/LL-DASH       | 2-3s    | HTTP infrastructure                |
+| Video Conferencing | WebRTC               | <500ms  | Requires SFU infrastructure        |
+| Gaming/Interactive | WebRTC               | <200ms  | Limited scale per server           |
 
 **Hybrid approaches are emerging:** Some systems use WebRTC for the first hop (ingest) and LL-HLS for distribution. This combines low-latency capture with CDN scalability.
 
@@ -567,20 +577,23 @@ The browser's native `<video>` element can only handle progressive download or a
 MSE (W3C Recommendation, actively updated through 2024) provides a JavaScript API to feed media data to `<video>`:
 
 ```javascript
-const mediaSource = new MediaSource();
-video.src = URL.createObjectURL(mediaSource);
+const mediaSource = new MediaSource()
+video.src = URL.createObjectURL(mediaSource)
 
-mediaSource.addEventListener('sourceopen', () => {
-  const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.640028"');
+mediaSource.addEventListener("sourceopen", () => {
+  const sourceBuffer = mediaSource.addSourceBuffer('video/mp4; codecs="avc1.640028"')
 
   // Append segments as they're fetched
-  fetch('segment.m4s').then(r => r.arrayBuffer()).then(data => {
-    sourceBuffer.appendBuffer(data);
-  });
-});
+  fetch("segment.m4s")
+    .then((r) => r.arrayBuffer())
+    .then((data) => {
+      sourceBuffer.appendBuffer(data)
+    })
+})
 ```
 
 **Key components:**
+
 - **MediaSource:** Container that connects to HTMLMediaElement
 - **SourceBuffer:** Buffer for a single track (video, audio, or text). Handles segment parsing and decode.
 - **SourceBufferList:** Collection of active buffers
@@ -602,19 +615,19 @@ The player must balance competing concerns:
 MSE's `changeType()` method enables mid-stream codec changes without replacing the SourceBuffer:
 
 ```javascript
-sourceBuffer.changeType('video/mp4; codecs="hev1.1.6.L93.B0"');
+sourceBuffer.changeType('video/mp4; codecs="hev1.1.6.L93.B0"')
 ```
 
 **Use case:** Start with H.264 for immediate playback (universal decode), then switch to HEVC for bandwidth savings once the player confirms hardware support.
 
 ### Common Failure Modes
 
-| Failure | Symptom | Cause |
-|---------|---------|-------|
-| **QuotaExceededError** | appendBuffer fails | Buffer full; implement eviction |
-| **Decode error** | Video freezes | Corrupted segment or codec mismatch |
-| **Gap in timeline** | Audio/video desync | Discontinuity not handled |
-| **Infinite buffering** | Never starts | Init segment missing or codec string wrong |
+| Failure                | Symptom            | Cause                                      |
+| ---------------------- | ------------------ | ------------------------------------------ |
+| **QuotaExceededError** | appendBuffer fails | Buffer full; implement eviction            |
+| **Decode error**       | Video freezes      | Corrupted segment or codec mismatch        |
+| **Gap in timeline**    | Audio/video desync | Discontinuity not handled                  |
+| **Infinite buffering** | Never starts       | Init segment missing or codec string wrong |
 
 ## Architecting a Resilient Video Pipeline
 
@@ -633,27 +646,29 @@ A CDN is non-negotiable for any streaming service at scale:
 ### ABR Ladder Design
 
 The bitrate ladder determines which quality levels are available. Poor ladder design causes:
+
 - **Wasted bandwidth:** Steps too small for perceptible quality difference
 - **Unnecessary buffering:** Steps too large, causing oscillation
 - **Poor mobile experience:** No low-bitrate option for constrained networks
 
 **Example production ladder (1080p max):**
 
-| Resolution | Bitrate | Use Case |
-|------------|---------|----------|
-| 1920×1080 | 8 Mbps | High-quality fixed connections |
-| 1920×1080 | 5 Mbps | Good broadband |
-| 1280×720 | 3 Mbps | Average broadband |
-| 1280×720 | 1.8 Mbps | Mobile on good LTE |
-| 854×480 | 1.1 Mbps | Mobile on average LTE |
-| 640×360 | 600 kbps | Constrained mobile |
-| 426×240 | 300 kbps | Edge case fallback |
+| Resolution | Bitrate  | Use Case                       |
+| ---------- | -------- | ------------------------------ |
+| 1920×1080  | 8 Mbps   | High-quality fixed connections |
+| 1920×1080  | 5 Mbps   | Good broadband                 |
+| 1280×720   | 3 Mbps   | Average broadband              |
+| 1280×720   | 1.8 Mbps | Mobile on good LTE             |
+| 854×480    | 1.1 Mbps | Mobile on average LTE          |
+| 640×360    | 600 kbps | Constrained mobile             |
+| 426×240    | 300 kbps | Edge case fallback             |
 
 **Per-title encoding:** Advanced platforms analyze each video's complexity and generate custom ladders. A static talking-head video needs lower bitrates than an action scene. Netflix's per-title encoding reduced bandwidth by 20% without quality loss.
 
 ### Monitoring and Observability
 
 **Player-side metrics (client telemetry):**
+
 - Startup time (time to first frame)
 - Rebuffering ratio (time buffering / time playing)
 - Average bitrate
@@ -661,12 +676,14 @@ The bitrate ladder determines which quality levels are available. Poor ladder de
 - Error rate by type
 
 **Server-side metrics:**
+
 - Origin request rate and latency
 - CDN cache hit ratio
 - Manifest generation latency
 - Segment availability latency (time from encode to CDN edge)
 
 **Alerting thresholds (example):**
+
 - Rebuffering ratio > 1%: Investigate
 - Startup time p95 > 3 seconds: Investigate
 - CDN cache hit ratio < 90%: Check TTL configuration
@@ -689,6 +706,7 @@ The bitrate ladder determines which quality levels are available. Poor ladder de
 **Cause:** Aggressive manifest caching (CDN TTL too long) or clock skew between origin and player.
 
 **Mitigation:**
+
 - Set manifest TTL shorter than segment duration
 - Include `EXT-X-PROGRAM-DATE-TIME` for clock synchronization
 - Implement retry with exponential backoff for 404s on expected segments
@@ -700,6 +718,7 @@ The bitrate ladder determines which quality levels are available. Poor ladder de
 **Cause:** License expiration not handled, or renewal request blocked by ad blocker.
 
 **Mitigation:**
+
 - Request license renewal before expiration (typically at 80% of license duration)
 - Implement graceful degradation (continue playing cached content while renewing)
 - Monitor license acquisition failures as a key metric
@@ -711,6 +730,7 @@ The bitrate ladder determines which quality levels are available. Poor ladder de
 **Cause:** Clock drift, variable network latency, different buffer depths.
 
 **Mitigation:**
+
 - Use `EXT-X-PROGRAM-DATE-TIME` as sync anchor
 - Implement periodic re-sync (every 30 seconds) with allowed drift tolerance
 - Consider server-side time signaling (CMSD in DASH)
@@ -742,27 +762,27 @@ The future is hybrid: AV1 for bandwidth efficiency where hardware supports it, H
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **ABR** | Adaptive Bitrate Streaming—dynamically selecting quality based on conditions |
-| **CDM** | Content Decryption Module—browser component that handles DRM decryption |
-| **CMAF** | Common Media Application Format—standardized fMP4 for HLS/DASH |
-| **CENC** | Common Encryption—standard for multi-DRM file encryption |
-| **CTU** | Coding Tree Unit—basic processing unit in HEVC (up to 64×64 pixels) |
-| **EME** | Encrypted Media Extensions—W3C API connecting JavaScript to CDM |
-| **fMP4** | Fragmented MP4—streaming-optimized MP4 with separate init and media segments |
-| **GOP** | Group of Pictures—sequence of frames from one I-frame to the next |
-| **I-frame** | Intra-frame—independently decodable frame (keyframe) |
-| **ISOBMFF** | ISO Base Media File Format—foundation for MP4/fMP4 containers |
-| **LL-HLS** | Low-Latency HLS—Apple's extension for 2-4 second latency |
-| **MPD** | Media Presentation Description—DASH's XML manifest format |
-| **MSE** | Media Source Extensions—W3C API for feeding media to HTMLMediaElement |
-| **NAL** | Network Abstraction Layer—framing structure in H.264/HEVC bitstreams |
-| **PoP** | Point of Presence—CDN edge location |
-| **PSSH** | Protection System Specific Header—DRM metadata in MP4 files |
-| **PTS** | Presentation Timestamp—when a frame should be displayed |
-| **SFU** | Selective Forwarding Unit—WebRTC server that routes without transcoding |
-| **TEE** | Trusted Execution Environment—hardware-secured processing area |
+| Term        | Definition                                                                   |
+| ----------- | ---------------------------------------------------------------------------- |
+| **ABR**     | Adaptive Bitrate Streaming—dynamically selecting quality based on conditions |
+| **CDM**     | Content Decryption Module—browser component that handles DRM decryption      |
+| **CMAF**    | Common Media Application Format—standardized fMP4 for HLS/DASH               |
+| **CENC**    | Common Encryption—standard for multi-DRM file encryption                     |
+| **CTU**     | Coding Tree Unit—basic processing unit in HEVC (up to 64×64 pixels)          |
+| **EME**     | Encrypted Media Extensions—W3C API connecting JavaScript to CDM              |
+| **fMP4**    | Fragmented MP4—streaming-optimized MP4 with separate init and media segments |
+| **GOP**     | Group of Pictures—sequence of frames from one I-frame to the next            |
+| **I-frame** | Intra-frame—independently decodable frame (keyframe)                         |
+| **ISOBMFF** | ISO Base Media File Format—foundation for MP4/fMP4 containers                |
+| **LL-HLS**  | Low-Latency HLS—Apple's extension for 2-4 second latency                     |
+| **MPD**     | Media Presentation Description—DASH's XML manifest format                    |
+| **MSE**     | Media Source Extensions—W3C API for feeding media to HTMLMediaElement        |
+| **NAL**     | Network Abstraction Layer—framing structure in H.264/HEVC bitstreams         |
+| **PoP**     | Point of Presence—CDN edge location                                          |
+| **PSSH**    | Protection System Specific Header—DRM metadata in MP4 files                  |
+| **PTS**     | Presentation Timestamp—when a frame should be displayed                      |
+| **SFU**     | Selective Forwarding Unit—WebRTC server that routes without transcoding      |
+| **TEE**     | Trusted Execution Environment—hardware-secured processing area               |
 
 ### Summary
 
@@ -784,7 +804,6 @@ The future is hybrid: AV1 for bandwidth efficiency where hardware supports it, H
 - [ISO/IEC 23001-7:2023 - CENC](https://www.iso.org/standard/84637.html) - Common Encryption standard
 - [ITU-T H.264](https://www.itu.int/rec/T-REC-H.264) - Advanced Video Coding specification
 - [ITU-T H.265](https://www.itu.int/rec/T-REC-H.265) - High Efficiency Video Coding specification
-- [AV1 Bitstream & Decoding Process Specification](https://aomedia.org/av1/specification/) - AV1 codec specification
 - [RFC 6716 - Opus Audio Codec](https://datatracker.ietf.org/doc/html/rfc6716) - Opus codec specification
 - [W3C Media Source Extensions](https://www.w3.org/TR/media-source-2/) - MSE API specification
 - [W3C Encrypted Media Extensions](https://www.w3.org/TR/encrypted-media/) - EME API specification

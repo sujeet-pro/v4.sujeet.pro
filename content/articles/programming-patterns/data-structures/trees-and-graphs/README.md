@@ -49,16 +49,16 @@ Trees and graphs share a fundamental property: nodes connected by edges. The dis
 
 ### Binary Search Tree (BST)
 
-A BST maintains the invariant: left subtree values < node < right subtree values. This enables O(log n) search, insertion, and deletion—*when balanced*.
+A BST maintains the invariant: left subtree values < node < right subtree values. This enables O(log n) search, insertion, and deletion—_when balanced_.
 
 **The problem**: Without balancing, insertions in sorted order create a linear chain. A BST of n elements inserted in ascending order degenerates to a linked list with O(n) operations.
 
 ```ts title="bst-insertion.ts" collapse={1-3, 20-30}
 // BST node structure
 interface BSTNode<T> {
-  value: T;
-  left: BSTNode<T> | null;
-  right: BSTNode<T> | null;
+  value: T
+  left: BSTNode<T> | null
+  right: BSTNode<T> | null
 }
 
 // Worst case: sorted insertions create O(n) height
@@ -103,12 +103,12 @@ Red-Black trees (Guibas and Sedgewick, 1978) use node coloring instead of strict
 
 ### AVL vs Red-Black: The Trade-off
 
-| Aspect | AVL | Red-Black |
-|--------|-----|-----------|
-| Balance | Strict (height diff ≤ 1) | Loose (height ≤ 2× optimal) |
-| Search | Slightly faster (shorter height) | Slightly slower |
-| Insert/Delete | More rotations | Fewer rotations (max 2-3) |
-| Use case | Search-dominant | Write-dominant |
+| Aspect        | AVL                              | Red-Black                   |
+| ------------- | -------------------------------- | --------------------------- |
+| Balance       | Strict (height diff ≤ 1)         | Loose (height ≤ 2× optimal) |
+| Search        | Slightly faster (shorter height) | Slightly slower             |
+| Insert/Delete | More rotations                   | Fewer rotations (max 2-3)   |
+| Use case      | Search-dominant                  | Write-dominant              |
 
 ### B-Trees: Disk I/O Optimization
 
@@ -117,6 +117,7 @@ Binary trees are inefficient for disk storage: each node access requires a disk 
 **Design rationale**: B-trees increase the branching factor. Each node contains multiple keys (typically sized to fit a disk page, 4-16KB), reducing tree height and disk seeks.
 
 A B-tree of order m:
+
 - Each node has at most m children
 - Each node (except root) has at least ⌈m/2⌉ children
 - All leaves are at the same depth
@@ -128,9 +129,9 @@ A B-tree of order m:
 ```ts title="btree-node.ts" collapse={1-2, 15-20}
 // B-tree node structure (simplified)
 interface BTreeNode<K, V> {
-  keys: K[];           // Up to m-1 keys
-  children: BTreeNode<K, V>[];  // Up to m children
-  isLeaf: boolean;
+  keys: K[] // Up to m-1 keys
+  children: BTreeNode<K, V>[] // Up to m children
+  isLeaf: boolean
 }
 
 // Example: B-tree of order 4 (up to 3 keys, 4 children per node)
@@ -152,6 +153,7 @@ Tries (prefix trees) organize strings by shared prefixes. Each edge represents a
 **Trade-off**: Higher memory than hash tables (each character requires a node or edge), but enables prefix queries that hash tables cannot support.
 
 **When to use**:
+
 - Autocomplete (find all strings with prefix)
 - Spell checking
 - IP routing (longest prefix matching)
@@ -170,25 +172,25 @@ A V×V matrix where `matrix[i][j]` indicates the edge from vertex i to j (1/0 fo
 ```ts title="adjacency-matrix.ts" collapse={1-2, 18-25}
 // Adjacency matrix representation
 class GraphMatrix {
-  private matrix: number[][];
+  private matrix: number[][]
 
   constructor(vertices: number) {
-    this.matrix = Array.from({ length: vertices },
-      () => Array(vertices).fill(0));
+    this.matrix = Array.from({ length: vertices }, () => Array(vertices).fill(0))
   }
 
   addEdge(u: number, v: number, weight = 1): void {
-    this.matrix[u][v] = weight;
+    this.matrix[u][v] = weight
     // For undirected: this.matrix[v][u] = weight;
   }
 
   hasEdge(u: number, v: number): boolean {
-    return this.matrix[u][v] !== 0;  // O(1)
+    return this.matrix[u][v] !== 0 // O(1)
   }
 }
 ```
 
 **Operations**:
+
 - Edge lookup: O(1)
 - Add/remove edge: O(1)
 - Find neighbors: O(V)—must scan entire row
@@ -203,29 +205,30 @@ Array or map of vertices, each storing a list of adjacent vertices.
 ```ts title="adjacency-list.ts" collapse={1-2, 20-27}
 // Adjacency list representation
 class GraphList {
-  private adj: Map<number, Set<number>>;
+  private adj: Map<number, Set<number>>
 
   constructor() {
-    this.adj = new Map();
+    this.adj = new Map()
   }
 
   addEdge(u: number, v: number): void {
-    if (!this.adj.has(u)) this.adj.set(u, new Set());
-    this.adj.get(u)!.add(v);
+    if (!this.adj.has(u)) this.adj.set(u, new Set())
+    this.adj.get(u)!.add(v)
     // For undirected: add reverse edge
   }
 
   hasEdge(u: number, v: number): boolean {
-    return this.adj.get(u)?.has(v) ?? false;  // O(1) with Set
+    return this.adj.get(u)?.has(v) ?? false // O(1) with Set
   }
 
   neighbors(u: number): number[] {
-    return [...(this.adj.get(u) ?? [])];  // O(degree)
+    return [...(this.adj.get(u) ?? [])] // O(degree)
   }
 }
 ```
 
 **Operations**:
+
 - Edge lookup: O(degree) with list, O(1) with Set/hash
 - Add edge: O(1)
 - Remove edge: O(degree) with list, O(1) with Set
@@ -236,15 +239,15 @@ class GraphList {
 
 ### Representation Trade-offs
 
-| Operation | Adjacency Matrix | Adjacency List |
-|-----------|-----------------|----------------|
-| Space | O(V²) | O(V + E) |
-| Edge lookup | O(1) | O(degree) |
-| Neighbor iteration | O(V) | O(degree) |
-| Add edge | O(1) | O(1) |
-| Remove edge | O(1) | O(degree) |
-| Dense graphs | ✓ Efficient | ✗ Wasteful |
-| Sparse graphs | ✗ Wasteful | ✓ Efficient |
+| Operation          | Adjacency Matrix | Adjacency List |
+| ------------------ | ---------------- | -------------- |
+| Space              | O(V²)            | O(V + E)       |
+| Edge lookup        | O(1)             | O(degree)      |
+| Neighbor iteration | O(V)             | O(degree)      |
+| Add edge           | O(1)             | O(1)           |
+| Remove edge        | O(1)             | O(degree)      |
+| Dense graphs       | ✓ Efficient      | ✗ Wasteful     |
+| Sparse graphs      | ✗ Wasteful       | ✓ Efficient    |
 
 **Rule of thumb**: If E < V²/64, adjacency list is more space-efficient. Most real graphs are sparse.
 
@@ -256,43 +259,36 @@ DFS explores as deep as possible before backtracking. Uses a stack (explicit or 
 
 ```ts title="dfs-traversal.ts" collapse={1-3, 30-40}
 // DFS - Recursive (uses call stack)
-function dfsRecursive(
-  graph: Map<number, number[]>,
-  start: number,
-  visited = new Set<number>()
-): void {
-  if (visited.has(start)) return;
-  visited.add(start);
+function dfsRecursive(graph: Map<number, number[]>, start: number, visited = new Set<number>()): void {
+  if (visited.has(start)) return
+  visited.add(start)
 
   // Process node here
-  console.log(start);
+  console.log(start)
 
   for (const neighbor of graph.get(start) ?? []) {
-    dfsRecursive(graph, neighbor, visited);
+    dfsRecursive(graph, neighbor, visited)
   }
 }
 
 // DFS - Iterative (explicit stack)
-function dfsIterative(
-  graph: Map<number, number[]>,
-  start: number
-): void {
-  const visited = new Set<number>();
-  const stack = [start];
+function dfsIterative(graph: Map<number, number[]>, start: number): void {
+  const visited = new Set<number>()
+  const stack = [start]
 
   while (stack.length > 0) {
-    const node = stack.pop()!;
-    if (visited.has(node)) continue;
-    visited.add(node);
+    const node = stack.pop()!
+    if (visited.has(node)) continue
+    visited.add(node)
 
     // Process node here
-    console.log(node);
+    console.log(node)
 
     // Add neighbors in reverse for same order as recursive
-    const neighbors = graph.get(node) ?? [];
+    const neighbors = graph.get(node) ?? []
     for (let i = neighbors.length - 1; i >= 0; i--) {
       if (!visited.has(neighbors[i])) {
-        stack.push(neighbors[i]);
+        stack.push(neighbors[i])
       }
     }
   }
@@ -300,6 +296,7 @@ function dfsIterative(
 ```
 
 **Tree DFS variants**:
+
 - **Preorder** (root-left-right): Process node before children. Use: tree copying, serialization.
 - **Inorder** (left-root-right): Process node between children. Use: BST sorted traversal.
 - **Postorder** (left-right-root): Process node after children. Use: tree deletion, expression evaluation, dependency resolution.
@@ -314,24 +311,21 @@ BFS explores all neighbors at current depth before moving deeper. Uses a queue.
 
 ```ts title="bfs-traversal.ts" collapse={1-3, 25-35}
 // BFS - Level-order traversal
-function bfs(
-  graph: Map<number, number[]>,
-  start: number
-): void {
-  const visited = new Set<number>();
-  const queue: number[] = [start];
-  visited.add(start);
+function bfs(graph: Map<number, number[]>, start: number): void {
+  const visited = new Set<number>()
+  const queue: number[] = [start]
+  visited.add(start)
 
   while (queue.length > 0) {
-    const node = queue.shift()!;  // Dequeue front
+    const node = queue.shift()! // Dequeue front
 
     // Process node here
-    console.log(node);
+    console.log(node)
 
     for (const neighbor of graph.get(node) ?? []) {
       if (!visited.has(neighbor)) {
-        visited.add(neighbor);
-        queue.push(neighbor);
+        visited.add(neighbor)
+        queue.push(neighbor)
       }
     }
   }
@@ -346,13 +340,13 @@ function bfs(
 
 ### DFS vs BFS: Choosing the Right Traversal
 
-| Aspect | DFS | BFS |
-|--------|-----|-----|
-| Data structure | Stack | Queue |
-| Exploration | Deep first | Level by level |
-| Path finding | Any path | Shortest path (unweighted) |
-| Memory | O(max depth) | O(max width) |
-| Use cases | Cycle detection, topological sort, maze solving | Shortest path, level traversal, nearest neighbor |
+| Aspect         | DFS                                             | BFS                                              |
+| -------------- | ----------------------------------------------- | ------------------------------------------------ |
+| Data structure | Stack                                           | Queue                                            |
+| Exploration    | Deep first                                      | Level by level                                   |
+| Path finding   | Any path                                        | Shortest path (unweighted)                       |
+| Memory         | O(max depth)                                    | O(max width)                                     |
+| Use cases      | Cycle detection, topological sort, maze solving | Shortest path, level traversal, nearest neighbor |
 
 **Memory consideration**: In wide, shallow graphs, DFS uses less memory. In deep, narrow graphs, BFS uses less memory. For balanced trees, both use O(log n).
 
@@ -364,31 +358,28 @@ In undirected graphs, an edge to a visited node that isn't the parent indicates 
 
 ```ts title="cycle-undirected.ts" collapse={1-3, 25-35}
 // Cycle detection in undirected graph
-function hasCycleUndirected(
-  graph: Map<number, number[]>,
-  vertices: number[]
-): boolean {
-  const visited = new Set<number>();
+function hasCycleUndirected(graph: Map<number, number[]>, vertices: number[]): boolean {
+  const visited = new Set<number>()
 
   function dfs(node: number, parent: number | null): boolean {
-    visited.add(node);
+    visited.add(node)
 
     for (const neighbor of graph.get(node) ?? []) {
       if (!visited.has(neighbor)) {
-        if (dfs(neighbor, node)) return true;
+        if (dfs(neighbor, node)) return true
       } else if (neighbor !== parent) {
         // Visited and not parent = cycle
-        return true;
+        return true
       }
     }
-    return false;
+    return false
   }
 
   // Check all components
   for (const v of vertices) {
-    if (!visited.has(v) && dfs(v, null)) return true;
+    if (!visited.has(v) && dfs(v, null)) return true
   }
-  return false;
+  return false
 }
 ```
 
@@ -398,40 +389,41 @@ In directed graphs, use three states: unvisited (white), currently visiting (gra
 
 ```ts title="cycle-directed.ts" collapse={1-3, 30-40}
 // Cycle detection in directed graph (three-color algorithm)
-enum Color { WHITE, GRAY, BLACK }
+enum Color {
+  WHITE,
+  GRAY,
+  BLACK,
+}
 
-function hasCycleDirected(
-  graph: Map<number, number[]>,
-  vertices: number[]
-): boolean {
-  const color = new Map<number, Color>();
-  vertices.forEach(v => color.set(v, Color.WHITE));
+function hasCycleDirected(graph: Map<number, number[]>, vertices: number[]): boolean {
+  const color = new Map<number, Color>()
+  vertices.forEach((v) => color.set(v, Color.WHITE))
 
   function dfs(node: number): boolean {
-    color.set(node, Color.GRAY);  // Currently visiting
+    color.set(node, Color.GRAY) // Currently visiting
 
     for (const neighbor of graph.get(node) ?? []) {
       if (color.get(neighbor) === Color.GRAY) {
         // Back edge to node in current path = cycle
-        return true;
+        return true
       }
       if (color.get(neighbor) === Color.WHITE) {
-        if (dfs(neighbor)) return true;
+        if (dfs(neighbor)) return true
       }
     }
 
-    color.set(node, Color.BLACK);  // Fully visited
-    return false;
+    color.set(node, Color.BLACK) // Fully visited
+    return false
   }
 
   for (const v of vertices) {
-    if (color.get(v) === Color.WHITE && dfs(v)) return true;
+    if (color.get(v) === Color.WHITE && dfs(v)) return true
   }
-  return false;
+  return false
 }
 ```
 
-**Why three colors?** In directed graphs, revisiting a node isn't inherently a cycle—it could be via a different path. Only revisiting a node *in the current DFS path* (gray) indicates a cycle.
+**Why three colors?** In directed graphs, revisiting a node isn't inherently a cycle—it could be via a different path. Only revisiting a node _in the current DFS path_ (gray) indicates a cycle.
 
 ## Topological Sorting
 
@@ -443,39 +435,36 @@ Process vertices with no incoming edges first, then update in-degrees.
 
 ```ts title="topological-kahn.ts" collapse={1-3, 35-45}
 // Kahn's algorithm - BFS-based topological sort
-function topologicalSortKahn(
-  graph: Map<number, number[]>,
-  vertices: number[]
-): number[] | null {
+function topologicalSortKahn(graph: Map<number, number[]>, vertices: number[]): number[] | null {
   // Calculate in-degrees
-  const inDegree = new Map<number, number>();
-  vertices.forEach(v => inDegree.set(v, 0));
+  const inDegree = new Map<number, number>()
+  vertices.forEach((v) => inDegree.set(v, 0))
 
   for (const [_, neighbors] of graph) {
     for (const neighbor of neighbors) {
-      inDegree.set(neighbor, (inDegree.get(neighbor) ?? 0) + 1);
+      inDegree.set(neighbor, (inDegree.get(neighbor) ?? 0) + 1)
     }
   }
 
   // Queue vertices with in-degree 0
-  const queue = vertices.filter(v => inDegree.get(v) === 0);
-  const result: number[] = [];
+  const queue = vertices.filter((v) => inDegree.get(v) === 0)
+  const result: number[] = []
 
   while (queue.length > 0) {
-    const node = queue.shift()!;
-    result.push(node);
+    const node = queue.shift()!
+    result.push(node)
 
     for (const neighbor of graph.get(node) ?? []) {
-      const newDegree = inDegree.get(neighbor)! - 1;
-      inDegree.set(neighbor, newDegree);
+      const newDegree = inDegree.get(neighbor)! - 1
+      inDegree.set(neighbor, newDegree)
       if (newDegree === 0) {
-        queue.push(neighbor);
+        queue.push(neighbor)
       }
     }
   }
 
   // If not all vertices processed, cycle exists
-  return result.length === vertices.length ? result : null;
+  return result.length === vertices.length ? result : null
 }
 ```
 
@@ -487,39 +476,37 @@ Add vertices to result after visiting all descendants (postorder), then reverse.
 
 ```ts title="topological-dfs.ts" collapse={1-3, 30-40}
 // DFS-based topological sort
-function topologicalSortDFS(
-  graph: Map<number, number[]>,
-  vertices: number[]
-): number[] | null {
-  const visited = new Set<number>();
-  const inStack = new Set<number>();  // For cycle detection
-  const result: number[] = [];
+function topologicalSortDFS(graph: Map<number, number[]>, vertices: number[]): number[] | null {
+  const visited = new Set<number>()
+  const inStack = new Set<number>() // For cycle detection
+  const result: number[] = []
 
   function dfs(node: number): boolean {
-    if (inStack.has(node)) return false;  // Cycle
-    if (visited.has(node)) return true;
+    if (inStack.has(node)) return false // Cycle
+    if (visited.has(node)) return true
 
-    visited.add(node);
-    inStack.add(node);
+    visited.add(node)
+    inStack.add(node)
 
     for (const neighbor of graph.get(node) ?? []) {
-      if (!dfs(neighbor)) return false;
+      if (!dfs(neighbor)) return false
     }
 
-    inStack.delete(node);
-    result.push(node);  // Postorder
-    return true;
+    inStack.delete(node)
+    result.push(node) // Postorder
+    return true
   }
 
   for (const v of vertices) {
-    if (!visited.has(v) && !dfs(v)) return null;
+    if (!visited.has(v) && !dfs(v)) return null
   }
 
-  return result.reverse();
+  return result.reverse()
 }
 ```
 
 **Real-world applications**:
+
 - Build systems (Maven, Gradle, Make): Compile dependencies before dependents
 - Package managers (npm, pip): Install dependencies in correct order
 - Task scheduling: Execute prerequisites before dependent tasks
@@ -534,38 +521,34 @@ BFS inherently finds shortest paths when all edges have equal weight (or weight 
 
 ```ts title="bfs-shortest-path.ts" collapse={1-3, 25-35}
 // Shortest path in unweighted graph using BFS
-function shortestPath(
-  graph: Map<number, number[]>,
-  start: number,
-  end: number
-): number[] | null {
-  const visited = new Set<number>();
-  const parent = new Map<number, number>();
-  const queue = [start];
-  visited.add(start);
+function shortestPath(graph: Map<number, number[]>, start: number, end: number): number[] | null {
+  const visited = new Set<number>()
+  const parent = new Map<number, number>()
+  const queue = [start]
+  visited.add(start)
 
   while (queue.length > 0) {
-    const node = queue.shift()!;
+    const node = queue.shift()!
     if (node === end) {
       // Reconstruct path
-      const path = [end];
-      let current = end;
+      const path = [end]
+      let current = end
       while (parent.has(current)) {
-        current = parent.get(current)!;
-        path.unshift(current);
+        current = parent.get(current)!
+        path.unshift(current)
       }
-      return path;
+      return path
     }
 
     for (const neighbor of graph.get(node) ?? []) {
       if (!visited.has(neighbor)) {
-        visited.add(neighbor);
-        parent.set(neighbor, node);
-        queue.push(neighbor);
+        visited.add(neighbor)
+        parent.set(neighbor, node)
+        queue.push(neighbor)
       }
     }
   }
-  return null;  // No path exists
+  return null // No path exists
 }
 ```
 
@@ -586,6 +569,7 @@ Greedy algorithm using a priority queue. Always processes the vertex with smalle
 Relaxes all edges V-1 times. Can detect negative cycles.
 
 **Algorithm**:
+
 1. Initialize distances (source = 0, others = ∞)
 2. Repeat V-1 times: for each edge (u,v), if dist[u] + weight < dist[v], update dist[v]
 3. Check for negative cycles: if any edge can still be relaxed, negative cycle exists
@@ -596,12 +580,12 @@ Relaxes all edges V-1 times. Can detect negative cycles.
 
 ### Algorithm Selection
 
-| Scenario | Algorithm | Complexity |
-|----------|-----------|------------|
-| Unweighted graph | BFS | O(V + E) |
-| Non-negative weights | Dijkstra | O(E + V log V) |
-| Negative weights | Bellman-Ford | O(V·E) |
-| All-pairs shortest paths | Floyd-Warshall | O(V³) |
+| Scenario                 | Algorithm      | Complexity     |
+| ------------------------ | -------------- | -------------- |
+| Unweighted graph         | BFS            | O(V + E)       |
+| Non-negative weights     | Dijkstra       | O(E + V log V) |
+| Negative weights         | Bellman-Ford   | O(V·E)         |
+| All-pairs shortest paths | Floyd-Warshall | O(V³)          |
 
 ## Union-Find (Disjoint Set Union)
 
@@ -620,46 +604,46 @@ Union-Find manages a collection of disjoint sets, answering "are x and y connect
 ```ts title="union-find.ts" collapse={1-3, 35-45}
 // Union-Find with path compression and union by rank
 class UnionFind {
-  private parent: Map<number, number>;
-  private rank: Map<number, number>;
+  private parent: Map<number, number>
+  private rank: Map<number, number>
 
   constructor(elements: number[]) {
-    this.parent = new Map();
-    this.rank = new Map();
-    elements.forEach(e => {
-      this.parent.set(e, e);  // Each element is its own parent
-      this.rank.set(e, 0);
-    });
+    this.parent = new Map()
+    this.rank = new Map()
+    elements.forEach((e) => {
+      this.parent.set(e, e) // Each element is its own parent
+      this.rank.set(e, 0)
+    })
   }
 
   find(x: number): number {
     if (this.parent.get(x) !== x) {
       // Path compression: point directly to root
-      this.parent.set(x, this.find(this.parent.get(x)!));
+      this.parent.set(x, this.find(this.parent.get(x)!))
     }
-    return this.parent.get(x)!;
+    return this.parent.get(x)!
   }
 
   union(x: number, y: number): void {
-    const rootX = this.find(x);
-    const rootY = this.find(y);
-    if (rootX === rootY) return;
+    const rootX = this.find(x)
+    const rootY = this.find(y)
+    if (rootX === rootY) return
 
     // Union by rank: attach smaller tree to larger
-    const rankX = this.rank.get(rootX)!;
-    const rankY = this.rank.get(rootY)!;
+    const rankX = this.rank.get(rootX)!
+    const rankY = this.rank.get(rootY)!
     if (rankX < rankY) {
-      this.parent.set(rootX, rootY);
+      this.parent.set(rootX, rootY)
     } else if (rankX > rankY) {
-      this.parent.set(rootY, rootX);
+      this.parent.set(rootY, rootX)
     } else {
-      this.parent.set(rootY, rootX);
-      this.rank.set(rootX, rankX + 1);
+      this.parent.set(rootY, rootX)
+      this.rank.set(rootX, rankX + 1)
     }
   }
 
   connected(x: number, y: number): boolean {
-    return this.find(x) === this.find(y);
+    return this.find(x) === this.find(y)
   }
 }
 ```
@@ -669,6 +653,7 @@ class UnionFind {
 **Combined complexity**: O(α(n)) per operation, where α is the inverse Ackermann function. For all practical purposes, α(n) ≤ 4, making operations effectively O(1).
 
 **Use cases**:
+
 - Kruskal's MST algorithm
 - Cycle detection in undirected graphs
 - Connected components
@@ -684,6 +669,7 @@ The DOM (Document Object Model) is a tree where each node represents an HTML ele
 **The O(n³) problem**: A general algorithm to transform one tree into another with minimum edit operations requires O(n³) time—prohibitive for UI updates.
 
 **React's heuristics** (from React documentation):
+
 1. Elements of different types produce different trees (full rebuild)
 2. Elements of same type with different `key` props are different instances
 3. Same type, same key → minimal diff
@@ -695,6 +681,7 @@ The DOM (Document Object Model) is a tree where each node represents an HTML ele
 File systems use tree structures for directory hierarchies and B-trees for efficient storage.
 
 **Inode-based structure** (Linux, macOS):
+
 - Directory entries map filenames to inode numbers
 - Inodes store metadata and block pointers
 - Multi-level indexing (direct, indirect, double indirect) for large files
@@ -706,6 +693,7 @@ File systems use tree structures for directory hierarchies and B-trees for effic
 Gradle, Maven, and npm model dependencies as DAGs and use topological sorting.
 
 **Gradle's two-phase resolution**:
+
 1. **Graph resolution**: Build DAG of dependencies and transitive dependencies
 2. **Artifact resolution**: Fetch files for resolved components
 
@@ -722,6 +710,7 @@ B-trees are the standard for database indexes because they minimize disk I/O.
 Social graphs use graph algorithms for friend recommendations and connectivity.
 
 **Common algorithms**:
+
 - **Common neighbors**: Suggest users with most mutual connections
 - **BFS**: Find 1st/2nd/3rd degree connections
 - **Personalized PageRank**: User-specific importance ranking
@@ -730,34 +719,34 @@ Social graphs use graph algorithms for friend recommendations and connectivity.
 
 ### Tree Operations
 
-| Structure | Search | Insert | Delete | Space | Best For |
-|-----------|--------|--------|--------|-------|----------|
-| BST (balanced) | O(log n) | O(log n) | O(log n) | O(n) | General purpose |
-| AVL | O(log n) | O(log n) | O(log n) | O(n) | Search-heavy |
-| Red-Black | O(log n) | O(log n) | O(log n) | O(n) | Write-heavy |
-| B-tree | O(log n) | O(log n) | O(log n) | O(n) | Disk storage |
-| Trie | O(L) | O(L) | O(L) | O(n·L) | Prefix search |
+| Structure      | Search   | Insert   | Delete   | Space  | Best For        |
+| -------------- | -------- | -------- | -------- | ------ | --------------- |
+| BST (balanced) | O(log n) | O(log n) | O(log n) | O(n)   | General purpose |
+| AVL            | O(log n) | O(log n) | O(log n) | O(n)   | Search-heavy    |
+| Red-Black      | O(log n) | O(log n) | O(log n) | O(n)   | Write-heavy     |
+| B-tree         | O(log n) | O(log n) | O(log n) | O(n)   | Disk storage    |
+| Trie           | O(L)     | O(L)     | O(L)     | O(n·L) | Prefix search   |
 
 ### Graph Operations by Representation
 
-| Operation | Adjacency Matrix | Adjacency List |
-|-----------|-----------------|----------------|
-| Space | O(V²) | O(V + E) |
-| Edge lookup | O(1) | O(degree) |
-| Neighbor iteration | O(V) | O(degree) |
-| Add edge | O(1) | O(1) |
-| Remove edge | O(1) | O(degree) |
+| Operation          | Adjacency Matrix | Adjacency List |
+| ------------------ | ---------------- | -------------- |
+| Space              | O(V²)            | O(V + E)       |
+| Edge lookup        | O(1)             | O(degree)      |
+| Neighbor iteration | O(V)             | O(degree)      |
+| Add edge           | O(1)             | O(1)           |
+| Remove edge        | O(1)             | O(degree)      |
 
 ### Algorithm Complexity
 
-| Algorithm | Time | Space | Use Case |
-|-----------|------|-------|----------|
-| DFS | O(V + E) | O(V) | Cycle detection, topological sort |
-| BFS | O(V + E) | O(V) | Shortest path (unweighted) |
-| Dijkstra | O(E + V log V) | O(V) | Shortest path (non-negative) |
-| Bellman-Ford | O(V·E) | O(V) | Shortest path (negative weights) |
-| Topological Sort | O(V + E) | O(V) | Dependency resolution |
-| Union-Find | O(α(n)) | O(n) | Connectivity, MST |
+| Algorithm        | Time           | Space | Use Case                          |
+| ---------------- | -------------- | ----- | --------------------------------- |
+| DFS              | O(V + E)       | O(V)  | Cycle detection, topological sort |
+| BFS              | O(V + E)       | O(V)  | Shortest path (unweighted)        |
+| Dijkstra         | O(E + V log V) | O(V)  | Shortest path (non-negative)      |
+| Bellman-Ford     | O(V·E)         | O(V)  | Shortest path (negative weights)  |
+| Topological Sort | O(V + E)       | O(V)  | Dependency resolution             |
+| Union-Find       | O(α(n))        | O(n)  | Connectivity, MST                 |
 
 ## Conclusion
 

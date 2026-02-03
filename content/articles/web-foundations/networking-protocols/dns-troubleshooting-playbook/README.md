@@ -70,16 +70,16 @@ Key mental model:
 
 **Essential flags:**
 
-| Flag | Purpose | When to Use |
-|------|---------|-------------|
-| `+trace` | Trace from root servers | Identify which NS (Name Server) in chain fails |
-| `+norecurse` | Skip recursion, query directly | Test authoritative server response |
-| `+cd` | Checking Disabled (bypass DNSSEC) | Confirm DNSSEC-related SERVFAIL |
-| `+dnssec` | Request DNSSEC records | Verify signatures exist |
-| `+short` | Concise output | Quick answer verification |
-| `+tcp` | Force TCP | Test when UDP fails |
-| `+nsid` | Request Name Server ID | Identify anycast instance |
-| `-4` / `-6` | Force IPv4/IPv6 | Test address family issues |
+| Flag         | Purpose                           | When to Use                                    |
+| ------------ | --------------------------------- | ---------------------------------------------- |
+| `+trace`     | Trace from root servers           | Identify which NS (Name Server) in chain fails |
+| `+norecurse` | Skip recursion, query directly    | Test authoritative server response             |
+| `+cd`        | Checking Disabled (bypass DNSSEC) | Confirm DNSSEC-related SERVFAIL                |
+| `+dnssec`    | Request DNSSEC records            | Verify signatures exist                        |
+| `+short`     | Concise output                    | Quick answer verification                      |
+| `+tcp`       | Force TCP                         | Test when UDP fails                            |
+| `+nsid`      | Request Name Server ID            | Identify anycast instance                      |
+| `-4` / `-6`  | Force IPv4/IPv6                   | Test address family issues                     |
 
 **Interpreting dig output:**
 
@@ -99,24 +99,24 @@ example.com.        86400   IN  A   93.184.216.34
 
 **Header flags decoded:**
 
-| Flag | Meaning |
-|------|---------|
-| `qr` | Query Response (this is a response) |
-| `rd` | Recursion Desired (client requested recursion) |
+| Flag | Meaning                                         |
+| ---- | ----------------------------------------------- |
+| `qr` | Query Response (this is a response)             |
+| `rd` | Recursion Desired (client requested recursion)  |
 | `ra` | Recursion Available (server supports recursion) |
-| `aa` | Authoritative Answer (from the zone's NS) |
-| `ad` | Authenticated Data (DNSSEC validated) |
-| `cd` | Checking Disabled (validation skipped) |
+| `aa` | Authoritative Answer (from the zone's NS)       |
+| `ad` | Authenticated Data (DNSSEC validated)           |
+| `cd` | Checking Disabled (validation skipped)          |
 
 **RCODE values:**
 
-| Status | Meaning | Common Causes |
-|--------|---------|---------------|
-| `NOERROR` | Success | Query succeeded (may have zero answers) |
-| `SERVFAIL` | Server failure | DNSSEC validation error, upstream timeout, lame delegation |
-| `NXDOMAIN` | Name doesn't exist | Domain not registered, typo, deleted record |
-| `REFUSED` | Query refused | ACL (Access Control List) restriction, rate limiting |
-| `FORMERR` | Format error | Malformed query (rare) |
+| Status     | Meaning            | Common Causes                                              |
+| ---------- | ------------------ | ---------------------------------------------------------- |
+| `NOERROR`  | Success            | Query succeeded (may have zero answers)                    |
+| `SERVFAIL` | Server failure     | DNSSEC validation error, upstream timeout, lame delegation |
+| `NXDOMAIN` | Name doesn't exist | Domain not registered, typo, deleted record                |
+| `REFUSED`  | Query refused      | ACL (Access Control List) restriction, rate limiting       |
+| `FORMERR`  | Format error       | Malformed query (rare)                                     |
 
 ### delv: DNSSEC Validation
 
@@ -131,12 +131,12 @@ example.com.        86400   IN  A   93.184.216.34
 
 **Key delv flags:**
 
-| Flag | Purpose |
-|------|---------|
-| `+rtrace` | Show resolver fetch logging |
-| `+vtrace` | Show validation chain |
-| `-i` | Disable validation (like `dig +cd`) |
-| `+multiline` | Readable multi-line output |
+| Flag         | Purpose                             |
+| ------------ | ----------------------------------- |
+| `+rtrace`    | Show resolver fetch logging         |
+| `+vtrace`    | Show validation chain               |
+| `-i`         | Disable validation (like `dig +cd`) |
+| `+multiline` | Readable multi-line output          |
 
 When validation fails, `delv` prints detailed errors:
 
@@ -199,12 +199,12 @@ nc -zv 192.0.2.1 53
 
 **Failure patterns:**
 
-| Pattern | Likely Cause |
-|---------|--------------|
-| No response from any NS | Authoritative servers down or unreachable |
-| Response but no AA flag | Lame delegation—NS doesn't serve this zone |
-| Response but REFUSED | ACL blocking your source IP |
-| Timeout to NS but ping works | Firewall blocking port 53 |
+| Pattern                      | Likely Cause                               |
+| ---------------------------- | ------------------------------------------ |
+| No response from any NS      | Authoritative servers down or unreachable  |
+| Response but no AA flag      | Lame delegation—NS doesn't serve this zone |
+| Response but REFUSED         | ACL blocking your source IP                |
+| Timeout to NS but ping works | Firewall blocking port 53                  |
 
 **Lame delegation check:**
 
@@ -397,12 +397,12 @@ dig @ns1.example.com example.com A +norecurse
 
 **Red flags in authoritative response:**
 
-| Issue | Meaning |
-|-------|---------|
-| No 'aa' flag | Server doesn't consider itself authoritative—lame delegation |
-| REFUSED | ACL blocking or server misconfiguration |
-| SERVFAIL | Server can't load zone (syntax error, missing file) |
-| Different answers from different NS | Zone transfer failure or inconsistent updates |
+| Issue                               | Meaning                                                      |
+| ----------------------------------- | ------------------------------------------------------------ |
+| No 'aa' flag                        | Server doesn't consider itself authoritative—lame delegation |
+| REFUSED                             | ACL blocking or server misconfiguration                      |
+| SERVFAIL                            | Server can't load zone (syntax error, missing file)          |
+| Different answers from different NS | Zone transfer failure or inconsistent updates                |
 
 ### Comparing Public Resolvers
 
@@ -418,21 +418,21 @@ echo "OpenDNS:   $(dig @208.67.222.222 example.com +short)"
 
 **Interpretation:**
 
-| Result | Meaning |
-|--------|---------|
-| All match | Likely correct; check authoritative if unexpected |
-| One differs | That resolver has stale cache or different policy |
-| All differ | Check authoritative servers—likely inconsistent zone |
-| Some return SERVFAIL | DNSSEC issue or resolver-specific problem |
+| Result               | Meaning                                              |
+| -------------------- | ---------------------------------------------------- |
+| All match            | Likely correct; check authoritative if unexpected    |
+| One differs          | That resolver has stale cache or different policy    |
+| All differ           | Check authoritative servers—likely inconsistent zone |
+| Some return SERVFAIL | DNSSEC issue or resolver-specific problem            |
 
 **Resolver-specific behaviors:**
 
-| Resolver | DNSSEC | ECS | Notes |
-|----------|--------|-----|-------|
-| Google (8.8.8.8) | Yes | Yes | Supports Extended DNS Errors |
-| Cloudflare (1.1.1.1) | Yes | No | Privacy-focused, no ECS |
-| Quad9 (9.9.9.9) | Yes | No | Malware blocking enabled |
-| OpenDNS | Yes | Partial | Content filtering available |
+| Resolver             | DNSSEC | ECS     | Notes                        |
+| -------------------- | ------ | ------- | ---------------------------- |
+| Google (8.8.8.8)     | Yes    | Yes     | Supports Extended DNS Errors |
+| Cloudflare (1.1.1.1) | Yes    | No      | Privacy-focused, no ECS      |
+| Quad9 (9.9.9.9)      | Yes    | No      | Malware blocking enabled     |
+| OpenDNS              | Yes    | Partial | Content filtering available  |
 
 ### Tracing the Resolution Path
 
@@ -466,12 +466,12 @@ api.example.com.        300     IN  A   93.184.216.50
 
 **Trace failure patterns:**
 
-| Pattern | Cause |
-|---------|-------|
-| Stops at TLD | Delegation not registered or NS unreachable |
-| SERVFAIL at authoritative | Zone not loaded or DNSSEC issue |
-| Timeout at specific NS | That server is down |
-| Loop in referrals | Misconfigured delegation |
+| Pattern                   | Cause                                       |
+| ------------------------- | ------------------------------------------- |
+| Stops at TLD              | Delegation not registered or NS unreachable |
+| SERVFAIL at authoritative | Zone not loaded or DNSSEC issue             |
+| Timeout at specific NS    | That server is down                         |
+| Loop in referrals         | Misconfigured delegation                    |
 
 ## DNSSEC Troubleshooting
 
@@ -543,12 +543,12 @@ dig example.com DS +short
 
 **Common algorithms:**
 
-| ID | Name | Status |
-|----|------|--------|
-| 8 | RSASHA256 | Widely supported |
-| 13 | ECDSAP256SHA256 | Recommended |
-| 14 | ECDSAP384SHA384 | Recommended |
-| 15 | ED25519 | Modern, compact |
+| ID  | Name            | Status           |
+| --- | --------------- | ---------------- |
+| 8   | RSASHA256       | Widely supported |
+| 13  | ECDSAP256SHA256 | Recommended      |
+| 14  | ECDSAP384SHA384 | Recommended      |
+| 15  | ED25519         | Modern, compact  |
 
 **Chain of trust broken:**
 
@@ -585,11 +585,11 @@ Key rollovers are the most common source of DNSSEC outages. The process requires
 
 **Failure symptoms during rollover:**
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| SERVFAIL after DS update | Old DS removed before propagation | Restore old DS, wait longer |
-| SERVFAIL on new key publish | RRSIG uses key not in DNSKEY set | Ensure DNSKEY published before signing |
-| Intermittent SERVFAIL | Cached DNSKEY doesn't include signing key | Wait for cache expiry |
+| Symptom                     | Cause                                     | Fix                                    |
+| --------------------------- | ----------------------------------------- | -------------------------------------- |
+| SERVFAIL after DS update    | Old DS removed before propagation         | Restore old DS, wait longer            |
+| SERVFAIL on new key publish | RRSIG uses key not in DNSKEY set          | Ensure DNSKEY published before signing |
+| Intermittent SERVFAIL       | Cached DNSKEY doesn't include signing key | Wait for cache expiry                  |
 
 ## Cache and Propagation Debugging
 
@@ -623,20 +623,20 @@ dig @8.8.8.8 example.com
 
 **Public resolver cache flush:**
 
-| Resolver | Method |
-|----------|--------|
-| Google | https://developers.google.com/speed/public-dns/cache |
-| Cloudflare | https://1.1.1.1/purge-cache/ |
-| OpenDNS | https://cachecheck.opendns.com/ |
+| Resolver   | Method                                               |
+| ---------- | ---------------------------------------------------- |
+| Google     | https://developers.google.com/speed/public-dns/cache |
+| Cloudflare | https://1.1.1.1/purge-cache/                         |
+| OpenDNS    | https://cachecheck.opendns.com/                      |
 
 **Browser cache flush:**
 
-| Browser | Method |
-|---------|--------|
-| Chrome | `chrome://net-internals/#dns` → Clear host cache |
-| Firefox | `about:networking#dns` → Clear DNS Cache |
-| Edge | `edge://net-internals/#dns` → Clear host cache |
-| Safari | Clear via system (macOS) |
+| Browser | Method                                           |
+| ------- | ------------------------------------------------ |
+| Chrome  | `chrome://net-internals/#dns` → Clear host cache |
+| Firefox | `about:networking#dns` → Clear DNS Cache         |
+| Edge    | `edge://net-internals/#dns` → Clear host cache   |
+| Safari  | Clear via system (macOS)                         |
 
 **Operating system cache flush:**
 
@@ -788,14 +788,14 @@ dig $DOMAIN | grep -E "^$DOMAIN.*IN" | head -1
 
 ### Escalation Decision Tree
 
-| Finding | Escalation Path |
-|---------|-----------------|
-| All NS unreachable | Infrastructure team / DNS provider |
-| Lame delegation | DNS administrator (zone not loaded) |
-| DNSSEC validation failure | DNSSEC key management / registrar (DS) |
-| Resolver-specific issue | ISP / public resolver (rare) |
-| Inconsistent NS responses | Zone transfer / replication issue |
-| Registry delegation missing | Registrar account / domain status |
+| Finding                     | Escalation Path                        |
+| --------------------------- | -------------------------------------- |
+| All NS unreachable          | Infrastructure team / DNS provider     |
+| Lame delegation             | DNS administrator (zone not loaded)    |
+| DNSSEC validation failure   | DNSSEC key management / registrar (DS) |
+| Resolver-specific issue     | ISP / public resolver (rare)           |
+| Inconsistent NS responses   | Zone transfer / replication issue      |
+| Registry delegation missing | Registrar account / domain status      |
 
 ### Rollback Strategies
 
@@ -851,26 +851,26 @@ For DNSSEC issues, use `delv` for validation details and DNSViz for chain visual
 
 ### Prerequisites
 
-- Familiarity with DNS resolution flow (see [DNS Resolution Path](/articles/web-foundations/networking-protocols/dns-resolution-path))
-- Understanding of DNS record types and TTL (see [DNS Records, TTL, and Caching](/articles/web-foundations/networking-protocols/dns-records-ttl-and-caching))
+- Familiarity with DNS resolution flow (see [DNS Resolution Path](../dns-resolution-path/README.md))
+- Understanding of DNS record types and TTL (see [DNS Records, TTL, and Caching](../dns-records-ttl-and-caching/README.md))
 - Command-line access with `dig` installed
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **RCODE** | Response Code; 4-bit field in DNS header indicating query result |
-| **EDE** | Extended DNS Error (RFC 8914); detailed error information via EDNS option |
-| **SERVFAIL** | Server failure response; catch-all for resolution errors |
-| **NXDOMAIN** | Non-Existent Domain; name does not exist |
-| **NODATA** | Name exists but no records of requested type; NOERROR with empty answer |
-| **Lame delegation** | NS records point to server that doesn't serve the zone |
-| **AA flag** | Authoritative Answer; set when response comes from zone's nameserver |
-| **AD flag** | Authenticated Data; set when DNSSEC validation succeeded |
-| **CD flag** | Checking Disabled; client requests validation be skipped |
-| **+trace** | dig flag to perform iterative resolution from root |
-| **KSK** | Key Signing Key; signs DNSKEY RRset, referenced by DS at parent |
-| **ZSK** | Zone Signing Key; signs zone data |
+| Term                | Definition                                                                |
+| ------------------- | ------------------------------------------------------------------------- |
+| **RCODE**           | Response Code; 4-bit field in DNS header indicating query result          |
+| **EDE**             | Extended DNS Error (RFC 8914); detailed error information via EDNS option |
+| **SERVFAIL**        | Server failure response; catch-all for resolution errors                  |
+| **NXDOMAIN**        | Non-Existent Domain; name does not exist                                  |
+| **NODATA**          | Name exists but no records of requested type; NOERROR with empty answer   |
+| **Lame delegation** | NS records point to server that doesn't serve the zone                    |
+| **AA flag**         | Authoritative Answer; set when response comes from zone's nameserver      |
+| **AD flag**         | Authenticated Data; set when DNSSEC validation succeeded                  |
+| **CD flag**         | Checking Disabled; client requests validation be skipped                  |
+| **+trace**          | dig flag to perform iterative resolution from root                        |
+| **KSK**             | Key Signing Key; signs DNSKEY RRset, referenced by DS at parent           |
+| **ZSK**             | Zone Signing Key; signs zone data                                         |
 
 ### Summary
 

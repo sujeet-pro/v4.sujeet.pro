@@ -73,26 +73,26 @@ The fundamental tradeoff: **latency vs. relevance**. Pre-computed suggestions ar
 
 ### Functional Requirements
 
-| Requirement | Priority | Notes |
-|-------------|----------|-------|
-| Return suggestions for partial query | Core | Primary feature |
-| Rank by relevance (popularity, freshness) | Core | Not just alphabetical |
-| Support trending/breaking queries | Core | News events, viral content |
-| Personalized suggestions | Extended | Based on user history |
-| Spell correction / fuzzy matching | Extended | Handle typos |
-| Multi-language support | Extended | Unicode, RTL scripts |
+| Requirement                               | Priority | Notes                      |
+| ----------------------------------------- | -------- | -------------------------- |
+| Return suggestions for partial query      | Core     | Primary feature            |
+| Rank by relevance (popularity, freshness) | Core     | Not just alphabetical      |
+| Support trending/breaking queries         | Core     | News events, viral content |
+| Personalized suggestions                  | Extended | Based on user history      |
+| Spell correction / fuzzy matching         | Extended | Handle typos               |
+| Multi-language support                    | Extended | Unicode, RTL scripts       |
 
 **Out of scope**: Full document search (separate system), voice input, image search.
 
 ### Non-Functional Requirements
 
-| Requirement | Target | Rationale |
-|-------------|--------|-----------|
-| Latency | P99 < 100ms | User typing cadence ~150ms between keystrokes |
-| Availability | 99.99% | User-facing, affects search engagement |
-| Throughput | 500K QPS peak | Based on scale estimation below |
-| Suggestion freshness | < 1 hour for trending | Breaking news must surface quickly |
-| Consistency | Eventual (< 5 min) | Acceptable for suggestions |
+| Requirement          | Target                | Rationale                                     |
+| -------------------- | --------------------- | --------------------------------------------- |
+| Latency              | P99 < 100ms           | User typing cadence ~150ms between keystrokes |
+| Availability         | 99.99%                | User-facing, affects search engagement        |
+| Throughput           | 500K QPS peak         | Based on scale estimation below               |
+| Suggestion freshness | < 1 hour for trending | Breaking news must surface quickly            |
+| Consistency          | Eventual (< 5 min)    | Acceptable for suggestions                    |
 
 ### Scale Estimation
 
@@ -202,15 +202,15 @@ Egress: 1.2M QPS × 500 bytes = 600 MB/s
 
 ### Path Comparison
 
-| Factor | Path A: Trie | Path B: Inverted Index |
-|--------|--------------|------------------------|
-| Query latency | <10ms | 10-50ms |
-| Memory efficiency | Lower (pointer overhead) | Higher (FST compression) |
-| Update latency | Hours (batch) | Seconds (streaming) |
-| Fuzzy matching | Requires separate structure | Native support |
-| Sharding complexity | Manual prefix-based | Built-in (Elasticsearch) |
-| Operational overhead | Custom infrastructure | Managed service available |
-| Best for | High-QPS generic suggestions | Dynamic catalogs, flexible queries |
+| Factor               | Path A: Trie                 | Path B: Inverted Index             |
+| -------------------- | ---------------------------- | ---------------------------------- |
+| Query latency        | <10ms                        | 10-50ms                            |
+| Memory efficiency    | Lower (pointer overhead)     | Higher (FST compression)           |
+| Update latency       | Hours (batch)                | Seconds (streaming)                |
+| Fuzzy matching       | Requires separate structure  | Native support                     |
+| Sharding complexity  | Manual prefix-based          | Built-in (Elasticsearch)           |
+| Operational overhead | Custom infrastructure        | Managed service available          |
+| Best for             | High-QPS generic suggestions | Dynamic catalogs, flexible queries |
 
 ### This Article's Focus
 
@@ -226,16 +226,16 @@ Path B implementation details are covered in the "Elasticsearch Alternative" sec
 
 ### Component Overview
 
-| Component | Responsibility | Technology |
-|-----------|---------------|------------|
-| **API Gateway** | Rate limiting, authentication, routing | Kong, AWS API Gateway |
-| **Shard Router** | Route prefix to correct trie shard | Custom service |
-| **Trie Service** | Serve suggestions from in-memory trie | Custom service (Go/Rust) |
-| **Ranking Service** | Re-rank with personalization signals | Custom service |
-| **Redis Cache** | Cache hot prefixes and user history | Redis Cluster |
-| **Trie Builder** | Build/update tries from query logs | Spark/Flink |
-| **Kafka** | Stream query logs and trending signals | Apache Kafka |
-| **Object Storage** | Store serialized trie snapshots | S3, HDFS |
+| Component           | Responsibility                         | Technology               |
+| ------------------- | -------------------------------------- | ------------------------ |
+| **API Gateway**     | Rate limiting, authentication, routing | Kong, AWS API Gateway    |
+| **Shard Router**    | Route prefix to correct trie shard     | Custom service           |
+| **Trie Service**    | Serve suggestions from in-memory trie  | Custom service (Go/Rust) |
+| **Ranking Service** | Re-rank with personalization signals   | Custom service           |
+| **Redis Cache**     | Cache hot prefixes and user history    | Redis Cluster            |
+| **Trie Builder**    | Build/update tries from query logs     | Spark/Flink              |
+| **Kafka**           | Stream query logs and trending signals | Apache Kafka             |
+| **Object Storage**  | Store serialized trie snapshots        | S3, HDFS                 |
 
 ### Request Flow
 
@@ -304,13 +304,13 @@ GET /api/v1/suggestions?q={prefix}&limit={n}&lang={code}
 
 **Request Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `q` | string | Yes | - | Query prefix (min 2 chars) |
-| `limit` | int | No | 10 | Max suggestions (1-20) |
-| `lang` | string | No | en | Language code (ISO 639-1) |
-| `user_id` | string | No | - | For personalized suggestions |
-| `context` | string | No | - | Search context (web, images, news) |
+| Parameter | Type   | Required | Default | Description                        |
+| --------- | ------ | -------- | ------- | ---------------------------------- |
+| `q`       | string | Yes      | -       | Query prefix (min 2 chars)         |
+| `limit`   | int    | No       | 10      | Max suggestions (1-20)             |
+| `lang`    | string | No       | en      | Language code (ISO 639-1)          |
+| `user_id` | string | No       | -       | For personalized suggestions       |
+| `context` | string | No       | -       | Search context (web, images, news) |
 
 **Response (200 OK):**
 
@@ -353,11 +353,11 @@ GET /api/v1/suggestions?q={prefix}&limit={n}&lang={code}
 
 **Error Responses:**
 
-| Status | Condition | Response |
-|--------|-----------|----------|
-| 400 | Prefix too short (<2 chars) | `{"error": "prefix_too_short", "min_length": 2}` |
-| 429 | Rate limit exceeded | `{"error": "rate_limited", "retry_after": 60}` |
-| 503 | Service overloaded | `{"error": "service_unavailable"}` |
+| Status | Condition                   | Response                                         |
+| ------ | --------------------------- | ------------------------------------------------ |
+| 400    | Prefix too short (<2 chars) | `{"error": "prefix_too_short", "min_length": 2}` |
+| 429    | Rate limit exceeded         | `{"error": "rate_limited", "retry_after": 60}`   |
+| 503    | Service overloaded          | `{"error": "service_unavailable"}`               |
 
 **Rate Limits:**
 
@@ -385,22 +385,22 @@ Vary: Accept-Encoding, Accept-Language
 
 ```typescript
 interface TrieNode {
-  children: Map<string, TrieNode>;  // Character -> child node
-  isEndOfWord: boolean;
-  topSuggestions: Suggestion[];     // Pre-computed top-K
-  frequency: number;                 // Aggregate frequency for this prefix
+  children: Map<string, TrieNode> // Character -> child node
+  isEndOfWord: boolean
+  topSuggestions: Suggestion[] // Pre-computed top-K
+  frequency: number // Aggregate frequency for this prefix
 }
 
 interface Suggestion {
-  text: string;           // Full query text
-  score: number;          // Normalized relevance score [0, 1]
-  frequency: number;      // Raw query count
-  lastUpdated: number;    // Unix timestamp
-  trending: boolean;      // Recently spiking
+  text: string // Full query text
+  score: number // Normalized relevance score [0, 1]
+  frequency: number // Raw query count
+  lastUpdated: number // Unix timestamp
+  trending: boolean // Recently spiking
   metadata: {
-    category?: string;
-    language: string;
-  };
+    category?: string
+    language: string
+  }
 }
 ```
 
@@ -412,7 +412,7 @@ interface Suggestion {
 {
   "query": "programming tutorials",
   "timestamp": 1706918400,
-  "user_id": "u123",          // Hashed, optional
+  "user_id": "u123", // Hashed, optional
   "session_id": "s456",
   "result_clicked": true,
   "position_clicked": 2,
@@ -445,14 +445,14 @@ s3://autocomplete-data/tries/
 
 ### Database Selection
 
-| Data | Store | Rationale |
-|------|-------|-----------|
-| Live trie | In-memory (custom) | Sub-ms traversal required |
-| Hot prefix cache | Redis Cluster | <1ms lookups, TTL support |
-| Query logs | Kafka → S3 | Streaming ingestion, durable storage |
-| Trie snapshots | S3/HDFS | Large files, versioned, cross-region replication |
-| User history | DynamoDB/Cassandra | Key-value access pattern, high write throughput |
-| Trending signals | Redis Sorted Set | Real-time top-K with scores |
+| Data             | Store              | Rationale                                        |
+| ---------------- | ------------------ | ------------------------------------------------ |
+| Live trie        | In-memory (custom) | Sub-ms traversal required                        |
+| Hot prefix cache | Redis Cluster      | <1ms lookups, TTL support                        |
+| Query logs       | Kafka → S3         | Streaming ingestion, durable storage             |
+| Trie snapshots   | S3/HDFS            | Large files, versioned, cross-region replication |
+| User history     | DynamoDB/Cassandra | Key-value access pattern, high write throughput  |
+| Trending signals | Redis Sorted Set   | Real-time top-K with scores                      |
 
 ## Low-Level Design
 
@@ -460,11 +460,11 @@ s3://autocomplete-data/tries/
 
 **Design decision: Hash map vs. array children**
 
-| Approach | Lookup | Memory | Best for |
-|----------|--------|--------|----------|
-| Array[26] | O(1) | 26 pointers/node | Dense tries, ASCII only |
-| Array[128] | O(1) | 128 pointers/node | Full ASCII |
-| HashMap | O(1) avg | Variable | Sparse tries, Unicode |
+| Approach   | Lookup   | Memory            | Best for                |
+| ---------- | -------- | ----------------- | ----------------------- |
+| Array[26]  | O(1)     | 26 pointers/node  | Dense tries, ASCII only |
+| Array[128] | O(1)     | 128 pointers/node | Full ASCII              |
+| HashMap    | O(1) avg | Variable          | Sparse tries, Unicode   |
 
 **Chosen: HashMap** because:
 
@@ -566,12 +566,12 @@ Score = w1 × Popularity + w2 × Freshness + w3 × Trending + w4 × Personalizat
 
 **Default weights (generic suggestions):**
 
-| Signal | Weight | Calculation |
-|--------|--------|-------------|
-| Popularity | 0.5 | `log(frequency) / log(max_frequency)` |
-| Freshness | 0.2 | `1 - (days_since_last_search / 30)` |
-| Trending | 0.2 | `1.0 if spiking else 0.0` |
-| Personalization | 0.1 | `1.0 if in user history else 0.0` |
+| Signal          | Weight | Calculation                           |
+| --------------- | ------ | ------------------------------------- |
+| Popularity      | 0.5    | `log(frequency) / log(max_frequency)` |
+| Freshness       | 0.2    | `1 - (days_since_last_search / 30)`   |
+| Trending        | 0.2    | `1.0 if spiking else 0.0`             |
+| Personalization | 0.1    | `1.0 if in user history else 0.0`     |
 
 **Trending detection:**
 
@@ -693,69 +693,71 @@ For teams preferring managed infrastructure, Elasticsearch's completion suggeste
 **Solution**: Debounce with 300ms delay—only send request after 300ms of no typing.
 
 ```typescript title="useAutocomplete.ts" collapse={1-5, 35-50}
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from "react"
 
-const DEBOUNCE_MS = 300;
-const MIN_PREFIX_LENGTH = 2;
+const DEBOUNCE_MS = 300
+const MIN_PREFIX_LENGTH = 2
 
 export function useAutocomplete() {
-  const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const timeoutRef = useRef<number | null>(null);
+  const [query, setQuery] = useState("")
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const abortControllerRef = useRef<AbortController | null>(null)
+  const timeoutRef = useRef<number | null>(null)
 
   const fetchSuggestions = useCallback(async (prefix: string) => {
     // Cancel previous request
-    abortControllerRef.current?.abort();
-    abortControllerRef.current = new AbortController();
+    abortControllerRef.current?.abort()
+    abortControllerRef.current = new AbortController()
 
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const response = await fetch(
-        `/api/v1/suggestions?q=${encodeURIComponent(prefix)}&limit=10`,
-        { signal: abortControllerRef.current.signal }
-      );
-      const data = await response.json();
-      setSuggestions(data.suggestions.map((s: any) => s.text));
+      const response = await fetch(`/api/v1/suggestions?q=${encodeURIComponent(prefix)}&limit=10`, {
+        signal: abortControllerRef.current.signal,
+      })
+      const data = await response.json()
+      setSuggestions(data.suggestions.map((s: any) => s.text))
     } catch (error) {
-      if (error.name !== 'AbortError') {
-        console.error('Autocomplete error:', error);
+      if (error.name !== "AbortError") {
+        console.error("Autocomplete error:", error)
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, []);
+  }, [])
 
-  const handleInputChange = useCallback((value: string) => {
-    setQuery(value);
+  const handleInputChange = useCallback(
+    (value: string) => {
+      setQuery(value)
 
-    // Clear pending debounce
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+      // Clear pending debounce
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
 
-    // Don't fetch for short prefixes
-    if (value.length < MIN_PREFIX_LENGTH) {
-      setSuggestions([]);
-      return;
-    }
+      // Don't fetch for short prefixes
+      if (value.length < MIN_PREFIX_LENGTH) {
+        setSuggestions([])
+        return
+      }
 
-    // Debounce the API call
-    timeoutRef.current = setTimeout(() => {
-      fetchSuggestions(value);
-    }, DEBOUNCE_MS);
-  }, [fetchSuggestions]);
+      // Debounce the API call
+      timeoutRef.current = setTimeout(() => {
+        fetchSuggestions(value)
+      }, DEBOUNCE_MS)
+    },
+    [fetchSuggestions],
+  )
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      timeoutRef.current && clearTimeout(timeoutRef.current);
-      abortControllerRef.current?.abort();
-    };
-  }, []);
+      timeoutRef.current && clearTimeout(timeoutRef.current)
+      abortControllerRef.current?.abort()
+    }
+  }, [])
 
-  return { query, suggestions, isLoading, handleInputChange };
+  return { query, suggestions, isLoading, handleInputChange }
 }
 ```
 
@@ -769,22 +771,17 @@ export function useAutocomplete() {
 
 Autocomplete dropdowns must support keyboard navigation for accessibility (WCAG 2.1 compliance):
 
-| Key | Action |
-|-----|--------|
-| ↓ / ↑ | Navigate suggestions |
-| Enter | Select highlighted suggestion |
-| Escape | Close dropdown |
-| Tab | Select and move to next field |
+| Key    | Action                        |
+| ------ | ----------------------------- |
+| ↓ / ↑  | Navigate suggestions          |
+| Enter  | Select highlighted suggestion |
+| Escape | Close dropdown                |
+| Tab    | Select and move to next field |
 
 **ARIA attributes required:**
 
 ```html
-<input
-  role="combobox"
-  aria-expanded="true"
-  aria-controls="suggestions-list"
-  aria-activedescendant="suggestion-2"
-/>
+<input role="combobox" aria-expanded="true" aria-controls="suggestions-list" aria-activedescendant="suggestion-2" />
 <ul id="suggestions-list" role="listbox">
   <li id="suggestion-0" role="option">programming</li>
   <li id="suggestion-1" role="option">progress</li>
@@ -799,17 +796,17 @@ For frequently-typed prefixes, show cached suggestions immediately while fetchin
 ```typescript
 const handleInputChange = (value: string) => {
   // Show cached results immediately (optimistic)
-  const cached = localCache.get(value);
+  const cached = localCache.get(value)
   if (cached) {
-    setSuggestions(cached);
+    setSuggestions(cached)
   }
 
   // Fetch fresh results in background
-  fetchSuggestions(value).then(fresh => {
-    setSuggestions(fresh);
-    localCache.set(value, fresh);
-  });
-};
+  fetchSuggestions(value).then((fresh) => {
+    setSuggestions(fresh)
+    localCache.set(value, fresh)
+  })
+}
 ```
 
 ## Indexing Pipeline
@@ -855,12 +852,12 @@ flowchart LR
 
 ### Batch vs. Streaming Updates
 
-| Aspect | Batch (Weekly) | Streaming (Real-time) |
-|--------|----------------|----------------------|
-| Latency | Hours | Seconds |
-| Completeness | Full corpus | Incremental deltas |
-| Compute cost | Higher | Lower |
-| Use case | Stable rankings | Trending queries |
+| Aspect       | Batch (Weekly)  | Streaming (Real-time) |
+| ------------ | --------------- | --------------------- |
+| Latency      | Hours           | Seconds               |
+| Completeness | Full corpus     | Incremental deltas    |
+| Compute cost | Higher          | Lower                 |
+| Use case     | Stable rankings | Trending queries      |
 
 **Dual-path approach:**
 
@@ -962,11 +959,11 @@ func LoadTrie(path string) (*TrieNode, error) {
 
 **Compression ratios:**
 
-| Format | Size | Load Time |
-|--------|------|-----------|
-| Raw (JSON) | 200 GB | 10 min |
-| Gob | 80 GB | 4 min |
-| Gob + Gzip | 30 GB | 6 min |
+| Format     | Size   | Load Time |
+| ---------- | ------ | --------- |
+| Raw (JSON) | 200 GB | 10 min    |
+| Gob        | 80 GB  | 4 min     |
+| Gob + Gzip | 30 GB  | 6 min     |
 
 **Chosen: Gob + Gzip** for storage efficiency. Load time overhead acceptable for weekly rebuilds.
 
@@ -974,12 +971,12 @@ func LoadTrie(path string) (*TrieNode, error) {
 
 ### Multi-Layer Cache
 
-| Layer | TTL | Hit Rate | Latency |
-|-------|-----|----------|---------|
-| Browser | 1 hour | 30-40% | 0ms |
-| CDN/Edge | 5 min | 50-60% | <5ms |
-| Redis (hot prefixes) | 10 min | 80-90% | <2ms |
-| Trie (in-memory) | N/A | 100% | <10ms |
+| Layer                | TTL    | Hit Rate | Latency |
+| -------------------- | ------ | -------- | ------- |
+| Browser              | 1 hour | 30-40%   | 0ms     |
+| CDN/Edge             | 5 min  | 50-60%   | <5ms    |
+| Redis (hot prefixes) | 10 min | 80-90%   | <2ms    |
+| Trie (in-memory)     | N/A    | 100%     | <10ms   |
 
 ### Browser Caching
 
@@ -1002,8 +999,8 @@ rules:
   - match: "/api/v1/suggestions*"
     actions:
       cache_level: cache_everything
-      edge_cache_ttl: 300        # 5 minutes
-      browser_cache_ttl: 3600    # 1 hour
+      edge_cache_ttl: 300 # 5 minutes
+      browser_cache_ttl: 3600 # 1 hour
       cache_key:
         include_query_string: true
 ```
@@ -1048,13 +1045,13 @@ def is_hot_prefix(prefix: str) -> bool:
 
 ### Cloud-Agnostic Architecture
 
-| Component | Requirement | Open Source | Managed |
-|-----------|-------------|-------------|---------|
-| Compute | Low-latency, auto-scaling | Kubernetes | EKS, GKE |
-| Cache | Sub-ms reads, clustering | Redis | ElastiCache, MemoryStore |
-| Message Queue | High throughput, durability | Kafka | MSK, Confluent Cloud |
-| Object Storage | Durable, versioned | MinIO | S3, GCS |
-| Stream Processing | Real-time aggregation | Flink, Spark | Kinesis, Dataflow |
+| Component         | Requirement                 | Open Source  | Managed                  |
+| ----------------- | --------------------------- | ------------ | ------------------------ |
+| Compute           | Low-latency, auto-scaling   | Kubernetes   | EKS, GKE                 |
+| Cache             | Sub-ms reads, clustering    | Redis        | ElastiCache, MemoryStore |
+| Message Queue     | High throughput, durability | Kafka        | MSK, Confluent Cloud     |
+| Object Storage    | Durable, versioned          | MinIO        | S3, GCS                  |
+| Stream Processing | Real-time aggregation       | Flink, Spark | Kinesis, Dataflow        |
 
 ### AWS Reference Architecture
 
@@ -1094,13 +1091,13 @@ flowchart TB
 
 **Service configuration:**
 
-| Service | Configuration | Cost Estimate |
-|---------|--------------|---------------|
-| ECS Fargate | 10 tasks × 16 vCPU, 32GB RAM | $8,000/month |
-| ElastiCache | r6g.xlarge × 6 nodes (cluster) | $2,500/month |
-| CloudFront | 1TB egress/day | $1,500/month |
-| S3 | 500GB storage | $12/month |
-| EMR | m5.xlarge × 10 (weekly job) | $200/month |
+| Service     | Configuration                  | Cost Estimate |
+| ----------- | ------------------------------ | ------------- |
+| ECS Fargate | 10 tasks × 16 vCPU, 32GB RAM   | $8,000/month  |
+| ElastiCache | r6g.xlarge × 6 nodes (cluster) | $2,500/month  |
+| CloudFront  | 1TB egress/day                 | $1,500/month  |
+| S3          | 500GB storage                  | $12/month     |
+| EMR         | m5.xlarge × 10 (weekly job)    | $200/month    |
 
 **Total estimated cost**: ~$12,000/month for 500K QPS capacity
 
@@ -1141,23 +1138,23 @@ spec:
 
 ### Key Metrics
 
-| Metric | Target | Alert Threshold |
-|--------|--------|-----------------|
-| P50 latency | <20ms | >50ms |
-| P99 latency | <100ms | >200ms |
-| Error rate | <0.01% | >0.1% |
-| Cache hit rate (CDN) | >50% | <30% |
-| Cache hit rate (Redis) | >80% | <60% |
-| Trie memory usage | <80% | >90% |
+| Metric                 | Target | Alert Threshold |
+| ---------------------- | ------ | --------------- |
+| P50 latency            | <20ms  | >50ms           |
+| P99 latency            | <100ms | >200ms          |
+| Error rate             | <0.01% | >0.1%           |
+| Cache hit rate (CDN)   | >50%   | <30%            |
+| Cache hit rate (Redis) | >80%   | <60%            |
+| Trie memory usage      | <80%   | >90%            |
 
 ### Business Metrics
 
-| Metric | Definition | Target |
-|--------|------------|--------|
-| Suggestion CTR | Clicks on suggestions / Total suggestions shown | >30% |
-| Mean Reciprocal Rank (MRR) | 1/position of clicked suggestion | >0.5 |
-| Query completion rate | Searches using suggestion / Total searches | >40% |
-| Keystrokes saved | Avg chars typed before selecting suggestion | >50% |
+| Metric                     | Definition                                      | Target |
+| -------------------------- | ----------------------------------------------- | ------ |
+| Suggestion CTR             | Clicks on suggestions / Total suggestions shown | >30%   |
+| Mean Reciprocal Rank (MRR) | 1/position of clicked suggestion                | >0.5   |
+| Query completion rate      | Searches using suggestion / Total searches      | >40%   |
+| Keystrokes saved           | Avg chars typed before selecting suggestion     | >50%   |
 
 ### Observability Stack
 
@@ -1217,15 +1214,15 @@ This design delivers sub-100ms autocomplete at scale through:
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **Trie** | Tree structure for prefix-based string storage and retrieval |
-| **FST** | Finite State Transducer—compressed automaton for term dictionaries |
-| **Top-K** | Pre-computed list of K highest-scoring suggestions at a trie node |
-| **QAC** | Query Auto-Completion—suggesting queries, not documents |
-| **MRR** | Mean Reciprocal Rank—evaluation metric for ranked results |
-| **Edge n-gram** | Tokenization that generates prefixes at index time |
-| **Fan-out** | Pattern of distributing data/computation across multiple nodes |
+| Term            | Definition                                                         |
+| --------------- | ------------------------------------------------------------------ |
+| **Trie**        | Tree structure for prefix-based string storage and retrieval       |
+| **FST**         | Finite State Transducer—compressed automaton for term dictionaries |
+| **Top-K**       | Pre-computed list of K highest-scoring suggestions at a trie node  |
+| **QAC**         | Query Auto-Completion—suggesting queries, not documents            |
+| **MRR**         | Mean Reciprocal Rank—evaluation metric for ranked results          |
+| **Edge n-gram** | Tokenization that generates prefixes at index time                 |
+| **Fan-out**     | Pattern of distributing data/computation across multiple nodes     |
 
 ### Summary
 

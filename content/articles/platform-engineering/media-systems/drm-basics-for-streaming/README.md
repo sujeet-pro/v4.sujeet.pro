@@ -64,11 +64,11 @@ DRM protects streaming content by combining two mechanisms: **encryption** (scra
 
 **DRM system coverage:**
 
-| DRM | Ecosystem | Hardware Security | Software Fallback |
-|-----|-----------|-------------------|-------------------|
-| **Widevine** | Chrome, Android, Android TV, Chromecast | L1 (TEE) | L3 (browser CDM) |
-| **FairPlay** | Safari, iOS, macOS, Apple TV | Secure Enclave | — |
-| **PlayReady** | Edge, Windows, Xbox, Smart TVs | SL3000 (TEE) | SL2000 (software) |
+| DRM           | Ecosystem                               | Hardware Security | Software Fallback |
+| ------------- | --------------------------------------- | ----------------- | ----------------- |
+| **Widevine**  | Chrome, Android, Android TV, Chromecast | L1 (TEE)          | L3 (browser CDM)  |
+| **FairPlay**  | Safari, iOS, macOS, Apple TV            | Secure Enclave    | —                 |
+| **PlayReady** | Edge, Windows, Xbox, Smart TVs          | SL3000 (TEE)      | SL2000 (software) |
 
 ## Common Encryption (CENC)
 
@@ -79,22 +79,23 @@ CENC (ISO/IEC 23001-7:2023) is the foundation that makes multi-DRM practical. It
 Before CENC, each DRM system required its own encrypted file. Supporting Widevine and FairPlay meant storing two complete copies of every video—doubling storage costs and halving CDN cache efficiency.
 
 CENC defines:
+
 - **Encryption algorithm:** AES-128 (same algorithm, same encrypted bytes for all DRM systems)
 - **Key mapping:** How content keys are identified and applied to media samples
 - **Subsample encryption:** Which parts of video NAL units are encrypted (preserving headers for codec parsing)
 
-What CENC does *not* define: license acquisition, key delivery protocols, or security requirements. Each DRM system handles these independently.
+What CENC does _not_ define: license acquisition, key delivery protocols, or security requirements. Each DRM system handles these independently.
 
 ### CENC Protection Schemes
 
 CENC defines four encryption modes. The choice affects compatibility:
 
-| Scheme | Algorithm | Pattern | Primary Use |
-|--------|-----------|---------|-------------|
-| `cenc` | AES-CTR | Full sample | Widevine, PlayReady (DASH) |
-| `cbc1` | AES-CBC | Full sample | Rare |
-| `cens` | AES-CTR | Partial (pattern) | Rare |
-| `cbcs` | AES-CBC | Partial (1:9 pattern) | FairPlay, HLS, CMAF |
+| Scheme | Algorithm | Pattern               | Primary Use                |
+| ------ | --------- | --------------------- | -------------------------- |
+| `cenc` | AES-CTR   | Full sample           | Widevine, PlayReady (DASH) |
+| `cbc1` | AES-CBC   | Full sample           | Rare                       |
+| `cens` | AES-CTR   | Partial (pattern)     | Rare                       |
+| `cbcs` | AES-CBC   | Partial (1:9 pattern) | FairPlay, HLS, CMAF        |
 
 **Design trade-off—CTR vs. CBC:**
 
@@ -129,6 +130,7 @@ NAL Unit:
 ```
 
 The `senc` (Sample Encryption) box in fMP4 contains auxiliary information describing which byte ranges are clear vs. encrypted for each sample. This enables:
+
 - Decoder inspection of frame types without decryption
 - Seeking to keyframes without license acquisition
 - Partial decryption for trick play modes
@@ -143,11 +145,11 @@ Widevine is Google's DRM, integrated into Chrome, Android, Chromecast, and Andro
 
 **Security Levels:**
 
-| Level | Implementation | Content Quality | Use Case |
-|-------|----------------|-----------------|----------|
+| Level  | Implementation                                    | Content Quality       | Use Case                             |
+| ------ | ------------------------------------------------- | --------------------- | ------------------------------------ |
 | **L1** | Decryption in TEE; keys never exposed to main CPU | 4K, HDR, Dolby Vision | Premium streaming (Netflix, Disney+) |
-| **L2** | Crypto in TEE, video processing in main CPU | Limited (rarely used) | Transitional devices |
-| **L3** | Software CDM; no hardware protection | SD or 720p max | Desktop browsers, dev testing |
+| **L2** | Crypto in TEE, video processing in main CPU       | Limited (rarely used) | Transitional devices                 |
+| **L3** | Software CDM; no hardware protection              | SD or 720p max        | Desktop browsers, dev testing        |
 
 **L1 requirement:** Netflix, Amazon Prime Video, and Disney+ enforce L1 for HD and above. A Chrome browser on macOS—despite running on capable hardware—gets L3 because there's no TEE integration, capping quality at 720p.
 
@@ -178,13 +180,14 @@ PlayReady is Microsoft's DRM, integrated into Edge, Windows, Xbox, and many smar
 
 **Security Levels:**
 
-| Level | Implementation | Content Quality |
-|-------|----------------|-----------------|
-| **SL3000** | TEE-based (introduced with PlayReady 3.0) | 4K, HDR |
-| **SL2000** | Software-based protection | HD and below |
-| **SL150** | No protection (testing only) | — |
+| Level      | Implementation                            | Content Quality |
+| ---------- | ----------------------------------------- | --------------- |
+| **SL3000** | TEE-based (introduced with PlayReady 3.0) | 4K, HDR         |
+| **SL2000** | Software-based protection                 | HD and below    |
+| **SL150**  | No protection (testing only)              | —               |
 
 **License flexibility:** PlayReady licenses support granular policies:
+
 - Output restrictions (HDCP version requirements, analog output disable)
 - License expiration (rental periods, subscription windows)
 - Domain binding (sharing across registered devices)
@@ -248,13 +251,14 @@ PSSH Box (ISO 23001-7):
 
 **SystemID values:**
 
-| DRM | SystemID (UUID) |
-|-----|-----------------|
-| Widevine | `edef8ba9-79d6-4ace-a3c8-27dcd51d21ed` |
-| FairPlay | `94ce86fb-07ff-4f43-adb8-93d2fa968ca2` |
+| DRM       | SystemID (UUID)                        |
+| --------- | -------------------------------------- |
+| Widevine  | `edef8ba9-79d6-4ace-a3c8-27dcd51d21ed` |
+| FairPlay  | `94ce86fb-07ff-4f43-adb8-93d2fa968ca2` |
 | PlayReady | `9a04f079-9840-4286-ab92-e65be0885f95` |
 
 **PSSH Data contents vary by DRM:**
+
 - **Widevine:** Content ID, key IDs, optional provider/policy info
 - **PlayReady:** PlayReady Object (PRO) containing license acquisition URL and key IDs
 - **FairPlay:** Typically minimal; key acquisition info is in the HLS `EXT-X-KEY` tag
@@ -304,6 +308,7 @@ segment001.m4s
 ```
 
 **Key parameters:**
+
 - `METHOD=SAMPLE-AES`: Indicates `cbcs` encryption
 - `URI`: FairPlay uses `skd://` scheme; the value is passed to the license server
 - `KEYFORMAT`: Identifies FairPlay (`com.apple.streamingkeydelivery`)
@@ -349,16 +354,17 @@ The license server is the policy engine of DRM. It doesn't just deliver keys—i
 
 Licenses contain policies that the CDM enforces locally:
 
-| Policy | Description | Example |
-|--------|-------------|---------|
-| **License duration** | How long the license is valid | 48 hours (rental) |
-| **Playback duration** | How long playback can continue after first play | 24 hours |
-| **Persistence** | Whether license survives app restart | Offline viewing |
-| **Output restrictions** | Required HDCP version, analog output control | HDCP 2.2 for 4K |
-| **Security level** | Minimum client security level | L1 for HD+ |
-| **Device binding** | License tied to specific device | Non-transferable |
+| Policy                  | Description                                     | Example           |
+| ----------------------- | ----------------------------------------------- | ----------------- |
+| **License duration**    | How long the license is valid                   | 48 hours (rental) |
+| **Playback duration**   | How long playback can continue after first play | 24 hours          |
+| **Persistence**         | Whether license survives app restart            | Offline viewing   |
+| **Output restrictions** | Required HDCP version, analog output control    | HDCP 2.2 for 4K   |
+| **Security level**      | Minimum client security level                   | L1 for HD+        |
+| **Device binding**      | License tied to specific device                 | Non-transferable  |
 
 **Rental example:** A 48-hour rental might have:
+
 - License duration: 30 days (time to start watching)
 - Playback duration: 48 hours (once playback begins)
 - Persistence: Enabled (for offline viewing)
@@ -368,6 +374,7 @@ Licenses contain policies that the CDM enforces locally:
 For live streaming, key rotation changes encryption keys periodically, limiting the exposure window if a key is compromised.
 
 **Implementation:**
+
 1. Encoder generates new key at rotation interval (e.g., every hour)
 2. Key Service stores new key with associated time period
 3. MPD/playlist signals upcoming key change via PSSH update
@@ -444,26 +451,30 @@ sequenceDiagram
 Checks if a DRM system is available and supports the requested configuration.
 
 ```javascript
-const config = [{
-  initDataTypes: ['cenc'],
-  videoCapabilities: [{
-    contentType: 'video/mp4; codecs="avc1.640028"',
-    robustness: 'HW_SECURE_ALL'  // Request L1
-  }],
-  audioCapabilities: [{
-    contentType: 'audio/mp4; codecs="mp4a.40.2"'
-  }],
-  persistentState: 'required',  // For offline
-  sessionTypes: ['persistent-license']
-}];
+const config = [
+  {
+    initDataTypes: ["cenc"],
+    videoCapabilities: [
+      {
+        contentType: 'video/mp4; codecs="avc1.640028"',
+        robustness: "HW_SECURE_ALL", // Request L1
+      },
+    ],
+    audioCapabilities: [
+      {
+        contentType: 'audio/mp4; codecs="mp4a.40.2"',
+      },
+    ],
+    persistentState: "required", // For offline
+    sessionTypes: ["persistent-license"],
+  },
+]
 
-const access = await navigator.requestMediaKeySystemAccess(
-  'com.widevine.alpha',
-  config
-);
+const access = await navigator.requestMediaKeySystemAccess("com.widevine.alpha", config)
 ```
 
 **Robustness levels (Widevine):**
+
 - `HW_SECURE_ALL`: L1 (hardware path for crypto and decode)
 - `HW_SECURE_CRYPTO`: L2 (hardware crypto, software decode)
 - `SW_SECURE_CRYPTO`: L3 (software only)
@@ -473,45 +484,45 @@ const access = await navigator.requestMediaKeySystemAccess(
 MediaKeys represents the keying material for a media element. MediaKeySession handles the license exchange for a specific set of keys.
 
 ```javascript
-const mediaKeys = await access.createMediaKeys();
-await videoElement.setMediaKeys(mediaKeys);
+const mediaKeys = await access.createMediaKeys()
+await videoElement.setMediaKeys(mediaKeys)
 
 // When encrypted event fires
-videoElement.addEventListener('encrypted', async (event) => {
-  const session = mediaKeys.createSession('temporary');
+videoElement.addEventListener("encrypted", async (event) => {
+  const session = mediaKeys.createSession("temporary")
 
-  session.addEventListener('message', async (messageEvent) => {
+  session.addEventListener("message", async (messageEvent) => {
     // messageEvent.message contains the license request
-    const response = await fetch('/license', {
-      method: 'POST',
-      body: messageEvent.message
-    });
-    const license = await response.arrayBuffer();
-    await session.update(license);
-  });
+    const response = await fetch("/license", {
+      method: "POST",
+      body: messageEvent.message,
+    })
+    const license = await response.arrayBuffer()
+    await session.update(license)
+  })
 
-  await session.generateRequest(event.initDataType, event.initData);
-});
+  await session.generateRequest(event.initDataType, event.initData)
+})
 ```
 
 ### Session Types
 
-| Type | Persistence | Use Case |
-|------|-------------|----------|
-| `temporary` | Memory only; lost on page close | Streaming |
-| `persistent-license` | Stored; survives restart | Offline viewing |
+| Type                      | Persistence                      | Use Case        |
+| ------------------------- | -------------------------------- | --------------- |
+| `temporary`               | Memory only; lost on page close  | Streaming       |
+| `persistent-license`      | Stored; survives restart         | Offline viewing |
 | `persistent-usage-record` | Records playback for secure stop | Rental tracking |
 
 **Persistent license flow:** For offline playback, the app stores the session ID. On reconnect, it calls `mediaKeys.createSession('persistent-license')` followed by `session.load(storedSessionId)` to restore the license without network access.
 
 ### Common Failure Modes
 
-| Error | Symptom | Cause |
-|-------|---------|-------|
-| `NotSupportedError` | `requestMediaKeySystemAccess` rejects | DRM system unavailable or config unsupported |
-| `QuotaExceededError` | `createSession` fails | Too many concurrent sessions |
-| `InvalidStateError` | `update` fails | License response malformed or session closed |
-| `SecurityError` | Playback fails after license | Security level mismatch or HDCP missing |
+| Error                | Symptom                               | Cause                                        |
+| -------------------- | ------------------------------------- | -------------------------------------------- |
+| `NotSupportedError`  | `requestMediaKeySystemAccess` rejects | DRM system unavailable or config unsupported |
+| `QuotaExceededError` | `createSession` fails                 | Too many concurrent sessions                 |
+| `InvalidStateError`  | `update` fails                        | License response malformed or session closed |
+| `SecurityError`      | Playback fails after license          | Security level mismatch or HDCP missing      |
 
 **Debugging tip:** Enable chrome://media-internals in Chrome to see detailed EME events, license requests, and CDM status.
 
@@ -545,12 +556,12 @@ packager \
 
 **Key parameters:**
 
-| Parameter | Purpose |
-|-----------|---------|
-| `--protection_scheme cbcs` | Use cbcs encryption for Apple compatibility |
-| `--protection_systems` | Generate PSSH for specified DRM systems |
-| `--enable_raw_key_encryption` | Use provided keys (vs. Widevine server) |
-| `--drm_label` | Associate different keys with different tracks |
+| Parameter                     | Purpose                                        |
+| ----------------------------- | ---------------------------------------------- |
+| `--protection_scheme cbcs`    | Use cbcs encryption for Apple compatibility    |
+| `--protection_systems`        | Generate PSSH for specified DRM systems        |
+| `--enable_raw_key_encryption` | Use provided keys (vs. Widevine server)        |
+| `--drm_label`                 | Associate different keys with different tracks |
 
 ### CPIX Integration
 
@@ -593,13 +604,13 @@ DRM addresses specific threats in the content distribution chain. Understanding 
 
 ### What DRM Protects Against
 
-| Threat | DRM Mitigation |
-|--------|----------------|
-| **Casual sharing** | Content requires license; can't just copy files |
-| **Network capture** | Encrypted stream is useless without keys |
-| **Screen recording (L1/SL3000)** | Hardware path prevents capture APIs |
-| **Playback manipulation** | License policies (expiration, device binding) |
-| **Credential sharing** | Concurrent stream limits enforced server-side |
+| Threat                           | DRM Mitigation                                  |
+| -------------------------------- | ----------------------------------------------- |
+| **Casual sharing**               | Content requires license; can't just copy files |
+| **Network capture**              | Encrypted stream is useless without keys        |
+| **Screen recording (L1/SL3000)** | Hardware path prevents capture APIs             |
+| **Playback manipulation**        | License policies (expiration, device binding)   |
+| **Credential sharing**           | Concurrent stream limits enforced server-side   |
 
 ### What DRM Doesn't Protect Against
 
@@ -617,15 +628,16 @@ Watermarking complements DRM by enabling leak tracing. Unlike DRM (prevention), 
 
 **Types:**
 
-| Type | Application | Visibility |
-|------|-------------|------------|
-| **Visible** | Applied at encode time | User sees overlay |
+| Type                     | Application                       | Visibility                      |
+| ------------------------ | --------------------------------- | ------------------------------- |
+| **Visible**              | Applied at encode time            | User sees overlay               |
 | **Server-side forensic** | Applied during packaging/delivery | Invisible; per-user ID embedded |
-| **Client-side forensic** | Applied by player at render | Invisible; session-specific |
+| **Client-side forensic** | Applied by player at render       | Invisible; session-specific     |
 
 **Session-based watermarking:** Each playback session embeds unique identifiers (user ID, session ID, timestamp) into the video signal. If leaked content is discovered, extraction tools can recover the session information and identify the source account.
 
 **Limitations:**
+
 - Watermarks must survive re-encoding attacks (quality degradation, cropping, scaling)
 - Robust watermarks may introduce visible artifacts
 - Extraction from low-quality re-recordings is unreliable
@@ -636,6 +648,7 @@ Watermarking complements DRM by enabling leak tracing. Unlike DRM (prevention), 
 High-bandwidth Digital Content Protection (HDCP) encrypts the link between a player device and display, preventing HDMI capture.
 
 **Versions:**
+
 - **HDCP 1.x:** Broken; master key leaked in 2010
 - **HDCP 2.2:** Required for 4K content; no public breaks as of 2024
 - **HDCP 2.3:** Latest version, additional robustness
@@ -650,22 +663,22 @@ High-bandwidth Digital Content Protection (HDCP) encrypts the link between a pla
 
 **Key metrics:**
 
-| Metric | Target | Alert Threshold |
-|--------|--------|-----------------|
-| License acquisition success rate | > 99.5% | < 99% |
-| License acquisition p95 latency | < 500ms | > 1s |
-| CDM initialization failures | < 0.1% | > 0.5% |
-| Key rotation success rate | 100% | < 100% |
-| Entitlement validation latency | < 100ms | > 250ms |
+| Metric                           | Target  | Alert Threshold |
+| -------------------------------- | ------- | --------------- |
+| License acquisition success rate | > 99.5% | < 99%           |
+| License acquisition p95 latency  | < 500ms | > 1s            |
+| CDM initialization failures      | < 0.1%  | > 0.5%          |
+| Key rotation success rate        | 100%    | < 100%          |
+| Entitlement validation latency   | < 100ms | > 250ms         |
 
 **Error categorization:**
 
-| Error Category | Examples | Action |
-|----------------|----------|--------|
-| **Client error** | Unsupported DRM, invalid request | Log, don't alert |
-| **Auth error** | Expired subscription, geo-block | Expected; monitor rate |
-| **Server error** | License server down, key service unavailable | Page immediately |
-| **Timeout** | Network issues, overloaded server | Scale or investigate |
+| Error Category   | Examples                                     | Action                 |
+| ---------------- | -------------------------------------------- | ---------------------- |
+| **Client error** | Unsupported DRM, invalid request             | Log, don't alert       |
+| **Auth error**   | Expired subscription, geo-block              | Expected; monitor rate |
+| **Server error** | License server down, key service unavailable | Page immediately       |
+| **Timeout**      | Network issues, overloaded server            | Scale or investigate   |
 
 ### High Availability
 
@@ -681,6 +694,7 @@ License servers are critical path—playback fails without them. Design consider
 Content keys are crown jewels. Compromise means permanent content exposure.
 
 **Best practices:**
+
 - Keys stored in HSMs (Hardware Security Modules) or cloud KMS
 - Separate key service from license service (different security domains)
 - Audit logging for all key access
@@ -690,6 +704,7 @@ Content keys are crown jewels. Compromise means permanent content exposure.
 ### Device Management
 
 **Device limits:** Most services cap concurrent streams (e.g., 4 simultaneous). Implemented via:
+
 - License server tracks active sessions per account
 - Heartbeat from players confirms continued playback
 - Secure stop signals when playback ends
@@ -729,26 +744,26 @@ For new deployments: CMAF with `cbcs` encryption, all three DRM systems (Widevin
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **AES-128** | Advanced Encryption Standard with 128-bit keys—the encryption algorithm used by all DRM systems |
-| **cbcs** | CENC protection scheme using AES-CBC with pattern encryption—required for FairPlay and CMAF |
-| **CDM** | Content Decryption Module—platform component that handles DRM decryption (Widevine, FairPlay, PlayReady implementations) |
-| **CENC** | Common Encryption (ISO/IEC 23001-7)—standard for multi-DRM compatible encryption |
-| **CKC** | Content Key Context—FairPlay's license response containing the encrypted content key |
-| **CMAF** | Common Media Application Format—unified fMP4 container for HLS and DASH |
-| **CPIX** | Content Protection Information Exchange—DASH-IF standard for key exchange between services |
-| **EME** | Encrypted Media Extensions—W3C API connecting JavaScript to CDMs |
-| **HDCP** | High-bandwidth Digital Content Protection—encryption for HDMI/DisplayPort links |
-| **HSM** | Hardware Security Module—tamper-resistant device for cryptographic key storage |
-| **KSM** | Key Security Module—Apple's term for the FairPlay license server component |
-| **L1/L3** | Widevine security levels—L1 is hardware TEE, L3 is software-only |
-| **NAL** | Network Abstraction Layer—framing structure in H.264/HEVC bitstreams |
-| **PSSH** | Protection System Specific Header—DRM metadata box in fMP4 containing key IDs and system-specific data |
-| **SL2000/SL3000** | PlayReady security levels—SL3000 is hardware TEE, SL2000 is software |
-| **SPC** | Server Playback Context—FairPlay's license request blob |
-| **SPEKE** | Secure Packager and Encoder Key Exchange—AWS protocol built on CPIX |
-| **TEE** | Trusted Execution Environment—hardware-isolated secure processing area |
+| Term              | Definition                                                                                                               |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| **AES-128**       | Advanced Encryption Standard with 128-bit keys—the encryption algorithm used by all DRM systems                          |
+| **cbcs**          | CENC protection scheme using AES-CBC with pattern encryption—required for FairPlay and CMAF                              |
+| **CDM**           | Content Decryption Module—platform component that handles DRM decryption (Widevine, FairPlay, PlayReady implementations) |
+| **CENC**          | Common Encryption (ISO/IEC 23001-7)—standard for multi-DRM compatible encryption                                         |
+| **CKC**           | Content Key Context—FairPlay's license response containing the encrypted content key                                     |
+| **CMAF**          | Common Media Application Format—unified fMP4 container for HLS and DASH                                                  |
+| **CPIX**          | Content Protection Information Exchange—DASH-IF standard for key exchange between services                               |
+| **EME**           | Encrypted Media Extensions—W3C API connecting JavaScript to CDMs                                                         |
+| **HDCP**          | High-bandwidth Digital Content Protection—encryption for HDMI/DisplayPort links                                          |
+| **HSM**           | Hardware Security Module—tamper-resistant device for cryptographic key storage                                           |
+| **KSM**           | Key Security Module—Apple's term for the FairPlay license server component                                               |
+| **L1/L3**         | Widevine security levels—L1 is hardware TEE, L3 is software-only                                                         |
+| **NAL**           | Network Abstraction Layer—framing structure in H.264/HEVC bitstreams                                                     |
+| **PSSH**          | Protection System Specific Header—DRM metadata box in fMP4 containing key IDs and system-specific data                   |
+| **SL2000/SL3000** | PlayReady security levels—SL3000 is hardware TEE, SL2000 is software                                                     |
+| **SPC**           | Server Playback Context—FairPlay's license request blob                                                                  |
+| **SPEKE**         | Secure Packager and Encoder Key Exchange—AWS protocol built on CPIX                                                      |
+| **TEE**           | Trusted Execution Environment—hardware-isolated secure processing area                                                   |
 
 ### Summary
 
@@ -766,7 +781,6 @@ For new deployments: CMAF with `cbcs` encryption, all three DRM systems (Widevin
 - [ISO/IEC 23001-7:2023 - Common Encryption](https://www.iso.org/standard/84637.html) - CENC specification defining encryption modes and subsample encryption
 - [W3C Encrypted Media Extensions](https://www.w3.org/TR/encrypted-media-2/) - EME API specification for browser DRM integration
 - [W3C "cenc" Initialization Data Format](https://w3c.github.io/encrypted-media/format-registry/initdata/cenc.html) - PSSH format for EME
-- [DASH-IF Content Protection Guidelines](https://dashif-documents.azurewebsites.net/Guidelines-Security/master/Guidelines-Security.html) - Interoperability guidelines for DASH DRM
 - [DASH-IF CPIX Specification](https://dashif.org/guidelines/) - Content Protection Information Exchange format
 
 **Official Documentation:**

@@ -70,14 +70,14 @@ Real-time chat systems solve three interrelated problems: **low-latency delivery
 
 **Core architectural decisions:**
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Transport | WebSocket | Full-duplex, 2-byte overhead after handshake |
-| Delivery guarantee | At-least-once + client dedup | Simpler than exactly-once; idempotency at app layer |
-| Message ordering | Server-assigned timestamps | Single source of truth; avoids clock skew issues |
-| Fan-out model | Hybrid push/pull | Push for small groups, pull for large channels |
-| Presence | Heartbeat + Redis pub/sub | Ephemeral data; no persistence needed |
-| Offline sync | Client-side sequence tracking | Fetch missed messages on reconnect |
+| Decision           | Choice                        | Rationale                                           |
+| ------------------ | ----------------------------- | --------------------------------------------------- |
+| Transport          | WebSocket                     | Full-duplex, 2-byte overhead after handshake        |
+| Delivery guarantee | At-least-once + client dedup  | Simpler than exactly-once; idempotency at app layer |
+| Message ordering   | Server-assigned timestamps    | Single source of truth; avoids clock skew issues    |
+| Fan-out model      | Hybrid push/pull              | Push for small groups, pull for large channels      |
+| Presence           | Heartbeat + Redis pub/sub     | Ephemeral data; no persistence needed               |
+| Offline sync       | Client-side sequence tracking | Fetch missed messages on reconnect                  |
 
 **Key trade-offs accepted:**
 
@@ -97,49 +97,53 @@ Real-time chat systems solve three interrelated problems: **low-latency delivery
 
 ### Functional Requirements
 
-| Requirement | Priority | Notes |
-|-------------|----------|-------|
-| 1:1 direct messaging | Core | Private conversations between two users |
-| Group messaging | Core | Up to 1000 members per group |
-| Message delivery receipts | Core | Sent, delivered, read indicators |
-| Typing indicators | Core | Real-time "user is typing" display |
-| Online/offline presence | Core | Show user availability status |
-| Offline message delivery | Core | Queue and deliver when user reconnects |
-| Message history sync | Core | Retrieve past messages across devices |
-| Read receipts | Extended | Track who has read messages |
-| Media attachments | Extended | Images, videos, files (out of detailed scope) |
-| End-to-end encryption | Extended | Signal protocol (out of detailed scope) |
+| Requirement               | Priority | Notes                                         |
+| ------------------------- | -------- | --------------------------------------------- |
+| 1:1 direct messaging      | Core     | Private conversations between two users       |
+| Group messaging           | Core     | Up to 1000 members per group                  |
+| Message delivery receipts | Core     | Sent, delivered, read indicators              |
+| Typing indicators         | Core     | Real-time "user is typing" display            |
+| Online/offline presence   | Core     | Show user availability status                 |
+| Offline message delivery  | Core     | Queue and deliver when user reconnects        |
+| Message history sync      | Core     | Retrieve past messages across devices         |
+| Read receipts             | Extended | Track who has read messages                   |
+| Media attachments         | Extended | Images, videos, files (out of detailed scope) |
+| End-to-end encryption     | Extended | Signal protocol (out of detailed scope)       |
 
 ### Non-Functional Requirements
 
-| Requirement | Target | Rationale |
-|-------------|--------|-----------|
-| Availability | 99.99% (4 nines) | Communication is critical; 52 min/year downtime max |
-| Message delivery latency | p99 < 500ms | Real-time feel requires sub-second |
-| Message durability | 99.9999% | No message should ever be lost |
-| Offline sync time | < 5s for 1000 messages | Fast reconnection experience |
-| Concurrent connections | 10M per region | Mobile-scale concurrent users |
-| Message retention | 30 days default, configurable | Storage cost vs. user expectations |
+| Requirement              | Target                        | Rationale                                           |
+| ------------------------ | ----------------------------- | --------------------------------------------------- |
+| Availability             | 99.99% (4 nines)              | Communication is critical; 52 min/year downtime max |
+| Message delivery latency | p99 < 500ms                   | Real-time feel requires sub-second                  |
+| Message durability       | 99.9999%                      | No message should ever be lost                      |
+| Offline sync time        | < 5s for 1000 messages        | Fast reconnection experience                        |
+| Concurrent connections   | 10M per region                | Mobile-scale concurrent users                       |
+| Message retention        | 30 days default, configurable | Storage cost vs. user expectations                  |
 
 ### Scale Estimation
 
 **Users:**
+
 - Monthly Active Users (MAU): 500M
 - Daily Active Users (DAU): 200M (40% of MAU)
 - Peak concurrent connections: 50M (25% of DAU)
 
 **Traffic:**
+
 - Messages per user per day: 50 (mix of 1:1 and group)
 - Daily messages: 200M × 50 = 10B messages/day
 - Peak messages per second: 10B / 86400 × 3 (peak multiplier) = 350K msgs/sec
 
 **Storage:**
+
 - Average message size: 500 bytes (text + metadata)
 - Daily storage: 10B × 500B = 5TB/day
 - 30-day retention: 150TB
 - With replication (3x): 450TB
 
 **Connections:**
+
 - WebSocket connections per gateway: 500K (Linux file descriptor limits)
 - Gateway servers needed: 50M / 500K = 100 servers minimum
 - With redundancy (2x): 200 gateway servers
@@ -149,6 +153,7 @@ Real-time chat systems solve three interrelated problems: **low-latency delivery
 ### Path A: Connection-Centric (Server-Routed)
 
 **Best when:**
+
 - Infrastructure team can maintain stateful WebSocket servers
 - Low latency is primary requirement
 - Moderate group sizes (< 500 members)
@@ -176,11 +181,13 @@ sequenceDiagram
 ```
 
 **Key characteristics:**
+
 - Each gateway maintains user-to-connection mapping
 - Message service routes directly to recipient's gateway
 - Synchronous delivery with acknowledgment chain
 
 **Trade-offs:**
+
 - ✅ Lowest latency (direct routing)
 - ✅ Simple mental model
 - ✅ Strong ordering guarantees
@@ -193,6 +200,7 @@ sequenceDiagram
 ### Path B: Queue-Centric (Async Fan-out)
 
 **Best when:**
+
 - Very large groups/channels (1000+ members)
 - Geographic distribution across regions
 - Tolerance for slightly higher latency (100-500ms)
@@ -229,11 +237,13 @@ flowchart LR
 ```
 
 **Key characteristics:**
+
 - Messages published to Kafka partitioned by conversation
 - Fan-out workers consume and distribute to recipients
 - Decouples send from delivery for reliability
 
 **Trade-offs:**
+
 - ✅ Handles large fan-out efficiently
 - ✅ Built-in replay capability
 - ✅ Better failure isolation
@@ -246,6 +256,7 @@ flowchart LR
 ### Path C: Hybrid (Push for Small, Pull for Large)
 
 **Best when:**
+
 - Mix of 1:1, small groups, and large channels
 - Need to balance latency vs. resource usage
 - Celebrity/influencer use cases with massive follower counts
@@ -266,11 +277,13 @@ flowchart TB
 ```
 
 **Key characteristics:**
+
 - Small groups use direct push for lowest latency
 - Large groups use async fan-out to avoid write amplification
 - Threshold typically 50-100 members
 
 **Trade-offs:**
+
 - ✅ Optimal latency for common case (1:1 and small groups)
 - ✅ Scales to large channels without overwhelming gateways
 - ✅ Flexible resource allocation
@@ -282,18 +295,19 @@ flowchart TB
 
 ### Path Comparison
 
-| Factor | Connection-Centric | Queue-Centric | Hybrid |
-|--------|-------------------|---------------|--------|
-| Latency (p50) | 50-100ms | 100-300ms | 50-300ms |
-| Max group size | ~500 | Unlimited | Unlimited |
-| Complexity | Moderate | High | Highest |
-| Failure isolation | Gateway-level | Topic-level | Mixed |
-| Replay capability | Limited | Native | Mixed |
-| Production examples | WhatsApp | Slack | Discord |
+| Factor              | Connection-Centric | Queue-Centric | Hybrid    |
+| ------------------- | ------------------ | ------------- | --------- |
+| Latency (p50)       | 50-100ms           | 100-300ms     | 50-300ms  |
+| Max group size      | ~500               | Unlimited     | Unlimited |
+| Complexity          | Moderate           | High          | Highest   |
+| Failure isolation   | Gateway-level      | Topic-level   | Mixed     |
+| Replay capability   | Limited            | Native        | Mixed     |
+| Production examples | WhatsApp           | Slack         | Discord   |
 
 ### This Article's Focus
 
 This article focuses on **Path C (Hybrid)** because:
+
 1. Covers the full spectrum of use cases (1:1 to large channels)
 2. Represents modern production architectures (Discord, Telegram)
 3. Demonstrates trade-off thinking expected in system design interviews
@@ -376,6 +390,7 @@ flowchart TB
 Manages persistent connections and routes messages between clients and services.
 
 **Responsibilities:**
+
 - WebSocket connection lifecycle (connect, heartbeat, disconnect)
 - Authentication and session validation
 - Message routing to appropriate services
@@ -384,15 +399,16 @@ Manages persistent connections and routes messages between clients and services.
 
 **Design decisions:**
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Protocol | WebSocket over TLS | Full-duplex, minimal overhead, universal support |
-| Session affinity | Consistent hashing by user_id | Predictable routing, simplifies state management |
-| Heartbeat interval | 30 seconds | Balance between detection speed and overhead |
-| Connection timeout | 90 seconds | 3 missed heartbeats before disconnect |
-| Max connections/server | 500K | Linux file descriptor limits with tuning |
+| Decision               | Choice                        | Rationale                                        |
+| ---------------------- | ----------------------------- | ------------------------------------------------ |
+| Protocol               | WebSocket over TLS            | Full-duplex, minimal overhead, universal support |
+| Session affinity       | Consistent hashing by user_id | Predictable routing, simplifies state management |
+| Heartbeat interval     | 30 seconds                    | Balance between detection speed and overhead     |
+| Connection timeout     | 90 seconds                    | 3 missed heartbeats before disconnect            |
+| Max connections/server | 500K                          | Linux file descriptor limits with tuning         |
 
 **Scaling approach:**
+
 - Horizontal scaling with consistent hashing
 - User-to-gateway mapping stored in Redis
 - Graceful drain on shutdown (notify clients to reconnect)
@@ -405,24 +421,24 @@ Core service for message processing, persistence, and routing.
 
 ```typescript
 interface Message {
-  messageId: string;          // UUID, client-generated for idempotency
-  conversationId: string;     // 1:1 or group conversation
-  senderId: string;
-  content: MessageContent;
-  timestamp: number;          // Server-assigned Unix timestamp
-  sequenceNumber: bigint;     // Per-conversation monotonic sequence
-  status: MessageStatus;      // PENDING | SENT | DELIVERED | READ
-  expiresAt?: number;         // Optional TTL for ephemeral messages
+  messageId: string // UUID, client-generated for idempotency
+  conversationId: string // 1:1 or group conversation
+  senderId: string
+  content: MessageContent
+  timestamp: number // Server-assigned Unix timestamp
+  sequenceNumber: bigint // Per-conversation monotonic sequence
+  status: MessageStatus // PENDING | SENT | DELIVERED | READ
+  expiresAt?: number // Optional TTL for ephemeral messages
 }
 
 interface MessageContent {
-  type: 'text' | 'image' | 'file' | 'location';
-  text?: string;
-  mediaUrl?: string;
-  metadata?: Record<string, any>;
+  type: "text" | "image" | "file" | "location"
+  text?: string
+  mediaUrl?: string
+  metadata?: Record<string, any>
 }
 
-type MessageStatus = 'PENDING' | 'SENT' | 'DELIVERED' | 'READ';
+type MessageStatus = "PENDING" | "SENT" | "DELIVERED" | "READ"
 ```
 
 **Message flow:**
@@ -440,6 +456,7 @@ type MessageStatus = 'PENDING' | 'SENT' | 'DELIVERED' | 'READ';
 Handles online/offline status, typing indicators, and last-seen timestamps.
 
 **Design decisions:**
+
 - **No persistence**: Presence reconstructed from heartbeats
 - **TTL-based**: Status expires automatically on disconnect
 - **Pub/Sub distribution**: Redis pub/sub for real-time updates
@@ -449,16 +466,17 @@ Handles online/offline status, typing indicators, and last-seen timestamps.
 
 ```typescript
 interface UserPresence {
-  userId: string;
-  status: 'online' | 'away' | 'offline';
-  lastSeen: number;           // Unix timestamp
-  deviceType: 'mobile' | 'web' | 'desktop';
-  typingIn?: string;          // conversationId if typing
-  typingExpires?: number;     // Auto-clear after 5 seconds
+  userId: string
+  status: "online" | "away" | "offline"
+  lastSeen: number // Unix timestamp
+  deviceType: "mobile" | "web" | "desktop"
+  typingIn?: string // conversationId if typing
+  typingExpires?: number // Auto-clear after 5 seconds
 }
 ```
 
 **Presence subscription model:**
+
 - Users subscribe to presence of their contacts on connect
 - Changes broadcast via Redis pub/sub to subscribed gateways
 - Gateways filter and forward to relevant connected clients
@@ -468,12 +486,14 @@ interface UserPresence {
 Handles message history retrieval and offline synchronization.
 
 **Sync protocol:**
+
 - Client maintains `lastSequenceNumber` per conversation
 - On reconnect, client sends list of (conversationId, lastSeq) pairs
 - Server returns all messages with sequence > lastSeq
 - Client merges into local database, deduplicating by messageId
 
 **Pagination strategy:**
+
 - Default page size: 50 messages
 - Cursor-based pagination using (conversationId, sequenceNumber)
 - Supports forward (newer) and backward (older) fetching
@@ -767,14 +787,14 @@ wss://chat.example.com/ws?token={jwt}&device_id={uuid}
 
 ### Error Responses
 
-| Code | Error | When |
-|------|-------|------|
-| 400 | `INVALID_MESSAGE` | Message format invalid |
-| 401 | `UNAUTHORIZED` | Invalid or expired token |
-| 403 | `FORBIDDEN` | Not a member of conversation |
-| 404 | `CONVERSATION_NOT_FOUND` | Conversation doesn't exist |
-| 409 | `DUPLICATE_MESSAGE` | messageId already processed |
-| 429 | `RATE_LIMITED` | Too many messages |
+| Code | Error                    | When                         |
+| ---- | ------------------------ | ---------------------------- |
+| 400  | `INVALID_MESSAGE`        | Message format invalid       |
+| 401  | `UNAUTHORIZED`           | Invalid or expired token     |
+| 403  | `FORBIDDEN`              | Not a member of conversation |
+| 404  | `CONVERSATION_NOT_FOUND` | Conversation doesn't exist   |
+| 409  | `DUPLICATE_MESSAGE`      | messageId already processed  |
+| 429  | `RATE_LIMITED`           | Too many messages            |
 
 **Rate limit response:**
 
@@ -810,17 +830,20 @@ CREATE TABLE messages (
 ```
 
 **Why ScyllaDB:**
+
 - Optimized for time-series data (messages ordered by sequence)
 - Partition per conversation enables efficient range queries
 - No garbage collection pauses (C++ implementation)
 - Linear horizontal scaling
 
 **Performance characteristics:**
+
 - Read latency p99: 15ms (vs. 40-125ms for Cassandra)
 - Write latency p99: 5ms
 - Partition size recommendation: < 100MB (~200K messages per conversation)
 
 **Partition hot-spot mitigation:**
+
 - Very active conversations split into time-bucketed partitions
 - Partition key: (conversation_id, time_bucket)
 - Time bucket: daily for active chats, monthly for archives
@@ -906,15 +929,15 @@ SETEX typing:{conversation_id}:{user_id} 5 1
 
 ### Database Selection Matrix
 
-| Data Type | Store | Rationale |
-|-----------|-------|-----------|
-| Messages | ScyllaDB | Time-series optimized, low latency, horizontal scale |
-| User profiles | PostgreSQL | ACID, complex queries, moderate scale |
-| Conversation metadata | PostgreSQL | Relational queries, ACL management |
-| Sessions, presence | Redis Cluster | Sub-ms latency, TTL support, pub/sub |
-| Message dedup cache | Redis | Fast lookups, automatic expiry |
-| Media files | S3 | Object storage, CDN integration |
-| Analytics events | Kafka → ClickHouse | High-volume time-series analytics |
+| Data Type             | Store              | Rationale                                            |
+| --------------------- | ------------------ | ---------------------------------------------------- |
+| Messages              | ScyllaDB           | Time-series optimized, low latency, horizontal scale |
+| User profiles         | PostgreSQL         | ACID, complex queries, moderate scale                |
+| Conversation metadata | PostgreSQL         | Relational queries, ACL management                   |
+| Sessions, presence    | Redis Cluster      | Sub-ms latency, TTL support, pub/sub                 |
+| Message dedup cache   | Redis              | Fast lookups, automatic expiry                       |
+| Media files           | S3                 | Object storage, CDN integration                      |
+| Analytics events      | Kafka → ClickHouse | High-volume time-series analytics                    |
 
 ## Low-Level Design
 
@@ -926,54 +949,50 @@ For conversations with < 100 members:
 
 ```typescript collapse={1-12}
 class DirectPushHandler {
-  private readonly redis: RedisCluster;
-  private readonly messageStore: MessageStore;
+  private readonly redis: RedisCluster
+  private readonly messageStore: MessageStore
 
   async deliverMessage(message: Message): Promise<void> {
     // 1. Get all members of conversation
-    const members = await this.getConversationMembers(message.conversationId);
+    const members = await this.getConversationMembers(message.conversationId)
 
     // 2. For each member, find their active connections
     const deliveryTasks = members
-      .filter(m => m.userId !== message.senderId)
+      .filter((m) => m.userId !== message.senderId)
       .map(async (member) => {
-        const connections = await this.redis.smembers(`user:conn:${member.userId}`);
+        const connections = await this.redis.smembers(`user:conn:${member.userId}`)
 
         if (connections.length > 0) {
           // User is online - push directly
-          await Promise.all(
-            connections.map(connId => this.pushToConnection(connId, message))
-          );
-          return { userId: member.userId, status: 'pushed' };
+          await Promise.all(connections.map((connId) => this.pushToConnection(connId, message)))
+          return { userId: member.userId, status: "pushed" }
         } else {
           // User is offline - queue for push notification
-          await this.queuePushNotification(member.userId, message);
-          return { userId: member.userId, status: 'queued' };
+          await this.queuePushNotification(member.userId, message)
+          return { userId: member.userId, status: "queued" }
         }
-      });
+      })
 
-    const results = await Promise.all(deliveryTasks);
+    const results = await Promise.all(deliveryTasks)
 
     // 3. Update delivery status
-    const deliveredTo = results
-      .filter(r => r.status === 'pushed')
-      .map(r => r.userId);
+    const deliveredTo = results.filter((r) => r.status === "pushed").map((r) => r.userId)
 
     if (deliveredTo.length > 0) {
-      await this.notifyDeliveryReceipt(message, deliveredTo);
+      await this.notifyDeliveryReceipt(message, deliveredTo)
     }
   }
 
   private async pushToConnection(connId: string, message: Message): Promise<void> {
-    const connInfo = await this.redis.hgetall(`conn:${connId}`);
-    const gateway = connInfo.gateway;
+    const connInfo = await this.redis.hgetall(`conn:${connId}`)
+    const gateway = connInfo.gateway
 
     // Send via internal RPC to gateway
     await this.gatewayClient.send(gateway, {
-      type: 'deliver',
+      type: "deliver",
       connectionId: connId,
-      message
-    });
+      message,
+    })
   }
 }
 ```
@@ -984,46 +1003,42 @@ For conversations with >= 100 members:
 
 ```typescript collapse={1-15}
 class KafkaFanoutHandler {
-  private readonly kafka: KafkaProducer;
-  private readonly FANOUT_TOPIC = 'messages.fanout';
+  private readonly kafka: KafkaProducer
+  private readonly FANOUT_TOPIC = "messages.fanout"
 
   async publishForFanout(message: Message, memberCount: number): Promise<void> {
     // Partition by conversation for ordering guarantee
     await this.kafka.send({
       topic: this.FANOUT_TOPIC,
-      messages: [{
-        key: message.conversationId,
-        value: JSON.stringify({
-          message,
-          memberCount,
-          publishedAt: Date.now()
-        })
-      }]
-    });
+      messages: [
+        {
+          key: message.conversationId,
+          value: JSON.stringify({
+            message,
+            memberCount,
+            publishedAt: Date.now(),
+          }),
+        },
+      ],
+    })
   }
 }
 
 // Fan-out consumer (multiple instances)
 class FanoutConsumer {
-  private readonly BATCH_SIZE = 100;
+  private readonly BATCH_SIZE = 100
 
   async processMessage(record: KafkaRecord): Promise<void> {
-    const { message, memberCount } = JSON.parse(record.value);
+    const { message, memberCount } = JSON.parse(record.value)
 
     // Process members in batches to avoid memory pressure
-    let offset = 0;
+    let offset = 0
     while (offset < memberCount) {
-      const memberBatch = await this.getMemberBatch(
-        message.conversationId,
-        offset,
-        this.BATCH_SIZE
-      );
+      const memberBatch = await this.getMemberBatch(message.conversationId, offset, this.BATCH_SIZE)
 
-      await Promise.all(
-        memberBatch.map(member => this.deliverToMember(member, message))
-      );
+      await Promise.all(memberBatch.map((member) => this.deliverToMember(member, message)))
 
-      offset += this.BATCH_SIZE;
+      offset += this.BATCH_SIZE
     }
   }
 }
@@ -1035,43 +1050,40 @@ class FanoutConsumer {
 
 ```typescript collapse={1-8}
 class SequenceGenerator {
-  private readonly redis: RedisCluster;
+  private readonly redis: RedisCluster
 
   async getNextSequence(conversationId: string): Promise<bigint> {
     // Atomic increment in Redis
-    const sequence = await this.redis.incr(`seq:${conversationId}`);
-    return BigInt(sequence);
+    const sequence = await this.redis.incr(`seq:${conversationId}`)
+    return BigInt(sequence)
   }
 }
 
 class MessageProcessor {
-  async processIncoming(
-    conversationId: string,
-    message: IncomingMessage
-  ): Promise<ProcessedMessage> {
+  async processIncoming(conversationId: string, message: IncomingMessage): Promise<ProcessedMessage> {
     // Acquire conversation lock for ordering
-    const lock = await this.acquireLock(`lock:msg:${conversationId}`, 5000);
+    const lock = await this.acquireLock(`lock:msg:${conversationId}`, 5000)
 
     try {
       // Assign sequence number
-      const sequenceNumber = await this.sequenceGenerator.getNextSequence(conversationId);
+      const sequenceNumber = await this.sequenceGenerator.getNextSequence(conversationId)
 
       // Assign server timestamp
-      const timestamp = Date.now();
+      const timestamp = Date.now()
 
       const processed: ProcessedMessage = {
         ...message,
         sequenceNumber,
         timestamp,
-        status: 'SENT'
-      };
+        status: "SENT",
+      }
 
       // Persist with sequence number
-      await this.messageStore.insert(processed);
+      await this.messageStore.insert(processed)
 
-      return processed;
+      return processed
     } finally {
-      await lock.release();
+      await lock.release()
     }
   }
 }
@@ -1081,40 +1093,40 @@ class MessageProcessor {
 
 ```typescript collapse={1-10}
 class ClientMessageBuffer {
-  private pendingMessages: Map<string, Message[]> = new Map();
-  private lastSequence: Map<string, bigint> = new Map();
+  private pendingMessages: Map<string, Message[]> = new Map()
+  private lastSequence: Map<string, bigint> = new Map()
 
   onMessageReceived(message: Message): void {
-    const expected = (this.lastSequence.get(message.conversationId) || 0n) + 1n;
+    const expected = (this.lastSequence.get(message.conversationId) || 0n) + 1n
 
     if (message.sequenceNumber === expected) {
       // In order - deliver immediately
-      this.deliverToUI(message);
-      this.lastSequence.set(message.conversationId, message.sequenceNumber);
+      this.deliverToUI(message)
+      this.lastSequence.set(message.conversationId, message.sequenceNumber)
 
       // Check for buffered messages that can now be delivered
-      this.flushBuffer(message.conversationId);
+      this.flushBuffer(message.conversationId)
     } else if (message.sequenceNumber > expected) {
       // Out of order - buffer and request missing
-      this.bufferMessage(message);
-      this.requestMissing(message.conversationId, expected, message.sequenceNumber);
+      this.bufferMessage(message)
+      this.requestMissing(message.conversationId, expected, message.sequenceNumber)
     }
     // If sequence < expected, it's a duplicate - ignore
   }
 
   private flushBuffer(conversationId: string): void {
-    const buffer = this.pendingMessages.get(conversationId) || [];
-    buffer.sort((a, b) => Number(a.sequenceNumber - b.sequenceNumber));
+    const buffer = this.pendingMessages.get(conversationId) || []
+    buffer.sort((a, b) => Number(a.sequenceNumber - b.sequenceNumber))
 
-    let expected = (this.lastSequence.get(conversationId) || 0n) + 1n;
+    let expected = (this.lastSequence.get(conversationId) || 0n) + 1n
     while (buffer.length > 0 && buffer[0].sequenceNumber === expected) {
-      const msg = buffer.shift()!;
-      this.deliverToUI(msg);
-      this.lastSequence.set(conversationId, msg.sequenceNumber);
-      expected++;
+      const msg = buffer.shift()!
+      this.deliverToUI(msg)
+      this.lastSequence.set(conversationId, msg.sequenceNumber)
+      expected++
     }
 
-    this.pendingMessages.set(conversationId, buffer);
+    this.pendingMessages.set(conversationId, buffer)
   }
 }
 ```
@@ -1125,63 +1137,69 @@ class ClientMessageBuffer {
 
 ```typescript collapse={1-10}
 class PresenceManager {
-  private readonly PRESENCE_TTL = 120; // seconds
-  private readonly TYPING_TTL = 5;     // seconds
+  private readonly PRESENCE_TTL = 120 // seconds
+  private readonly TYPING_TTL = 5 // seconds
 
   async handleHeartbeat(userId: string, deviceType: string): Promise<void> {
-    const now = Date.now();
+    const now = Date.now()
 
     // Update presence with TTL
-    await this.redis.multi()
+    await this.redis
+      .multi()
       .hset(`presence:${userId}`, {
-        status: 'online',
+        status: "online",
         last_seen: now,
-        device_type: deviceType
+        device_type: deviceType,
       })
       .expire(`presence:${userId}`, this.PRESENCE_TTL)
-      .exec();
+      .exec()
 
     // Publish presence change to subscribers
-    await this.redis.publish(`presence:changes`, JSON.stringify({
-      userId,
-      status: 'online',
-      timestamp: now
-    }));
+    await this.redis.publish(
+      `presence:changes`,
+      JSON.stringify({
+        userId,
+        status: "online",
+        timestamp: now,
+      }),
+    )
   }
 
   async handleDisconnect(userId: string): Promise<void> {
     // Check if user has other active connections
-    const connections = await this.redis.smembers(`user:conn:${userId}`);
+    const connections = await this.redis.smembers(`user:conn:${userId}`)
 
     if (connections.length === 0) {
       // No more connections - mark offline
-      const now = Date.now();
+      const now = Date.now()
 
       await this.redis.hset(`presence:${userId}`, {
-        status: 'offline',
-        last_seen: now
-      });
+        status: "offline",
+        last_seen: now,
+      })
 
-      await this.redis.publish(`presence:changes`, JSON.stringify({
-        userId,
-        status: 'offline',
-        lastSeen: now
-      }));
+      await this.redis.publish(
+        `presence:changes`,
+        JSON.stringify({
+          userId,
+          status: "offline",
+          lastSeen: now,
+        }),
+      )
     }
   }
 
   async setTyping(userId: string, conversationId: string): Promise<void> {
-    await this.redis.setex(
-      `typing:${conversationId}:${userId}`,
-      this.TYPING_TTL,
-      '1'
-    );
+    await this.redis.setex(`typing:${conversationId}:${userId}`, this.TYPING_TTL, "1")
 
     // Notify conversation members
-    await this.redis.publish(`typing:${conversationId}`, JSON.stringify({
-      userId,
-      isTyping: true
-    }));
+    await this.redis.publish(
+      `typing:${conversationId}`,
+      JSON.stringify({
+        userId,
+        isTyping: true,
+      }),
+    )
   }
 }
 ```
@@ -1190,34 +1208,34 @@ class PresenceManager {
 
 ```typescript collapse={1-12}
 class PresenceSubscriber {
-  private subscribedUsers: Set<string> = new Set();
+  private subscribedUsers: Set<string> = new Set()
 
   async subscribeToContacts(userId: string, contactIds: string[]): Promise<void> {
     // Get current status of all contacts
-    const pipeline = this.redis.pipeline();
-    contactIds.forEach(id => {
-      pipeline.hgetall(`presence:${id}`);
-    });
-    const results = await pipeline.exec();
+    const pipeline = this.redis.pipeline()
+    contactIds.forEach((id) => {
+      pipeline.hgetall(`presence:${id}`)
+    })
+    const results = await pipeline.exec()
 
     // Send initial presence state
     const presences = contactIds.map((id, i) => ({
       userId: id,
-      ...(results[i][1] || { status: 'offline' })
-    }));
+      ...(results[i][1] || { status: "offline" }),
+    }))
 
-    this.sendToClient({ type: 'presence.bulk', payload: { presences } });
+    this.sendToClient({ type: "presence.bulk", payload: { presences } })
 
     // Subscribe to changes
-    contactIds.forEach(id => this.subscribedUsers.add(id));
+    contactIds.forEach((id) => this.subscribedUsers.add(id))
   }
 
   onPresenceChange(change: PresenceChange): void {
     if (this.subscribedUsers.has(change.userId)) {
       this.sendToClient({
-        type: 'presence.update',
-        payload: change
-      });
+        type: "presence.update",
+        payload: change,
+      })
     }
   }
 }
@@ -1229,44 +1247,42 @@ class PresenceSubscriber {
 class SyncService {
   async syncConversations(
     userId: string,
-    syncState: Array<{ conversationId: string; lastSequence: bigint }>
+    syncState: Array<{ conversationId: string; lastSequence: bigint }>,
   ): Promise<SyncResponse> {
-    const results: ConversationSync[] = [];
+    const results: ConversationSync[] = []
 
     for (const { conversationId, lastSequence } of syncState) {
       // Verify user is member
-      const isMember = await this.checkMembership(userId, conversationId);
-      if (!isMember) continue;
+      const isMember = await this.checkMembership(userId, conversationId)
+      if (!isMember) continue
 
       // Fetch missed messages
       const messages = await this.messageStore.getMessagesAfter(
         conversationId,
         lastSequence,
-        100 // limit per conversation
-      );
+        100, // limit per conversation
+      )
 
       // Get conversation metadata if changed
-      const conversation = await this.conversationStore.get(conversationId);
+      const conversation = await this.conversationStore.get(conversationId)
 
       results.push({
         conversationId,
         messages,
         hasMore: messages.length === 100,
-        lastSequence: messages.length > 0
-          ? messages[messages.length - 1].sequenceNumber
-          : lastSequence,
-        unreadCount: await this.getUnreadCount(userId, conversationId)
-      });
+        lastSequence: messages.length > 0 ? messages[messages.length - 1].sequenceNumber : lastSequence,
+        unreadCount: await this.getUnreadCount(userId, conversationId),
+      })
     }
 
     // Also check for new conversations
-    const newConversations = await this.getNewConversations(userId, syncState);
+    const newConversations = await this.getNewConversations(userId, syncState)
 
     return {
       conversations: results,
       newConversations,
-      serverTime: Date.now()
-    };
+      serverTime: Date.now(),
+    }
   }
 }
 ```
@@ -1279,40 +1295,39 @@ class SyncService {
 
 ```typescript collapse={1-15}
 class WebSocketManager {
-  private ws: WebSocket | null = null;
-  private reconnectAttempt = 0;
-  private readonly MAX_RECONNECT_DELAY = 30000;
-  private readonly BASE_DELAY = 1000;
+  private ws: WebSocket | null = null
+  private reconnectAttempt = 0
+  private readonly MAX_RECONNECT_DELAY = 30000
+  private readonly BASE_DELAY = 1000
 
   connect(): void {
-    this.ws = new WebSocket(this.buildUrl());
+    this.ws = new WebSocket(this.buildUrl())
 
     this.ws.onopen = () => {
-      this.reconnectAttempt = 0;
-      this.onConnected();
-    };
+      this.reconnectAttempt = 0
+      this.onConnected()
+    }
 
     this.ws.onclose = (event) => {
       if (!event.wasClean) {
-        this.scheduleReconnect();
+        this.scheduleReconnect()
       }
-    };
+    }
 
     this.ws.onerror = () => {
       // Will trigger onclose
-    };
+    }
   }
 
   private scheduleReconnect(): void {
     const delay = Math.min(
-      this.BASE_DELAY * Math.pow(2, this.reconnectAttempt) +
-        Math.random() * 1000, // Jitter
-      this.MAX_RECONNECT_DELAY
-    );
+      this.BASE_DELAY * Math.pow(2, this.reconnectAttempt) + Math.random() * 1000, // Jitter
+      this.MAX_RECONNECT_DELAY,
+    )
 
-    this.reconnectAttempt++;
+    this.reconnectAttempt++
 
-    setTimeout(() => this.connect(), delay);
+    setTimeout(() => this.connect(), delay)
   }
 }
 ```
@@ -1324,56 +1339,50 @@ class WebSocketManager {
 ```typescript collapse={1-20}
 interface LocalDBSchema {
   messages: {
-    key: [string, number]; // [conversationId, sequenceNumber]
-    value: Message;
+    key: [string, number] // [conversationId, sequenceNumber]
+    value: Message
     indexes: {
-      'by-conversation': string;
-      'by-timestamp': number;
-      'by-status': string;
-    };
-  };
+      "by-conversation": string
+      "by-timestamp": number
+      "by-status": string
+    }
+  }
   conversations: {
-    key: string; // conversationId
-    value: ConversationMeta;
+    key: string // conversationId
+    value: ConversationMeta
     indexes: {
-      'by-updated': number;
-    };
-  };
+      "by-updated": number
+    }
+  }
   syncState: {
-    key: string; // conversationId
-    value: { lastSequence: number; lastSync: number };
-  };
+    key: string // conversationId
+    value: { lastSequence: number; lastSync: number }
+  }
 }
 
 class LocalMessageStore {
-  private db: IDBDatabase;
+  private db: IDBDatabase
 
   async saveMessage(message: Message): Promise<void> {
-    const tx = this.db.transaction('messages', 'readwrite');
-    await tx.objectStore('messages').put(message);
+    const tx = this.db.transaction("messages", "readwrite")
+    await tx.objectStore("messages").put(message)
   }
 
-  async getMessages(
-    conversationId: string,
-    options: { before?: number; limit: number }
-  ): Promise<Message[]> {
-    const tx = this.db.transaction('messages', 'readonly');
-    const index = tx.objectStore('messages').index('by-conversation');
+  async getMessages(conversationId: string, options: { before?: number; limit: number }): Promise<Message[]> {
+    const tx = this.db.transaction("messages", "readonly")
+    const index = tx.objectStore("messages").index("by-conversation")
 
-    const range = IDBKeyRange.bound(
-      [conversationId, 0],
-      [conversationId, options.before || Number.MAX_SAFE_INTEGER]
-    );
+    const range = IDBKeyRange.bound([conversationId, 0], [conversationId, options.before || Number.MAX_SAFE_INTEGER])
 
-    const messages: Message[] = [];
-    let cursor = await index.openCursor(range, 'prev');
+    const messages: Message[] = []
+    let cursor = await index.openCursor(range, "prev")
 
     while (cursor && messages.length < options.limit) {
-      messages.push(cursor.value);
-      cursor = await cursor.continue();
+      messages.push(cursor.value)
+      cursor = await cursor.continue()
     }
 
-    return messages;
+    return messages
   }
 }
 ```
@@ -1383,7 +1392,7 @@ class LocalMessageStore {
 ```typescript collapse={1-10}
 class MessageSender {
   async sendMessage(conversationId: string, content: MessageContent): Promise<void> {
-    const clientMessageId = crypto.randomUUID();
+    const clientMessageId = crypto.randomUUID()
     const optimisticMessage: Message = {
       messageId: clientMessageId,
       conversationId,
@@ -1391,41 +1400,41 @@ class MessageSender {
       content,
       timestamp: Date.now(),
       sequenceNumber: -1n, // Pending
-      status: 'PENDING'
-    };
+      status: "PENDING",
+    }
 
     // 1. Show immediately in UI
-    this.messageStore.addOptimistic(optimisticMessage);
-    this.ui.appendMessage(optimisticMessage);
+    this.messageStore.addOptimistic(optimisticMessage)
+    this.ui.appendMessage(optimisticMessage)
 
     // 2. Persist to local DB
-    await this.localDb.saveMessage(optimisticMessage);
+    await this.localDb.saveMessage(optimisticMessage)
 
     // 3. Send to server
     try {
       const ack = await this.ws.sendAndWait({
-        type: 'message.send',
+        type: "message.send",
         payload: {
           messageId: clientMessageId,
           conversationId,
-          content
-        }
-      });
+          content,
+        },
+      })
 
       // 4. Update with server-assigned values
       const confirmedMessage = {
         ...optimisticMessage,
         sequenceNumber: ack.sequenceNumber,
         timestamp: ack.timestamp,
-        status: 'SENT'
-      };
+        status: "SENT",
+      }
 
-      this.messageStore.updateOptimistic(clientMessageId, confirmedMessage);
-      await this.localDb.saveMessage(confirmedMessage);
+      this.messageStore.updateOptimistic(clientMessageId, confirmedMessage)
+      await this.localDb.saveMessage(confirmedMessage)
     } catch (error) {
       // 5. Mark as failed
-      this.messageStore.markFailed(clientMessageId);
-      this.ui.showRetryOption(clientMessageId);
+      this.messageStore.markFailed(clientMessageId)
+      this.ui.showRetryOption(clientMessageId)
     }
   }
 }
@@ -1435,48 +1444,48 @@ class MessageSender {
 
 ```typescript collapse={1-15}
 interface VirtualListConfig {
-  containerHeight: number;
-  itemHeight: number; // Estimated, variable heights supported
-  overscan: number;   // Extra items to render above/below viewport
+  containerHeight: number
+  itemHeight: number // Estimated, variable heights supported
+  overscan: number // Extra items to render above/below viewport
 }
 
 class VirtualMessageList {
-  private visibleRange = { start: 0, end: 0 };
-  private heightCache = new Map<string, number>();
+  private visibleRange = { start: 0, end: 0 }
+  private heightCache = new Map<string, number>()
 
   calculateVisibleRange(scrollTop: number): { start: number; end: number } {
-    const messages = this.getMessages();
-    let accumulatedHeight = 0;
-    let start = 0;
-    let end = messages.length;
+    const messages = this.getMessages()
+    let accumulatedHeight = 0
+    let start = 0
+    let end = messages.length
 
     // Find start index
     for (let i = 0; i < messages.length; i++) {
-      const height = this.getItemHeight(messages[i]);
+      const height = this.getItemHeight(messages[i])
       if (accumulatedHeight + height > scrollTop - this.config.overscan * 50) {
-        start = i;
-        break;
+        start = i
+        break
       }
-      accumulatedHeight += height;
+      accumulatedHeight += height
     }
 
     // Find end index
-    accumulatedHeight = 0;
+    accumulatedHeight = 0
     for (let i = start; i < messages.length; i++) {
-      accumulatedHeight += this.getItemHeight(messages[i]);
+      accumulatedHeight += this.getItemHeight(messages[i])
       if (accumulatedHeight > this.config.containerHeight + this.config.overscan * 50) {
-        end = i + 1;
-        break;
+        end = i + 1
+        break
       }
     }
 
-    return { start, end };
+    return { start, end }
   }
 
   // Render only visible messages
   render(): MessageItem[] {
-    const { start, end } = this.visibleRange;
-    return this.getMessages().slice(start, end);
+    const { start, end } = this.visibleRange
+    return this.getMessages().slice(start, end)
   }
 }
 ```
@@ -1485,15 +1494,15 @@ class VirtualMessageList {
 
 ### Cloud-Agnostic Components
 
-| Component | Purpose | Options |
-|-----------|---------|---------|
-| WebSocket Gateway | Persistent connections | Nginx (ws), HAProxy, Envoy |
-| Message Queue | Async delivery, ordering | Kafka, Pulsar, NATS JetStream |
-| KV Store | Sessions, presence | Redis, KeyDB, Dragonfly |
-| Message Store | Message persistence | ScyllaDB, Cassandra, DynamoDB |
-| Relational DB | User/group metadata | PostgreSQL, CockroachDB |
-| Object Store | Media files | MinIO, Ceph, S3-compatible |
-| Push Gateway | Mobile notifications | Self-hosted or APNs/FCM proxy |
+| Component         | Purpose                  | Options                       |
+| ----------------- | ------------------------ | ----------------------------- |
+| WebSocket Gateway | Persistent connections   | Nginx (ws), HAProxy, Envoy    |
+| Message Queue     | Async delivery, ordering | Kafka, Pulsar, NATS JetStream |
+| KV Store          | Sessions, presence       | Redis, KeyDB, Dragonfly       |
+| Message Store     | Message persistence      | ScyllaDB, Cassandra, DynamoDB |
+| Relational DB     | User/group metadata      | PostgreSQL, CockroachDB       |
+| Object Store      | Media files              | MinIO, Ceph, S3-compatible    |
+| Push Gateway      | Mobile notifications     | Self-hosted or APNs/FCM proxy |
 
 ### AWS Reference Architecture
 
@@ -1545,35 +1554,39 @@ flowchart TB
 
 **Service configurations:**
 
-| Service | Configuration | Rationale |
-|---------|---------------|-----------|
-| WebSocket (Fargate) | 4 vCPU, 8GB, 500K conn/pod | Memory for connection state |
-| Message Service | 2 vCPU, 4GB | Stateless, CPU-bound |
-| Fan-out Workers | 2 vCPU, 4GB, Spot | Cost optimization for async |
-| ElastiCache Redis | r6g.2xlarge cluster mode | Sub-ms presence lookups |
-| Keyspaces | On-demand | Serverless Cassandra for messages |
-| RDS PostgreSQL | db.r6g.xlarge Multi-AZ | Metadata, moderate write load |
-| MSK | kafka.m5.large, 3 brokers | 6.5 Gbps throughput capacity |
+| Service             | Configuration              | Rationale                         |
+| ------------------- | -------------------------- | --------------------------------- |
+| WebSocket (Fargate) | 4 vCPU, 8GB, 500K conn/pod | Memory for connection state       |
+| Message Service     | 2 vCPU, 4GB                | Stateless, CPU-bound              |
+| Fan-out Workers     | 2 vCPU, 4GB, Spot          | Cost optimization for async       |
+| ElastiCache Redis   | r6g.2xlarge cluster mode   | Sub-ms presence lookups           |
+| Keyspaces           | On-demand                  | Serverless Cassandra for messages |
+| RDS PostgreSQL      | db.r6g.xlarge Multi-AZ     | Metadata, moderate write load     |
+| MSK                 | kafka.m5.large, 3 brokers  | 6.5 Gbps throughput capacity      |
 
 ### Scaling Considerations
 
 **WebSocket connection limits:**
+
 - Linux default: 1024 file descriptors per process
 - Tuned: 1M+ with sysctl adjustments
 - Practical per pod: 500K (memory constrained)
 - 50M concurrent users → 100 gateway pods minimum
 
 **Kafka partitioning:**
+
 - Partition by conversation_id for ordering
 - Minimum partitions: 100 (allows 100 parallel consumers)
 - Hot partition handling: re-partition extremely active conversations
 
 **Message storage partitioning:**
+
 - ScyllaDB partition key: conversation_id
 - Max partition size: 100MB (~200K messages)
 - Very active conversations: add time bucket to partition key
 
 **Presence fan-out:**
+
 - Redis pub/sub scales to ~10K subscribers per channel
 - For users with 10K+ contacts: use hierarchical pub/sub or dedicated presence servers
 
@@ -1588,18 +1601,21 @@ This design provides real-time chat and messaging with:
 5. **Scalable presence** using Redis pub/sub with heartbeat-based status
 
 **Key architectural decisions:**
+
 - Hybrid fan-out balances latency (direct push) with scalability (Kafka for large groups)
 - Server-assigned timestamps eliminate clock skew issues
 - Client-generated message IDs enable idempotent retry
 - Per-conversation partitioning ensures ordering without global coordination
 
 **Known limitations:**
+
 - Server dependency for message ordering (no P2P)
 - At-least-once delivery requires client deduplication logic
 - Presence accuracy limited by heartbeat interval (30s staleness possible)
 - Large group delivery latency higher than 1:1 messages
 
 **Future enhancements:**
+
 - End-to-end encryption with Signal protocol
 - Reactions and threaded replies
 - Message editing and deletion with tombstones
@@ -1616,15 +1632,15 @@ This design provides real-time chat and messaging with:
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **Fan-out** | Distributing a message to multiple recipients |
+| Term                | Definition                                                                      |
+| ------------------- | ------------------------------------------------------------------------------- |
+| **Fan-out**         | Distributing a message to multiple recipients                                   |
 | **Sequence number** | Monotonically increasing identifier for ordering messages within a conversation |
-| **Presence** | User's online/offline status and activity indicators |
-| **Idempotency** | Property ensuring duplicate requests produce the same result |
-| **Heartbeat** | Periodic signal from client to server indicating connection is alive |
-| **ACK** | Acknowledgment message confirming receipt |
-| **TTL** | Time-to-live; automatic expiration of data after specified duration |
+| **Presence**        | User's online/offline status and activity indicators                            |
+| **Idempotency**     | Property ensuring duplicate requests produce the same result                    |
+| **Heartbeat**       | Periodic signal from client to server indicating connection is alive            |
+| **ACK**             | Acknowledgment message confirming receipt                                       |
+| **TTL**             | Time-to-live; automatic expiration of data after specified duration             |
 
 ### Summary
 
@@ -1638,20 +1654,24 @@ This design provides real-time chat and messaging with:
 ### References
 
 **Real-World Implementations:**
+
 - [How Discord Stores Trillions of Messages](https://discord.com/blog/how-discord-stores-trillions-of-messages) - ScyllaDB migration and performance gains
 - [How Discord Serves 15 Million Users on One Server](https://blog.bytebytego.com/p/how-discord-serves-15-million-users) - Elixir and BEAM architecture
 - [Real-time Messaging at Slack](https://slack.engineering/real-time-messaging/) - Channel server architecture
 - [LinkedIn's Real-Time Presence Platform](https://engineering.linkedin.com/blog/2018/01/now-you-see-me--now-you-dont--linkedins-real-time-presence-platf) - Presence at scale
 
 **Protocol Specifications:**
+
 - [RFC 6455 - The WebSocket Protocol](https://datatracker.ietf.org/doc/html/rfc6455) - WebSocket specification
 - [XMPP Core (RFC 6120)](https://xmpp.org/rfcs/rfc6120.html) - Extensible Messaging and Presence Protocol
 - [MQTT Version 5.0 (OASIS Standard)](https://docs.oasis-open.org/mqtt/mqtt/v5.0/mqtt-v5.0.html) - IoT messaging protocol
 
 **Distributed Systems Theory:**
+
 - [Time, Clocks, and the Ordering of Events](https://lamport.azurewebsites.net/pubs/time-clocks.pdf) - Lamport's foundational paper
 - [Exactly-Once Semantics in Apache Kafka](https://www.confluent.io/blog/exactly-once-semantics-are-possible-heres-how-apache-kafka-does-it/) - Kafka's exactly-once implementation
 
 **Related Articles:**
-- [Design Collaborative Document Editing](/articles/system-design/system-design-problems/design-google-docs-collaboration) - Real-time sync with OT/CRDT
-- [Design a Notification System](/articles/system-design/system-design-problems/design-notification-system) - Multi-channel push delivery
+
+- [Design Collaborative Document Editing](../design-google-docs-collaboration/README.md) - Real-time sync with OT/CRDT
+- [Design a Notification System](../design-notification-system/README.md) - Multi-channel push delivery

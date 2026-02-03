@@ -54,8 +54,8 @@ CDC provides **eventually-consistent data propagation** without application-leve
 
 ```typescript collapse={1-5}
 async function updateUser(userId: string, data: UserData) {
-  await db.users.update(userId, data);
-  await kafka.publish('users', { op: 'UPDATE', after: data });
+  await db.users.update(userId, data)
+  await kafka.publish("users", { op: "UPDATE", after: data })
 }
 ```
 
@@ -111,12 +111,12 @@ CDC resolves this by **reading changes where they're already reliably recorded**
 
 **Database-specific mechanisms:**
 
-| Database | Log Type | Access Method | Position Tracking |
-|----------|----------|---------------|-------------------|
+| Database   | Log Type              | Access Method            | Position Tracking         |
+| ---------- | --------------------- | ------------------------ | ------------------------- |
 | PostgreSQL | WAL (Write-Ahead Log) | Logical Replication Slot | LSN (Log Sequence Number) |
-| MySQL | Binary Log | Binlog client protocol | GTID or file:position |
-| MongoDB | Oplog | Change Streams API | Resume token |
-| SQL Server | Transaction Log | CDC tables or log reader | LSN |
+| MySQL      | Binary Log            | Binlog client protocol   | GTID or file:position     |
+| MongoDB    | Oplog                 | Change Streams API       | Resume token              |
+| SQL Server | Transaction Log       | CDC tables or log reader | LSN                       |
 
 **Why log-based is preferred:**
 
@@ -127,12 +127,12 @@ CDC resolves this by **reading changes where they're already reliably recorded**
 
 **Trade-offs:**
 
-| Advantage | Disadvantage |
-|-----------|--------------|
-| Captures all changes | Requires database configuration |
-| No write-path overhead | Log format is database-specific |
-| Transaction ordering preserved | Replication slot management |
-| Includes deletes and DDL | Requires log retention tuning |
+| Advantage                      | Disadvantage                    |
+| ------------------------------ | ------------------------------- |
+| Captures all changes           | Requires database configuration |
+| No write-path overhead         | Log format is database-specific |
+| Transaction ordering preserved | Replication slot management     |
+| Includes deletes and DDL       | Requires log retention tuning   |
 
 ### Trigger-Based CDC
 
@@ -151,11 +151,11 @@ CDC resolves this by **reading changes where they're already reliably recorded**
 
 **Trade-offs:**
 
-| Advantage | Disadvantage |
-|-----------|--------------|
-| Works without special database access | Adds latency to every write |
-| Full control over captured data | Trigger maintenance overhead |
-| Selective capture | Lock contention on shadow tables |
+| Advantage                             | Disadvantage                     |
+| ------------------------------------- | -------------------------------- |
+| Works without special database access | Adds latency to every write      |
+| Full control over captured data       | Trigger maintenance overhead     |
+| Selective capture                     | Lock contention on shadow tables |
 
 ### Polling-Based CDC
 
@@ -228,11 +228,11 @@ SELECT pg_create_logical_replication_slot('debezium', 'pgoutput');
 
 **Output plugins:**
 
-| Plugin | Output Format | Use Case |
-|--------|---------------|----------|
-| `pgoutput` | Binary protocol | Native PostgreSQL replication, Debezium default |
-| `wal2json` | JSON | External systems requiring JSON |
-| `test_decoding` | Text | Debugging and testing |
+| Plugin          | Output Format   | Use Case                                        |
+| --------------- | --------------- | ----------------------------------------------- |
+| `pgoutput`      | Binary protocol | Native PostgreSQL replication, Debezium default |
+| `wal2json`      | JSON            | External systems requiring JSON                 |
+| `test_decoding` | Text            | Debugging and testing                           |
 
 **Critical operational concern—slot bloat:**
 
@@ -290,32 +290,32 @@ enforce_gtid_consistency = ON
 
 **Binlog format comparison:**
 
-| Format | Content | CDC Compatibility |
-|--------|---------|-------------------|
-| STATEMENT | SQL statements | Poor—cannot determine actual row changes |
-| ROW | Actual row changes | Required for CDC |
-| MIXED | Statement or row depending on query | Unreliable for CDC |
+| Format    | Content                             | CDC Compatibility                        |
+| --------- | ----------------------------------- | ---------------------------------------- |
+| STATEMENT | SQL statements                      | Poor—cannot determine actual row changes |
+| ROW       | Actual row changes                  | Required for CDC                         |
+| MIXED     | Statement or row depending on query | Unreliable for CDC                       |
 
 ### MongoDB: Change Streams
 
 MongoDB provides Change Streams, a high-level API over the oplog (operations log).
 
 ```typescript collapse={1-3}
-const client = new MongoClient(uri);
-const db = client.db('mydb');
+const client = new MongoClient(uri)
+const db = client.db("mydb")
 
 // Watch collection-level changes
-const changeStream = db.collection('users').watch([], {
-  fullDocument: 'updateLookup',  // Include full document on updates
-  fullDocumentBeforeChange: 'whenAvailable'  // Include before-image (MongoDB 6.0+)
-});
+const changeStream = db.collection("users").watch([], {
+  fullDocument: "updateLookup", // Include full document on updates
+  fullDocumentBeforeChange: "whenAvailable", // Include before-image (MongoDB 6.0+)
+})
 
-changeStream.on('change', (change) => {
+changeStream.on("change", (change) => {
   // change.operationType: 'insert' | 'update' | 'delete' | 'replace'
   // change.fullDocument: current document state
   // change.fullDocumentBeforeChange: previous state (if configured)
   // change._id: resume token for resumability
-});
+})
 ```
 
 **Key differences from relational CDC:**
@@ -407,13 +407,13 @@ flowchart LR
 
 **Trade-offs vs other paths:**
 
-| Aspect | Debezium | AWS DMS | Fivetran |
-|--------|----------|---------|----------|
-| Latency | Sub-second | Seconds-minutes | Seconds-minutes |
-| Cost (100GB/day) | Infrastructure only | ~$200-400/mo | ~$1,500-3,000/mo |
-| Operational burden | High | Low | Very low |
-| Customization | Full control | Limited | Limited |
-| Schema handling | Schema Registry | Basic | Automatic |
+| Aspect             | Debezium            | AWS DMS         | Fivetran         |
+| ------------------ | ------------------- | --------------- | ---------------- |
+| Latency            | Sub-second          | Seconds-minutes | Seconds-minutes  |
+| Cost (100GB/day)   | Infrastructure only | ~$200-400/mo    | ~$1,500-3,000/mo |
+| Operational burden | High                | Low             | Very low         |
+| Customization      | Full control        | Limited         | Limited          |
+| Schema handling    | Schema Registry     | Basic           | Automatic        |
 
 **Real-world: Shopify**
 
@@ -476,11 +476,11 @@ flowchart LR
 
 **Cost model (2025):**
 
-| Component | Pricing |
-|-----------|---------|
+| Component            | Pricing                             |
+| -------------------- | ----------------------------------- |
 | Replication instance | $0.016-$0.624/hour (size-dependent) |
-| Data transfer | Standard AWS rates |
-| Storage | $0.10/GB-month |
+| Data transfer        | Standard AWS rates                  |
+| Storage              | $0.10/GB-month                      |
 
 ### Path 3: Maxwell's Daemon (MySQL-Specific)
 
@@ -518,23 +518,23 @@ flowchart LR
 
 **Trade-offs:**
 
-| Advantage | Disadvantage |
-|-----------|--------------|
-| Simple deployment | MySQL only |
-| Multiple output targets | No schema registry |
-| Lightweight | Less mature ecosystem |
-| Easy JSON parsing | Single-threaded per database |
+| Advantage               | Disadvantage                 |
+| ----------------------- | ---------------------------- |
+| Simple deployment       | MySQL only                   |
+| Multiple output targets | No schema registry           |
+| Lightweight             | Less mature ecosystem        |
+| Easy JSON parsing       | Single-threaded per database |
 
 ### Comparison Matrix
 
-| Factor | Debezium | AWS DMS | Maxwell | Fivetran |
-|--------|----------|---------|---------|----------|
-| Databases | 10+ | 20+ | MySQL only | 500+ |
-| Latency | Sub-second | Seconds-minutes | Sub-second | Seconds-minutes |
-| Deployment | Self-managed | Managed | Self-managed | SaaS |
-| Schema evolution | Schema Registry | Basic | JSON only | Automatic |
-| Cost at scale | Low (infra) | Medium | Low | High |
-| Operational burden | High | Low | Medium | Very low |
+| Factor             | Debezium        | AWS DMS         | Maxwell      | Fivetran        |
+| ------------------ | --------------- | --------------- | ------------ | --------------- |
+| Databases          | 10+             | 20+             | MySQL only   | 500+            |
+| Latency            | Sub-second      | Seconds-minutes | Sub-second   | Seconds-minutes |
+| Deployment         | Self-managed    | Managed         | Self-managed | SaaS            |
+| Schema evolution   | Schema Registry | Basic           | JSON only    | Automatic       |
+| Cost at scale      | Low (infra)     | Medium          | Low          | High            |
+| Operational burden | High            | Low             | Medium       | Very low        |
 
 ## Production Implementations
 
@@ -695,13 +695,13 @@ flowchart LR
 
 ### Implementation Comparison
 
-| Aspect | LinkedIn Databus | Airbnb SpinalTap | Netflix DBLog | WePay Cassandra |
-|--------|------------------|------------------|---------------|-----------------|
-| Primary database | Oracle/MySQL | MySQL/DynamoDB | Heterogeneous | Cassandra |
-| Snapshot approach | Bootstrap server | Full then stream | Incremental chunks | N/A (no snapshot) |
-| Scale | Thousands/sec | Billions/day | Studio-scale | Payments-scale |
-| Open-source | Yes (archived) | No | Concepts only | Yes (Debezium) |
-| Key innovation | Relay + bootstrap | Materialized views | Incremental snapshot | Primary agent pattern |
+| Aspect            | LinkedIn Databus  | Airbnb SpinalTap   | Netflix DBLog        | WePay Cassandra       |
+| ----------------- | ----------------- | ------------------ | -------------------- | --------------------- |
+| Primary database  | Oracle/MySQL      | MySQL/DynamoDB     | Heterogeneous        | Cassandra             |
+| Snapshot approach | Bootstrap server  | Full then stream   | Incremental chunks   | N/A (no snapshot)     |
+| Scale             | Thousands/sec     | Billions/day       | Studio-scale         | Payments-scale        |
+| Open-source       | Yes (archived)    | No                 | Concepts only        | Yes (Debezium)        |
+| Key innovation    | Relay + bootstrap | Materialized views | Incremental snapshot | Primary agent pattern |
 
 ## Schema Evolution
 
@@ -736,12 +736,12 @@ flowchart LR
 
 **Compatibility modes:**
 
-| Mode | Allows | Use Case |
-|------|--------|----------|
+| Mode     | Allows                       | Use Case                           |
+| -------- | ---------------------------- | ---------------------------------- |
 | BACKWARD | New schema can read old data | Consumers updated before producers |
-| FORWARD | Old schema can read new data | Producers updated before consumers |
-| FULL | Both directions | Most restrictive; safest |
-| NONE | Any change | Development only |
+| FORWARD  | Old schema can read new data | Producers updated before consumers |
+| FULL     | Both directions              | Most restrictive; safest           |
+| NONE     | Any change                   | Development only                   |
 
 **Recommended approach**: BACKWARD_TRANSITIVE (all previous versions readable by latest)
 
@@ -878,17 +878,20 @@ Consumer-side idempotency:
 
 ```typescript collapse={1-5}
 async function processChange(change: ChangeEvent) {
-  const key = `${change.source.table}:${change.key}`;
-  const version = change.source.lsn;
+  const key = `${change.source.table}:${change.key}`
+  const version = change.source.lsn
 
   // Idempotent upsert using source version
-  await target.upsert({
-    id: key,
-    data: change.after,
-    _version: version
-  }, {
-    where: { _version: { lt: version } }  // Only apply if newer
-  });
+  await target.upsert(
+    {
+      id: key,
+      data: change.after,
+      _version: version,
+    },
+    {
+      where: { _version: { lt: version } }, // Only apply if newer
+    },
+  )
 }
 ```
 
@@ -959,22 +962,22 @@ flowchart LR
 
 ```typescript collapse={1-8}
 interface ChangeEvent {
-  op: 'c' | 'u' | 'd';  // create, update, delete
-  before: Record<string, unknown> | null;
-  after: Record<string, unknown> | null;
-  source: { table: string; };
+  op: "c" | "u" | "d" // create, update, delete
+  before: Record<string, unknown> | null
+  after: Record<string, unknown> | null
+  source: { table: string }
 }
 
 async function handleChange(change: ChangeEvent) {
-  const table = change.source.table;
-  const key = change.after?.id ?? change.before?.id;
+  const table = change.source.table
+  const key = change.after?.id ?? change.before?.id
 
   // Invalidate cache entry
-  await redis.del(`${table}:${key}`);
+  await redis.del(`${table}:${key}`)
 
   // Optional: warm cache with new value
-  if (change.op !== 'd' && change.after) {
-    await redis.setex(`${table}:${key}`, 3600, JSON.stringify(change.after));
+  if (change.op !== "d" && change.after) {
+    await redis.setex(`${table}:${key}`, 3600, JSON.stringify(change.after))
   }
 }
 ```
@@ -1032,12 +1035,12 @@ flowchart LR
 
 **Lambda architecture simplification:**
 
-| Traditional | CDC-Based |
-|-------------|-----------|
-| Batch ETL (daily) + Stream | Single CDC stream |
-| Batch for completeness | Snapshot + stream for completeness |
-| Hours-old data | Seconds-old data |
-| Multiple pipelines | Single pipeline |
+| Traditional                | CDC-Based                          |
+| -------------------------- | ---------------------------------- |
+| Batch ETL (daily) + Stream | Single CDC stream                  |
+| Batch for completeness     | Snapshot + stream for completeness |
+| Hours-old data             | Seconds-old data                   |
+| Multiple pipelines         | Single pipeline                    |
 
 ## Common Pitfalls
 
@@ -1101,6 +1104,7 @@ SELECT slot_name FROM pg_replication_slots WHERE NOT active;
 **What happens**: Snapshot reads table at point-in-time. Streaming starts from "after snapshot." Changes during snapshot can be missed or duplicated.
 
 **Example**:
+
 1. Snapshot starts at LSN 100
 2. Row inserted at LSN 150
 3. Snapshot reads row (sees insertion)
@@ -1126,6 +1130,7 @@ Consumer must be idempotent to handle potential duplicates during snapshot-to-st
 **The mistake**: Assuming DDL changes propagate seamlessly.
 
 **What happens**:
+
 - Column added: Old consumers fail parsing
 - Column removed: Data loss if not handled
 - Type changed: Deserialization errors
@@ -1194,12 +1199,12 @@ Each CDC message size depends on row size and change type (update includes befor
 
 **Kafka sizing:**
 
-| Metric | Recommendation |
-|--------|----------------|
-| Partitions per topic | 2-3 × expected consumer parallelism |
-| Replication factor | 3 (standard Kafka recommendation) |
-| Retention | 7 days minimum (allows consumer recovery) |
-| Broker disk | 3 × (daily CDC volume) × retention days |
+| Metric               | Recommendation                            |
+| -------------------- | ----------------------------------------- |
+| Partitions per topic | 2-3 × expected consumer parallelism       |
+| Replication factor   | 3 (standard Kafka recommendation)         |
+| Retention            | 7 days minimum (allows consumer recovery) |
+| Broker disk          | 3 × (daily CDC volume) × retention days   |
 
 ## Conclusion
 
@@ -1229,17 +1234,17 @@ CDC transforms database changes into reliable event streams, enabling real-time 
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **WAL** | Write-Ahead Log—PostgreSQL's transaction log for durability |
-| **Binlog** | Binary Log—MySQL's log of all data modifications |
-| **Oplog** | Operations Log—MongoDB's capped collection recording writes |
-| **LSN** | Log Sequence Number—position in PostgreSQL WAL |
-| **GTID** | Global Transaction ID—MySQL's cross-topology transaction identifier |
-| **Replication slot** | PostgreSQL mechanism to track consumer position and retain WAL |
-| **Tombstone** | Kafka message with null value indicating deletion |
-| **Schema Registry** | Service storing and versioning message schemas |
-| **Snapshot** | Initial full data load before streaming changes |
+| Term                 | Definition                                                          |
+| -------------------- | ------------------------------------------------------------------- |
+| **WAL**              | Write-Ahead Log—PostgreSQL's transaction log for durability         |
+| **Binlog**           | Binary Log—MySQL's log of all data modifications                    |
+| **Oplog**            | Operations Log—MongoDB's capped collection recording writes         |
+| **LSN**              | Log Sequence Number—position in PostgreSQL WAL                      |
+| **GTID**             | Global Transaction ID—MySQL's cross-topology transaction identifier |
+| **Replication slot** | PostgreSQL mechanism to track consumer position and retain WAL      |
+| **Tombstone**        | Kafka message with null value indicating deletion                   |
+| **Schema Registry**  | Service storing and versioning message schemas                      |
+| **Snapshot**         | Initial full data load before streaming changes                     |
 
 ### Summary
 
@@ -1269,7 +1274,6 @@ CDC transforms database changes into reliable event streams, enabling real-time 
 - [LinkedIn: Open Sourcing Databus](https://engineering.linkedin.com/data-replication/open-sourcing-databus-linkedins-low-latency-change-data-capture-system) - Original Databus architecture
 - [Shopify: Capturing Every Change](https://shopify.engineering/capturing-every-change-shopify-sharded-monolith) - CDC at Shopify scale
 - [Netflix: DBLog](https://netflixtechblog.com/dblog-a-generic-change-data-capture-framework-69351fb9099b) - Incremental snapshot approach
-- [WePay: Streaming Cassandra](https://wecode.wepay.com/posts/streaming-cassandra-at-wepay-part-1) - Cassandra CDC implementation
 - [Airbnb: SpinalTap](https://medium.com/airbnb-engineering/capturing-data-evolution-in-a-service-oriented-architecture-72f7c643ee6f) - CDC for materialized views
 
 **Patterns and Best Practices:**

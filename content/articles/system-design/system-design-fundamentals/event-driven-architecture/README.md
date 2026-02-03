@@ -32,10 +32,10 @@ Event-driven architecture (EDA) replaces synchronous request-response chains wit
 
 **The mental model:**
 
-| Pattern | Communication | Coupling | Consistency | Best For |
-|---------|--------------|----------|-------------|----------|
-| **Request-driven** | Synchronous | Tight | Strong | User-facing operations, transactions |
-| **Event-driven** | Asynchronous | Loose | Eventual | Scalability, decoupling, complex workflows |
+| Pattern            | Communication | Coupling | Consistency | Best For                                   |
+| ------------------ | ------------- | -------- | ----------- | ------------------------------------------ |
+| **Request-driven** | Synchronous   | Tight    | Strong      | User-facing operations, transactions       |
+| **Event-driven**   | Asynchronous  | Loose    | Eventual    | Scalability, decoupling, complex workflows |
 
 **Key patterns covered:**
 
@@ -62,6 +62,7 @@ The choice isn't binary—most production systems combine request-driven for use
 **Why it exists**: Immediate feedback loop. User clicks "Submit Order," expects to know if it succeeded. Strong consistency—the response reflects the current state.
 
 **Trade-offs**:
+
 - ✅ Immediate consistency—response reflects committed state
 - ✅ Simple error handling—caller knows if operation failed
 - ✅ Clear request/response semantics
@@ -72,6 +73,7 @@ The choice isn't binary—most production systems combine request-driven for use
 - ❌ Difficult to add consumers—each new consumer requires producer changes
 
 **When to use**:
+
 - User-facing operations requiring immediate feedback (payments, authentication)
 - Operations requiring strong consistency (financial transactions, inventory decrements)
 - Simple systems with clear request/response boundaries
@@ -84,6 +86,7 @@ The choice isn't binary—most production systems combine request-driven for use
 **Why it exists**: Decoupling at scale. Adding a new consumer (analytics, audit log, notifications) doesn't require changing the producer. Each service scales independently.
 
 **Trade-offs**:
+
 - ✅ Loose coupling—producer and consumers evolve independently
 - ✅ Horizontal scaling—each service scales based on its own load
 - ✅ Resilience—consumer failure doesn't affect producer or other consumers
@@ -94,6 +97,7 @@ The choice isn't binary—most production systems combine request-driven for use
 - ❌ Harder rollback—compensation logic required for failures
 
 **When to use**:
+
 - Systems requiring massive scalability and variable loads
 - Complex business workflows (order fulfillment, content publishing)
 - Asynchronous operations (notifications, analytics, background processing)
@@ -102,14 +106,14 @@ The choice isn't binary—most production systems combine request-driven for use
 
 ### Design Decision: Choosing Your Pattern
 
-| Factor | Request-Driven | Event-Driven |
-|--------|---------------|--------------|
-| **Consistency requirement** | Strong (ACID) | Eventual acceptable |
-| **User feedback** | Immediate required | Delayed acceptable |
-| **Scale** | Moderate (<10K RPS) | High (>100K events/sec) |
-| **Consumer count** | Fixed, known | Variable, growing |
-| **Failure isolation** | Cascading OK | Must isolate |
-| **Team structure** | Single team | Multiple independent teams |
+| Factor                      | Request-Driven      | Event-Driven               |
+| --------------------------- | ------------------- | -------------------------- |
+| **Consistency requirement** | Strong (ACID)       | Eventual acceptable        |
+| **User feedback**           | Immediate required  | Delayed acceptable         |
+| **Scale**                   | Moderate (<10K RPS) | High (>100K events/sec)    |
+| **Consumer count**          | Fixed, known        | Variable, growing          |
+| **Failure isolation**       | Cascading OK        | Must isolate               |
+| **Team structure**          | Single team         | Multiple independent teams |
 
 **Hybrid approach (most production systems)**: Request-driven for synchronous user interactions (checkout flow), event-driven for downstream processing (inventory update, shipping notification, analytics).
 
@@ -122,15 +126,18 @@ The choice isn't binary—most production systems combine request-driven for use
 Event sourcing stores the complete history of state changes as a sequence of immutable events, rather than storing only the current state. Current state is derived by replaying events in order.
 
 **Traditional state storage**:
+
 ```
 User Table
 | user_id | email           | name    | updated_at |
 |---------|-----------------|---------|------------|
 | 123     | new@example.com | Alice B | 2024-01-15 |
 ```
+
 You see the current state but not how it got there.
 
 **Event sourcing**:
+
 ```
 Event Stream: user-123
 | seq | event_type      | data                              | timestamp  |
@@ -139,6 +146,7 @@ Event Stream: user-123
 | 2   | EmailChanged    | {old: "old@...", new: "new@..."}  | 2023-09-15 |
 | 3   | NameUpdated     | {old: "Alice", new: "Alice B"}    | 2024-01-15 |
 ```
+
 Current state = replay all events. Full audit trail preserved.
 
 ### Why Event Sourcing Exists
@@ -161,13 +169,14 @@ Events are optimized for writing (append-only). Reading requires projections—d
 
 **Projection types**:
 
-| Type | Update Timing | Consistency | Use Case |
-|------|---------------|-------------|----------|
-| **Synchronous** | Same transaction as event | Strong | Critical reads that must reflect writes |
-| **Asynchronous** | Background processing | Eventual | High-throughput reads, analytics |
-| **On-demand** | At query time | Strong | Rarely-accessed historical views |
+| Type             | Update Timing             | Consistency | Use Case                                |
+| ---------------- | ------------------------- | ----------- | --------------------------------------- |
+| **Synchronous**  | Same transaction as event | Strong      | Critical reads that must reflect writes |
+| **Asynchronous** | Background processing     | Eventual    | High-throughput reads, analytics        |
+| **On-demand**    | At query time             | Strong      | Rarely-accessed historical views        |
 
 **Example**: An e-commerce order stream produces events: `OrderPlaced`, `PaymentReceived`, `ItemShipped`. Projections might include:
+
 - **Order status view**: For customer-facing "track my order"
 - **Fulfillment queue**: For warehouse workers
 - **Revenue dashboard**: For finance team
@@ -183,14 +192,15 @@ Problem: Replaying 10 million events to reconstruct state is slow.
 
 **Snapshot strategies**:
 
-| Strategy | Implementation | Trade-off |
-|----------|---------------|-----------|
-| **Periodic** | Every N events or T time | Simple, predictable storage |
-| **Threshold-based** | When event count exceeds limit | Bounds worst-case replay |
-| **Eager** | After every write | Zero replay time, higher write cost |
-| **Lazy** | On first read after threshold | Amortizes cost, variable read latency |
+| Strategy            | Implementation                 | Trade-off                             |
+| ------------------- | ------------------------------ | ------------------------------------- |
+| **Periodic**        | Every N events or T time       | Simple, predictable storage           |
+| **Threshold-based** | When event count exceeds limit | Bounds worst-case replay              |
+| **Eager**           | After every write              | Zero replay time, higher write cost   |
+| **Lazy**            | On first read after threshold  | Amortizes cost, variable read latency |
 
 **Implementation pattern**:
+
 ```
 1. Load latest snapshot (if exists): state = snapshot.state, start_seq = snapshot.seq
 2. Query events after snapshot: events = store.getEvents(stream_id, after: start_seq)
@@ -213,6 +223,7 @@ Kafka's log compaction offers an alternative to snapshots for key-based streams.
 ### Event Sourcing Trade-offs
 
 **Benefits**:
+
 - ✅ Complete audit trail
 - ✅ Temporal queries ("state at time T")
 - ✅ Debugging via event replay
@@ -220,6 +231,7 @@ Kafka's log compaction offers an alternative to snapshots for key-based streams.
 - ✅ Natural fit for event-driven integration
 
 **Costs**:
+
 - ❌ Schema evolution complexity (events are immutable)
 - ❌ Storage growth (mitigation: snapshots, archival)
 - ❌ Query complexity (must build projections)
@@ -227,6 +239,7 @@ Kafka's log compaction offers an alternative to snapshots for key-based streams.
 - ❌ Learning curve for teams
 
 **When NOT to use**:
+
 - Simple CRUD with no audit requirements
 - Domains without temporal query needs
 - Teams without event-driven experience
@@ -275,12 +288,12 @@ flowchart LR
 
 **The problem it solves**: Read and write patterns often have conflicting optimization needs.
 
-| Concern | Writes | Reads |
-|---------|--------|-------|
-| **Optimization** | Transactional integrity | Query performance |
-| **Scaling** | Single leader | Many replicas |
-| **Schema** | Normalized (avoid anomalies) | Denormalized (avoid joins) |
-| **Throughput** | Lower (complex validation) | Higher (simple lookups) |
+| Concern          | Writes                       | Reads                      |
+| ---------------- | ---------------------------- | -------------------------- |
+| **Optimization** | Transactional integrity      | Query performance          |
+| **Scaling**      | Single leader                | Many replicas              |
+| **Schema**       | Normalized (avoid anomalies) | Denormalized (avoid joins) |
+| **Throughput**   | Lower (complex validation)   | Higher (simple lookups)    |
 
 **Traditional approach**: Single model serves both. Compromise on both.
 
@@ -293,11 +306,13 @@ flowchart LR
 **Mechanism**: Single database with read replicas. Writes go to primary; reads go to replicas.
 
 **When to use**:
+
 - Read/write ratio is highly asymmetric (100:1 reads to writes)
 - Eventual consistency (replica lag) is acceptable
 - No need for event history
 
 **Trade-offs**:
+
 - ✅ Simple—standard database replication
 - ✅ Minimal infrastructure change
 - ❌ Limited read optimization (same schema as writes)
@@ -308,11 +323,13 @@ flowchart LR
 **Mechanism**: Commands update primary store; events synchronize to purpose-built read store (Elasticsearch, Redis, read-optimized tables).
 
 **When to use**:
+
 - Different query patterns need different storage (full-text search, graph queries, aggregations)
 - Read performance requirements exceed what primary schema supports
 - Can tolerate synchronization lag
 
 **Trade-offs**:
+
 - ✅ Each read model optimized for its access pattern
 - ✅ Read scaling independent of write scaling
 - ❌ Synchronization logic required
@@ -324,11 +341,13 @@ flowchart LR
 **Mechanism**: Commands produce events (event sourcing). Read models built as projections from event stream.
 
 **When to use**:
+
 - Need both CQRS benefits and event sourcing benefits
 - Complex domain with multiple read patterns
 - Audit trail and temporal queries required
 
 **Trade-offs**:
+
 - ✅ Full audit trail
 - ✅ Projections can be rebuilt from events
 - ✅ New read models added without touching write side
@@ -341,6 +360,7 @@ flowchart LR
 Martin Fowler cautions: "For most systems CQRS adds risky complexity."
 
 **Avoid CQRS when**:
+
 - Simple CRUD with no complex queries
 - Read and write models are nearly identical
 - Team lacks distributed systems experience
@@ -348,6 +368,7 @@ Martin Fowler cautions: "For most systems CQRS adds risky complexity."
 - System doesn't justify the operational overhead
 
 **Warning signs you don't need it**:
+
 - Single read pattern (simple lookups by ID)
 - Low traffic (< 1K RPS)
 - Small team maintaining everything
@@ -372,6 +393,7 @@ Martin Fowler cautions: "For most systems CQRS adds risky complexity."
 Distributed systems can't use traditional ACID transactions across services. Each service has its own database; there's no distributed transaction coordinator.
 
 **Example**: Place order requires:
+
 1. Reserve inventory (Inventory Service)
 2. Charge payment (Payment Service)
 3. Create shipment (Shipping Service)
@@ -401,6 +423,7 @@ sequenceDiagram
 </figure>
 
 **Trade-offs**:
+
 - ✅ No single point of failure
 - ✅ Services loosely coupled
 - ✅ Easy to add new services (subscribe to events)
@@ -446,6 +469,7 @@ sequenceDiagram
 </figure>
 
 **Trade-offs**:
+
 - ✅ Clear workflow—visible in one place
 - ✅ Easier to understand and debug
 - ✅ Explicit compensation paths
@@ -463,20 +487,21 @@ PaymentFailed → Orchestrator calls Inventory.ReleaseReservation()
 
 ### Decision: Choreography vs. Orchestration
 
-| Factor | Choreography | Orchestration |
-|--------|--------------|---------------|
-| **Workflow complexity** | Simple (2-3 steps) | Complex (5+ steps) |
-| **Visibility need** | Low | High (audit, debugging) |
-| **Team structure** | Independent teams | Centralized platform team |
-| **Failure handling** | Implicit (reactive) | Explicit (programmed) |
-| **Scaling** | Each service independent | Orchestrator may bottleneck |
-| **Change frequency** | Workflow rarely changes | Workflow evolves often |
+| Factor                  | Choreography             | Orchestration               |
+| ----------------------- | ------------------------ | --------------------------- |
+| **Workflow complexity** | Simple (2-3 steps)       | Complex (5+ steps)          |
+| **Visibility need**     | Low                      | High (audit, debugging)     |
+| **Team structure**      | Independent teams        | Centralized platform team   |
+| **Failure handling**    | Implicit (reactive)      | Explicit (programmed)       |
+| **Scaling**             | Each service independent | Orchestrator may bottleneck |
+| **Change frequency**    | Workflow rarely changes  | Workflow evolves often      |
 
 **Common pattern**: Choreography for simple flows, orchestration for complex multi-step business processes.
 
 ### The Transactional Outbox Pattern
 
 **Problem**: Dual-write consistency. Service must update its database AND publish an event. If it crashes between them:
+
 - DB updated but event not published → downstream services miss the change
 - Event published but DB not updated → downstream services see change that didn't persist
 
@@ -502,6 +527,7 @@ flowchart LR
 </figure>
 
 **Implementation**:
+
 1. Service writes business state and event to outbox table in single transaction
 2. Separate process (relay/publisher) polls outbox table
 3. Relay publishes event to message broker
@@ -515,13 +541,14 @@ flowchart LR
 
 **Compensation transaction**: Reverses the effect of a previously completed step.
 
-| Action | Compensation |
-|--------|--------------|
+| Action            | Compensation        |
+| ----------------- | ------------------- |
 | Reserve inventory | Release reservation |
-| Charge payment | Refund payment |
-| Create shipment | Cancel shipment |
+| Charge payment    | Refund payment      |
+| Create shipment   | Cancel shipment     |
 
 **Critical design requirements**:
+
 1. **Idempotent**: Safe to call multiple times (saga may retry)
 2. **Order-independent**: When possible, compensations shouldn't depend on specific order
 3. **Eventual**: May take time to complete (e.g., refund takes days)
@@ -529,18 +556,19 @@ flowchart LR
 
 **Failure handling patterns**:
 
-| Failure Type | Strategy |
-|--------------|----------|
-| Transient (timeout, network) | Retry with exponential backoff |
-| Business (insufficient funds) | Compensate and notify user |
-| System (service down) | Circuit breaker, retry later |
-| Unrecoverable (data corruption) | Manual intervention, alert |
+| Failure Type                    | Strategy                       |
+| ------------------------------- | ------------------------------ |
+| Transient (timeout, network)    | Retry with exponential backoff |
+| Business (insufficient funds)   | Compensate and notify user     |
+| System (service down)           | Circuit breaker, retry later   |
+| Unrecoverable (data corruption) | Manual intervention, alert     |
 
 ## Idempotency: Designing Safe Consumers
 
 ### Why Idempotency is Non-Negotiable
 
 Message brokers provide at-least-once delivery. Duplicates happen:
+
 - Producer retry (acknowledgment lost)
 - Consumer crash before offset commit (redelivery)
 - Broker failover (may redeliver)
@@ -628,6 +656,7 @@ COMMIT
 ### Broker-Level Idempotency
 
 **Kafka idempotent producer** (since v0.11):
+
 - Producer assigned unique PID (producer ID)
 - Each message has sequence number per partition
 - Broker rejects duplicates from same producer session
@@ -635,6 +664,7 @@ COMMIT
 **Limitation**: Only prevents duplicates from producer retries within a session. New producer instance gets new PID—application still needs end-to-end idempotency.
 
 **Kafka transactions**:
+
 - Atomic writes to multiple partitions
 - `read_committed` isolation for consumers
 - Enables exactly-once stream processing (Kafka Streams, Flink)
@@ -649,11 +679,11 @@ Events are immutable facts about the past. You can't "fix" old events—they rep
 
 ### Compatibility Types
 
-| Type | Definition | Producer/Consumer | Safe Changes |
-|------|------------|-------------------|--------------|
-| **Backward** | New consumers read old events | Add optional fields, add defaults | Consumer upgrades first |
-| **Forward** | Old consumers read new events | Add optional fields, ignore unknown | Producer upgrades first |
-| **Full** | Both directions | Add optional fields only | Any order |
+| Type         | Definition                    | Producer/Consumer                   | Safe Changes            |
+| ------------ | ----------------------------- | ----------------------------------- | ----------------------- |
+| **Backward** | New consumers read old events | Add optional fields, add defaults   | Consumer upgrades first |
+| **Forward**  | Old consumers read new events | Add optional fields, ignore unknown | Producer upgrades first |
+| **Full**     | Both directions               | Add optional fields only            | Any order               |
 
 **Backward compatibility**: Deploy new consumer, then new producer. New consumer handles both old and new events.
 
@@ -666,6 +696,7 @@ Events are immutable facts about the past. You can't "fix" old events—they rep
 Central registry (e.g., Confluent Schema Registry) manages schema versions.
 
 **How it works**:
+
 1. Producer registers schema before publishing
 2. Registry assigns schema ID and version
 3. Registry validates new schema against compatibility rules
@@ -673,6 +704,7 @@ Central registry (e.g., Confluent Schema Registry) manages schema versions.
 5. Consumer fetches schema by ID for deserialization
 
 **Benefits**:
+
 - Schema validation before publish (fail fast)
 - Compatibility enforcement (reject incompatible changes)
 - Schema discovery (consumers know available schemas)
@@ -756,11 +788,11 @@ Event-driven systems are eventually consistent by design. Producer publishes eve
 
 **Consistency windows**:
 
-| System | Typical Lag | Acceptable For |
-|--------|-------------|----------------|
-| Same process | ~0ms | Internal state |
-| Same datacenter | 10-100ms | Most applications |
-| Cross-region | 100ms-1s+ | Global replication |
+| System          | Typical Lag   | Acceptable For       |
+| --------------- | ------------- | -------------------- |
+| Same process    | ~0ms          | Internal state       |
+| Same datacenter | 10-100ms      | Most applications    |
+| Cross-region    | 100ms-1s+     | Global replication   |
 | Human processes | Minutes-hours | Workflows, approvals |
 
 ### Read-Your-Writes Guarantee
@@ -771,12 +803,12 @@ Event-driven systems are eventually consistent by design. Producer publishes eve
 
 **Implementation patterns**:
 
-| Pattern | Mechanism | Trade-off |
-|---------|-----------|-----------|
-| **Session affinity** | Route user to same replica | Limited load balancing |
-| **Read from leader** | After write, read from leader for N seconds | Leader load increases |
-| **Version tracking** | Include write version, reject stale reads | Client complexity |
-| **Synchronous projection** | Update read model in same transaction | Higher write latency |
+| Pattern                    | Mechanism                                   | Trade-off              |
+| -------------------------- | ------------------------------------------- | ---------------------- |
+| **Session affinity**       | Route user to same replica                  | Limited load balancing |
+| **Read from leader**       | After write, read from leader for N seconds | Leader load increases  |
+| **Version tracking**       | Include write version, reject stale reads   | Client complexity      |
+| **Synchronous projection** | Update read model in same transaction       | Higher write latency   |
 
 **Practical approach**: Track user's last write timestamp. For reads within N seconds of write, query the write model or wait for projection to catch up.
 
@@ -807,6 +839,7 @@ When concurrent updates occur across replicas, conflicts must be resolved.
 **Mechanism**: Data structures mathematically guaranteed to converge without coordination.
 
 **Examples**:
+
 - **G-Counter**: Grow-only counter. Each replica increments locally. Merge = sum of all.
 - **PN-Counter**: Positive-negative counter. Two G-Counters (increments and decrements).
 - **G-Set**: Grow-only set. Add elements, never remove.
@@ -893,6 +926,7 @@ When concurrent updates occur across replicas, conflicts must be resolved.
 #### Step 1: Do You Need Event-Driven?
 
 **Start with request-driven unless**:
+
 - You need to add consumers without changing producers
 - Throughput exceeds what synchronous calls support
 - Services must scale independently
@@ -902,12 +936,14 @@ When concurrent updates occur across replicas, conflicts must be resolved.
 #### Step 2: Event Sourcing?
 
 **Add event sourcing if**:
+
 - Audit trail is required (compliance, debugging)
 - Temporal queries are needed ("state at time T")
 - Reprocessing with new logic is valuable
 - Domain is naturally event-based (financial transactions, IoT)
 
 **Skip event sourcing if**:
+
 - Simple CRUD without audit needs
 - Team lacks event sourcing experience
 - Immediate consistency required on reads
@@ -915,24 +951,26 @@ When concurrent updates occur across replicas, conflicts must be resolved.
 #### Step 3: CQRS?
 
 **Add CQRS if**:
+
 - Read and write patterns have different optimization needs
 - Read traffic vastly exceeds writes (100:1+)
 - Multiple query patterns need different storage
 - Can tolerate eventual consistency on reads
 
 **Skip CQRS if**:
+
 - Read and write models are similar
 - Traffic doesn't justify the complexity
 - Immediate read consistency required
 
 #### Step 4: Choreography vs. Orchestration?
 
-| Factor | Choose Choreography | Choose Orchestration |
-|--------|--------------------|-----------------------|
-| Workflow steps | 2-3 | 5+ |
-| Team structure | Independent | Central platform |
-| Debugging need | Low | High |
-| Change frequency | Stable | Evolving |
+| Factor           | Choose Choreography | Choose Orchestration |
+| ---------------- | ------------------- | -------------------- |
+| Workflow steps   | 2-3                 | 5+                   |
+| Team structure   | Independent         | Central platform     |
+| Debugging need   | Low                 | High                 |
+| Change frequency | Stable              | Evolving             |
 
 ### Summary Decision Tree
 
@@ -962,15 +1000,15 @@ Event-driven architecture enables loose coupling, independent scaling, and compl
 
 **Key patterns summarized**:
 
-| Pattern | Core Idea | Use When |
-|---------|-----------|----------|
-| **Event-driven** | Async events instead of sync calls | Decoupling, scale, flexibility |
-| **Event sourcing** | Events as source of truth | Audit, temporal queries, replay |
-| **CQRS** | Separate read/write models | Asymmetric read/write patterns |
-| **Choreography** | Decentralized event reactions | Simple flows, independent teams |
-| **Orchestration** | Centralized workflow control | Complex flows, visibility needed |
-| **Transactional outbox** | Events in same transaction as state | Reliable event publishing |
-| **Idempotent consumers** | Same result on retry | Any at-least-once system |
+| Pattern                  | Core Idea                           | Use When                         |
+| ------------------------ | ----------------------------------- | -------------------------------- |
+| **Event-driven**         | Async events instead of sync calls  | Decoupling, scale, flexibility   |
+| **Event sourcing**       | Events as source of truth           | Audit, temporal queries, replay  |
+| **CQRS**                 | Separate read/write models          | Asymmetric read/write patterns   |
+| **Choreography**         | Decentralized event reactions       | Simple flows, independent teams  |
+| **Orchestration**        | Centralized workflow control        | Complex flows, visibility needed |
+| **Transactional outbox** | Events in same transaction as state | Reliable event publishing        |
+| **Idempotent consumers** | Same result on retry                | Any at-least-once system         |
 
 **Production reality**: Most systems combine patterns. Uber, Netflix, and LinkedIn use request-driven for user-facing operations and event-driven for everything behind the immediate response. Event sourcing where audit trails matter. CQRS where read optimization justifies complexity.
 

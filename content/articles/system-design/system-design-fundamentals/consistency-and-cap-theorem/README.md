@@ -103,12 +103,12 @@ This explains why systems sacrifice consistency even when partitions aren't occu
 
 ### The Four PACELC Configurations
 
-| Configuration | During Partition | Normal Operation | Example Systems |
-|---------------|------------------|------------------|-----------------|
-| **PA/EL** | Availability | Latency | Cassandra (default), DynamoDB (eventual reads) |
-| **PA/EC** | Availability | Consistency | MongoDB (default) |
-| **PC/EL** | Consistency | Latency | PNUTS, Cosmos DB (bounded staleness) |
-| **PC/EC** | Consistency | Consistency | Spanner, CockroachDB, traditional RDBMS |
+| Configuration | During Partition | Normal Operation | Example Systems                                |
+| ------------- | ---------------- | ---------------- | ---------------------------------------------- |
+| **PA/EL**     | Availability     | Latency          | Cassandra (default), DynamoDB (eventual reads) |
+| **PA/EC**     | Availability     | Consistency      | MongoDB (default)                              |
+| **PC/EL**     | Consistency      | Latency          | PNUTS, Cosmos DB (bounded staleness)           |
+| **PC/EC**     | Consistency      | Consistency      | Spanner, CockroachDB, traditional RDBMS        |
 
 **PA/EL** systems optimize for performance in both scenarios, accepting weaker consistency. These dominate high-throughput, latency-sensitive workloads.
 
@@ -292,11 +292,11 @@ For a system with N replicas, writes require W acknowledgments and reads require
 
 **Typical configurations:**
 
-| W | R | N | Guarantee | Use Case |
-|---|---|---|-----------|----------|
-| N | 1 | N | Write to all, read from any | Rare writes, many reads |
-| (N+1)/2 | (N+1)/2 | N | Majority quorum | Balanced workload |
-| 1 | N | N | Write to any, read from all | Many writes, rare reads |
+| W       | R       | N   | Guarantee                   | Use Case                |
+| ------- | ------- | --- | --------------------------- | ----------------------- |
+| N       | 1       | N   | Write to all, read from any | Rare writes, many reads |
+| (N+1)/2 | (N+1)/2 | N   | Majority quorum             | Balanced workload       |
+| 1       | N       | N   | Write to any, read from all | Many writes, rare reads |
 
 **Real-world:** [Cassandra's LOCAL_QUORUM](https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/dml/dmlConfigConsistency.html) uses W=R=(RF/2)+1 within a datacenter. With RF=3, writing to 2 and reading from 2 guarantees strong consistency locally while avoiding cross-datacenter latency.
 
@@ -338,15 +338,15 @@ SELECT * FROM users WHERE user_id = '123' USING CONSISTENCY QUORUM;
 
 ### Decision Matrix: Choosing Consistency Level
 
-| Requirement | Consistency Level | Rationale |
-|-------------|-------------------|-----------|
-| Financial transactions | Linearizable | Can't lose or double-count money |
-| User sees their own writes | Session/Read-your-writes | Minimal consistency that works |
-| Analytics dashboards | Eventual | Staleness measured in seconds is fine |
-| Distributed locks | Linearizable | Incorrect behavior breaks coordination |
-| Social media feeds | Causal or eventual | Missing a post briefly is acceptable |
-| Inventory counts | Tunable—strong for decrements | Overselling is worse than showing stale count |
-| Configuration distribution | Eventual with bounded staleness | Propagation delay acceptable |
+| Requirement                | Consistency Level               | Rationale                                     |
+| -------------------------- | ------------------------------- | --------------------------------------------- |
+| Financial transactions     | Linearizable                    | Can't lose or double-count money              |
+| User sees their own writes | Session/Read-your-writes        | Minimal consistency that works                |
+| Analytics dashboards       | Eventual                        | Staleness measured in seconds is fine         |
+| Distributed locks          | Linearizable                    | Incorrect behavior breaks coordination        |
+| Social media feeds         | Causal or eventual              | Missing a post briefly is acceptable          |
+| Inventory counts           | Tunable—strong for decrements   | Overselling is worse than showing stale count |
+| Configuration distribution | Eventual with bounded staleness | Propagation delay acceptable                  |
 
 ## Real-World Implementations
 
@@ -373,7 +373,7 @@ SELECT * FROM users WHERE user_id = '123' USING CONSISTENCY QUORUM;
 
 **Approach:** Eventually consistent by default; strongly consistent reads available per-operation.
 
-**Implementation details ([2022 paper](https://assets.amazon.science/33/9d/b77f13e5448cb7ff5f4f1efd1376/amazon-dynamodb-a-scalable-predictably-performant-and-fully-managed-nosql-database-service.pdf)):**
+**Implementation details:**
 
 - Each partition has one leader and multiple followers
 - Writes go to leader, replicate asynchronously
@@ -488,13 +488,13 @@ SELECT * FROM users WHERE user_id = '123' USING CONSISTENCY QUORUM;
 
 ### Step 2: Map Requirements to Models
 
-| If you need... | Consider... |
-|----------------|-------------|
+| If you need...                     | Consider...                                |
+| ---------------------------------- | ------------------------------------------ |
 | Distributed locks, leader election | Linearizability (Spanner, etcd, ZooKeeper) |
-| User sees their own changes | Session consistency / Read-your-writes |
-| Causal message ordering | Causal consistency (HLCs) |
-| Maximum availability | Eventual consistency with CRDTs |
-| Per-operation flexibility | Tunable consistency (Cassandra, DynamoDB) |
+| User sees their own changes        | Session consistency / Read-your-writes     |
+| Causal message ordering            | Causal consistency (HLCs)                  |
+| Maximum availability               | Eventual consistency with CRDTs            |
+| Per-operation flexibility          | Tunable consistency (Cassandra, DynamoDB)  |
 
 ### Step 3: Design for Failure
 
@@ -565,7 +565,6 @@ Understanding this spectrum—from the theoretical foundations of CAP through th
 
 - [Spanner: Google's Globally-Distributed Database](https://research.google.com/archive/spanner-osdi2012.pdf) - Corbett et al., 2012. TrueTime and external consistency.
 - [Spanner, TrueTime & The CAP Theorem](https://research.google.com/pubs/archive/45855.pdf) - Google's clarification on how Spanner relates to CAP.
-- [Amazon DynamoDB: A Scalable, Predictably Performant, and Fully Managed NoSQL Database Service](https://assets.amazon.science/33/9d/b77f13e5448cb7ff5f4f1efd1376/amazon-dynamodb-a-scalable-predictably-performant-and-fully-managed-nosql-database-service.pdf) - 2022. DynamoDB internals.
 
 #### Documentation
 

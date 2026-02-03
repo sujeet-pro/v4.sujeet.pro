@@ -34,7 +34,10 @@ const searchIndexPath = getFilePath("search/index.json")
                 <label class="filter-chip" title={cat.title} data-filter-id={cat.id}>
                   <input type="checkbox" name="category" value={cat.id} class="filter-chip-input peer" />
                   <span class="tag peer-checked:badge-accent">
-                    {cat.name} <span class="filter-count text-muted" data-count-for={cat.id}>({cat.count})</span>
+                    {cat.name}{" "}
+                    <span class="filter-count text-muted" data-count-for={cat.id}>
+                      ({cat.count})
+                    </span>
                   </span>
                 </label>
               ))}
@@ -53,7 +56,10 @@ const searchIndexPath = getFilePath("search/index.json")
                 <label class="filter-chip" title={topic.title} data-filter-id={topic.id}>
                   <input type="checkbox" name="topic" value={topic.id} class="filter-chip-input peer" />
                   <span class="tag peer-checked:badge-accent">
-                    {topic.name} <span class="filter-count text-muted" data-count-for={topic.id}>({topic.count})</span>
+                    {topic.name}{" "}
+                    <span class="filter-count text-muted" data-count-for={topic.id}>
+                      ({topic.count})
+                    </span>
                   </span>
                 </label>
               ))}
@@ -297,29 +303,29 @@ const searchIndexPath = getFilePath("search/index.json")
   // Update sidebar facet counts
   function updateFacetCounts(counts: { categories: Map<string, number>; topics: Map<string, number> }) {
     // Update category counts
-    document.querySelectorAll('#category-filters [data-count-for]').forEach((el) => {
-      const id = el.getAttribute('data-count-for')
+    document.querySelectorAll("#category-filters [data-count-for]").forEach((el) => {
+      const id = el.getAttribute("data-count-for")
       if (id) {
         const count = counts.categories.get(id) || 0
         el.textContent = `(${count})`
         // Dim the label if count is 0
-        const label = el.closest('.filter-chip')
+        const label = el.closest(".filter-chip")
         if (label) {
-          label.classList.toggle('filter-chip--empty', count === 0)
+          label.classList.toggle("filter-chip--empty", count === 0)
         }
       }
     })
 
     // Update topic counts
-    document.querySelectorAll('#topic-filters [data-count-for]').forEach((el) => {
-      const id = el.getAttribute('data-count-for')
+    document.querySelectorAll("#topic-filters [data-count-for]").forEach((el) => {
+      const id = el.getAttribute("data-count-for")
       if (id) {
         const count = counts.topics.get(id) || 0
         el.textContent = `(${count})`
         // Dim the label if count is 0
-        const label = el.closest('.filter-chip')
+        const label = el.closest(".filter-chip")
         if (label) {
-          label.classList.toggle('filter-chip--empty', count === 0)
+          label.classList.toggle("filter-chip--empty", count === 0)
         }
       }
     })

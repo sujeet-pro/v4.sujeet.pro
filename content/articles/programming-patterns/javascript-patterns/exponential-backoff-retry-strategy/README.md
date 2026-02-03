@@ -40,12 +40,12 @@ Exponential backoff with jitter solves a fundamental contention problem: how mul
 
 **The hierarchy of defense:**
 
-| Layer | Mechanism | Handles | Typical Config |
-|-------|-----------|---------|----------------|
-| 1 | Single retry | Network blips | 1 attempt, no delay |
-| 2 | Exponential backoff + jitter | Transient overload | 3-5 attempts, 100ms base, 30s cap |
-| 3 | Retry budget | Cascade prevention | 10% ratio per client |
-| 4 | Circuit breaker | Persistent failure | 50% failures → open for 30s |
+| Layer | Mechanism                    | Handles            | Typical Config                    |
+| ----- | ---------------------------- | ------------------ | --------------------------------- |
+| 1     | Single retry                 | Network blips      | 1 attempt, no delay               |
+| 2     | Exponential backoff + jitter | Transient overload | 3-5 attempts, 100ms base, 30s cap |
+| 3     | Retry budget                 | Cascade prevention | 10% ratio per client              |
+| 4     | Circuit breaker              | Persistent failure | 50% failures → open for 30s       |
 
 **Prerequisites:** Idempotency. Non-idempotent operations cannot be safely retried—design idempotency keys into APIs before implementing retry logic.
 
@@ -65,11 +65,11 @@ The "thundering herd" problem, where thousands of clients simultaneously retry r
 
 ### From Linear to Exponential
 
-| Strategy | Formula | Delay Sequence (base=1s) | Problem |
-|----------|---------|--------------------------|---------|
-| Constant | `delay = base` | 1s, 1s, 1s, 1s | No adaptation to outage severity |
-| Linear | `delay = base × attempt` | 1s, 2s, 3s, 4s | Growth too slow for severe overload |
-| Exponential | `delay = base × 2^attempt` | 1s, 2s, 4s, 8s | Matches geometric recovery needs |
+| Strategy    | Formula                    | Delay Sequence (base=1s) | Problem                             |
+| ----------- | -------------------------- | ------------------------ | ----------------------------------- |
+| Constant    | `delay = base`             | 1s, 1s, 1s, 1s           | No adaptation to outage severity    |
+| Linear      | `delay = base × attempt`   | 1s, 2s, 3s, 4s           | Growth too slow for severe overload |
+| Exponential | `delay = base × 2^attempt` | 1s, 2s, 4s, 8s           | Matches geometric recovery needs    |
 
 Exponential backoff's power comes from matching the typical recovery curve of overloaded systems. When a service is overwhelmed, it needs time proportional to the severity of overload—not constant additional time. The exponential curve creates "breathing room" that grows with failure count.
 
@@ -93,6 +93,7 @@ Each component of this formula is a critical tuning parameter:
 The collision probability analysis comes from Ethernet's BEB (Binary Exponential Backoff) algorithm in IEEE 802.3. After `c` collisions, the delay window is `[0, 2^c - 1]` slot times. The expected backoff is `(2^c - 1) / 2`.
 
 For N contending clients with collision count c:
+
 - Collision probability per slot: `1/N` for each client to choose the same slot
 - With window size `2^c`: collision probability ≈ `N / 2^c`
 - At c=10 with 1000 clients: collision probability ≈ 0.1%
@@ -116,7 +117,7 @@ AWS's 2015 analysis established three canonical jitter strategies. The choice de
 #### Full Jitter (Recommended)
 
 ```typescript
-sleep = random_between(0, min(cap, base * 2 ^ attempt))
+sleep = random_between(0, min(cap, (base * 2) ^ attempt))
 ```
 
 - **Spread**: Maximum randomization across entire window
@@ -126,7 +127,7 @@ sleep = random_between(0, min(cap, base * 2 ^ attempt))
 #### Equal Jitter
 
 ```typescript
-temp = min(cap, base * 2 ^ attempt)
+temp = min(cap, (base * 2) ^ attempt)
 sleep = temp / 2 + random_between(0, temp / 2)
 ```
 
@@ -298,10 +299,10 @@ Exponential backoff with jitter is a powerful and essential tool, but it is not 
 
 The relationship between exponential backoff and the circuit breaker pattern is the most critical interaction in this ecosystem. They operate at different scopes:
 
-| Pattern | Scope | Trigger | Response |
-|---------|-------|---------|----------|
-| Exponential backoff | Single request | Transient error | Wait, retry |
-| Circuit breaker | All requests to endpoint | Failure rate threshold | Fast-fail, stop calling |
+| Pattern             | Scope                    | Trigger                | Response                |
+| ------------------- | ------------------------ | ---------------------- | ----------------------- |
+| Exponential backoff | Single request           | Transient error        | Wait, retry             |
+| Circuit breaker     | All requests to endpoint | Failure rate threshold | Fast-fail, stop calling |
 
 **Implementation order matters**: Retry logic must be encapsulated within circuit breaker protection. The sequence:
 
@@ -353,7 +354,7 @@ The client-side implementation should:
 
 ```typescript collapse={1-5}
 function getRetryDelay(response: Response, calculatedDelay: number): number {
-  const retryAfter = response.headers.get('Retry-After')
+  const retryAfter = response.headers.get("Retry-After")
   if (!retryAfter) return calculatedDelay
 
   // Check if it's a number (seconds) or HTTP-date
@@ -387,13 +388,13 @@ The distinction matters: backends must signal whether overload is localized (ret
 
 Request hedging targets tail latency (p99 and above), not failure handling. In large-scale systems, a fraction of requests are slow due to GC (Garbage Collection) pauses, network jitter, or hot spots.
 
-| Aspect | Exponential Backoff | Request Hedging |
-|--------|--------------------|--------------------|
-| Goal | Handle failures | Reduce tail latency |
-| Execution | Serial: fail → wait → retry | Parallel: request → wait → send duplicate |
-| Trigger | Error response | Timeout (e.g., p95 latency) |
-| Load impact | Reduces load during outage | Increases load (~1-2% more requests) |
-| gRPC support | `retryPolicy` | `hedgingPolicy` (gRFC A6) |
+| Aspect       | Exponential Backoff         | Request Hedging                           |
+| ------------ | --------------------------- | ----------------------------------------- |
+| Goal         | Handle failures             | Reduce tail latency                       |
+| Execution    | Serial: fail → wait → retry | Parallel: request → wait → send duplicate |
+| Trigger      | Error response              | Timeout (e.g., p95 latency)               |
+| Load impact  | Reduces load during outage  | Increases load (~1-2% more requests)      |
+| gRPC support | `retryPolicy`               | `hedgingPolicy` (gRFC A6)                 |
 
 gRPC's hedging configuration (gRFC A6) sends parallel copies after `hedgingDelay` and cancels when any succeeds:
 
@@ -501,14 +502,14 @@ By adopting this comprehensive mindset, engineers can transform the unpredictabl
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **BEB** | Binary Exponential Backoff—the algorithm from IEEE 802.3 Ethernet |
-| **p99** | 99th percentile latency—the latency at which 99% of requests complete |
-| **SLO** | Service Level Objective—target reliability/performance metrics |
-| **Idempotency** | Property where repeated operations produce the same result as a single execution |
-| **Thundering herd** | Coordinated retry storm when many clients fail and retry simultaneously |
-| **Retry amplification** | Multiplicative load increase in multi-layer systems where each layer retries |
+| Term                    | Definition                                                                       |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| **BEB**                 | Binary Exponential Backoff—the algorithm from IEEE 802.3 Ethernet                |
+| **p99**                 | 99th percentile latency—the latency at which 99% of requests complete            |
+| **SLO**                 | Service Level Objective—target reliability/performance metrics                   |
+| **Idempotency**         | Property where repeated operations produce the same result as a single execution |
+| **Thundering herd**     | Coordinated retry storm when many clients fail and retry simultaneously          |
+| **Retry amplification** | Multiplicative load increase in multi-layer systems where each layer retries     |
 
 ### Summary
 

@@ -90,11 +90,11 @@ A CNAME (Canonical Name) record declares that one name is an alias for another. 
 
 **Workarounds for apex aliasing:**
 
-| Solution | Mechanism | Trade-off |
-|----------|-----------|-----------|
-| **ALIAS/ANAME** | Provider resolves CNAME server-side, returns synthesized A/AAAA | Geo-routing based on server location, not client |
-| **CNAME flattening** | Same as ALIAS, Cloudflare terminology | Adds latency to authoritative responses |
-| **Multiple A records** | Manually replicate target's IPs | Must update when target changes |
+| Solution               | Mechanism                                                       | Trade-off                                        |
+| ---------------------- | --------------------------------------------------------------- | ------------------------------------------------ |
+| **ALIAS/ANAME**        | Provider resolves CNAME server-side, returns synthesized A/AAAA | Geo-routing based on server location, not client |
+| **CNAME flattening**   | Same as ALIAS, Cloudflare terminology                           | Adds latency to authoritative responses          |
+| **Multiple A records** | Manually replicate target's IPs                                 | Must update when target changes                  |
 
 Cloudflare's CNAME flattening and Route 53's Alias records work by resolving the CNAME chain at query time and returning the resulting A/AAAA records directly. The limitation: location-dependent responses (GeoDNS) will be based on the authoritative server's location, not the end user's resolver.
 
@@ -136,15 +136,15 @@ ns2.example.com.    172800  IN  A   192.0.2.2
 
 Every DNS zone must have exactly one SOA (Start of Authority) record at the zone apex. It contains zone metadata critical for replication and caching:
 
-| Field | Purpose | Recommended Value |
-|-------|---------|-------------------|
-| MNAME | Primary nameserver hostname | Your primary NS |
-| RNAME | Responsible person email (`@` → `.`) | `hostmaster.example.com.` |
-| Serial | Zone version (must increment on change) | `YYYYMMDDnn` format |
-| Refresh | Secondary check interval | 7200-86400s (2-24h) |
-| Retry | Retry after failed refresh | 1800-3600s (30m-1h) |
-| Expire | Stop serving if no refresh | 1209600-2419200s (14-28d) |
-| Minimum | **Negative caching TTL** | 3600s (1h) |
+| Field   | Purpose                                 | Recommended Value         |
+| ------- | --------------------------------------- | ------------------------- |
+| MNAME   | Primary nameserver hostname             | Your primary NS           |
+| RNAME   | Responsible person email (`@` → `.`)    | `hostmaster.example.com.` |
+| Serial  | Zone version (must increment on change) | `YYYYMMDDnn` format       |
+| Refresh | Secondary check interval                | 7200-86400s (2-24h)       |
+| Retry   | Retry after failed refresh              | 1800-3600s (30m-1h)       |
+| Expire  | Stop serving if no refresh              | 1209600-2419200s (14-28d) |
+| Minimum | **Negative caching TTL**                | 3600s (1h)                |
 
 **The MINIMUM field evolution:** Originally (RFC 1035), this specified the minimum TTL for all records in the zone. RFC 2308 redefined it exclusively for negative caching—the TTL for NXDOMAIN and NODATA responses. The field name is now misleading, but changing it would break compatibility.
 
@@ -221,11 +221,11 @@ The strings are concatenated to: `v=spf1 include:_spf.google.com include:amazons
 
 **Email authentication records:**
 
-| Record | Location | Purpose |
-|--------|----------|---------|
-| **SPF** (RFC 7208) | `example.com` | Authorized mail senders |
-| **DKIM** (RFC 6376) | `selector._domainkey.example.com` | Public key for signature verification |
-| **DMARC** (RFC 7489) | `_dmarc.example.com` | Policy for SPF/DKIM failures |
+| Record               | Location                          | Purpose                               |
+| -------------------- | --------------------------------- | ------------------------------------- |
+| **SPF** (RFC 7208)   | `example.com`                     | Authorized mail senders               |
+| **DKIM** (RFC 6376)  | `selector._domainkey.example.com` | Public key for signature verification |
+| **DMARC** (RFC 7489) | `_dmarc.example.com`              | Policy for SPF/DKIM failures          |
 
 **SPF lookup limit:** SPF evaluation allows maximum 10 DNS lookups (including `include:`, `a:`, `mx:`, `redirect=`). Exceeding this limit causes a permanent error (`permerror`), potentially causing mail rejection. Flatten SPF records by replacing includes with direct IP ranges for high-volume domains.
 
@@ -274,13 +274,13 @@ TTL is a 32-bit unsigned integer specifying how long a record may be cached, in 
 
 ### TTL by Scenario
 
-| Scenario | Recommended TTL | Rationale |
-|----------|-----------------|-----------|
-| **Static infrastructure** | 3600-86400s | Reduces query load; changes are rare |
-| **CDN/anycast endpoints** | 60-300s | Enables health-check-driven failover |
-| **Active migrations** | 60-300s | Minimizes stale cache during cutover |
-| **Development/testing** | 60s | Rapid iteration without cache delays |
-| **NS records** | 86400-172800s | Nameserver changes are rare, high TTL reduces root/TLD load |
+| Scenario                  | Recommended TTL | Rationale                                                   |
+| ------------------------- | --------------- | ----------------------------------------------------------- |
+| **Static infrastructure** | 3600-86400s     | Reduces query load; changes are rare                        |
+| **CDN/anycast endpoints** | 60-300s         | Enables health-check-driven failover                        |
+| **Active migrations**     | 60-300s         | Minimizes stale cache during cutover                        |
+| **Development/testing**   | 60s             | Rapid iteration without cache delays                        |
+| **NS records**            | 86400-172800s   | Nameserver changes are rare, high TTL reduces root/TLD load |
 
 **CDN provider behavior:** Cloudflare automatically sets 300s TTL for proxied records (orange cloud) and doesn't allow customization. This ensures their anycast routing changes propagate within 5 minutes.
 
@@ -326,13 +326,13 @@ api.example.com.    3600   IN    A    198.51.100.20
 
 DNS responses pass through multiple caching layers, each with distinct behavior:
 
-| Layer | Typical Cache Duration | Behavior |
-|-------|------------------------|----------|
-| **Authoritative** | N/A (source of truth) | Sets TTL in responses |
-| **Recursive resolver** | Honors TTL | Decrements cached TTL; prefetches popular records |
-| **OS stub resolver** | Seconds to minutes | Platform-dependent; may have minimum TTL floor |
-| **Browser** | 1-60 minutes | Chrome: 1 minute; Firefox: respects TTL; Safari: varies |
-| **Application** | Varies | Some HTTP clients cache DNS independently |
+| Layer                  | Typical Cache Duration | Behavior                                                |
+| ---------------------- | ---------------------- | ------------------------------------------------------- |
+| **Authoritative**      | N/A (source of truth)  | Sets TTL in responses                                   |
+| **Recursive resolver** | Honors TTL             | Decrements cached TTL; prefetches popular records       |
+| **OS stub resolver**   | Seconds to minutes     | Platform-dependent; may have minimum TTL floor          |
+| **Browser**            | 1-60 minutes           | Chrome: 1 minute; Firefox: respects TTL; Safari: varies |
+| **Application**        | Varies                 | Some HTTP clients cache DNS independently               |
 
 **Resolver TTL floors:** Some resolvers enforce minimum TTLs regardless of authoritative values. ISP resolvers may cache for longer than specified. Google Public DNS (8.8.8.8) generally respects TTLs but may serve stale data during authoritative outages (RFC 8767 serve-stale).
 
@@ -491,21 +491,21 @@ TTL strategy is a trade-off between cache efficiency and change velocity. Static
 
 ### Prerequisites
 
-- DNS resolution fundamentals (see [DNS Resolution Path](/articles/web-foundations/networking-protocols/dns-resolution-path))
+- DNS resolution fundamentals (see [DNS Resolution Path](../dns-resolution-path/README.md))
 - Basic understanding of IP addressing (IPv4/IPv6)
 - Familiarity with command-line DNS tools (`dig`, `nslookup`)
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **RRSet** | Resource Record Set—all records of the same name and type |
-| **Zone apex** | The root of a DNS zone (e.g., `example.com` for the example.com zone) |
-| **Glue record** | A/AAAA record in parent zone for in-bailiwick nameservers |
-| **In-bailiwick** | Nameserver hostname within or below the delegated zone |
-| **Negative caching** | Caching of NXDOMAIN/NODATA responses per SOA.MINIMUM |
-| **Split-horizon** | Returning different DNS responses based on query source |
-| **EDNS0** | Extension Mechanisms for DNS; enables larger UDP responses |
+| Term                 | Definition                                                            |
+| -------------------- | --------------------------------------------------------------------- |
+| **RRSet**            | Resource Record Set—all records of the same name and type             |
+| **Zone apex**        | The root of a DNS zone (e.g., `example.com` for the example.com zone) |
+| **Glue record**      | A/AAAA record in parent zone for in-bailiwick nameservers             |
+| **In-bailiwick**     | Nameserver hostname within or below the delegated zone                |
+| **Negative caching** | Caching of NXDOMAIN/NODATA responses per SOA.MINIMUM                  |
+| **Split-horizon**    | Returning different DNS responses based on query source               |
+| **EDNS0**            | Extension Mechanisms for DNS; enables larger UDP responses            |
 
 ### Summary
 

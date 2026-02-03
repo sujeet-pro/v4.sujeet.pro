@@ -49,12 +49,12 @@ Producer → Queue (buffer) → Consumer(s)
 
 **Key design decisions:**
 
-| Decision | In-Memory Queue | Distributed Queue |
-| -------- | --------------- | ----------------- |
-| **Persistence** | None—process crash loses all jobs | Redis/DB-backed—survives restarts |
-| **Scalability** | Single process only | Competing consumers across nodes |
-| **Failure handling** | Caller's responsibility | Built-in retries, DLQ, stalled detection |
-| **When to use** | Local concurrency control, rate limiting | Cross-process coordination, durability required |
+| Decision             | In-Memory Queue                          | Distributed Queue                               |
+| -------------------- | ---------------------------------------- | ----------------------------------------------- |
+| **Persistence**      | None—process crash loses all jobs        | Redis/DB-backed—survives restarts               |
+| **Scalability**      | Single process only                      | Competing consumers across nodes                |
+| **Failure handling** | Caller's responsibility                  | Built-in retries, DLQ, stalled detection        |
+| **When to use**      | Local concurrency control, rate limiting | Cross-process coordination, durability required |
 
 **Resilience fundamentals:**
 
@@ -120,10 +120,10 @@ In-memory queues throttle async operations within a single process—useful for 
 
 **Library comparison (as of January 2025):**
 
-| Library | Weekly Downloads | Design Focus | Concurrency Control |
-| ------- | --------------- | ------------ | ------------------- |
-| **fastq** v1.20 | 60M+ | Raw performance, minimal overhead | Simple concurrency count |
-| **p-queue** v9.1 | 10M+ | Feature-rich, priority support | Fixed/sliding window rate limiting |
+| Library          | Weekly Downloads | Design Focus                      | Concurrency Control                |
+| ---------------- | ---------------- | --------------------------------- | ---------------------------------- |
+| **fastq** v1.20  | 60M+             | Raw performance, minimal overhead | Simple concurrency count           |
+| **p-queue** v9.1 | 10M+             | Feature-rich, priority support    | Fixed/sliding window rate limiting |
 
 **p-queue** provides priority scheduling, per-operation timeouts, and sliding-window rate limiting. **fastq** uses object pooling via `reusify` for reduced GC pressure—6x higher adoption for performance-critical scenarios.
 
@@ -137,12 +137,12 @@ In-memory queues throttle async operations within a single process—useful for 
 
 **Critical limitations of in-memory queues:**
 
-| Limitation | Impact | Mitigation |
-| ---------- | ------ | ---------- |
-| **No persistence** | Process crash loses all queued jobs | Use distributed queue for durability |
-| **Single process** | Cannot scale horizontally | Distributed queue with competing consumers |
-| **No backpressure by default** | Unbounded memory growth under load | Monitor queue size, reject new tasks when saturated |
-| **Caller handles errors** | Silent failures if not awaited | Always handle returned promises |
+| Limitation                     | Impact                              | Mitigation                                          |
+| ------------------------------ | ----------------------------------- | --------------------------------------------------- |
+| **No persistence**             | Process crash loses all queued jobs | Use distributed queue for durability                |
+| **Single process**             | Cannot scale horizontally           | Distributed queue with competing consumers          |
+| **No backpressure by default** | Unbounded memory growth under load  | Monitor queue size, reject new tasks when saturated |
+| **Caller handles errors**      | Silent failures if not awaited      | Always handle returned promises                     |
 
 **Backpressure pattern with p-queue:**
 
@@ -226,11 +226,11 @@ graph LR
 
 ### 2.2 Node.js Distributed Queue Libraries
 
-| Library | Backend | Design Philosophy | Best For |
-| ------- | ------- | ----------------- | -------- |
-| **BullMQ** v5.x | Redis | Modern, feature-rich, production-grade | Most distributed queue needs |
-| **Agenda** | MongoDB | Cron-style scheduling | Recurring jobs with complex schedules |
-| **Temporal** | PostgreSQL/MySQL | Workflow orchestration with state machines | Long-running, multi-step workflows |
+| Library         | Backend          | Design Philosophy                          | Best For                              |
+| --------------- | ---------------- | ------------------------------------------ | ------------------------------------- |
+| **BullMQ** v5.x | Redis            | Modern, feature-rich, production-grade     | Most distributed queue needs          |
+| **Agenda**      | MongoDB          | Cron-style scheduling                      | Recurring jobs with complex schedules |
+| **Temporal**    | PostgreSQL/MySQL | Workflow orchestration with state machines | Long-running, multi-step workflows    |
 
 ### 2.3 BullMQ Deep Dive
 
@@ -419,11 +419,11 @@ Distributed queues provide **at-least-once delivery**. Network partitions, worke
 
 **Idempotency strategies:**
 
-| Strategy | Implementation | Trade-off |
-| -------- | -------------- | --------- |
-| **Unique constraint** | DB unique index on job ID | Simple; fails fast on duplicate |
-| **Idempotency key** | Store processed keys in Redis/DB with TTL | Allows explicit duplicate check |
-| **Conditional write** | `UPDATE ... WHERE version = ?` | Handles concurrent execution |
+| Strategy              | Implementation                            | Trade-off                       |
+| --------------------- | ----------------------------------------- | ------------------------------- |
+| **Unique constraint** | DB unique index on job ID                 | Simple; fails fast on duplicate |
+| **Idempotency key**   | Store processed keys in Redis/DB with TTL | Allows explicit duplicate check |
+| **Conditional write** | `UPDATE ... WHERE version = ?`            | Handles concurrent execution    |
 
 ```typescript title="idempotent-consumer.ts" collapse={1-3}
 import { Worker } from "bullmq"
@@ -557,12 +557,12 @@ graph LR
 
 **Choreography vs. Orchestration:**
 
-| Aspect | Choreography | Orchestration |
-| ------ | ------------ | ------------- |
-| **Coordination** | Services react to events autonomously | Central orchestrator directs steps |
-| **Coupling** | Loose—services don't know about each other | Tighter—orchestrator knows all steps |
-| **Debugging** | Harder—flow distributed across services | Easier—single point of visibility |
-| **Failure point** | Distributed | Orchestrator (must be resilient) |
+| Aspect            | Choreography                               | Orchestration                        |
+| ----------------- | ------------------------------------------ | ------------------------------------ |
+| **Coordination**  | Services react to events autonomously      | Central orchestrator directs steps   |
+| **Coupling**      | Loose—services don't know about each other | Tighter—orchestrator knows all steps |
+| **Debugging**     | Harder—flow distributed across services    | Easier—single point of visibility    |
+| **Failure point** | Distributed                                | Orchestrator (must be resilient)     |
 
 ```typescript title="saga-orchestrator.ts" collapse={20-26}
 class OrderSagaOrchestrator {

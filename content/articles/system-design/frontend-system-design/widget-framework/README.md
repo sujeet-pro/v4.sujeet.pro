@@ -66,12 +66,12 @@ A pluggable widget framework is a **microkernel architecture**: minimal core sys
 
 **Key numbers:**
 
-| Aspect | Module Federation | iframe | WASM Sandbox |
-|--------|-------------------|--------|--------------|
-| Load overhead | ~50ms (shared deps) | ~100-200ms (full context) | ~300-500ms (engine init) |
-| Memory per widget | Shared with host | Separate heap (~10-50MB) | Separate (~5-20MB) |
-| Communication latency | Microseconds | ~1-5ms (postMessage) | ~0.5-2ms (WASM boundary) |
-| Security | Same origin trust | Strong isolation | Strongest isolation |
+| Aspect                | Module Federation   | iframe                    | WASM Sandbox             |
+| --------------------- | ------------------- | ------------------------- | ------------------------ |
+| Load overhead         | ~50ms (shared deps) | ~100-200ms (full context) | ~300-500ms (engine init) |
+| Memory per widget     | Shared with host    | Separate heap (~10-50MB)  | Separate (~5-20MB)       |
+| Communication latency | Microseconds        | ~1-5ms (postMessage)      | ~0.5-2ms (WASM boundary) |
+| Security              | Same origin trust   | Strong isolation          | Strongest isolation      |
 
 ## The Challenge
 
@@ -102,23 +102,23 @@ A pluggable widget framework is a **microkernel architecture**: minimal core sys
 
 **Defense in depth**:
 
-| Threat | Mitigation |
-|--------|------------|
-| DOM manipulation | iframe sandbox, separate browsing context |
-| CSS pollution | Shadow DOM, iframe |
-| Data exfiltration | CSP, sandbox restrictions |
-| CPU exhaustion | Web Worker isolation, timeout enforcement |
-| Memory leaks | Widget lifecycle management, unload on deactivation |
+| Threat            | Mitigation                                          |
+| ----------------- | --------------------------------------------------- |
+| DOM manipulation  | iframe sandbox, separate browsing context           |
+| CSS pollution     | Shadow DOM, iframe                                  |
+| Data exfiltration | CSP, sandbox restrictions                           |
+| CPU exhaustion    | Web Worker isolation, timeout enforcement           |
+| Memory leaks      | Widget lifecycle management, unload on deactivation |
 
 ### Scale Factors
 
-| Factor | Small Scale | Large Scale |
-|--------|-------------|-------------|
-| Widgets loaded | 1-5 | 50-100 |
-| Tenants | 1-10 | 10,000+ |
-| Widget registry size | 10-20 widgets | 1,000+ widgets |
-| Update frequency | Weekly | Continuous |
-| Widget developers | Internal team | Third-party ecosystem |
+| Factor               | Small Scale   | Large Scale           |
+| -------------------- | ------------- | --------------------- |
+| Widgets loaded       | 1-5           | 50-100                |
+| Tenants              | 1-10          | 10,000+               |
+| Widget registry size | 10-20 widgets | 1,000+ widgets        |
+| Update frequency     | Weekly        | Continuous            |
+| Widget developers    | Internal team | Third-party ecosystem |
 
 ## Design Paths
 
@@ -156,7 +156,7 @@ flowchart LR
 Module Federation (Webpack 5+) allows separate webpack builds to share code at runtime. The host declares **remotes** (external builds to consume) and **shared** dependencies (libraries to deduplicate).
 
 ```typescript title="host/webpack.config.js" collapse={1-5, 25-30}
-const { ModuleFederationPlugin } = require("webpack").container;
+const { ModuleFederationPlugin } = require("webpack").container
 
 module.exports = {
   // ... other config
@@ -181,11 +181,11 @@ module.exports = {
       },
     }),
   ],
-};
+}
 ```
 
 ```typescript title="widget-a/webpack.config.js" collapse={1-5, 20-25}
-const { ModuleFederationPlugin } = require("webpack").container;
+const { ModuleFederationPlugin } = require("webpack").container
 
 module.exports = {
   plugins: [
@@ -201,7 +201,7 @@ module.exports = {
       },
     }),
   ],
-};
+}
 ```
 
 **Runtime loading:**
@@ -243,12 +243,12 @@ export function WidgetSlot({ widgetId }: { widgetId: string }) {
 
 **Implementation complexity:**
 
-| Aspect | Effort |
-|--------|--------|
-| Initial setup | High (webpack config complexity) |
-| Adding new widgets | Low (configure remote URL) |
+| Aspect             | Effort                              |
+| ------------------ | ----------------------------------- |
+| Initial setup      | High (webpack config complexity)    |
+| Adding new widgets | Low (configure remote URL)          |
 | Version management | Medium (shared version negotiation) |
-| Security | Low (same-origin trust model) |
+| Security           | Low (same-origin trust model)       |
 
 **Real-world example:**
 
@@ -311,14 +311,14 @@ Capabilities are granted explicitly:
 
 **Sandbox attribute options:**
 
-| Attribute | Grants |
-|-----------|--------|
-| `allow-scripts` | JavaScript execution |
-| `allow-same-origin` | Treats content as same origin (dangerous with allow-scripts) |
-| `allow-forms` | Form submission |
-| `allow-popups` | Window.open(), target="_blank" |
-| `allow-modals` | alert(), confirm(), prompt() |
-| `allow-top-navigation` | Navigate parent window |
+| Attribute              | Grants                                                       |
+| ---------------------- | ------------------------------------------------------------ |
+| `allow-scripts`        | JavaScript execution                                         |
+| `allow-same-origin`    | Treats content as same origin (dangerous with allow-scripts) |
+| `allow-forms`          | Form submission                                              |
+| `allow-popups`         | Window.open(), target="\_blank"                              |
+| `allow-modals`         | alert(), confirm(), prompt()                                 |
+| `allow-top-navigation` | Navigate parent window                                       |
 
 **Security warning:** Never combine `allow-scripts` and `allow-same-origin` for untrusted content. The iframe can remove its own sandbox attribute and escape.
 
@@ -326,54 +326,54 @@ Capabilities are granted explicitly:
 
 ```typescript title="host/src/WidgetBridge.ts"
 interface WidgetMessage {
-  type: string;
-  requestId: string;
-  payload: unknown;
+  type: string
+  requestId: string
+  payload: unknown
 }
 
 class WidgetBridge {
-  private iframe: HTMLIFrameElement;
-  private pendingRequests = new Map<string, { resolve: Function; reject: Function }>();
-  private trustedOrigin: string;
+  private iframe: HTMLIFrameElement
+  private pendingRequests = new Map<string, { resolve: Function; reject: Function }>()
+  private trustedOrigin: string
 
   constructor(iframe: HTMLIFrameElement, trustedOrigin: string) {
-    this.iframe = iframe;
-    this.trustedOrigin = trustedOrigin;
-    window.addEventListener("message", this.handleMessage);
+    this.iframe = iframe
+    this.trustedOrigin = trustedOrigin
+    window.addEventListener("message", this.handleMessage)
   }
 
   private handleMessage = (event: MessageEvent<WidgetMessage>) => {
     // CRITICAL: Always validate origin
-    if (event.origin !== this.trustedOrigin) return;
+    if (event.origin !== this.trustedOrigin) return
 
-    const { type, requestId, payload } = event.data;
+    const { type, requestId, payload } = event.data
 
     if (type === "API_RESPONSE" && this.pendingRequests.has(requestId)) {
-      const { resolve } = this.pendingRequests.get(requestId)!;
-      this.pendingRequests.delete(requestId);
-      resolve(payload);
+      const { resolve } = this.pendingRequests.get(requestId)!
+      this.pendingRequests.delete(requestId)
+      resolve(payload)
     }
-  };
+  }
 
   async call(method: string, args: unknown[]): Promise<unknown> {
-    const requestId = crypto.randomUUID();
+    const requestId = crypto.randomUUID()
 
     return new Promise((resolve, reject) => {
-      this.pendingRequests.set(requestId, { resolve, reject });
+      this.pendingRequests.set(requestId, { resolve, reject })
 
       this.iframe.contentWindow?.postMessage(
         { type: "API_CALL", requestId, method, args },
-        this.trustedOrigin // CRITICAL: Specify target origin
-      );
+        this.trustedOrigin, // CRITICAL: Specify target origin
+      )
 
       // Timeout to prevent hanging requests
       setTimeout(() => {
         if (this.pendingRequests.has(requestId)) {
-          this.pendingRequests.delete(requestId);
-          reject(new Error(`Widget call timed out: ${method}`));
+          this.pendingRequests.delete(requestId)
+          reject(new Error(`Widget call timed out: ${method}`))
         }
-      }, 5000);
-    });
+      }, 5000)
+    })
   }
 }
 ```
@@ -382,35 +382,35 @@ class WidgetBridge {
 // Inside the iframe: SDK shim that talks to host
 const hostSDK = {
   async showNotification(message: string): Promise<void> {
-    return callHost("showNotification", [message]);
+    return callHost("showNotification", [message])
   },
 
   async getData(key: string): Promise<unknown> {
-    return callHost("getData", [key]);
+    return callHost("getData", [key])
   },
-};
+}
 
 function callHost(method: string, args: unknown[]): Promise<unknown> {
-  const requestId = crypto.randomUUID();
+  const requestId = crypto.randomUUID()
 
   return new Promise((resolve) => {
     const handler = (event: MessageEvent) => {
       if (event.data.requestId === requestId && event.data.type === "API_RESPONSE") {
-        window.removeEventListener("message", handler);
-        resolve(event.data.payload);
+        window.removeEventListener("message", handler)
+        resolve(event.data.payload)
       }
-    };
-    window.addEventListener("message", handler);
+    }
+    window.addEventListener("message", handler)
 
     window.parent.postMessage(
       { type: "API_CALL", requestId, method, args },
-      "*" // Widget doesn't know host origin; host validates on receive
-    );
-  });
+      "*", // Widget doesn't know host origin; host validates on receive
+    )
+  })
 }
 
 // Expose SDK to widget code
-(window as any).hostSDK = hostSDK;
+;(window as any).hostSDK = hostSDK
 ```
 
 **Best for:**
@@ -426,12 +426,12 @@ function callHost(method: string, args: unknown[]): Promise<unknown> {
 
 **Implementation complexity:**
 
-| Aspect | Effort |
-|--------|--------|
-| Initial setup | Medium (iframe + postMessage) |
-| Adding new widgets | Low (point to URL) |
+| Aspect             | Effort                                |
+| ------------------ | ------------------------------------- |
+| Initial setup      | Medium (iframe + postMessage)         |
+| Adding new widgets | Low (point to URL)                    |
 | Performance tuning | High (message serialization overhead) |
-| Security | Low (browser provides isolation) |
+| Security           | Low (browser provides isolation)      |
 
 **Real-world example:**
 
@@ -476,38 +476,38 @@ Shadow DOM creates an encapsulated DOM subtree with its own style scope. Styles 
 
 ```typescript title="host/src/WidgetContainer.ts"
 class WidgetContainer extends HTMLElement {
-  private shadow: ShadowRoot;
+  private shadow: ShadowRoot
 
   constructor() {
-    super();
+    super()
     // 'closed' prevents external access to shadow root
-    this.shadow = this.attachShadow({ mode: "closed" });
+    this.shadow = this.attachShadow({ mode: "closed" })
   }
 
   async loadWidget(widgetUrl: string) {
     // Fetch widget bundle
-    const response = await fetch(widgetUrl);
-    const widgetCode = await response.text();
+    const response = await fetch(widgetUrl)
+    const widgetCode = await response.text()
 
     // Create isolated style scope
-    const style = document.createElement("style");
-    style.textContent = await this.fetchWidgetStyles(widgetUrl);
+    const style = document.createElement("style")
+    style.textContent = await this.fetchWidgetStyles(widgetUrl)
 
     // Create widget container
-    const container = document.createElement("div");
-    container.className = "widget-root";
+    const container = document.createElement("div")
+    container.className = "widget-root"
 
-    this.shadow.appendChild(style);
-    this.shadow.appendChild(container);
+    this.shadow.appendChild(style)
+    this.shadow.appendChild(container)
 
     // Execute widget code in this context
     // WARNING: No JS isolation—widget code runs in host context
-    const widgetModule = new Function("container", "hostSDK", widgetCode);
-    widgetModule(container, window.hostSDK);
+    const widgetModule = new Function("container", "hostSDK", widgetCode)
+    widgetModule(container, window.hostSDK)
   }
 }
 
-customElements.define("widget-container", WidgetContainer);
+customElements.define("widget-container", WidgetContainer)
 ```
 
 **CSS isolation guarantees:**
@@ -545,11 +545,11 @@ widget-container {
 
 **Implementation complexity:**
 
-| Aspect | Effort |
-|--------|--------|
-| Initial setup | Low (native browser API) |
-| CSS isolation | Low (automatic) |
-| JS isolation | None (same context) |
+| Aspect                | Effort                             |
+| --------------------- | ---------------------------------- |
+| Initial setup         | Low (native browser API)           |
+| CSS isolation         | Low (automatic)                    |
+| JS isolation          | None (same context)                |
 | Framework integration | Medium (React/Vue wrappers needed) |
 
 **Trade-offs:**
@@ -598,51 +598,51 @@ Figma's approach: compile a JavaScript engine (QuickJS) to WebAssembly. Plugin c
 3. **Deterministic execution**: Same code, same inputs → same outputs. Useful for collaborative features.
 
 ```typescript title="host/src/WasmSandbox.ts" collapse={1-5, 35-45}
-import { newQuickJSWASMModule, QuickJSWASMModule, QuickJSContext } from "quickjs-emscripten";
+import { newQuickJSWASMModule, QuickJSWASMModule, QuickJSContext } from "quickjs-emscripten"
 
 class PluginSandbox {
-  private vm: QuickJSWASMModule;
-  private context: QuickJSContext;
+  private vm: QuickJSWASMModule
+  private context: QuickJSContext
 
   async initialize() {
-    this.vm = await newQuickJSWASMModule();
-    this.context = this.vm.newContext();
+    this.vm = await newQuickJSWASMModule()
+    this.context = this.vm.newContext()
 
     // Expose host API to sandbox
-    this.exposeHostAPI();
+    this.exposeHostAPI()
   }
 
   private exposeHostAPI() {
-    const hostAPI = this.context.newObject();
+    const hostAPI = this.context.newObject()
 
     // Expose showNotification
     const showNotification = this.context.newFunction("showNotification", (msgHandle) => {
-      const message = this.context.getString(msgHandle);
+      const message = this.context.getString(msgHandle)
       // Call actual host notification system
-      window.hostNotifications.show(message);
-      return this.context.undefined;
-    });
+      window.hostNotifications.show(message)
+      return this.context.undefined
+    })
 
-    this.context.setProp(hostAPI, "showNotification", showNotification);
-    this.context.setProp(this.context.global, "figma", hostAPI);
+    this.context.setProp(hostAPI, "showNotification", showNotification)
+    this.context.setProp(this.context.global, "figma", hostAPI)
 
-    showNotification.dispose();
-    hostAPI.dispose();
+    showNotification.dispose()
+    hostAPI.dispose()
   }
 
   async executePlugin(code: string): Promise<void> {
-    const result = this.context.evalCode(code);
+    const result = this.context.evalCode(code)
     if (result.error) {
-      const error = this.context.dump(result.error);
-      result.error.dispose();
-      throw new Error(`Plugin error: ${JSON.stringify(error)}`);
+      const error = this.context.dump(result.error)
+      result.error.dispose()
+      throw new Error(`Plugin error: ${JSON.stringify(error)}`)
     }
-    result.value.dispose();
+    result.value.dispose()
   }
 
   dispose() {
-    this.context.dispose();
-    this.vm.dispose();
+    this.context.dispose()
+    this.vm.dispose()
   }
 }
 ```
@@ -667,12 +667,12 @@ This separation prevents plugins from both manipulating the document AND accessi
 
 **Implementation complexity:**
 
-| Aspect | Effort |
-|--------|--------|
-| Initial setup | Very High (custom sandbox) |
+| Aspect             | Effort                                      |
+| ------------------ | ------------------------------------------- |
+| Initial setup      | Very High (custom sandbox)                  |
 | API surface design | High (every API must be explicitly exposed) |
-| Performance tuning | High (WASM boundary crossing) |
-| Security | Low (isolation is architectural) |
+| Performance tuning | High (WASM boundary crossing)               |
+| Security           | Low (isolation is architectural)            |
 
 **Trade-offs:**
 
@@ -684,16 +684,16 @@ This separation prevents plugins from both manipulating the document AND accessi
 
 ### Decision Matrix
 
-| Factor | Module Federation | iframe Sandbox | Shadow DOM | WASM Sandbox |
-|--------|-------------------|----------------|------------|--------------|
-| JS Isolation | None | Strong | None | Strongest |
-| CSS Isolation | None | Complete | Complete | N/A (no DOM) |
-| Shared dependencies | Yes | No | Manual | No |
-| Load time | Fast (50ms) | Medium (100-200ms) | Fast (10ms) | Slow (300-500ms) |
-| Memory per widget | Shared | 10-50MB | Shared | 5-20MB |
-| Communication | Direct | postMessage (1-5ms) | Direct | WASM boundary (~1ms) |
-| Trust model | Same-origin | Untrusted | Same-origin | Untrusted |
-| Browser support | Webpack only | Universal | Universal | Universal |
+| Factor              | Module Federation | iframe Sandbox      | Shadow DOM  | WASM Sandbox         |
+| ------------------- | ----------------- | ------------------- | ----------- | -------------------- |
+| JS Isolation        | None              | Strong              | None        | Strongest            |
+| CSS Isolation       | None              | Complete            | Complete    | N/A (no DOM)         |
+| Shared dependencies | Yes               | No                  | Manual      | No                   |
+| Load time           | Fast (50ms)       | Medium (100-200ms)  | Fast (10ms) | Slow (300-500ms)     |
+| Memory per widget   | Shared            | 10-50MB             | Shared      | 5-20MB               |
+| Communication       | Direct            | postMessage (1-5ms) | Direct      | WASM boundary (~1ms) |
+| Trust model         | Same-origin       | Untrusted           | Same-origin | Untrusted            |
+| Browser support     | Webpack only      | Universal           | Universal   | Universal            |
 
 ### Decision Framework
 
@@ -781,21 +781,14 @@ Every widget declares its capabilities, entry points, and requirements via a man
     ]
   },
 
-  "permissions": [
-    "storage.local",
-    "network.fetch",
-    "ui.notifications"
-  ],
+  "permissions": ["storage.local", "network.fetch", "ui.notifications"],
 
   "dependencies": {
     "react": "^18.0.0",
     "react-dom": "^18.0.0"
   },
 
-  "activationEvents": [
-    "onSlot:content-area",
-    "onCommand:video-player.play"
-  ],
+  "activationEvents": ["onSlot:content-area", "onCommand:video-player.play"],
 
   "sandbox": {
     "type": "iframe",
@@ -807,17 +800,17 @@ Every widget declares its capabilities, entry points, and requirements via a man
 
 **Key manifest fields:**
 
-| Field | Purpose |
-|-------|---------|
-| `id` | Globally unique identifier (reverse domain notation) |
-| `host.minVersion` | Minimum host version for compatibility |
-| `main` | Entry point for widget code |
-| `remoteEntry` | Module Federation entry (if applicable) |
-| `contributes.slots` | UI contribution points |
-| `contributes.commands` | Registered commands |
-| `permissions` | Required host capabilities |
-| `activationEvents` | When to load the widget |
-| `sandbox` | Isolation requirements |
+| Field                  | Purpose                                              |
+| ---------------------- | ---------------------------------------------------- |
+| `id`                   | Globally unique identifier (reverse domain notation) |
+| `host.minVersion`      | Minimum host version for compatibility               |
+| `main`                 | Entry point for widget code                          |
+| `remoteEntry`          | Module Federation entry (if applicable)              |
+| `contributes.slots`    | UI contribution points                               |
+| `contributes.commands` | Registered commands                                  |
+| `permissions`          | Required host capabilities                           |
+| `activationEvents`     | When to load the widget                              |
+| `sandbox`              | Isolation requirements                               |
 
 ### Contribution Points (Slots)
 
@@ -825,46 +818,46 @@ Contribution points are named locations in the host UI where widgets can render 
 
 ```typescript title="host/src/SlotRegistry.ts"
 interface Slot {
-  id: string;
-  multiple: boolean; // Can multiple widgets contribute?
-  props: Record<string, unknown>; // Props passed to widget
+  id: string
+  multiple: boolean // Can multiple widgets contribute?
+  props: Record<string, unknown> // Props passed to widget
 }
 
 interface SlotContribution {
-  widgetId: string;
-  slotId: string;
-  component: string;
-  priority: number;
+  widgetId: string
+  slotId: string
+  component: string
+  priority: number
 }
 
 class SlotRegistry {
-  private slots = new Map<string, Slot>();
-  private contributions = new Map<string, SlotContribution[]>();
+  private slots = new Map<string, Slot>()
+  private contributions = new Map<string, SlotContribution[]>()
 
   registerSlot(slot: Slot) {
-    this.slots.set(slot.id, slot);
+    this.slots.set(slot.id, slot)
   }
 
   registerContribution(contribution: SlotContribution) {
-    const existing = this.contributions.get(contribution.slotId) || [];
-    existing.push(contribution);
-    existing.sort((a, b) => b.priority - a.priority);
-    this.contributions.set(contribution.slotId, existing);
+    const existing = this.contributions.get(contribution.slotId) || []
+    existing.push(contribution)
+    existing.sort((a, b) => b.priority - a.priority)
+    this.contributions.set(contribution.slotId, existing)
   }
 
   getContributionsForSlot(slotId: string): SlotContribution[] {
-    const slot = this.slots.get(slotId);
-    if (!slot) return [];
+    const slot = this.slots.get(slotId)
+    if (!slot) return []
 
-    const contributions = this.contributions.get(slotId) || [];
-    return slot.multiple ? contributions : contributions.slice(0, 1);
+    const contributions = this.contributions.get(slotId) || []
+    return slot.multiple ? contributions : contributions.slice(0, 1)
   }
 }
 ```
 
 ```tsx title="host/src/ContributionPoint.tsx"
 function ContributionPoint({ slotId }: { slotId: string }) {
-  const contributions = useSlotContributions(slotId);
+  const contributions = useSlotContributions(slotId)
 
   return (
     <div className="contribution-point" data-slot={slotId}>
@@ -876,18 +869,18 @@ function ContributionPoint({ slotId }: { slotId: string }) {
         />
       ))}
     </div>
-  );
+  )
 }
 ```
 
 **Slot patterns from VS Code:**
 
-| Slot Type | Example | Behavior |
-|-----------|---------|----------|
-| `viewContainer` | Sidebar panels | Multiple widgets, tabbed |
-| `view` | Tree views | Single widget per view |
-| `statusBarItem` | Status bar | Multiple, ordered by priority |
-| `menu` | Context menus | Multiple, grouped |
+| Slot Type       | Example        | Behavior                      |
+| --------------- | -------------- | ----------------------------- |
+| `viewContainer` | Sidebar panels | Multiple widgets, tabbed      |
+| `view`          | Tree views     | Single widget per view        |
+| `statusBarItem` | Status bar     | Multiple, ordered by priority |
+| `menu`          | Context menus  | Multiple, grouped             |
 
 ### Widget Registry
 
@@ -900,48 +893,45 @@ The registry is a service that maps widget IDs to their manifests and entry poin
 
 ```typescript title="host/src/WidgetRegistry.ts"
 interface RegistryEntry {
-  id: string;
-  manifest: WidgetManifest;
+  id: string
+  manifest: WidgetManifest
   versions: {
-    version: string;
-    url: string;
-    checksum: string;
-    publishedAt: Date;
-  }[];
+    version: string
+    url: string
+    checksum: string
+    publishedAt: Date
+  }[]
 }
 
 interface ResolvedWidget {
-  id: string;
-  version: string;
-  manifestUrl: string;
-  entryUrl: string;
-  checksum: string;
+  id: string
+  version: string
+  manifestUrl: string
+  entryUrl: string
+  checksum: string
 }
 
 class WidgetRegistry {
-  private baseUrl: string;
-  private cache = new Map<string, RegistryEntry>();
+  private baseUrl: string
+  private cache = new Map<string, RegistryEntry>()
 
   constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
+    this.baseUrl = baseUrl
   }
 
-  async resolve(
-    widgetId: string,
-    versionConstraint: string = "latest"
-  ): Promise<ResolvedWidget> {
+  async resolve(widgetId: string, versionConstraint: string = "latest"): Promise<ResolvedWidget> {
     // Fetch registry entry
-    const entry = await this.fetchEntry(widgetId);
+    const entry = await this.fetchEntry(widgetId)
 
     // Resolve version constraint (semver)
-    const version = this.resolveVersion(entry.versions, versionConstraint);
+    const version = this.resolveVersion(entry.versions, versionConstraint)
     if (!version) {
-      throw new Error(`No version matching ${versionConstraint} for ${widgetId}`);
+      throw new Error(`No version matching ${versionConstraint} for ${widgetId}`)
     }
 
     // Validate host compatibility
-    const manifest = await this.fetchManifest(version.url);
-    this.validateHostCompatibility(manifest);
+    const manifest = await this.fetchManifest(version.url)
+    this.validateHostCompatibility(manifest)
 
     return {
       id: widgetId,
@@ -949,45 +939,45 @@ class WidgetRegistry {
       manifestUrl: `${version.url}/manifest.json`,
       entryUrl: `${version.url}/${manifest.main}`,
       checksum: version.checksum,
-    };
+    }
   }
 
   private async fetchEntry(widgetId: string): Promise<RegistryEntry> {
     if (this.cache.has(widgetId)) {
-      return this.cache.get(widgetId)!;
+      return this.cache.get(widgetId)!
     }
 
-    const response = await fetch(`${this.baseUrl}/widgets/${widgetId}`);
+    const response = await fetch(`${this.baseUrl}/widgets/${widgetId}`)
     if (!response.ok) {
-      throw new Error(`Widget not found: ${widgetId}`);
+      throw new Error(`Widget not found: ${widgetId}`)
     }
 
-    const entry = await response.json();
-    this.cache.set(widgetId, entry);
-    return entry;
+    const entry = await response.json()
+    this.cache.set(widgetId, entry)
+    return entry
   }
 
   private resolveVersion(
     versions: RegistryEntry["versions"],
-    constraint: string
+    constraint: string,
   ): RegistryEntry["versions"][0] | undefined {
     if (constraint === "latest") {
-      return versions[0]; // Assumes sorted by version desc
+      return versions[0] // Assumes sorted by version desc
     }
 
     // Semver matching
-    return versions.find((v) => satisfies(v.version, constraint));
+    return versions.find((v) => satisfies(v.version, constraint))
   }
 
   private validateHostCompatibility(manifest: WidgetManifest) {
-    const hostVersion = getHostVersion();
-    const { minVersion, maxVersion } = manifest.host;
+    const hostVersion = getHostVersion()
+    const { minVersion, maxVersion } = manifest.host
 
     if (minVersion && !gte(hostVersion, minVersion)) {
-      throw new Error(`Widget requires host >= ${minVersion}`);
+      throw new Error(`Widget requires host >= ${minVersion}`)
     }
     if (maxVersion && !satisfies(hostVersion, maxVersion)) {
-      throw new Error(`Widget incompatible with host ${hostVersion}`);
+      throw new Error(`Widget incompatible with host ${hostVersion}`)
     }
   }
 }
@@ -1013,44 +1003,44 @@ The host exposes a controlled API surface that widgets use to interact with the 
 ```typescript title="host/src/HostSDK.ts"
 interface HostSDK {
   // Lifecycle
-  readonly version: string;
-  onActivate(callback: () => void): Disposable;
-  onDeactivate(callback: () => void): Disposable;
+  readonly version: string
+  onActivate(callback: () => void): Disposable
+  onDeactivate(callback: () => void): Disposable
 
   // UI
-  showNotification(options: NotificationOptions): Promise<void>;
-  showModal(options: ModalOptions): Promise<ModalResult>;
-  registerCommand(id: string, handler: CommandHandler): Disposable;
+  showNotification(options: NotificationOptions): Promise<void>
+  showModal(options: ModalOptions): Promise<ModalResult>
+  registerCommand(id: string, handler: CommandHandler): Disposable
 
   // Data
-  getData<T>(key: string): Promise<T | undefined>;
-  setData<T>(key: string, value: T): Promise<void>;
-  subscribeToData<T>(key: string, callback: (value: T) => void): Disposable;
+  getData<T>(key: string): Promise<T | undefined>
+  setData<T>(key: string, value: T): Promise<void>
+  subscribeToData<T>(key: string, callback: (value: T) => void): Disposable
 
   // Storage (widget-scoped)
   storage: {
-    get<T>(key: string): Promise<T | undefined>;
-    set<T>(key: string, value: T): Promise<void>;
-    delete(key: string): Promise<void>;
-  };
+    get<T>(key: string): Promise<T | undefined>
+    set<T>(key: string, value: T): Promise<void>
+    delete(key: string): Promise<void>
+  }
 
   // Network (proxied through host)
-  fetch(url: string, options?: RequestInit): Promise<Response>;
+  fetch(url: string, options?: RequestInit): Promise<Response>
 
   // Events
-  onEvent(eventType: string, handler: EventHandler): Disposable;
-  emitEvent(eventType: string, payload: unknown): void;
+  onEvent(eventType: string, handler: EventHandler): Disposable
+  emitEvent(eventType: string, payload: unknown): void
 }
 
 interface Disposable {
-  dispose(): void;
+  dispose(): void
 }
 
 interface NotificationOptions {
-  type: "info" | "warning" | "error";
-  message: string;
-  duration?: number;
-  actions?: { label: string; action: () => void }[];
+  type: "info" | "warning" | "error"
+  message: string
+  duration?: number
+  actions?: { label: string; action: () => void }[]
 }
 ```
 
@@ -1058,65 +1048,65 @@ interface NotificationOptions {
 
 ```typescript title="host/src/IframeSDK.ts"
 class IframeSDKHost {
-  private iframe: HTMLIFrameElement;
-  private widgetId: string;
-  private handlers = new Map<string, Function>();
+  private iframe: HTMLIFrameElement
+  private widgetId: string
+  private handlers = new Map<string, Function>()
 
   constructor(iframe: HTMLIFrameElement, widgetId: string) {
-    this.iframe = iframe;
-    this.widgetId = widgetId;
-    window.addEventListener("message", this.handleMessage);
+    this.iframe = iframe
+    this.widgetId = widgetId
+    window.addEventListener("message", this.handleMessage)
   }
 
   private handleMessage = async (event: MessageEvent) => {
     // Validate origin matches expected widget origin
-    if (!this.isValidOrigin(event.origin)) return;
+    if (!this.isValidOrigin(event.origin)) return
 
-    const { type, requestId, method, args } = event.data;
-    if (type !== "SDK_CALL") return;
+    const { type, requestId, method, args } = event.data
+    if (type !== "SDK_CALL") return
 
     try {
-      const result = await this.executeMethod(method, args);
-      this.respond(requestId, { success: true, result });
+      const result = await this.executeMethod(method, args)
+      this.respond(requestId, { success: true, result })
     } catch (error) {
-      this.respond(requestId, { success: false, error: String(error) });
+      this.respond(requestId, { success: false, error: String(error) })
     }
-  };
+  }
 
   private async executeMethod(method: string, args: unknown[]): Promise<unknown> {
     // Permission check
-    const permission = this.getRequiredPermission(method);
+    const permission = this.getRequiredPermission(method)
     if (permission && !this.hasPermission(permission)) {
-      throw new Error(`Permission denied: ${permission}`);
+      throw new Error(`Permission denied: ${permission}`)
     }
 
     switch (method) {
       case "showNotification":
-        return this.showNotification(args[0] as NotificationOptions);
+        return this.showNotification(args[0] as NotificationOptions)
 
       case "getData":
-        return this.getData(args[0] as string);
+        return this.getData(args[0] as string)
 
       case "setData":
-        return this.setData(args[0] as string, args[1]);
+        return this.setData(args[0] as string, args[1])
 
       case "storage.get":
-        return this.widgetStorage.get(this.widgetId, args[0] as string);
+        return this.widgetStorage.get(this.widgetId, args[0] as string)
 
       case "fetch":
         // Proxy fetch to enforce CORS and CSP
-        return this.proxyFetch(args[0] as string, args[1] as RequestInit);
+        return this.proxyFetch(args[0] as string, args[1] as RequestInit)
 
       default:
-        throw new Error(`Unknown method: ${method}`);
+        throw new Error(`Unknown method: ${method}`)
     }
   }
 
   private respond(requestId: string, response: unknown) {
     this.iframe.contentWindow?.postMessage(
       { type: "SDK_RESPONSE", requestId, ...response },
-      "*" // iframe origin already validated on receive
-    );
+      "*", // iframe origin already validated on receive
+    )
   }
 
   private getRequiredPermission(method: string): string | undefined {
@@ -1125,8 +1115,8 @@ class IframeSDKHost {
       fetch: "network.fetch",
       "storage.get": "storage.local",
       "storage.set": "storage.local",
-    };
-    return permissionMap[method];
+    }
+    return permissionMap[method]
   }
 }
 ```
@@ -1135,75 +1125,75 @@ class IframeSDKHost {
 
 ```typescript title="widget-sdk/src/index.ts"
 class WidgetSDK implements HostSDK {
-  private pendingRequests = new Map<string, {
-    resolve: (value: unknown) => void;
-    reject: (error: Error) => void;
-  }>();
+  private pendingRequests = new Map<
+    string,
+    {
+      resolve: (value: unknown) => void
+      reject: (error: Error) => void
+    }
+  >()
 
   constructor() {
-    window.addEventListener("message", this.handleResponse);
+    window.addEventListener("message", this.handleResponse)
   }
 
   private handleResponse = (event: MessageEvent) => {
-    const { type, requestId, success, result, error } = event.data;
-    if (type !== "SDK_RESPONSE") return;
+    const { type, requestId, success, result, error } = event.data
+    if (type !== "SDK_RESPONSE") return
 
-    const pending = this.pendingRequests.get(requestId);
-    if (!pending) return;
+    const pending = this.pendingRequests.get(requestId)
+    if (!pending) return
 
-    this.pendingRequests.delete(requestId);
+    this.pendingRequests.delete(requestId)
 
     if (success) {
-      pending.resolve(result);
+      pending.resolve(result)
     } else {
-      pending.reject(new Error(error));
+      pending.reject(new Error(error))
     }
-  };
+  }
 
   private call<T>(method: string, args: unknown[] = []): Promise<T> {
     return new Promise((resolve, reject) => {
-      const requestId = crypto.randomUUID();
-      this.pendingRequests.set(requestId, { resolve: resolve as any, reject });
+      const requestId = crypto.randomUUID()
+      this.pendingRequests.set(requestId, { resolve: resolve as any, reject })
 
-      window.parent.postMessage(
-        { type: "SDK_CALL", requestId, method, args },
-        "*"
-      );
+      window.parent.postMessage({ type: "SDK_CALL", requestId, method, args }, "*")
 
       // Timeout after 10 seconds
       setTimeout(() => {
         if (this.pendingRequests.has(requestId)) {
-          this.pendingRequests.delete(requestId);
-          reject(new Error(`SDK call timeout: ${method}`));
+          this.pendingRequests.delete(requestId)
+          reject(new Error(`SDK call timeout: ${method}`))
         }
-      }, 10000);
-    });
+      }, 10000)
+    })
   }
 
   // Public API implementation
   get version(): string {
-    return "1.0.0";
+    return "1.0.0"
   }
 
   async showNotification(options: NotificationOptions): Promise<void> {
-    return this.call("showNotification", [options]);
+    return this.call("showNotification", [options])
   }
 
   async getData<T>(key: string): Promise<T | undefined> {
-    return this.call("getData", [key]);
+    return this.call("getData", [key])
   }
 
   storage = {
     get: <T>(key: string) => this.call<T>("storage.get", [key]),
     set: <T>(key: string, value: T) => this.call<void>("storage.set", [key, value]),
     delete: (key: string) => this.call<void>("storage.delete", [key]),
-  };
+  }
 
   // ... other methods
 }
 
 // Export singleton
-export const hostSDK = new WidgetSDK();
+export const hostSDK = new WidgetSDK()
 ```
 
 ## Multi-Tenant Orchestration
@@ -1242,43 +1232,43 @@ sequenceDiagram
 
 ```typescript title="host/src/TenantConfig.ts"
 interface TenantWidgetConfig {
-  widgetId: string;
-  version?: string; // Optional: defaults to "latest"
-  slot: string;
-  config?: Record<string, unknown>; // Widget-specific config
-  enabled: boolean;
+  widgetId: string
+  version?: string // Optional: defaults to "latest"
+  slot: string
+  config?: Record<string, unknown> // Widget-specific config
+  enabled: boolean
 }
 
 interface TenantConfig {
-  tenantId: string;
-  widgets: TenantWidgetConfig[];
-  featureFlags: Record<string, boolean>;
-  theme?: ThemeConfig;
+  tenantId: string
+  widgets: TenantWidgetConfig[]
+  featureFlags: Record<string, boolean>
+  theme?: ThemeConfig
 }
 
 class TenantConfigService {
-  private configCache = new Map<string, TenantConfig>();
-  private baseUrl: string;
+  private configCache = new Map<string, TenantConfig>()
+  private baseUrl: string
 
   constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
+    this.baseUrl = baseUrl
   }
 
   async getConfig(tenantId: string): Promise<TenantConfig> {
     // Check cache first
     if (this.configCache.has(tenantId)) {
-      return this.configCache.get(tenantId)!;
+      return this.configCache.get(tenantId)!
     }
 
-    const response = await fetch(`${this.baseUrl}/tenants/${tenantId}/config`);
+    const response = await fetch(`${this.baseUrl}/tenants/${tenantId}/config`)
     if (!response.ok) {
       // Fall back to default config
-      return this.getDefaultConfig(tenantId);
+      return this.getDefaultConfig(tenantId)
     }
 
-    const config = await response.json();
-    this.configCache.set(tenantId, config);
-    return config;
+    const config = await response.json()
+    this.configCache.set(tenantId, config)
+    return config
   }
 
   private getDefaultConfig(tenantId: string): TenantConfig {
@@ -1286,12 +1276,12 @@ class TenantConfigService {
       tenantId,
       widgets: [], // No widgets by default
       featureFlags: {},
-    };
+    }
   }
 
   async refreshConfig(tenantId: string): Promise<TenantConfig> {
-    this.configCache.delete(tenantId);
-    return this.getConfig(tenantId);
+    this.configCache.delete(tenantId)
+    return this.getConfig(tenantId)
   }
 }
 ```
@@ -1300,137 +1290,131 @@ class TenantConfigService {
 
 ```typescript title="host/src/WidgetOrchestrator.ts"
 interface LoadedWidget {
-  id: string;
-  version: string;
-  slot: string;
-  instance: WidgetInstance;
-  state: "loading" | "active" | "error" | "inactive";
+  id: string
+  version: string
+  slot: string
+  instance: WidgetInstance
+  state: "loading" | "active" | "error" | "inactive"
 }
 
 class WidgetOrchestrator {
-  private tenantConfig: TenantConfigService;
-  private registry: WidgetRegistry;
-  private loadedWidgets = new Map<string, LoadedWidget>();
-  private slotRegistry: SlotRegistry;
+  private tenantConfig: TenantConfigService
+  private registry: WidgetRegistry
+  private loadedWidgets = new Map<string, LoadedWidget>()
+  private slotRegistry: SlotRegistry
 
   async initialize(tenantId: string) {
     // 1. Fetch tenant configuration
-    const config = await this.tenantConfig.getConfig(tenantId);
+    const config = await this.tenantConfig.getConfig(tenantId)
 
     // 2. Filter enabled widgets
-    const enabledWidgets = config.widgets.filter((w) => w.enabled);
+    const enabledWidgets = config.widgets.filter((w) => w.enabled)
 
     // 3. Resolve all widgets in parallel
     const resolutions = await Promise.allSettled(
-      enabledWidgets.map((w) =>
-        this.registry.resolve(w.widgetId, w.version)
-      )
-    );
+      enabledWidgets.map((w) => this.registry.resolve(w.widgetId, w.version)),
+    )
 
     // 4. Load successfully resolved widgets
     for (let i = 0; i < resolutions.length; i++) {
-      const resolution = resolutions[i];
-      const widgetConfig = enabledWidgets[i];
+      const resolution = resolutions[i]
+      const widgetConfig = enabledWidgets[i]
 
       if (resolution.status === "fulfilled") {
-        await this.loadWidget(resolution.value, widgetConfig);
+        await this.loadWidget(resolution.value, widgetConfig)
       } else {
-        console.error(`Failed to resolve ${widgetConfig.widgetId}:`, resolution.reason);
+        console.error(`Failed to resolve ${widgetConfig.widgetId}:`, resolution.reason)
         // Continue loading other widgets
       }
     }
   }
 
-  private async loadWidget(
-    resolved: ResolvedWidget,
-    config: TenantWidgetConfig
-  ) {
+  private async loadWidget(resolved: ResolvedWidget, config: TenantWidgetConfig) {
     const loadedWidget: LoadedWidget = {
       id: resolved.id,
       version: resolved.version,
       slot: config.slot,
       instance: null!,
       state: "loading",
-    };
+    }
 
-    this.loadedWidgets.set(resolved.id, loadedWidget);
+    this.loadedWidgets.set(resolved.id, loadedWidget)
 
     try {
       // Fetch manifest to determine loading strategy
-      const manifest = await this.fetchManifest(resolved.manifestUrl);
+      const manifest = await this.fetchManifest(resolved.manifestUrl)
 
       // Load based on sandbox type
-      const instance = await this.createWidgetInstance(manifest, resolved, config);
+      const instance = await this.createWidgetInstance(manifest, resolved, config)
 
-      loadedWidget.instance = instance;
-      loadedWidget.state = "active";
+      loadedWidget.instance = instance
+      loadedWidget.state = "active"
 
       // Register contribution points
-      this.registerContributions(manifest, resolved.id);
-
+      this.registerContributions(manifest, resolved.id)
     } catch (error) {
-      loadedWidget.state = "error";
-      console.error(`Failed to load widget ${resolved.id}:`, error);
+      loadedWidget.state = "error"
+      console.error(`Failed to load widget ${resolved.id}:`, error)
     }
   }
 
   private async createWidgetInstance(
     manifest: WidgetManifest,
     resolved: ResolvedWidget,
-    config: TenantWidgetConfig
+    config: TenantWidgetConfig,
   ): Promise<WidgetInstance> {
-    const sandboxType = manifest.sandbox?.type || "none";
+    const sandboxType = manifest.sandbox?.type || "none"
 
     switch (sandboxType) {
       case "iframe":
-        return this.createIframeWidget(resolved, manifest, config);
+        return this.createIframeWidget(resolved, manifest, config)
 
       case "shadow-dom":
-        return this.createShadowDomWidget(resolved, manifest, config);
+        return this.createShadowDomWidget(resolved, manifest, config)
 
       case "wasm":
-        return this.createWasmWidget(resolved, manifest, config);
+        return this.createWasmWidget(resolved, manifest, config)
 
       case "none":
       default:
-        return this.createFederatedWidget(resolved, manifest, config);
+        return this.createFederatedWidget(resolved, manifest, config)
     }
   }
 
   private async createIframeWidget(
     resolved: ResolvedWidget,
     manifest: WidgetManifest,
-    config: TenantWidgetConfig
+    config: TenantWidgetConfig,
   ): Promise<IframeWidgetInstance> {
-    const iframe = document.createElement("iframe");
+    const iframe = document.createElement("iframe")
 
     // Apply sandbox restrictions
-    const sandbox = manifest.sandbox!;
-    iframe.sandbox.add(...sandbox.allow.map((a) => `allow-${a}`));
+    const sandbox = manifest.sandbox!
+    iframe.sandbox.add(...sandbox.allow.map((a) => `allow-${a}`))
 
     // Set CSP via attribute (embedded enforcement)
     if (sandbox.csp) {
-      iframe.setAttribute("csp", sandbox.csp);
+      iframe.setAttribute("csp", sandbox.csp)
     }
 
-    iframe.src = resolved.entryUrl;
+    iframe.src = resolved.entryUrl
 
-    return new IframeWidgetInstance(iframe, resolved.id, config.config);
+    return new IframeWidgetInstance(iframe, resolved.id, config.config)
   }
 
   async unloadWidget(widgetId: string) {
-    const widget = this.loadedWidgets.get(widgetId);
-    if (!widget) return;
+    const widget = this.loadedWidgets.get(widgetId)
+    if (!widget) return
 
-    widget.state = "inactive";
+    widget.state = "inactive"
 
     // Cleanup instance
-    await widget.instance.dispose();
+    await widget.instance.dispose()
 
     // Remove contributions
-    this.slotRegistry.removeContributions(widgetId);
+    this.slotRegistry.removeContributions(widgetId)
 
-    this.loadedWidgets.delete(widgetId);
+    this.loadedWidgets.delete(widgetId)
   }
 }
 ```
@@ -1439,52 +1423,48 @@ class WidgetOrchestrator {
 
 ```typescript title="host/src/FeatureFlags.ts"
 interface FeatureFlagService {
-  isEnabled(flag: string, context: FlagContext): boolean;
-  getVariant<T>(flag: string, context: FlagContext): T | undefined;
+  isEnabled(flag: string, context: FlagContext): boolean
+  getVariant<T>(flag: string, context: FlagContext): T | undefined
 }
 
 interface FlagContext {
-  tenantId: string;
-  userId?: string;
-  environment: "production" | "staging" | "development";
+  tenantId: string
+  userId?: string
+  environment: "production" | "staging" | "development"
 }
 
 class WidgetFeatureFlags {
-  private flags: FeatureFlagService;
+  private flags: FeatureFlagService
 
-  isWidgetEnabled(
-    widgetId: string,
-    tenantConfig: TenantWidgetConfig,
-    context: FlagContext
-  ): boolean {
+  isWidgetEnabled(widgetId: string, tenantConfig: TenantWidgetConfig, context: FlagContext): boolean {
     // 1. Check tenant config first
-    if (!tenantConfig.enabled) return false;
+    if (!tenantConfig.enabled) return false
 
     // 2. Check feature flag override
-    const flagKey = `widget.${widgetId}.enabled`;
+    const flagKey = `widget.${widgetId}.enabled`
     if (this.flags.isEnabled(flagKey, context) === false) {
-      return false;
+      return false
     }
 
     // 3. Check rollout percentage
-    const rolloutFlag = `widget.${widgetId}.rollout`;
-    const rollout = this.flags.getVariant<number>(rolloutFlag, context);
+    const rolloutFlag = `widget.${widgetId}.rollout`
+    const rollout = this.flags.getVariant<number>(rolloutFlag, context)
     if (rollout !== undefined) {
-      const userHash = this.hashUser(context.userId || context.tenantId);
-      return userHash < rollout;
+      const userHash = this.hashUser(context.userId || context.tenantId)
+      return userHash < rollout
     }
 
-    return true;
+    return true
   }
 
   private hashUser(userId: string): number {
     // Deterministic hash for consistent experience
-    let hash = 0;
+    let hash = 0
     for (let i = 0; i < userId.length; i++) {
-      hash = ((hash << 5) - hash) + userId.charCodeAt(i);
-      hash |= 0;
+      hash = (hash << 5) - hash + userId.charCodeAt(i)
+      hash |= 0
     }
-    return Math.abs(hash) % 100;
+    return Math.abs(hash) % 100
   }
 }
 ```
@@ -1517,19 +1497,17 @@ Widget loading competes with the host application for main thread time. Poor loa
 ```typescript title="host/src/OptimizedLoader.ts"
 async function loadWidgetsOptimized(widgetConfigs: TenantWidgetConfig[]) {
   // 1. Render skeleton immediately
-  renderSkeletons(widgetConfigs);
+  renderSkeletons(widgetConfigs)
 
   // 2. Start all fetches in parallel
-  const fetchPromises = widgetConfigs.map((config) =>
-    fetchWidgetBundle(config.widgetId)
-  );
+  const fetchPromises = widgetConfigs.map((config) => fetchWidgetBundle(config.widgetId))
 
   // 3. Process widgets as they complete (not waiting for all)
   for await (const result of raceSettled(fetchPromises)) {
     if (result.status === "fulfilled") {
       // Yield to main thread between widget initializations
-      await yieldToMain();
-      await initializeWidget(result.value);
+      await yieldToMain()
+      await initializeWidget(result.value)
     }
   }
 }
@@ -1537,97 +1515,97 @@ async function loadWidgetsOptimized(widgetConfigs: TenantWidgetConfig[]) {
 function yieldToMain(): Promise<void> {
   return new Promise((resolve) => {
     if ("scheduler" in window && "yield" in (window as any).scheduler) {
-      (window as any).scheduler.yield().then(resolve);
+      ;(window as any).scheduler.yield().then(resolve)
     } else {
-      setTimeout(resolve, 0);
+      setTimeout(resolve, 0)
     }
-  });
+  })
 }
 
 async function* raceSettled<T>(promises: Promise<T>[]): AsyncGenerator<PromiseSettledResult<T>> {
-  const remaining = new Set(promises.map((p, i) => i));
+  const remaining = new Set(promises.map((p, i) => i))
 
   while (remaining.size > 0) {
     const results = await Promise.race(
       Array.from(remaining).map(async (i) => {
         try {
-          const value = await promises[i];
-          return { index: i, status: "fulfilled" as const, value };
+          const value = await promises[i]
+          return { index: i, status: "fulfilled" as const, value }
         } catch (reason) {
-          return { index: i, status: "rejected" as const, reason };
+          return { index: i, status: "rejected" as const, reason }
         }
-      })
-    );
+      }),
+    )
 
-    remaining.delete(results.index);
+    remaining.delete(results.index)
     yield results.status === "fulfilled"
       ? { status: "fulfilled", value: results.value }
-      : { status: "rejected", reason: results.reason };
+      : { status: "rejected", reason: results.reason }
   }
 }
 ```
 
 ### Memory Limits
 
-| Device Type | Practical JS Heap Limit | Widget Budget |
-|-------------|------------------------|---------------|
-| Low-end mobile | 50-100MB | 5-10MB per widget |
-| Mid-range mobile | 200-300MB | 20-30MB per widget |
-| Desktop | 500MB-1GB | 50-100MB per widget |
+| Device Type      | Practical JS Heap Limit | Widget Budget       |
+| ---------------- | ----------------------- | ------------------- |
+| Low-end mobile   | 50-100MB                | 5-10MB per widget   |
+| Mid-range mobile | 200-300MB               | 20-30MB per widget  |
+| Desktop          | 500MB-1GB               | 50-100MB per widget |
 
 **Memory management strategies:**
 
 ```typescript title="host/src/WidgetMemoryManager.ts"
 class WidgetMemoryManager {
-  private readonly maxTotalMemory: number;
-  private readonly maxWidgetMemory: number;
-  private activeWidgets = new Map<string, WidgetMemoryStats>();
+  private readonly maxTotalMemory: number
+  private readonly maxWidgetMemory: number
+  private activeWidgets = new Map<string, WidgetMemoryStats>()
 
   constructor(config: { maxTotalMemory: number; maxWidgetMemory: number }) {
-    this.maxTotalMemory = config.maxTotalMemory;
-    this.maxWidgetMemory = config.maxWidgetMemory;
+    this.maxTotalMemory = config.maxTotalMemory
+    this.maxWidgetMemory = config.maxWidgetMemory
 
     // Monitor memory pressure
     if ("memory" in performance) {
-      this.startMemoryMonitoring();
+      this.startMemoryMonitoring()
     }
   }
 
   canLoadWidget(estimatedMemory: number): boolean {
-    const currentUsage = this.getTotalUsage();
-    return currentUsage + estimatedMemory <= this.maxTotalMemory;
+    const currentUsage = this.getTotalUsage()
+    return currentUsage + estimatedMemory <= this.maxTotalMemory
   }
 
   onWidgetOverMemory(widgetId: string) {
-    console.warn(`Widget ${widgetId} exceeded memory limit`);
+    console.warn(`Widget ${widgetId} exceeded memory limit`)
 
     // Option 1: Unload widget
     // this.unloadWidget(widgetId);
 
     // Option 2: Notify widget to reduce memory
-    this.notifyWidget(widgetId, "MEMORY_PRESSURE");
+    this.notifyWidget(widgetId, "MEMORY_PRESSURE")
   }
 
   private startMemoryMonitoring() {
     setInterval(() => {
-      const memory = (performance as any).memory;
-      const usedRatio = memory.usedJSHeapSize / memory.jsHeapSizeLimit;
+      const memory = (performance as any).memory
+      const usedRatio = memory.usedJSHeapSize / memory.jsHeapSizeLimit
 
       if (usedRatio > 0.9) {
         // Critical memory pressure
-        this.handleMemoryPressure("critical");
+        this.handleMemoryPressure("critical")
       } else if (usedRatio > 0.7) {
         // Warning level
-        this.handleMemoryPressure("warning");
+        this.handleMemoryPressure("warning")
       }
-    }, 5000);
+    }, 5000)
   }
 
   private handleMemoryPressure(level: "warning" | "critical") {
     // Unload inactive widgets first
     for (const [widgetId, stats] of this.activeWidgets) {
       if (!stats.visible && level === "critical") {
-        this.unloadWidget(widgetId);
+        this.unloadWidget(widgetId)
       }
     }
   }
@@ -1638,68 +1616,68 @@ class WidgetMemoryManager {
 
 Widgets need persistent storage but share quotas with the host:
 
-| Storage Type | Quota | Widget Strategy |
-|--------------|-------|-----------------|
-| localStorage | 5MB | Avoid; use IndexedDB |
-| IndexedDB | 50% of disk (Chrome) | Namespace per widget |
-| Cache API | 50% of disk | Careful eviction |
+| Storage Type | Quota                | Widget Strategy      |
+| ------------ | -------------------- | -------------------- |
+| localStorage | 5MB                  | Avoid; use IndexedDB |
+| IndexedDB    | 50% of disk (Chrome) | Namespace per widget |
+| Cache API    | 50% of disk          | Careful eviction     |
 
 ```typescript title="host/src/WidgetStorage.ts"
 class WidgetStorageManager {
-  private db: IDBDatabase | null = null;
-  private readonly storeName = "widget_storage";
+  private db: IDBDatabase | null = null
+  private readonly storeName = "widget_storage"
 
   async initialize() {
-    this.db = await this.openDatabase();
+    this.db = await this.openDatabase()
   }
 
   private openDatabase(): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open("widget_host", 1);
+      const request = indexedDB.open("widget_host", 1)
 
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error)
+      request.onsuccess = () => resolve(request.result)
 
       request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
+        const db = (event.target as IDBOpenDBRequest).result
         if (!db.objectStoreNames.contains(this.storeName)) {
-          db.createObjectStore(this.storeName, { keyPath: "key" });
+          db.createObjectStore(this.storeName, { keyPath: "key" })
         }
-      };
-    });
+      }
+    })
   }
 
   async get<T>(widgetId: string, key: string): Promise<T | undefined> {
-    const compositeKey = `${widgetId}:${key}`;
-    return this.dbGet(compositeKey);
+    const compositeKey = `${widgetId}:${key}`
+    return this.dbGet(compositeKey)
   }
 
   async set<T>(widgetId: string, key: string, value: T): Promise<void> {
-    const compositeKey = `${widgetId}:${key}`;
+    const compositeKey = `${widgetId}:${key}`
 
     // Check quota before write
-    const estimate = await navigator.storage.estimate();
-    const usageRatio = (estimate.usage || 0) / (estimate.quota || 1);
+    const estimate = await navigator.storage.estimate()
+    const usageRatio = (estimate.usage || 0) / (estimate.quota || 1)
 
     if (usageRatio > 0.9) {
       // Evict old widget data
-      await this.evictOldData(widgetId);
+      await this.evictOldData(widgetId)
     }
 
-    return this.dbSet(compositeKey, value);
+    return this.dbSet(compositeKey, value)
   }
 
   async getWidgetUsage(widgetId: string): Promise<number> {
     // Estimate storage used by this widget
-    const keys = await this.getWidgetKeys(widgetId);
-    let totalSize = 0;
+    const keys = await this.getWidgetKeys(widgetId)
+    let totalSize = 0
 
     for (const key of keys) {
-      const value = await this.dbGet(key);
-      totalSize += new Blob([JSON.stringify(value)]).size;
+      const value = await this.dbGet(key)
+      totalSize += new Blob([JSON.stringify(value)]).size
     }
 
-    return totalSize;
+    return totalSize
   }
 }
 ```
@@ -1718,12 +1696,12 @@ class WidgetStorageManager {
 
 **Key design decisions:**
 
-| Decision | Rationale |
-|----------|-----------|
-| Separate process | Misbehaving extensions can't crash editor |
-| Activation events | Lazy loading—extensions load only when needed |
+| Decision            | Rationale                                             |
+| ------------------- | ----------------------------------------------------- |
+| Separate process    | Misbehaving extensions can't crash editor             |
+| Activation events   | Lazy loading—extensions load only when needed         |
 | Contribution points | Declarative UI integration via `contributes` manifest |
-| Sandboxed webviews | HTML panels isolated from VS Code DOM |
+| Sandboxed webviews  | HTML panels isolated from VS Code DOM                 |
 
 **Manifest example:**
 
@@ -1788,21 +1766,21 @@ Plugin UI (iframe) ←→ postMessage ←→ Plugin Logic (WASM) ←→ Figma AP
 **App Bridge SDK:**
 
 ```typescript
-import { createApp } from "@shopify/app-bridge";
-import { Redirect, Toast } from "@shopify/app-bridge/actions";
+import { createApp } from "@shopify/app-bridge"
+import { Redirect, Toast } from "@shopify/app-bridge/actions"
 
 const app = createApp({
   apiKey: "api-key",
   shopOrigin: "myshop.myshopify.com",
-});
+})
 
 // Show toast notification (rendered by Shopify, not iframe)
-const toast = Toast.create(app, { message: "Order updated", duration: 5000 });
-toast.dispatch(Toast.Action.SHOW);
+const toast = Toast.create(app, { message: "Order updated", duration: 5000 })
+toast.dispatch(Toast.Action.SHOW)
 
 // Navigate within Shopify admin
-const redirect = Redirect.create(app);
-redirect.dispatch(Redirect.Action.ADMIN_PATH, "/orders");
+const redirect = Redirect.create(app)
+redirect.dispatch(Redirect.Action.ADMIN_PATH, "/orders")
 ```
 
 **Multi-tenancy model:**
@@ -1867,33 +1845,33 @@ redirect.dispatch(Redirect.Action.ADMIN_PATH, "/orders");
 
 ```typescript
 class LazyWidgetLoader {
-  private observer: IntersectionObserver;
-  private pendingWidgets = new Map<Element, string>();
+  private observer: IntersectionObserver
+  private pendingWidgets = new Map<Element, string>()
 
   constructor() {
     this.observer = new IntersectionObserver(
       this.handleIntersection,
-      { rootMargin: "100px" } // Preload slightly before visible
-    );
+      { rootMargin: "100px" }, // Preload slightly before visible
+    )
   }
 
   registerSlot(element: Element, widgetId: string) {
-    this.pendingWidgets.set(element, widgetId);
-    this.observer.observe(element);
+    this.pendingWidgets.set(element, widgetId)
+    this.observer.observe(element)
   }
 
   private handleIntersection: IntersectionObserverCallback = (entries) => {
     for (const entry of entries) {
       if (entry.isIntersecting) {
-        const widgetId = this.pendingWidgets.get(entry.target);
+        const widgetId = this.pendingWidgets.get(entry.target)
         if (widgetId) {
-          this.loadWidget(widgetId, entry.target);
-          this.pendingWidgets.delete(entry.target);
-          this.observer.unobserve(entry.target);
+          this.loadWidget(widgetId, entry.target)
+          this.pendingWidgets.delete(entry.target)
+          this.observer.unobserve(entry.target)
         }
       }
     }
-  };
+  }
 }
 ```
 
@@ -1905,9 +1883,9 @@ class LazyWidgetLoader {
 // DANGEROUS: No origin check
 window.addEventListener("message", (event) => {
   if (event.data.type === "WIDGET_REQUEST") {
-    handleWidgetRequest(event.data); // Attacker can send messages too
+    handleWidgetRequest(event.data) // Attacker can send messages too
   }
-});
+})
 ```
 
 **Impact:** Attacker opens your site in iframe, sends malicious messages, triggers actions with user's credentials.
@@ -1915,20 +1893,17 @@ window.addEventListener("message", (event) => {
 **Solution:**
 
 ```typescript
-const TRUSTED_ORIGINS = new Set([
-  "https://widget1.example.com",
-  "https://widget2.example.com",
-]);
+const TRUSTED_ORIGINS = new Set(["https://widget1.example.com", "https://widget2.example.com"])
 
 window.addEventListener("message", (event) => {
   // CRITICAL: Always validate origin
   if (!TRUSTED_ORIGINS.has(event.origin)) {
-    console.warn("Rejected message from untrusted origin:", event.origin);
-    return;
+    console.warn("Rejected message from untrusted origin:", event.origin)
+    return
   }
 
-  handleWidgetRequest(event.data);
-});
+  handleWidgetRequest(event.data)
+})
 ```
 
 ### 3. Shared Dependency Version Conflicts
@@ -1949,20 +1924,18 @@ new ModuleFederationPlugin({
       strictVersion: true, // Fail if incompatible
     },
   },
-});
+})
 ```
 
 Also validate in registry:
 
 ```typescript
 function validateWidgetCompatibility(manifest: WidgetManifest) {
-  const hostReact = "18.2.0";
-  const widgetReact = manifest.dependencies?.react;
+  const hostReact = "18.2.0"
+  const widgetReact = manifest.dependencies?.react
 
   if (widgetReact && !satisfies(hostReact, widgetReact)) {
-    throw new Error(
-      `Widget requires React ${widgetReact}, host has ${hostReact}`
-    );
+    throw new Error(`Widget requires React ${widgetReact}, host has ${hostReact}`)
   }
 }
 ```
@@ -1977,40 +1950,40 @@ function validateWidgetCompatibility(manifest: WidgetManifest) {
 
 ```typescript
 interface WidgetInstance {
-  activate(): Promise<void>;
-  deactivate(): Promise<void>;
-  dispose(): Promise<void>;
+  activate(): Promise<void>
+  deactivate(): Promise<void>
+  dispose(): Promise<void>
 }
 
 class WidgetLifecycleManager {
-  private activeWidgets = new Map<string, WidgetInstance>();
-  private visibleWidgets = new Set<string>();
+  private activeWidgets = new Map<string, WidgetInstance>()
+  private visibleWidgets = new Set<string>()
 
   async handleVisibilityChange(widgetId: string, visible: boolean) {
-    const widget = this.activeWidgets.get(widgetId);
-    if (!widget) return;
+    const widget = this.activeWidgets.get(widgetId)
+    if (!widget) return
 
     if (visible) {
-      this.visibleWidgets.add(widgetId);
-      await widget.activate();
+      this.visibleWidgets.add(widgetId)
+      await widget.activate()
     } else {
-      this.visibleWidgets.delete(widgetId);
-      await widget.deactivate();
+      this.visibleWidgets.delete(widgetId)
+      await widget.deactivate()
 
       // Unload after period of invisibility
       setTimeout(() => {
         if (!this.visibleWidgets.has(widgetId)) {
-          this.unloadWidget(widgetId);
+          this.unloadWidget(widgetId)
         }
-      }, 60000); // 1 minute
+      }, 60000) // 1 minute
     }
   }
 
   private async unloadWidget(widgetId: string) {
-    const widget = this.activeWidgets.get(widgetId);
+    const widget = this.activeWidgets.get(widgetId)
     if (widget) {
-      await widget.dispose();
-      this.activeWidgets.delete(widgetId);
+      await widget.dispose()
+      this.activeWidgets.delete(widgetId)
     }
   }
 }
@@ -2027,28 +2000,28 @@ class WidgetLifecycleManager {
 ```typescript
 async function initializeWidgetAsync(code: string, container: Element) {
   // Parse in chunks using requestIdleCallback
-  const chunks = splitIntoChunks(code, 50000); // 50KB chunks
+  const chunks = splitIntoChunks(code, 50000) // 50KB chunks
 
   for (const chunk of chunks) {
     await new Promise<void>((resolve) => {
       requestIdleCallback(
         () => {
           // Parse chunk
-          parseChunk(chunk);
-          resolve();
+          parseChunk(chunk)
+          resolve()
         },
-        { timeout: 100 }
-      );
-    });
+        { timeout: 100 },
+      )
+    })
   }
 
   // Initialize widget after parsing
   await new Promise<void>((resolve) => {
     requestAnimationFrame(() => {
-      mountWidget(container);
-      resolve();
-    });
-  });
+      mountWidget(container)
+      resolve()
+    })
+  })
 }
 ```
 
@@ -2062,12 +2035,12 @@ Building a multi-tenant pluggable widget framework requires navigating three axe
 
 **Recommended starting points by use case:**
 
-| Scenario | Isolation | Loading | Registry |
-|----------|-----------|---------|----------|
-| Internal micro-frontends | Module Federation | Module Federation | npm/internal registry |
-| Third-party app marketplace | iframe + postMessage | Dynamic script | Custom registry + OAuth |
-| High-security (financial) | WASM sandbox | Dynamic fetch | Signed manifests |
-| Design tool plugins | WASM (logic) + iframe (UI) | Controlled loader | Curated store |
+| Scenario                    | Isolation                  | Loading           | Registry                |
+| --------------------------- | -------------------------- | ----------------- | ----------------------- |
+| Internal micro-frontends    | Module Federation          | Module Federation | npm/internal registry   |
+| Third-party app marketplace | iframe + postMessage       | Dynamic script    | Custom registry + OAuth |
+| High-security (financial)   | WASM sandbox               | Dynamic fetch     | Signed manifests        |
+| Design tool plugins         | WASM (logic) + iframe (UI) | Controlled loader | Curated store           |
 
 **Key design decisions to make early:**
 
@@ -2089,18 +2062,18 @@ The frameworks that succeed (VS Code, Figma, Shopify) share a common pattern: **
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **Module Federation** | Webpack 5 feature allowing multiple builds to share code at runtime |
-| **Contribution Point** | Named extension point in host UI where widgets can render |
-| **Manifest** | JSON file declaring widget metadata, capabilities, and requirements |
-| **Activation Event** | Trigger that causes a widget to load (e.g., slot visible, command invoked) |
-| **Sandbox** | Restricted execution environment limiting widget capabilities |
-| **postMessage** | Browser API for cross-origin communication between windows/iframes |
-| **Shadow DOM** | Browser API for encapsulated DOM subtree with style isolation |
-| **WASM** | WebAssembly; binary instruction format for sandboxed execution |
-| **QuickJS** | Lightweight JavaScript engine; can be compiled to WASM for sandboxing |
-| **Singleton** | Shared dependency constraint ensuring only one instance loads |
+| Term                   | Definition                                                                 |
+| ---------------------- | -------------------------------------------------------------------------- |
+| **Module Federation**  | Webpack 5 feature allowing multiple builds to share code at runtime        |
+| **Contribution Point** | Named extension point in host UI where widgets can render                  |
+| **Manifest**           | JSON file declaring widget metadata, capabilities, and requirements        |
+| **Activation Event**   | Trigger that causes a widget to load (e.g., slot visible, command invoked) |
+| **Sandbox**            | Restricted execution environment limiting widget capabilities              |
+| **postMessage**        | Browser API for cross-origin communication between windows/iframes         |
+| **Shadow DOM**         | Browser API for encapsulated DOM subtree with style isolation              |
+| **WASM**               | WebAssembly; binary instruction format for sandboxed execution             |
+| **QuickJS**            | Lightweight JavaScript engine; can be compiled to WASM for sandboxing      |
+| **Singleton**          | Shared dependency constraint ensuring only one instance loads              |
 
 ### Summary
 

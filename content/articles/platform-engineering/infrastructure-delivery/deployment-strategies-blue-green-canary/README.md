@@ -42,11 +42,11 @@ flowchart LR
 
 Deployment strategy selection reduces to three variables: **blast radius** (percentage of users exposed to failures), **rollback speed** (time to restore previous behavior), and **infrastructure cost** (resource overhead during deployment).
 
-| Strategy | Blast Radius | Rollback Speed | Infrastructure Cost | Complexity |
-|----------|--------------|----------------|---------------------|------------|
-| **Blue-Green** | 100% (all at once) | Instant (traffic switch) | 2x (parallel environments) | Moderate |
-| **Canary** | Configurable (1-100%) | Fast (stop traffic shift) | Minimal (small canary fleet) | High |
-| **Rolling** | Growing (during rollout) | Slow (reverse rollout) | Minimal (surge capacity) | Low |
+| Strategy       | Blast Radius             | Rollback Speed            | Infrastructure Cost          | Complexity |
+| -------------- | ------------------------ | ------------------------- | ---------------------------- | ---------- |
+| **Blue-Green** | 100% (all at once)       | Instant (traffic switch)  | 2x (parallel environments)   | Moderate   |
+| **Canary**     | Configurable (1-100%)    | Fast (stop traffic shift) | Minimal (small canary fleet) | High       |
+| **Rolling**    | Growing (during rollout) | Slow (reverse rollout)    | Minimal (surge capacity)     | Low        |
 
 **Key architectural insight**: The choice isn't which strategy is "best"—it's which failure mode is acceptable. Blue-green trades cost for instant rollback. Canary trades complexity for controlled exposure. Rolling trades rollback speed for simplicity.
 
@@ -62,12 +62,12 @@ Blue-green deployment maintains two identical production environments. At any ti
 
 The core requirement: a routing layer that can instantly redirect 100% of traffic between environments. Implementation options:
 
-| Routing Method | Switch Speed | Complexity | Use Case |
-|----------------|--------------|------------|----------|
-| **Load balancer** | Seconds | Low | AWS ALB/NLB target group swap |
-| **DNS** | Minutes (TTL-dependent) | Low | Global traffic management |
-| **Service mesh** | Seconds | High | Kubernetes with Istio/Linkerd |
-| **CDN origin** | Minutes (cache invalidation) | Moderate | Static sites, CloudFront |
+| Routing Method    | Switch Speed                 | Complexity | Use Case                      |
+| ----------------- | ---------------------------- | ---------- | ----------------------------- |
+| **Load balancer** | Seconds                      | Low        | AWS ALB/NLB target group swap |
+| **DNS**           | Minutes (TTL-dependent)      | Low        | Global traffic management     |
+| **Service mesh**  | Seconds                      | High       | Kubernetes with Istio/Linkerd |
+| **CDN origin**    | Minutes (cache invalidation) | Moderate   | Static sites, CloudFront      |
 
 **Why atomic switching matters**: Partial deployments create version skew—users might receive HTML from v2 but JavaScript from v1. Blue-green eliminates this by ensuring all requests hit one environment or the other, never both simultaneously.
 
@@ -106,11 +106,11 @@ sequenceDiagram
 
 AWS CodeDeploy with ECS supports blue-green natively. Traffic shifting options from the [AWS ECS deployment documentation](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-type-bluegreen.html):
 
-| Configuration | Behavior |
-|---------------|----------|
-| `CodeDeployDefault.ECSAllAtOnce` | Immediate 100% switch |
-| `CodeDeployDefault.ECSLinear10PercentEvery1Minutes` | 10% increments every minute |
-| `CodeDeployDefault.ECSCanary10Percent5Minutes` | 10% for 5 minutes, then 100% |
+| Configuration                                       | Behavior                     |
+| --------------------------------------------------- | ---------------------------- |
+| `CodeDeployDefault.ECSAllAtOnce`                    | Immediate 100% switch        |
+| `CodeDeployDefault.ECSLinear10PercentEvery1Minutes` | 10% increments every minute  |
+| `CodeDeployDefault.ECSCanary10Percent5Minutes`      | 10% for 5 minutes, then 100% |
 
 **Requirements**: Application Load Balancer (ALB) or Network Load Balancer (NLB) with two target groups. CodeDeploy manages the target group weights.
 
@@ -145,13 +145,14 @@ metadata:
 spec:
   selector:
     app: my-app
-    version: blue  # Change to 'green' for switch
+    version: blue # Change to 'green' for switch
   ports:
     - port: 80
       targetPort: 8080
 ```
 
 **Operational pattern**:
+
 1. Deploy green Deployment with `version: green` label
 2. Verify green pods pass readiness probes
 3. Update Service selector from `version: blue` to `version: green`
@@ -163,6 +164,7 @@ spec:
 **Cost**: 2x infrastructure during deployment window. For stateless services, this is the primary overhead. For stateful services with dedicated databases, costs compound.
 
 **Session handling**: In-flight requests during switch may fail. Mitigations:
+
 - Connection draining: ALB waits for existing connections to complete (configurable timeout)
 - Session affinity: Sticky sessions prevent mid-session switches (but complicate rollback)
 - Stateless design: Store session state externally (Redis, DynamoDB)
@@ -219,17 +221,18 @@ flowchart TD
 Effective canary analysis requires comparing canary cohort metrics against baseline (stable version) metrics, not absolute thresholds.
 
 **Core metrics** (RED method):
+
 - **Rate**: Request throughput—anomalies indicate routing issues or capacity problems
 - **Errors**: Error rate comparison—canary error rate > baseline + threshold triggers rollback
 - **Duration**: Latency percentiles (p50, p90, p99)—degradation indicates performance regression
 
 **Threshold configuration example**:
 
-| Metric | Baseline | Canary Threshold | Action |
-|--------|----------|------------------|--------|
-| Error rate | 0.1% | > 0.5% | Rollback |
-| p99 latency | 200ms | > 300ms | Rollback |
-| p50 latency | 50ms | > 75ms | Pause, investigate |
+| Metric      | Baseline | Canary Threshold | Action             |
+| ----------- | -------- | ---------------- | ------------------ |
+| Error rate  | 0.1%     | > 0.5%           | Rollback           |
+| p99 latency | 200ms    | > 300ms          | Rollback           |
+| p50 latency | 50ms     | > 75ms           | Pause, investigate |
 
 **Statistical significance**: Google's canary analysis guidance recommends minimum 50 data points per metric before drawing conclusions. At 10 requests/second to canary, this requires at least 5 seconds of observation—but metrics like memory leaks require hours to manifest.
 
@@ -253,21 +256,21 @@ spec:
   strategy:
     canary:
       steps:
-      - setWeight: 5
-      - pause: {duration: 10m}
-      - setWeight: 20
-      - pause: {duration: 10m}
-      - setWeight: 50
-      - pause: {duration: 10m}
-      - setWeight: 80
-      - pause: {duration: 10m}
+        - setWeight: 5
+        - pause: { duration: 10m }
+        - setWeight: 20
+        - pause: { duration: 10m }
+        - setWeight: 50
+        - pause: { duration: 10m }
+        - setWeight: 80
+        - pause: { duration: 10m }
       analysis:
         templates:
-        - templateName: success-rate
+          - templateName: success-rate
         startingStep: 2
         args:
-        - name: service-name
-          value: my-app
+          - name: service-name
+            value: my-app
 ```
 
 **AnalysisTemplate** with Prometheus:
@@ -283,18 +286,18 @@ metadata:
   name: success-rate
 spec:
   args:
-  - name: service-name
+    - name: service-name
   metrics:
-  - name: success-rate
-    successCondition: result[0] >= 0.95
-    failureLimit: 3
-    interval: 60s
-    provider:
-      prometheus:
-        address: http://prometheus:9090
-        query: |
-          sum(rate(http_requests_total{status!~"5.*",app="{{args.service-name}}"}[5m])) /
-          sum(rate(http_requests_total{app="{{args.service-name}}"}[5m]))
+    - name: success-rate
+      successCondition: result[0] >= 0.95
+      failureLimit: 3
+      interval: 60s
+      provider:
+        prometheus:
+          address: http://prometheus:9090
+          query: |
+            sum(rate(http_requests_total{status!~"5.*",app="{{args.service-name}}"}[5m])) /
+            sum(rate(http_requests_total{app="{{args.service-name}}"}[5m]))
 ```
 
 ### Service Mesh Traffic Splitting
@@ -312,20 +315,21 @@ metadata:
   name: my-app
 spec:
   hosts:
-  - my-app
+    - my-app
   http:
-  - route:
-    - destination:
-        host: my-app
-        subset: stable
-      weight: 90
-    - destination:
-        host: my-app
-        subset: canary
-      weight: 10
+    - route:
+        - destination:
+            host: my-app
+            subset: stable
+          weight: 90
+        - destination:
+            host: my-app
+            subset: canary
+          weight: 10
 ```
 
 **Flagger** automates canary progression with Istio, Linkerd, or NGINX:
+
 - Creates canary Deployment from primary
 - Manages VirtualService weights automatically
 - Monitors Prometheus metrics for promotion/rollback decisions
@@ -340,6 +344,7 @@ spec:
 **Metric lag**: Some issues (memory leaks, connection pool exhaustion) take hours to manifest. Fast canary progression may promote before slow-burn issues appear. Mitigation: extend observation windows for critical releases, monitor resource metrics alongside request metrics.
 
 **Insufficient traffic**: Low-traffic services may not generate enough requests during canary stages for statistical significance. Solutions:
+
 - Extend stage durations
 - Use synthetic traffic for baseline
 - Accept higher uncertainty with manual review gates
@@ -352,10 +357,10 @@ Rolling updates replace pods incrementally: terminate old pods and start new pod
 
 Two parameters control rollout pace:
 
-| Parameter | Description | Default | Effect |
-|-----------|-------------|---------|--------|
-| `maxSurge` | Max pods above desired count | 25% | Higher = faster rollout, more resources |
-| `maxUnavailable` | Max pods that can be unavailable | 25% | Higher = faster rollout, reduced capacity |
+| Parameter        | Description                      | Default | Effect                                    |
+| ---------------- | -------------------------------- | ------- | ----------------------------------------- |
+| `maxSurge`       | Max pods above desired count     | 25%     | Higher = faster rollout, more resources   |
+| `maxUnavailable` | Max pods that can be unavailable | 25%     | Higher = faster rollout, reduced capacity |
 
 **Configuration examples**:
 
@@ -376,6 +381,7 @@ spec:
 ```
 
 **Rollout sequence** with `maxSurge: 1, maxUnavailable: 0` (10 replicas):
+
 1. Create 1 new pod (11 total)
 2. Wait for new pod readiness
 3. Terminate 1 old pod (10 total)
@@ -385,11 +391,11 @@ spec:
 
 Kubernetes uses probes to determine pod health:
 
-| Probe Type | Purpose | Failure Action |
-|------------|---------|----------------|
-| **Readiness** | Can pod receive traffic? | Remove from Service endpoints |
-| **Liveness** | Should pod be restarted? | Kill and restart container |
-| **Startup** | Has pod finished starting? | Disable other probes until success |
+| Probe Type    | Purpose                    | Failure Action                     |
+| ------------- | -------------------------- | ---------------------------------- |
+| **Readiness** | Can pod receive traffic?   | Remove from Service endpoints      |
+| **Liveness**  | Should pod be restarted?   | Kill and restart container         |
+| **Startup**   | Has pod finished starting? | Disable other probes until success |
 
 **Critical for rolling updates**: Readiness probe failures prevent traffic routing to unhealthy new pods, but the rollout continues. A pod that passes readiness but has application-level issues (returning errors, slow responses) will receive traffic.
 
@@ -399,22 +405,22 @@ Kubernetes uses probes to determine pod health:
 
 spec:
   containers:
-  - name: app
-    readinessProbe:
-      httpGet:
-        path: /health
-        port: 8080
-      initialDelaySeconds: 5
-      periodSeconds: 5
-      successThreshold: 1
-      failureThreshold: 3
-    livenessProbe:
-      httpGet:
-        path: /health
-        port: 8080
-      initialDelaySeconds: 15
-      periodSeconds: 10
-      failureThreshold: 3
+    - name: app
+      readinessProbe:
+        httpGet:
+          path: /health
+          port: 8080
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        successThreshold: 1
+        failureThreshold: 3
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 8080
+        initialDelaySeconds: 15
+        periodSeconds: 10
+        failureThreshold: 3
 ```
 
 ### Manual Rollback
@@ -443,6 +449,7 @@ kubectl rollout pause deployment/my-app
 ### Trade-offs and Failure Modes
 
 **Version coexistence**: During rollout, both old and new versions serve traffic simultaneously. This requires:
+
 - Backward-compatible APIs (new version must handle old client requests)
 - Forward-compatible APIs (old version must handle new client requests during rollback)
 - Schema compatibility for shared databases
@@ -480,6 +487,7 @@ flowchart LR
 ### Implementation Considerations
 
 **Flag evaluation location**:
+
 - **Server-side**: Flag service called per-request. Higher latency, always current.
 - **Client-side SDK**: Flags cached locally, synced periodically. Lower latency, eventual consistency.
 - **Edge**: Flags evaluated at CDN/load balancer. Zero application latency, limited context.
@@ -492,24 +500,25 @@ flowchart LR
 // Production SDKs handle edge cases, caching, and fallbacks
 
 function shouldEnableFeature(userId, percentage) {
-  const hash = hashUserId(userId);  // Returns 0-99999
-  const bucket = hash % 100000;
-  return bucket < (percentage * 1000);  // percentage as 0-100
+  const hash = hashUserId(userId) // Returns 0-99999
+  const bucket = hash % 100000
+  return bucket < percentage * 1000 // percentage as 0-100
 }
 ```
 
 **Flag lifecycle management**: Technical debt accumulates if flags aren't cleaned up. Establish policy:
+
 1. Feature fully rolled out → remove flag within 2 weeks
 2. Feature abandoned → remove flag and code immediately
 3. Long-lived flags (A/B tests, entitlements) → document and review quarterly
 
 ### Integration with Deployment Strategies
 
-| Strategy | Feature Flag Role |
-|----------|-------------------|
-| **Blue-Green** | Instant rollback for specific features without environment switch |
-| **Canary** | Additional blast radius control within canary cohort |
-| **Rolling** | Compensates for lack of traffic control—enable feature for percentage of users |
+| Strategy       | Feature Flag Role                                                              |
+| -------------- | ------------------------------------------------------------------------------ |
+| **Blue-Green** | Instant rollback for specific features without environment switch              |
+| **Canary**     | Additional blast radius control within canary cohort                           |
+| **Rolling**    | Compensates for lack of traffic control—enable feature for percentage of users |
 
 **LaunchDarkly progressive rollouts** from [their documentation](https://launchdarkly.com/docs/home/releases/progressive-rollouts): automatic percentage increase over time with metric monitoring. Similar to canary, but at application layer rather than infrastructure.
 
@@ -526,6 +535,7 @@ ALTER TABLE users ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT false;
 ```
 
 **Timeline during blue-green deployment**:
+
 1. Green code expects `email_verified` column
 2. Switch traffic to green
 3. Issue detected, switch back to blue
@@ -566,6 +576,7 @@ flowchart TD
 </figure>
 
 **Phase 1 - Expand**:
+
 1. Add new column as nullable (no constraint)
 2. Deploy code that writes to both old and new columns (dual-write)
 3. Backfill existing rows
@@ -580,10 +591,12 @@ VALUES ('Alice', true, true);  -- Write both columns
 ```
 
 **Phase 2 - Migrate**:
+
 1. Verify all rows have new column populated
 2. Monitor for any rows missing new column data
 
 **Phase 3 - Contract**:
+
 1. Deploy code that reads only from new column
 2. Stop writing to old column
 3. Add NOT NULL constraint
@@ -613,6 +626,7 @@ Large tables can't be altered with `ALTER TABLE`—the operation locks the table
 4. Atomic table rename when caught up
 
 **Key advantages over trigger-based tools**:
+
 - No triggers on original table (triggers add write latency)
 - Pausable and resumable
 - Controllable cut-over timing
@@ -659,6 +673,7 @@ pt-online-schema-change \
 **Rule**: Schema migration must complete before deploying code that depends on it.
 
 **Deployment sequence**:
+
 1. Run expand migration (add column, create table)
 2. Deploy new code (dual-write enabled)
 3. Run backfill (populate new column for existing rows)
@@ -675,18 +690,19 @@ Automated rollback reduces Mean Time to Recovery (MTTR) by eliminating human dec
 ### Metric Selection and Thresholds
 
 Effective automated rollback requires metrics that:
+
 1. Correlate strongly with user-visible issues
 2. Change quickly when problems occur
 3. Have low false-positive rates
 
 **Recommended metrics**:
 
-| Metric | Threshold Type | Example |
-|--------|----------------|---------|
-| Error rate | Absolute increase | > 1% increase over baseline |
+| Metric      | Threshold Type    | Example                      |
+| ----------- | ----------------- | ---------------------------- |
+| Error rate  | Absolute increase | > 1% increase over baseline  |
 | p99 latency | Relative increase | > 50% increase over baseline |
-| p50 latency | Absolute value | > 200ms |
-| Apdex score | Absolute value | < 0.9 |
+| p50 latency | Absolute value    | > 200ms                      |
+| Apdex score | Absolute value    | < 0.9                        |
 
 **Baseline comparison**: Compare canary/new version metrics against stable version, not absolute thresholds. A service with 0.5% baseline error rate triggering on > 1% error rate will fire immediately; triggering on > 0.5% increase is appropriate.
 
@@ -705,33 +721,34 @@ metadata:
   name: error-rate-comparison
 spec:
   args:
-  - name: canary-hash
-  - name: stable-hash
+    - name: canary-hash
+    - name: stable-hash
   metrics:
-  - name: error-rate-comparison
-    successCondition: result[0] <= 0.01  # Canary error rate <= 1% higher
-    failureLimit: 3
-    interval: 60s
-    provider:
-      prometheus:
-        address: http://prometheus:9090
-        query: |
-          (
-            sum(rate(http_requests_total{status=~"5.*",rollout-pod-template-hash="{{args.canary-hash}}"}[5m]))
-            /
-            sum(rate(http_requests_total{rollout-pod-template-hash="{{args.canary-hash}}"}[5m]))
-          )
-          -
-          (
-            sum(rate(http_requests_total{status=~"5.*",rollout-pod-template-hash="{{args.stable-hash}}"}[5m]))
-            /
-            sum(rate(http_requests_total{rollout-pod-template-hash="{{args.stable-hash}}"}[5m]))
-          )
+    - name: error-rate-comparison
+      successCondition: result[0] <= 0.01 # Canary error rate <= 1% higher
+      failureLimit: 3
+      interval: 60s
+      provider:
+        prometheus:
+          address: http://prometheus:9090
+          query: |
+            (
+              sum(rate(http_requests_total{status=~"5.*",rollout-pod-template-hash="{{args.canary-hash}}"}[5m]))
+              /
+              sum(rate(http_requests_total{rollout-pod-template-hash="{{args.canary-hash}}"}[5m]))
+            )
+            -
+            (
+              sum(rate(http_requests_total{status=~"5.*",rollout-pod-template-hash="{{args.stable-hash}}"}[5m]))
+              /
+              sum(rate(http_requests_total{rollout-pod-template-hash="{{args.stable-hash}}"}[5m]))
+            )
 ```
 
 ### Observability Integration
 
 **Datadog deployment tracking** from [their documentation](https://www.datadoghq.com/blog/datadog-deployment-tracking/):
+
 - Correlates deployments with metric changes
 - Watchdog AI detects faulty deployments within minutes
 - Compares new version against historical baselines
@@ -743,20 +760,20 @@ spec:
 # Fires when error rate increases significantly after deployment
 
 groups:
-- name: deployment-health
-  rules:
-  - alert: DeploymentErrorRateSpike
-    expr: |
-      (
-        sum(rate(http_requests_total{status=~"5.*"}[5m]))
-        /
-        sum(rate(http_requests_total[5m]))
-      ) > 0.05
-    for: 2m
-    labels:
-      severity: critical
-    annotations:
-      summary: "Error rate exceeded 5% for 2 minutes"
+  - name: deployment-health
+    rules:
+      - alert: DeploymentErrorRateSpike
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.*"}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Error rate exceeded 5% for 2 minutes"
 ```
 
 ### Rollback Trigger Design
@@ -772,13 +789,14 @@ conditions:
 
 # But NOT if:
 exceptions:
-  - traffic_volume < 100_requests_per_minute  # Insufficient data
-  - baseline_error_rate > 5%  # Already unhealthy
+  - traffic_volume < 100_requests_per_minute # Insufficient data
+  - baseline_error_rate > 5% # Already unhealthy
 ```
 
 **Cooldown periods**: After rollback, wait before allowing re-promotion. Prevents flip-flopping between versions during transient issues.
 
 **Notification and audit**: Log all automated rollback decisions with:
+
 - Timestamp
 - Triggering metric values
 - Baseline comparison values
@@ -788,29 +806,32 @@ exceptions:
 
 ### Pre-Deployment Checklist
 
-| Check | Purpose | Automation |
-|-------|---------|------------|
-| Schema migration completed | Prevent code/schema mismatch | CI pipeline gate |
-| Feature flags configured | Enable targeted rollback | Flag service API check |
-| Rollback procedure documented | Reduce MTTR | PR template requirement |
-| Monitoring dashboards ready | Detect issues quickly | Link in deployment ticket |
-| On-call engineer notified | Human oversight | PagerDuty/Slack automation |
+| Check                         | Purpose                      | Automation                 |
+| ----------------------------- | ---------------------------- | -------------------------- |
+| Schema migration completed    | Prevent code/schema mismatch | CI pipeline gate           |
+| Feature flags configured      | Enable targeted rollback     | Flag service API check     |
+| Rollback procedure documented | Reduce MTTR                  | PR template requirement    |
+| Monitoring dashboards ready   | Detect issues quickly        | Link in deployment ticket  |
+| On-call engineer notified     | Human oversight              | PagerDuty/Slack automation |
 
 ### Deployment Monitoring
 
 **First 5 minutes** (critical window):
+
 - Error rate by endpoint
 - Latency percentiles (p50, p90, p99)
 - Throughput anomalies
 - Pod restart count
 
 **First hour**:
+
 - Memory usage trends (leak detection)
 - Connection pool utilization
 - Downstream service error rates
 - Business metrics (conversion, orders)
 
 **First 24 hours**:
+
 - Full traffic pattern coverage (peak hours)
 - Long-running job completion
 - Background worker health
@@ -819,11 +840,13 @@ exceptions:
 ### Incident Response: Deployment-Related
 
 **Symptoms suggesting bad deployment**:
+
 - Metrics degraded immediately after deployment
 - Only new pods showing errors (pod-specific issues)
 - Errors correlate with traffic to new version (canary analysis)
 
 **Immediate actions**:
+
 1. **Pause rollout** (if in progress): `kubectl rollout pause deployment/my-app`
 2. **Check recent deployments**: `kubectl rollout history deployment/my-app`
 3. **Compare error rates** between old and new pods
@@ -839,6 +862,7 @@ Is the issue definitely caused by the deployment?
 ```
 
 **Post-incident**:
+
 - Document what metrics detected the issue
 - Determine if automated rollback should have triggered
 - Adjust thresholds if false negative occurred

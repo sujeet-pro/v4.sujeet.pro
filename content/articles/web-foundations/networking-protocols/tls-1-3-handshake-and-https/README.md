@@ -110,6 +110,7 @@ sequenceDiagram
 **Phase 1: Key Exchange (Plaintext)**
 
 The ClientHello contains:
+
 - Random 256-bit nonce
 - Supported cipher suites (AEAD + hash pairs)
 - `supported_versions` extension (must include 0x0304 for TLS 1.3)
@@ -117,6 +118,7 @@ The ClientHello contains:
 - Optional `pre_shared_key` for resumption
 
 The ServerHello responds with:
+
 - Selected cipher suite
 - Server's (EC)DHE key share
 - `supported_versions` confirming TLS 1.3
@@ -126,6 +128,7 @@ At this point, both parties can compute the shared secret and derive handshake t
 **Phase 2: Server Parameters (Encrypted)**
 
 EncryptedExtensions carries metadata that was plaintext in TLS 1.2:
+
 - ALPN (Application-Layer Protocol Negotiation) selection
 - Server name handling
 - Other extensions not required for key exchange
@@ -142,16 +145,16 @@ The Finished messages are HMAC-based MACs over the handshake transcript, confirm
 
 ### What TLS 1.3 Removed (and Why)
 
-| Removed Feature | Vulnerability | RFC 8446 Rationale |
-|-----------------|---------------|-------------------|
-| Static RSA key transport | No forward secrecy; passive attackers who later compromise the server key can decrypt historical traffic | "All public-key based key exchange mechanisms now provide forward secrecy" |
-| Static Diffie-Hellman | Same forward secrecy problem | Ephemeral keys required for all handshakes |
-| Server-chosen DHE parameters | LogJam, WeakDH attacks using weak primes | Fixed named curves only (P-256, P-384, P-521, X25519, X448) |
-| Compression | CRIME attack extracts secrets via compression ratio oracle | Removed entirely |
-| Renegotiation | Downgrade attacks, injection vulnerabilities | "Renegotiation is not possible when TLS 1.3 has been negotiated" |
-| CBC mode ciphers | POODLE, Lucky Thirteen padding oracles | AEAD only |
-| SHA-1 signatures | Collision attacks (SHAttered, 2017) | SHA-256 minimum |
-| DSA | Performance, security concerns | ECDSA, EdDSA, RSA-PSS only |
+| Removed Feature              | Vulnerability                                                                                            | RFC 8446 Rationale                                                         |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Static RSA key transport     | No forward secrecy; passive attackers who later compromise the server key can decrypt historical traffic | "All public-key based key exchange mechanisms now provide forward secrecy" |
+| Static Diffie-Hellman        | Same forward secrecy problem                                                                             | Ephemeral keys required for all handshakes                                 |
+| Server-chosen DHE parameters | LogJam, WeakDH attacks using weak primes                                                                 | Fixed named curves only (P-256, P-384, P-521, X25519, X448)                |
+| Compression                  | CRIME attack extracts secrets via compression ratio oracle                                               | Removed entirely                                                           |
+| Renegotiation                | Downgrade attacks, injection vulnerabilities                                                             | "Renegotiation is not possible when TLS 1.3 has been negotiated"           |
+| CBC mode ciphers             | POODLE, Lucky Thirteen padding oracles                                                                   | AEAD only                                                                  |
+| SHA-1 signatures             | Collision attacks (SHAttered, 2017)                                                                      | SHA-256 minimum                                                            |
+| DSA                          | Performance, security concerns                                                                           | ECDSA, EdDSA, RSA-PSS only                                                 |
 
 ## Forward Secrecy: Non-Negotiable by Design
 
@@ -217,13 +220,13 @@ Each derived key is cryptographically independent. Compromising one doesn't comp
 
 TLS 1.3 defines exactly five cipher suites, all using Authenticated Encryption with Associated Data (AEAD):
 
-| Cipher Suite | Algorithm | Hash | Use Case |
-|--------------|-----------|------|----------|
-| TLS_AES_128_GCM_SHA256 | AES-128-GCM | SHA-256 | Default, widely supported |
-| TLS_AES_256_GCM_SHA384 | AES-256-GCM | SHA-384 | Higher security margin |
+| Cipher Suite                 | Algorithm         | Hash    | Use Case                    |
+| ---------------------------- | ----------------- | ------- | --------------------------- |
+| TLS_AES_128_GCM_SHA256       | AES-128-GCM       | SHA-256 | Default, widely supported   |
+| TLS_AES_256_GCM_SHA384       | AES-256-GCM       | SHA-384 | Higher security margin      |
 | TLS_CHACHA20_POLY1305_SHA256 | ChaCha20-Poly1305 | SHA-256 | Mobile, non-AES-NI hardware |
-| TLS_AES_128_CCM_SHA256 | AES-128-CCM | SHA-256 | NIST compliance |
-| TLS_AES_128_CCM_8_SHA256 | AES-128-CCM-8 | SHA-256 | IoT, constrained devices |
+| TLS_AES_128_CCM_SHA256       | AES-128-CCM       | SHA-256 | NIST compliance             |
+| TLS_AES_128_CCM_8_SHA256     | AES-128-CCM-8     | SHA-256 | IoT, constrained devices    |
 
 > RFC 8446: "The list of supported symmetric encryption algorithms has been pruned of all algorithms that are considered legacy. Those that remain are all Authenticated Encryption with Associated Data (AEAD) algorithms."
 
@@ -296,6 +299,7 @@ The server validates the binder before accepting the PSK. This binds the PSK to 
 **Critical vulnerability**: 0-RTT data can be replayed.
 
 Unlike regular TLS data (which incorporates the server's random value), 0-RTT data depends only on:
+
 - The PSK
 - The client's random value
 
@@ -349,6 +353,7 @@ Please retry without early data.
 PSK-only mode lacks forward secrecy—if the PSK is compromised, all sessions using it can be decrypted.
 
 PSK-(EC)DHE mode combines both:
+
 - PSK provides authentication
 - (EC)DHE provides forward secrecy
 
@@ -368,11 +373,11 @@ HSTS (HTTP Strict Transport Security, RFC 6797) directs browsers to:
 Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 ```
 
-| Directive | Purpose |
-|-----------|---------|
-| `max-age` | Policy duration in seconds (2 years = 63072000) |
-| `includeSubDomains` | Apply to all subdomains |
-| `preload` | Signal intent for browser preload lists |
+| Directive           | Purpose                                         |
+| ------------------- | ----------------------------------------------- |
+| `max-age`           | Policy duration in seconds (2 years = 63072000) |
+| `includeSubDomains` | Apply to all subdomains                         |
+| `preload`           | Signal intent for browser preload lists         |
 
 ### The First-Visit Vulnerability
 
@@ -454,12 +459,14 @@ CT is detective, not preventive. A misissued certificate can be used for up to 2
 When a certificate's private key is compromised, revocation should invalidate it before expiration. Two mechanisms exist:
 
 **CRL (Certificate Revocation Lists)**:
+
 - CA publishes list of revoked serial numbers
 - Clients download and cache periodically
 - Scales well, privacy-preserving
 - Stale revocation data
 
 **OCSP (Online Certificate Status Protocol)**:
+
 - Real-time status queries to CA
 - Fresh revocation data
 - Privacy concern: CA sees which sites you visit
@@ -485,6 +492,7 @@ sequenceDiagram
 ```
 
 **Benefits**:
+
 - Privacy: CA doesn't see which clients connect
 - Performance: No extra RTT for OCSP
 - Reliability: Server can cache responses
@@ -494,6 +502,7 @@ sequenceDiagram
 The critical design flaw: if OCSP fails (network error, timeout, stapled response missing), browsers proceed anyway.
 
 **Why soft-fail**:
+
 - OCSP responder outages would break the web
 - Captive portals block OCSP
 - Network latency adds user-visible delay
@@ -507,6 +516,7 @@ The critical design flaw: if OCSP fails (network error, timeout, stapled respons
 The `OCSP Must-Staple` certificate extension signals that connections without stapled OCSP responses should fail. This would convert soft-fail to hard-fail.
 
 **Why it failed**:
+
 - Unreliable server stapling implementations
 - If stapled response expires, site goes down
 - No major browser adopted enforcement
@@ -534,11 +544,11 @@ example.com.    CAA 0 issuewild "digicert.com"
 example.com.    CAA 0 iodef "mailto:security@example.com"
 ```
 
-| Property | Purpose |
-|----------|---------|
-| `issue` | Authorize CA for standard certificates |
+| Property    | Purpose                                |
+| ----------- | -------------------------------------- |
+| `issue`     | Authorize CA for standard certificates |
 | `issuewild` | Authorize CA for wildcard certificates |
-| `iodef` | Report unauthorized issuance attempts |
+| `iodef`     | Report unauthorized issuance attempts  |
 
 ### CA Compliance
 
@@ -553,6 +563,7 @@ The CA/Browser Forum Baseline Requirements mandate CAA checking before issuance.
 ### DNSSEC Integration (2026)
 
 Starting February 2026 (CA/Browser Forum Ballot SC-085v2), CAs must validate DNSSEC for:
+
 - Domain control verification
 - CAA checks
 
@@ -597,6 +608,7 @@ If DNSSEC is deployed but validation fails, CAs must refuse issuance. This preve
 TLS 1.3 represents a decade of lessons learned from attacks on TLS 1.2. The protocol eliminates legacy cryptographic modes, mandates forward secrecy, and reduces handshake latency—all through careful design constraints rather than optional best practices.
 
 HTTPS hardening beyond TLS requires understanding what each mechanism actually provides:
+
 - **HSTS** prevents downgrade but needs preload for first-visit protection
 - **Certificate Transparency** enables detection but not prevention of misissued certificates
 - **OCSP stapling** improves privacy and performance but browsers soft-fail anyway

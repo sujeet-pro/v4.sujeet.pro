@@ -62,12 +62,12 @@ flowchart TB
 
 **Core trade-offs to internalize:**
 
-| Trade-off                    | Left Choice              | Right Choice                  | When to pick right        |
-| ---------------------------- | ------------------------ | ----------------------------- | ------------------------- |
-| Preprocessing vs Query       | Linear (no prep, O(n))   | Binary (O(n log n) prep, O(log n)) | Multiple queries          |
-| Space vs Optimality          | DFS (O(depth) space)     | BFS (O(width) space)          | Need shortest path        |
-| Guaranteed vs Average        | Binary (O(log n) always) | Interpolation (O(log log n) avg) | Uniform data distribution |
-| Uninformed vs Informed       | Dijkstra (explores all)  | A* (guided by heuristic)      | Good heuristic available  |
+| Trade-off              | Left Choice              | Right Choice                       | When to pick right        |
+| ---------------------- | ------------------------ | ---------------------------------- | ------------------------- |
+| Preprocessing vs Query | Linear (no prep, O(n))   | Binary (O(n log n) prep, O(log n)) | Multiple queries          |
+| Space vs Optimality    | DFS (O(depth) space)     | BFS (O(width) space)               | Need shortest path        |
+| Guaranteed vs Average  | Binary (O(log n) always) | Interpolation (O(log log n) avg)   | Uniform data distribution |
+| Uninformed vs Informed | Dijkstra (explores all)  | A\* (guided by heuristic)          | Good heuristic available  |
 
 **Key insight:** The "best" algorithm is the one that exploits your data's structure. Sorted data enables binary search. Known goals enable heuristic guidance. Uniform distribution enables interpolation. The worst case is searching unstructured data for an unknown target—that's always O(n).
 
@@ -93,18 +93,18 @@ Search problems vary along two axes: **data structure** and **search goal**.
 | -------------- | --------------------------------- | --------------------- |
 | Unsorted Array | Linear Search                     | No random access      |
 | Sorted Array   | Binary, Jump, Interpolation, Exp. | Requires sorted order |
-| Graph          | BFS, DFS, Dijkstra, A*            | Edge relationships    |
+| Graph          | BFS, DFS, Dijkstra, A\*           | Edge relationships    |
 | Hash Table     | Direct lookup                     | O(n) extra space      |
 | String         | KMP, Boyer-Moore, Rabin-Karp      | Pattern matching      |
 
-| Search Goal         | Best Algorithm(s)       | Why                                       |
-| ------------------- | ----------------------- | ----------------------------------------- |
-| Exact element       | Binary (sorted), Hash   | O(log n) or O(1)                          |
-| All matches         | Linear + collect        | Must scan all                             |
-| Shortest path (unw) | BFS                     | Level-order guarantees minimum hops       |
-| Shortest path (w)   | Dijkstra, A*            | Priority queue processes minimum distance |
-| Any path            | DFS                     | Memory efficient, finds first path        |
-| Cycle detection     | DFS + recursion stack   | Back edge indicates cycle                 |
+| Search Goal         | Best Algorithm(s)     | Why                                       |
+| ------------------- | --------------------- | ----------------------------------------- |
+| Exact element       | Binary (sorted), Hash | O(log n) or O(1)                          |
+| All matches         | Linear + collect      | Must scan all                             |
+| Shortest path (unw) | BFS                   | Level-order guarantees minimum hops       |
+| Shortest path (w)   | Dijkstra, A\*         | Priority queue processes minimum distance |
+| Any path            | DFS                   | Memory efficient, finds first path        |
+| Cycle detection     | DFS + recursion stack | Back edge indicates cycle                 |
 
 ---
 
@@ -1827,7 +1827,7 @@ Search algorithms are fundamentally about exploiting structure. The more you kno
 
 **For arrays:** Sorted data unlocks logarithmic search. If you only search once, sorting isn't worth it. If you search repeatedly, build an index (sort, hash, or tree).
 
-**For graphs:** The choice between BFS and DFS depends on what you're optimizing. BFS guarantees shortest paths but uses O(width) memory. DFS uses O(depth) memory but may not find optimal paths. When edges have weights, Dijkstra extends BFS; when you have a good heuristic, A* focuses the search.
+**For graphs:** The choice between BFS and DFS depends on what you're optimizing. BFS guarantees shortest paths but uses O(width) memory. DFS uses O(depth) memory but may not find optimal paths. When edges have weights, Dijkstra extends BFS; when you have a good heuristic, A\* focuses the search.
 
 **In practice:** Theoretical complexity is a starting point, not the final answer. Cache effects, branch prediction, and constant factors matter. Profile with real data. And remember: hash tables exist—O(1) average lookup often beats clever algorithms for point queries.
 
@@ -1842,18 +1842,18 @@ Search algorithms are fundamentally about exploiting structure. The more you kno
 
 ### Terminology
 
-| Term                | Definition                                                                                  |
-| ------------------- | ------------------------------------------------------------------------------------------- |
-| **Admissible**      | A heuristic that never overestimates the cost to reach the goal (A* requirement)            |
-| **BFS**             | Breadth-First Search—explores all neighbors before moving to the next level                 |
-| **Branching factor**| Average number of successors per node (b)                                                   |
-| **Complete**        | An algorithm that is guaranteed to find a solution if one exists                            |
-| **Consistent**      | A heuristic where h(n) ≤ cost(n,n') + h(n') for every edge (triangle inequality)            |
-| **DFS**             | Depth-First Search—explores as deep as possible before backtracking                         |
-| **IDDFS**           | Iterative Deepening DFS—combines DFS space efficiency with BFS completeness                 |
-| **Lower bound**     | First position where an element can be inserted while maintaining sorted order              |
-| **Optimal**         | An algorithm that is guaranteed to find the best (e.g., shortest) solution                  |
-| **Upper bound**     | First position where an element is strictly greater than the target                         |
+| Term                 | Definition                                                                        |
+| -------------------- | --------------------------------------------------------------------------------- |
+| **Admissible**       | A heuristic that never overestimates the cost to reach the goal (A\* requirement) |
+| **BFS**              | Breadth-First Search—explores all neighbors before moving to the next level       |
+| **Branching factor** | Average number of successors per node (b)                                         |
+| **Complete**         | An algorithm that is guaranteed to find a solution if one exists                  |
+| **Consistent**       | A heuristic where h(n) ≤ cost(n,n') + h(n') for every edge (triangle inequality)  |
+| **DFS**              | Depth-First Search—explores as deep as possible before backtracking               |
+| **IDDFS**            | Iterative Deepening DFS—combines DFS space efficiency with BFS completeness       |
+| **Lower bound**      | First position where an element can be inserted while maintaining sorted order    |
+| **Optimal**          | An algorithm that is guaranteed to find the best (e.g., shortest) solution        |
+| **Upper bound**      | First position where an element is strictly greater than the target               |
 
 ### Summary
 
@@ -1884,4 +1884,4 @@ Search algorithms are fundamentally about exploiting structure. The more you kno
 
 - [Git Bisect Documentation](https://git-scm.com/docs/git-bisect) - Binary search applied to version control for bug finding.
 - [Amit's A\* Pages](http://theory.stanford.edu/~amitp/GameProgramming/) - Comprehensive guide to pathfinding in games, heuristic design, and optimization techniques.
-- [Red Blob Games: Introduction to A\*](https://www.redblobgames.com/pathfinding/a-star/introduction.html) - Interactive visualizations of BFS, Dijkstra, and A*.
+- [Red Blob Games: Introduction to A\*](https://www.redblobgames.com/pathfinding/a-star/introduction.html) - Interactive visualizations of BFS, Dijkstra, and A\*.

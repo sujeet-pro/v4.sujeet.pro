@@ -65,11 +65,11 @@ In a single-database system, `AUTO_INCREMENT` solves ID generation trivially—a
 
 The design space splits into three fundamental approaches:
 
-| Approach | Uniqueness Guarantee | Coordination | Throughput | Sortability |
-|----------|---------------------|--------------|------------|-------------|
-| **Random** (UUID v4) | Probabilistic (2^-122 collision per pair) | None | Unlimited | None |
-| **Time + Partition** (Snowflake) | Deterministic (machine ID + sequence) | Machine ID assignment | ~4M/sec/worker | Chronological |
-| **Time + Random** (UUID v7, ULID) | Probabilistic within millisecond | None | Unlimited | Chronological |
+| Approach                          | Uniqueness Guarantee                      | Coordination          | Throughput     | Sortability   |
+| --------------------------------- | ----------------------------------------- | --------------------- | -------------- | ------------- |
+| **Random** (UUID v4)              | Probabilistic (2^-122 collision per pair) | None                  | Unlimited      | None          |
+| **Time + Partition** (Snowflake)  | Deterministic (machine ID + sequence)     | Machine ID assignment | ~4M/sec/worker | Chronological |
+| **Time + Random** (UUID v7, ULID) | Probabilistic within millisecond          | None                  | Unlimited      | Chronological |
 
 ## Design Choices
 
@@ -179,11 +179,11 @@ xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
 
 **Variants:**
 
-| Company | Timestamp | Node/Shard | Sequence | Epoch |
-|---------|-----------|------------|----------|-------|
-| **Twitter** | 41 bits | 10 bits (worker) | 12 bits | 2010-11-04 |
-| **Discord** | 41 bits | 10 bits (worker) | 12 bits | 2015-01-01 |
-| **Instagram** | 41 bits | 13 bits (shard) | 10 bits | Custom |
+| Company       | Timestamp | Node/Shard       | Sequence | Epoch      |
+| ------------- | --------- | ---------------- | -------- | ---------- |
+| **Twitter**   | 41 bits   | 10 bits (worker) | 12 bits  | 2010-11-04 |
+| **Discord**   | 41 bits   | 10 bits (worker) | 12 bits  | 2015-01-01 |
+| **Instagram** | 41 bits   | 13 bits (shard)  | 10 bits  | Custom     |
 
 Instagram's variant uses more shard bits (8,192 shards vs. 1,024 workers) at the cost of fewer sequences per shard (1,024 vs. 4,096 per millisecond).
 
@@ -275,11 +275,11 @@ Instagram's variant uses more shard bits (8,192 shards vs. 1,024 workers) at the
 
 The impact of ID randomness on B-tree indexes is severe and measurable:
 
-| ID Type | Page Splits per 1M Inserts | Relative WAL Volume |
-|---------|---------------------------|---------------------|
-| Sequential (AUTO_INCREMENT) | ~10-20 | 1× (baseline) |
-| UUID v7 / Snowflake / ULID | ~50-100 | 1.1-1.2× |
-| UUID v4 (random) | 5,000-10,000+ | 2-3× |
+| ID Type                     | Page Splits per 1M Inserts | Relative WAL Volume |
+| --------------------------- | -------------------------- | ------------------- |
+| Sequential (AUTO_INCREMENT) | ~10-20                     | 1× (baseline)       |
+| UUID v7 / Snowflake / ULID  | ~50-100                    | 1.1-1.2×            |
+| UUID v4 (random)            | 5,000-10,000+              | 2-3×                |
 
 **Why it matters:** B-tree indexes store data in sorted order. Sequential IDs insert at the end of the tree, reusing the same leaf pages. Random IDs insert at arbitrary positions, causing:
 
@@ -291,22 +291,22 @@ One company reported a **50% reduction in WAL rate** after migrating from UUID v
 
 ### Factor 2: Sortability Requirements
 
-| Requirement | Recommended Approach |
-|------------|---------------------|
-| No sorting needed | UUID v4 |
-| Sort by creation time | UUID v7, Snowflake, ULID |
-| Strict ordering within node | Snowflake (sequence guarantees) |
-| Approximate time ordering | UUID v7, ULID |
-| Sort by arbitrary criteria | UUID v4 + separate timestamp column |
+| Requirement                 | Recommended Approach                |
+| --------------------------- | ----------------------------------- |
+| No sorting needed           | UUID v4                             |
+| Sort by creation time       | UUID v7, Snowflake, ULID            |
+| Strict ordering within node | Snowflake (sequence guarantees)     |
+| Approximate time ordering   | UUID v7, ULID                       |
+| Sort by arbitrary criteria  | UUID v4 + separate timestamp column |
 
 ### Factor 3: Coordination Overhead
 
-| Approach | Coordination Required |
-|----------|----------------------|
-| UUID v4, v7 | None |
-| ULID, KSUID | None |
-| Snowflake | Machine ID assignment (1,024 max with standard allocation) |
-| Database sequences | Central database connection |
+| Approach           | Coordination Required                                      |
+| ------------------ | ---------------------------------------------------------- |
+| UUID v4, v7        | None                                                       |
+| ULID, KSUID        | None                                                       |
+| Snowflake          | Machine ID assignment (1,024 max with standard allocation) |
+| Database sequences | Central database connection                                |
 
 For Snowflake, machine ID assignment typically uses:
 
@@ -317,12 +317,12 @@ For Snowflake, machine ID assignment typically uses:
 
 ### Factor 4: Size Constraints
 
-| Format | Binary Size | String Size | Database Type |
-|--------|------------|-------------|---------------|
-| Snowflake | 64 bits | 19 chars | BIGINT |
-| UUID v4/v7 | 128 bits | 36 chars | UUID / CHAR(36) |
-| ULID | 128 bits | 26 chars | CHAR(26) / BINARY(16) |
-| KSUID | 160 bits | 27 chars | CHAR(27) / BINARY(20) |
+| Format     | Binary Size | String Size | Database Type         |
+| ---------- | ----------- | ----------- | --------------------- |
+| Snowflake  | 64 bits     | 19 chars    | BIGINT                |
+| UUID v4/v7 | 128 bits    | 36 chars    | UUID / CHAR(36)       |
+| ULID       | 128 bits    | 26 chars    | CHAR(26) / BINARY(16) |
+| KSUID      | 160 bits    | 27 chars    | CHAR(27) / BINARY(20) |
 
 The 64-bit vs. 128-bit difference matters at scale:
 
@@ -332,15 +332,15 @@ The 64-bit vs. 128-bit difference matters at scale:
 
 ### Factor 5: Information Leakage
 
-| Format | Leaks Creation Time | Leaks Machine Info |
-|--------|--------------------|--------------------|
-| UUID v1 | Yes (100-ns precision) | Yes (MAC address) |
-| UUID v4 | No | No |
-| UUID v6 | Yes (100-ns precision) | Yes (MAC address) |
-| UUID v7 | Yes (ms precision) | No |
-| Snowflake | Yes (ms precision) | Yes (worker ID) |
-| ULID | Yes (ms precision) | No |
-| KSUID | Yes (second precision) | No |
+| Format    | Leaks Creation Time    | Leaks Machine Info |
+| --------- | ---------------------- | ------------------ |
+| UUID v1   | Yes (100-ns precision) | Yes (MAC address)  |
+| UUID v4   | No                     | No                 |
+| UUID v6   | Yes (100-ns precision) | Yes (MAC address)  |
+| UUID v7   | Yes (ms precision)     | No                 |
+| Snowflake | Yes (ms precision)     | Yes (worker ID)    |
+| ULID      | Yes (ms precision)     | No                 |
+| KSUID     | Yes (second precision) | No                 |
 
 **Security consideration:** UUID v1/v6 leak MAC addresses. The Melissa virus author was identified partly through UUID v1 metadata. Modern systems should avoid v1/v6 for public-facing IDs.
 
@@ -437,7 +437,10 @@ Existing v4 UUIDs remain valid—they just won't sort chronologically.
 **The fix:**
 
 ```ts
-function generateSnowflake(lastTimestamp: bigint, sequence: number): { id: bigint; newTimestamp: bigint; newSequence: number } {
+function generateSnowflake(
+  lastTimestamp: bigint,
+  sequence: number,
+): { id: bigint; newTimestamp: bigint; newSequence: number } {
   let timestamp = BigInt(Date.now() - EPOCH)
 
   if (timestamp < lastTimestamp) {

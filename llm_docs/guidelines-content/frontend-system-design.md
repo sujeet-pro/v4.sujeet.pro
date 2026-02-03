@@ -9,6 +9,7 @@ These articles cover client-side architecture patterns and frontend-specific sys
 ### Client-Side Has Unique Constraints
 
 Frontend system design differs from backend:
+
 - **User device variability** - From low-end phones to high-end desktops
 - **Network unpredictability** - 3G to fiber, offline scenarios
 - **Browser limitations** - Main thread, memory limits, storage quotas
@@ -32,7 +33,9 @@ Every frontend problem has multiple solutions. The article must:
 
 **Architecture:**
 ```
+
 [Visual representation - component tree, data flow]
+
 ```
 
 **How it works:**
@@ -109,18 +112,18 @@ Why is this a frontend challenge?
 
 ### Scale Factors
 
-| Factor | Small Scale | Large Scale |
-|--------|-------------|-------------|
-| Data items | < 100 | > 10,000 |
-| Update frequency | < 1/sec | > 100/sec |
-| Concurrent users | Single | Multiple |
+| Factor           | Small Scale | Large Scale |
+| ---------------- | ----------- | ----------- |
+| Data items       | < 100       | > 10,000    |
+| Update frequency | < 1/sec     | > 100/sec   |
+| Concurrent users | Single      | Multiple    |
 ```
 
 ### 3. Design Paths Section (Required)
 
 Cover ALL major approaches with concrete implementations:
 
-```markdown
+````markdown
 ## Design Paths
 
 ### Virtualization Strategies [Example]
@@ -167,8 +170,10 @@ function VirtualList({ items, itemHeight, containerHeight }: VirtualListProps) {
   );
 }
 ```
+````
 
 **Best for:**
+
 - Uniform content (log viewers, simple lists)
 - Known item dimensions
 
@@ -183,6 +188,7 @@ function VirtualList({ items, itemHeight, containerHeight }: VirtualListProps) {
 **Real-world:** Discord message list uses fixed-height virtualization for the majority of messages. They pre-calculate heights for messages with embeds.
 
 **Trade-offs:**
+
 - ✅ Simplest implementation
 - ✅ Best scroll performance
 - ❌ Content must have uniform height
@@ -195,9 +201,9 @@ Measure items as they render, cache heights, estimate unrendered items.
 
 ```typescript
 interface VariableVirtualListProps {
-  items: Item[];
-  estimatedItemHeight: number;
-  containerHeight: number;
+  items: Item[]
+  estimatedItemHeight: number
+  containerHeight: number
 }
 
 // Uses ResizeObserver to measure actual heights
@@ -206,6 +212,7 @@ interface VariableVirtualListProps {
 ```
 
 **Best for:**
+
 - User-generated content (social feeds, chat)
 - Cards with variable text/images
 
@@ -220,6 +227,7 @@ interface VariableVirtualListProps {
 **Real-world:** Twitter/X feed uses variable-height virtualization. They solved the "jump on scroll" problem by keeping a larger buffer above the viewport.
 
 **Trade-offs:**
+
 - ✅ Handles real-world content
 - ✅ Smooth scroll with proper buffering
 - ❌ Complex implementation
@@ -232,10 +240,12 @@ interface VariableVirtualListProps {
 Render placeholders (skeletons) for unmeasured items, replace with real content as they enter viewport.
 
 **Best for:**
+
 - Infinite scroll with unknown total
 - Content with slow-loading images
 
 **Trade-offs:**
+
 - ✅ Smoother perceived experience
 - ✅ Better for images (no layout shift)
 - ❌ More DOM operations
@@ -243,12 +253,12 @@ Render placeholders (skeletons) for unmeasured items, replace with real content 
 
 ### Library Comparison
 
-| Library | Approach | Bundle Size | Best For |
-|---------|----------|-------------|----------|
-| react-window | Fixed/Variable | 6kb | Simple lists |
-| react-virtuoso | Variable + grouping | 15kb | Complex lists |
-| @tanstack/virtual | Framework-agnostic | 10kb | Any framework |
-| vue-virtual-scroller | Variable | 12kb | Vue apps |
+| Library              | Approach            | Bundle Size | Best For      |
+| -------------------- | ------------------- | ----------- | ------------- |
+| react-window         | Fixed/Variable      | 6kb         | Simple lists  |
+| react-virtuoso       | Variable + grouping | 15kb        | Complex lists |
+| @tanstack/virtual    | Framework-agnostic  | 10kb        | Any framework |
+| vue-virtual-scroller | Variable            | 12kb        | Vue apps      |
 
 ### Decision Framework
 
@@ -269,7 +279,8 @@ graph TD
     I -->|Vue| K[vue-virtual-scroller]
     I -->|Vanilla/Other| L[@tanstack/virtual]
 ```
-```
+
+````
 
 ### 4. Browser Constraints Section
 
@@ -322,8 +333,9 @@ try {
     await caches.put(request, response);
   }
 }
-```
-```
+````
+
+````
 
 ### 5. Real-World Implementations (Required)
 
@@ -375,13 +387,13 @@ Show how products solve this:
 **Trade-off accepted:** Small scroll position jumps when estimates are wrong—acceptable for content editing.
 
 **Source:** [Notion engineering blog]
-```
+````
 
 ### 6. Performance Optimization Section
 
 Concrete optimization techniques:
 
-```markdown
+````markdown
 ## Performance Optimization
 
 ### Measurement First
@@ -390,27 +402,29 @@ Concrete optimization techniques:
 // Use Performance API to identify bottlenecks
 const observer = new PerformanceObserver((list) => {
   for (const entry of list.getEntries()) {
-    if (entry.entryType === 'longtask') {
-      console.log('Long task:', entry.duration, entry.attribution);
+    if (entry.entryType === "longtask") {
+      console.log("Long task:", entry.duration, entry.attribution)
     }
   }
-});
-observer.observe({ entryTypes: ['longtask'] });
+})
+observer.observe({ entryTypes: ["longtask"] })
 ```
+````
 
 ### Optimization Techniques by Impact
 
-| Technique | Effort | Impact | When to Use |
-|-----------|--------|--------|-------------|
-| Virtualization | High | High | > 100 items |
-| Memoization | Low | Medium | Re-render heavy |
-| Code splitting | Medium | High | Large bundles |
-| Web Worker | High | High | Heavy computation |
-| requestIdleCallback | Low | Low | Non-critical work |
+| Technique           | Effort | Impact | When to Use       |
+| ------------------- | ------ | ------ | ----------------- |
+| Virtualization      | High   | High   | > 100 items       |
+| Memoization         | Low    | Medium | Re-render heavy   |
+| Code splitting      | Medium | High   | Large bundles     |
+| Web Worker          | High   | High   | Heavy computation |
+| requestIdleCallback | Low    | Low    | Non-critical work |
 
 ### Framework-Specific Patterns
 
 **React:**
+
 ```typescript
 // Avoid: Creating objects in render
 <Component style={{ margin: 10 }} /> // New object every render
@@ -421,14 +435,16 @@ const style = useMemo(() => ({ margin: 10 }), []);
 ```
 
 **Vue:**
+
 ```typescript
 // Avoid: Reactive overhead for static data
-const bigArray = reactive(items); // Every item is reactive
+const bigArray = reactive(items) // Every item is reactive
 
 // Better: shallowRef for large collections
-const bigArray = shallowRef(items);
+const bigArray = shallowRef(items)
 ```
-```
+
+````
 
 ### 7. Accessibility Considerations
 
@@ -454,11 +470,12 @@ function handleKeyDown(e: KeyboardEvent) {
     // ...
   }
 }
-```
+````
 
 ### Screen Reader Support
 
 ARIA requirements for [pattern]:
+
 ```html
 <div role="listbox" aria-label="Search results">
   <div role="option" aria-selected="true">Item 1</div>
@@ -469,6 +486,7 @@ ARIA requirements for [pattern]:
 ### Reduced Motion
 
 Respect user preferences:
+
 ```css
 @media (prefers-reduced-motion: reduce) {
   .animated-element {
@@ -477,6 +495,7 @@ Respect user preferences:
   }
 }
 ```
+
 ```
 
 ### 8. Appendix Requirements
@@ -520,3 +539,4 @@ Respect user preferences:
 - [ ] Keyboard navigation covered
 - [ ] Screen reader support addressed
 - [ ] Reduced motion consideration
+```

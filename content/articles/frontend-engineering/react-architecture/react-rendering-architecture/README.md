@@ -93,30 +93,30 @@ Each fiber node is a "virtual stack frame" holding metadata about a component an
 // See ReactFiberLane.js and ReactFiber.js in react-reconciler
 const fiberNode = {
   // Identity
-  tag: FunctionComponent,      // Component type (FunctionComponent, HostComponent, etc.)
-  type: ComponentFunction,     // Reference to component function/class
-  key: "unique-key",           // Stable identity for diffing
+  tag: FunctionComponent, // Component type (FunctionComponent, HostComponent, etc.)
+  type: ComponentFunction, // Reference to component function/class
+  key: "unique-key", // Stable identity for diffing
 
   // Tree pointers
-  child: childFiber,           // First child
-  sibling: siblingFiber,       // Next sibling
-  return: parentFiber,         // Parent (named "return" as in call stack)
+  child: childFiber, // First child
+  sibling: siblingFiber, // Next sibling
+  return: parentFiber, // Parent (named "return" as in call stack)
 
   // Props/state
-  pendingProps: newProps,      // Props for this render
-  memoizedProps: oldProps,     // Props from previous render
-  memoizedState: hookList,     // Linked list of hooks (for function components)
+  pendingProps: newProps, // Props for this render
+  memoizedProps: oldProps, // Props from previous render
+  memoizedState: hookList, // Linked list of hooks (for function components)
 
   // Double buffering
-  alternate: wipFiber,         // Links current ↔ work-in-progress
+  alternate: wipFiber, // Links current ↔ work-in-progress
 
   // Effects (React 18+: flags instead of effectTag)
-  flags: Update | Placement,   // Bitmask of side effects
-  subtreeFlags: flags,         // Aggregated child flags
+  flags: Update | Placement, // Bitmask of side effects
+  subtreeFlags: flags, // Aggregated child flags
 
   // Scheduling (React 18+: lanes instead of expirationTime)
-  lanes: SyncLane,             // Lane bits for this fiber's updates
-  childLanes: lanes,           // Aggregated child lanes
+  lanes: SyncLane, // Lane bits for this fiber's updates
+  childLanes: lanes, // Aggregated child lanes
 }
 ```
 
@@ -165,13 +165,13 @@ This two-phase architecture is the foundation for Suspense, concurrent transitio
 
 As of React 18, the scheduler uses **lanes**—a 31-bit bitmask where each bit represents a priority level. This replaced the previous expiration time model.
 
-| Lane | Priority | Use Case |
-|------|----------|----------|
-| `SyncLane` | Highest | Discrete user input (click, key press) |
-| `InputContinuousLane` | High | Continuous input (drag, scroll) |
-| `DefaultLane` | Normal | Regular `setState` calls |
-| `TransitionLane` | Low | `startTransition` updates |
-| `IdleLane` | Lowest | Background work |
+| Lane                  | Priority | Use Case                               |
+| --------------------- | -------- | -------------------------------------- |
+| `SyncLane`            | Highest  | Discrete user input (click, key press) |
+| `InputContinuousLane` | High     | Continuous input (drag, scroll)        |
+| `DefaultLane`         | Normal   | Regular `setState` calls               |
+| `TransitionLane`      | Low      | `startTransition` updates              |
+| `IdleLane`            | Lowest   | Background work                        |
 
 **Why lanes?** Expiration times forced React to process updates in order of expiration. Lanes allow **batching updates of the same priority** (multiple `SyncLane` updates batch into one render) and **preemption** (a `SyncLane` update can interrupt a `TransitionLane` render).
 
@@ -179,9 +179,9 @@ As of React 18, the scheduler uses **lanes**—a 31-bit bitmask where each bit r
 // User clicks button → SyncLane
 // startTransition → TransitionLane (won't block input)
 function handleClick() {
-  setCount(c => c + 1)                    // SyncLane - processed immediately
+  setCount((c) => c + 1) // SyncLane - processed immediately
   startTransition(() => {
-    setSearchResults(filterLargeList())   // TransitionLane - can be interrupted
+    setSearchResults(filterLargeList()) // TransitionLane - can be interrupted
   })
 }
 ```
@@ -202,10 +202,10 @@ Each function component's fiber stores its hooks as a linked list in `memoizedSt
 // Simplified hook object (see ReactFiberHooks.js)
 // Each hook in a component forms a linked list
 const hook = {
-  memoizedState: value,       // Current value (state, ref, etc.)
-  baseState: value,           // Base for update calculations
-  queue: updateQueue,         // Pending updates
-  next: nextHook,             // Next hook in list
+  memoizedState: value, // Current value (state, ref, etc.)
+  baseState: value, // Base for update calculations
+  queue: updateQueue, // Pending updates
+  next: nextHook, // Next hook in list
 }
 ```
 
@@ -235,12 +235,12 @@ root.render(<App />)
 
 **CSR trade-offs**:
 
-| Metric | CSR Performance | Why |
-|--------|-----------------|-----|
-| TTFB | Fast | Minimal HTML shell |
-| FCP | Slow | Blank screen until JS executes |
-| TTI | Slow | Full bundle must load and execute |
-| SEO | Poor | Crawlers see empty shell (unless SSR fallback) |
+| Metric | CSR Performance | Why                                            |
+| ------ | --------------- | ---------------------------------------------- |
+| TTFB   | Fast            | Minimal HTML shell                             |
+| FCP    | Slow            | Blank screen until JS executes                 |
+| TTI    | Slow            | Full bundle must load and execute              |
+| SEO    | Poor            | Crawlers see empty shell (unless SSR fallback) |
 
 CSR suits internal dashboards and SPAs (Single-Page Applications) where SEO is irrelevant and users expect a loading state.
 
@@ -270,12 +270,12 @@ Steps:
 
 Mismatches occur when server HTML differs from client render. Common causes:
 
-| Cause | Example | Fix |
-|-------|---------|-----|
-| Date/time | `new Date().toISOString()` | Use consistent timezone or defer to client |
-| Browser APIs | `window.innerWidth` | Check `typeof window !== 'undefined'` or use `useEffect` |
-| Random values | `Math.random()` | Generate on server, pass as prop |
-| Extension injection | Ad blockers modify DOM | Use `suppressHydrationWarning` sparingly |
+| Cause               | Example                    | Fix                                                      |
+| ------------------- | -------------------------- | -------------------------------------------------------- |
+| Date/time           | `new Date().toISOString()` | Use consistent timezone or defer to client               |
+| Browser APIs        | `window.innerWidth`        | Check `typeof window !== 'undefined'` or use `useEffect` |
+| Random values       | `Math.random()`            | Generate on server, pass as prop                         |
+| Extension injection | Ad blockers modify DOM     | Use `suppressHydrationWarning` sparingly                 |
 
 React 18+ can **recover from some mismatches** by re-rendering the mismatched subtree, but recovery has costs: slower hydration and potential for event handlers attaching to wrong elements.
 
@@ -293,7 +293,7 @@ function App() {
     <div>
       <CriticalHeader />
       <Suspense fallback={<Skeleton />}>
-        <HeavyComponent />  {/* Hydrates when visible or interacted with */}
+        <HeavyComponent /> {/* Hydrates when visible or interacted with */}
       </Suspense>
     </div>
   )
@@ -336,6 +336,7 @@ const stream = renderToPipeableStream(<App />, {
 4. Client-side React swaps placeholders with streamed content—no full page reload
 
 **React 19 behavior change**: In React 19, sibling components inside the same Suspense boundary no longer render in parallel—they render sequentially. This was a deliberate performance optimization that caused controversy. To fetch in parallel, either:
+
 - Use separate Suspense boundaries for each sibling
 - Trigger fetches outside the render phase (route loaders, RSC data fetching)
 
@@ -383,12 +384,12 @@ export async function getStaticProps() {
 }
 ```
 
-| Benefit | Why |
-|---------|-----|
-| Optimal TTFB | Static files served from CDN edge |
-| Cache-friendly | No server computation per request |
-| Cost-efficient | No runtime infrastructure |
-| Resilient | No server failures affect availability |
+| Benefit        | Why                                    |
+| -------------- | -------------------------------------- |
+| Optimal TTFB   | Static files served from CDN edge      |
+| Cache-friendly | No server computation per request      |
+| Cost-efficient | No runtime infrastructure              |
+| Resilient      | No server failures affect availability |
 
 ### 3.3 Incremental Static Regeneration (ISR)
 
@@ -407,12 +408,12 @@ ISR bridges SSG and SSR—static pages update **after** build:
 
 React Server Components (RSC), **stable as of React 19** (December 2024), address a different problem than SSR. SSR optimizes initial page load; RSC **eliminates client JavaScript for non-interactive components**.
 
-| Aspect | SSR | RSC |
-|--------|-----|-----|
+| Aspect         | SSR                                    | RSC                                |
+| -------------- | -------------------------------------- | ---------------------------------- |
 | When code runs | Server (once), then client (hydration) | Server only (never reaches client) |
-| Bundle size | Full bundle shipped | Only client components in bundle |
-| Data access | Via API layer | Direct database/filesystem access |
-| Interactivity | After hydration | Client components only |
+| Bundle size    | Full bundle shipped                    | Only client components in bundle   |
+| Data access    | Via API layer                          | Direct database/filesystem access  |
+| Interactivity  | After hydration                        | Client components only             |
 
 **Key characteristics**:
 
@@ -489,12 +490,12 @@ RSC serializes the component tree into a **streamable wire format** called Fligh
 4:["$","li",null,{"children":"Product A"}]
 ```
 
-| Prefix | Meaning |
-|--------|---------|
-| `$` | React element (like Virtual DOM) |
-| `$L` | Lazy client component reference |
-| `I` | Module import (client component chunk) |
-| `$@` | Promise reference (resolved later) |
+| Prefix | Meaning                                |
+| ------ | -------------------------------------- |
+| `$`    | React element (like Virtual DOM)       |
+| `$L`   | Lazy client component reference        |
+| `I`    | Module import (client component chunk) |
+| `$@`   | Promise reference (resolved later)     |
 
 #### Out-of-Order Resolution
 
@@ -521,18 +522,16 @@ export default async function Page() {
       <Suspense fallback={<HeaderSkeleton />}>
         <AsyncHeader />
       </Suspense>
-
       <Suspense fallback={<ProductSkeleton />}>
         <AsyncProductList />
       </Suspense>
-
       <AddToCartSidebar /> {/* Client component */}
     </div>
   )
 }
 
 async function AsyncHeader() {
-  const user = await fetchUserData()  // Suspends until resolved
+  const user = await fetchUserData() // Suspends until resolved
   return <Header user={user} />
 }
 ```
@@ -543,13 +542,13 @@ async function AsyncHeader() {
 
 React 19 stabilized RSC and added:
 
-| Feature | Description |
-|---------|-------------|
-| **Actions** | Async functions in `startTransition` with automatic pending/error state |
-| **`use()` hook** | Read promises and context directly in render |
-| **`useFormStatus`** | Access form pending state without prop drilling |
-| **`useOptimistic`** | Optimistic UI updates while server confirms |
-| **Ref as prop** | No more `forwardRef` wrapper needed |
+| Feature             | Description                                                             |
+| ------------------- | ----------------------------------------------------------------------- |
+| **Actions**         | Async functions in `startTransition` with automatic pending/error state |
+| **`use()` hook**    | Read promises and context directly in render                            |
+| **`useFormStatus`** | Access form pending state without prop drilling                         |
+| **`useOptimistic`** | Optimistic UI updates while server confirms                             |
+| **Ref as prop**     | No more `forwardRef` wrapper needed                                     |
 
 ```javascript title="server-action.js"
 "use server"
@@ -564,13 +563,13 @@ The `"use server"` directive marks a function as a **Server Action**—callable 
 
 ### 4.6 RSC Performance Implications
 
-| Aspect | Impact |
-|--------|--------|
-| Bundle size | Server components contribute 0 bytes to client bundle |
-| TTI | Reduced—fewer bytes to parse and execute |
-| TTFB | May increase slightly (server rendering time) |
-| Network | Single streaming response vs. multiple API calls |
-| Caching | Server output cacheable at component, route, or CDN level |
+| Aspect      | Impact                                                    |
+| ----------- | --------------------------------------------------------- |
+| Bundle size | Server components contribute 0 bytes to client bundle     |
+| TTI         | Reduced—fewer bytes to parse and execute                  |
+| TTFB        | May increase slightly (server rendering time)             |
+| Network     | Single streaming response vs. multiple API calls          |
+| Caching     | Server output cacheable at component, route, or CDN level |
 
 ## 5. React Compiler
 
@@ -592,8 +591,8 @@ const filteredList = useMemo(() => items.filter(predicate), [items, predicate])
 const handleClick = useCallback(() => doSomething(id), [id])
 
 // After: Compiler handles it automatically
-const filteredList = items.filter(predicate)  // Compiler memoizes
-const handleClick = () => doSomething(id)      // Compiler stabilizes
+const filteredList = items.filter(predicate) // Compiler memoizes
+const handleClick = () => doSomething(id) // Compiler stabilizes
 ```
 
 ### Limitations
@@ -606,12 +605,12 @@ The compiler optimizes **how** components render, not **whether** they render. A
 
 ## 6. Architectural Synthesis and Trade-offs
 
-| Architecture | Rendering | Bundle | Interactivity | SEO | Best For |
-|--------------|-----------|--------|---------------|-----|----------|
-| **CSR** | Client | Full | Immediate | Poor | Dashboards, internal tools |
-| **SSR** | Server → Client | Full | After hydration | Excellent | Dynamic, SEO-critical |
-| **SSG** | Build time | Full | After hydration | Excellent | Blogs, marketing |
-| **RSC + SSR** | Hybrid | Minimal | Selective | Excellent | Complex apps |
+| Architecture  | Rendering       | Bundle  | Interactivity   | SEO       | Best For                   |
+| ------------- | --------------- | ------- | --------------- | --------- | -------------------------- |
+| **CSR**       | Client          | Full    | Immediate       | Poor      | Dashboards, internal tools |
+| **SSR**       | Server → Client | Full    | After hydration | Excellent | Dynamic, SEO-critical      |
+| **SSG**       | Build time      | Full    | After hydration | Excellent | Blogs, marketing           |
+| **RSC + SSR** | Hybrid          | Minimal | Selective       | Excellent | Complex apps               |
 
 ### 6.1 The Dependency Chain
 
@@ -630,21 +629,25 @@ Fiber → Lanes → Suspense → Concurrent Features → RSC Streaming
 ### 6.2 Decision Framework
 
 **RSC + SSR** when:
+
 - Optimal performance across all metrics required
 - Team can manage server infrastructure
 - Mix of static and interactive content
 
 **Traditional SSR** when:
+
 - Existing SSR infrastructure
 - Page-level data fetching sufficient
 - Full hydration acceptable
 
 **SSG** when:
+
 - Content changes infrequently
 - Maximum performance required
 - CDN-first architecture
 
 **CSR** when:
+
 - Internal tool / dashboard
 - SEO irrelevant
 - Simplest deployment

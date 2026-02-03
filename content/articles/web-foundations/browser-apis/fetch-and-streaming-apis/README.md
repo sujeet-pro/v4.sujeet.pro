@@ -86,15 +86,15 @@ The Fetch Standard unifies network requests across all platform features—XHR, 
 
 The Request object encapsulates all request parameters. Key options and their defaults:
 
-| Option        | Default         | Design Rationale                                           |
-| ------------- | --------------- | ---------------------------------------------------------- |
-| `method`      | `GET`           | Safe default for read operations                           |
-| `mode`        | `cors`          | Security-first: requires explicit CORS headers             |
-| `credentials` | `same-origin`   | Privacy: omits cookies cross-origin unless specified       |
-| `redirect`    | `follow`        | Convenience: handles 3xx automatically (max 20 redirects)  |
-| `cache`       | `default`       | Uses HTTP cache semantics; honors Cache-Control headers    |
-| `signal`      | `undefined`     | Optional AbortSignal for cancellation                      |
-| `duplex`      | `half` (implied)| Response waits for complete request (browser limitation)   |
+| Option        | Default          | Design Rationale                                          |
+| ------------- | ---------------- | --------------------------------------------------------- |
+| `method`      | `GET`            | Safe default for read operations                          |
+| `mode`        | `cors`           | Security-first: requires explicit CORS headers            |
+| `credentials` | `same-origin`    | Privacy: omits cookies cross-origin unless specified      |
+| `redirect`    | `follow`         | Convenience: handles 3xx automatically (max 20 redirects) |
+| `cache`       | `default`        | Uses HTTP cache semantics; honors Cache-Control headers   |
+| `signal`      | `undefined`      | Optional AbortSignal for cancellation                     |
+| `duplex`      | `half` (implied) | Response waits for complete request (browser limitation)  |
 
 **Body types supported**: string, ArrayBuffer, TypedArray, DataView, Blob, File, URLSearchParams, FormData, and ReadableStream. The browser automatically sets `Content-Type` based on body type (e.g., `application/json` for stringified JSON, `multipart/form-data` for FormData).
 
@@ -124,12 +124,12 @@ const user = await response.json()
 
 The response carries a `type` property reflecting its security context:
 
-| Response Type     | Scenario                              | JavaScript Access                          |
-| ----------------- | ------------------------------------- | ------------------------------------------ |
-| `basic`           | Same-origin request                   | Full access to headers and body            |
-| `cors`            | Cross-origin with valid CORS headers  | Access to CORS-safelisted headers          |
-| `opaque`          | Cross-origin with `mode: 'no-cors'`   | status=0, empty headers, null body         |
-| `opaqueredirect`  | Redirect captured with `redirect: 'manual'` | Cannot inspect redirect target      |
+| Response Type    | Scenario                                    | JavaScript Access                  |
+| ---------------- | ------------------------------------------- | ---------------------------------- |
+| `basic`          | Same-origin request                         | Full access to headers and body    |
+| `cors`           | Cross-origin with valid CORS headers        | Access to CORS-safelisted headers  |
+| `opaque`         | Cross-origin with `mode: 'no-cors'`         | status=0, empty headers, null body |
+| `opaqueredirect` | Redirect captured with `redirect: 'manual'` | Cannot inspect redirect target     |
 
 **Design rationale**: Response tainting prevents cross-origin data leakage. An opaque response "is otherwise indistinguishable from a network error" (Fetch spec)—JavaScript cannot determine whether the request succeeded or what data it returned.
 
@@ -460,12 +460,12 @@ for await (const line of stream) {
 
 **Built-in transforms**:
 
-| Transform               | Purpose                               | Notes                                    |
-| ----------------------- | ------------------------------------- | ---------------------------------------- |
-| `TextDecoderStream`     | `Uint8Array` → `string`               | Handles UTF-8 boundary splitting         |
-| `TextEncoderStream`     | `string` → `Uint8Array`               | Required for request body streaming      |
-| `CompressionStream`     | Compress with gzip/deflate            | `new CompressionStream('gzip')`          |
-| `DecompressionStream`   | Decompress                            | `new DecompressionStream('gzip')`        |
+| Transform             | Purpose                    | Notes                               |
+| --------------------- | -------------------------- | ----------------------------------- |
+| `TextDecoderStream`   | `Uint8Array` → `string`    | Handles UTF-8 boundary splitting    |
+| `TextEncoderStream`   | `string` → `Uint8Array`    | Required for request body streaming |
+| `CompressionStream`   | Compress with gzip/deflate | `new CompressionStream('gzip')`     |
+| `DecompressionStream` | Decompress                 | `new DecompressionStream('gzip')`   |
 
 ### Pipe Options and Error Handling
 
@@ -576,13 +576,12 @@ Integrate AbortSignal into your own async functions:
 
 ```typescript collapse={1-3, 28-35}
 // Helper types (collapsed)
-interface ProcessOptions { signal?: AbortSignal }
+interface ProcessOptions {
+  signal?: AbortSignal
+}
 type ProcessResult = { processed: number }
 
-async function processWithAbort(
-  data: AsyncIterable<Chunk>,
-  options: ProcessOptions = {},
-): Promise<ProcessResult> {
+async function processWithAbort(data: AsyncIterable<Chunk>, options: ProcessOptions = {}): Promise<ProcessResult> {
   const { signal } = options
   let processed = 0
 
@@ -623,7 +622,10 @@ function longOperation(signal: AbortSignal): Promise<void> {
 ```typescript collapse={1-4, 32-40}
 // Progress callback type (collapsed)
 type ProgressCallback = (loaded: number, total: number | null) => void
-interface DownloadResult { data: Uint8Array; size: number }
+interface DownloadResult {
+  data: Uint8Array
+  size: number
+}
 
 async function downloadWithProgress(
   url: string,
@@ -668,13 +670,8 @@ async function downloadWithProgress(
 // Import (collapsed)
 type LineCallback = (line: string) => void
 
-async function processLines(
-  response: Response,
-  onLine: LineCallback,
-): Promise<void> {
-  const reader = response.body!
-    .pipeThrough(new TextDecoderStream())
-    .getReader()
+async function processLines(response: Response, onLine: LineCallback): Promise<void> {
+  const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader()
 
   let buffer = ""
 
@@ -715,12 +712,8 @@ await processLines(response, (line) => {
 // Type definitions (collapsed)
 type JSONValue = string | number | boolean | null | JSONValue[] | { [key: string]: JSONValue }
 
-async function* streamNDJSON<T extends JSONValue>(
-  response: Response,
-): AsyncGenerator<T> {
-  const reader = response.body!
-    .pipeThrough(new TextDecoderStream())
-    .getReader()
+async function* streamNDJSON<T extends JSONValue>(response: Response): AsyncGenerator<T> {
+  const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader()
 
   let buffer = ""
 
@@ -918,25 +911,25 @@ async function readWithBYOB(stream: ReadableStream<Uint8Array>): Promise<Uint8Ar
 
 ```typescript collapse={1-5, 45-55}
 // Error types for discrimination
-class NetworkError extends Error { name = "NetworkError" }
+class NetworkError extends Error {
+  name = "NetworkError"
+}
 class HTTPError extends Error {
-  constructor(public status: number, public statusText: string) {
+  constructor(
+    public status: number,
+    public statusText: string,
+  ) {
     super(`HTTP ${status}: ${statusText}`)
     this.name = "HTTPError"
   }
 }
 
-async function robustFetch<T>(
-  url: string,
-  options: RequestInit = {},
-): Promise<T> {
+async function robustFetch<T>(url: string, options: RequestInit = {}): Promise<T> {
   const { signal, ...restOptions } = options
 
   // Combine user signal with timeout
   const timeoutSignal = AbortSignal.timeout(30000)
-  const combinedSignal = signal
-    ? AbortSignal.any([signal, timeoutSignal])
-    : timeoutSignal
+  const combinedSignal = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal
 
   let response: Response
 
@@ -988,7 +981,10 @@ try {
 
 ```typescript collapse={1-3}
 // Retry configuration (collapsed)
-interface RetryConfig { maxRetries: number; delayMs: number }
+interface RetryConfig {
+  maxRetries: number
+  delayMs: number
+}
 
 async function streamWithRetry(
   url: string,
@@ -1050,17 +1046,17 @@ async function streamWithRetry(
 
 ### Current Support (January 2026)
 
-| Feature                        | Chrome  | Firefox | Safari  | Notes                           |
-| ------------------------------ | ------- | ------- | ------- | ------------------------------- |
-| `fetch()`                      | 42+     | 39+     | 10.1+   | Universal baseline              |
-| `ReadableStream`               | 43+     | 65+     | 10.1+   | Response body streaming         |
-| `WritableStream`               | 59+     | 100+    | 14.1+   | Later adoption in Firefox       |
-| `TransformStream`              | 67+     | 102+    | 14.1+   | Full pipeline support           |
-| `AbortController`              | 66+     | 57+     | 11.1+   | Cancellation baseline           |
-| `AbortSignal.timeout()`        | 103+    | 100+    | 15.4+   | Timeout signals                 |
-| `AbortSignal.any()`            | 116+    | 124+    | 17.4+   | Signal composition              |
-| Request body `ReadableStream`  | 105+    | —       | —       | **Chrome only, HTTP/2 required**|
-| `for await...of` on streams    | 78+     | 65+     | 14.1+   | Async iteration                 |
+| Feature                       | Chrome | Firefox | Safari | Notes                            |
+| ----------------------------- | ------ | ------- | ------ | -------------------------------- |
+| `fetch()`                     | 42+    | 39+     | 10.1+  | Universal baseline               |
+| `ReadableStream`              | 43+    | 65+     | 10.1+  | Response body streaming          |
+| `WritableStream`              | 59+    | 100+    | 14.1+  | Later adoption in Firefox        |
+| `TransformStream`             | 67+    | 102+    | 14.1+  | Full pipeline support            |
+| `AbortController`             | 66+    | 57+     | 11.1+  | Cancellation baseline            |
+| `AbortSignal.timeout()`       | 103+   | 100+    | 15.4+  | Timeout signals                  |
+| `AbortSignal.any()`           | 116+   | 124+    | 17.4+  | Signal composition               |
+| Request body `ReadableStream` | 105+   | —       | —      | **Chrome only, HTTP/2 required** |
+| `for await...of` on streams   | 78+    | 65+     | 14.1+  | Async iteration                  |
 
 ### Feature Detection
 

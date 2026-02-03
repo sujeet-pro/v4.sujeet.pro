@@ -55,12 +55,12 @@ Most production systems use both: L4 at the edge for raw throughput, L7 behind i
 
 The key design decisions:
 
-| Decision | Options | Primary Factor |
-|----------|---------|----------------|
-| L4 vs L7 | TCP routing vs HTTP routing | Need for content inspection |
-| Algorithm | Round robin, least conn, consistent hash, P2C | Access pattern + statefulness |
-| TLS | Terminate, passthrough, re-encrypt | Security requirements vs performance |
-| Session | Sticky, shared store, stateless | Horizontal scaling needs |
+| Decision  | Options                                       | Primary Factor                       |
+| --------- | --------------------------------------------- | ------------------------------------ |
+| L4 vs L7  | TCP routing vs HTTP routing                   | Need for content inspection          |
+| Algorithm | Round robin, least conn, consistent hash, P2C | Access pattern + statefulness        |
+| TLS       | Terminate, passthrough, re-encrypt            | Security requirements vs performance |
+| Session   | Sticky, shared store, stateless               | Horizontal scaling needs             |
 
 ## L4 vs L7 Load Balancing
 
@@ -113,27 +113,27 @@ L7 load balancers terminate the TCP connection and parse the application protoco
 
 **Capabilities enabled by L7:**
 
-| Feature | How It Works |
-|---------|--------------|
-| Path-based routing | Route `/api/*` to API servers, `/static/*` to CDN |
-| Header-based routing | Route by `Host`, `Authorization`, custom headers |
-| Request transformation | Add/remove headers, rewrite URLs |
-| Rate limiting | Limit by client ID, API key, IP |
-| A/B testing | Route percentage of traffic by cookie |
-| Circuit breaking | Stop routing to failing backends |
+| Feature                | How It Works                                      |
+| ---------------------- | ------------------------------------------------- |
+| Path-based routing     | Route `/api/*` to API servers, `/static/*` to CDN |
+| Header-based routing   | Route by `Host`, `Authorization`, custom headers  |
+| Request transformation | Add/remove headers, rewrite URLs                  |
+| Rate limiting          | Limit by client ID, API key, IP                   |
+| A/B testing            | Route percentage of traffic by cookie             |
+| Circuit breaking       | Stop routing to failing backends                  |
 
 **Best for:** HTTP APIs, microservices, WebSocket applications, anything requiring content-aware routing or TLS termination.
 
 ### Choosing Between L4 and L7
 
-| Factor | Choose L4 | Choose L7 |
-|--------|-----------|-----------|
-| Protocol | Non-HTTP (TCP/UDP raw) | HTTP/HTTPS/gRPC |
-| Throughput need | > 10 Gbps | < 5 Gbps acceptable |
-| Latency sensitivity | Sub-millisecond required | Milliseconds acceptable |
-| Routing complexity | Simple round robin | Content-based routing |
-| TLS handling | Passthrough to backend | Terminate at LB |
-| Connection reuse | Not needed | Beneficial (connection pooling) |
+| Factor              | Choose L4                | Choose L7                       |
+| ------------------- | ------------------------ | ------------------------------- |
+| Protocol            | Non-HTTP (TCP/UDP raw)   | HTTP/HTTPS/gRPC                 |
+| Throughput need     | > 10 Gbps                | < 5 Gbps acceptable             |
+| Latency sensitivity | Sub-millisecond required | Milliseconds acceptable         |
+| Routing complexity  | Simple round robin       | Content-based routing           |
+| TLS handling        | Passthrough to backend   | Terminate at LB                 |
+| Connection reuse    | Not needed               | Beneficial (connection pooling) |
 
 **Production pattern:** Most architectures use both. L4 at the edge distributes across L7 pools. L7 handles application routing. Example: AWS NLB (L4) fronting ALB (L7), or Google's Maglev (L4) fronting Envoy (L7).
 
@@ -251,14 +251,14 @@ Route to server with lowest score.
 
 ### Algorithm Decision Matrix
 
-| Factor | Round Robin | Least Conn | Consistent Hash | P2C |
-|--------|-------------|------------|-----------------|-----|
-| Request duration variability | Low | High | Any | High |
-| Backend count | Any | Any | Any | 50+ |
-| State requirement | None | Connection tracking | None | Connection tracking |
-| Session affinity | No | No | Yes (by key) | No |
-| Computational cost | O(1) | O(N) or O(log N) | O(1) | O(1) |
-| Handles hot spots | No | Partially | No | Partially |
+| Factor                       | Round Robin | Least Conn          | Consistent Hash | P2C                 |
+| ---------------------------- | ----------- | ------------------- | --------------- | ------------------- |
+| Request duration variability | Low         | High                | Any             | High                |
+| Backend count                | Any         | Any                 | Any             | 50+                 |
+| State requirement            | None        | Connection tracking | None            | Connection tracking |
+| Session affinity             | No          | No                  | Yes (by key)    | No                  |
+| Computational cost           | O(1)        | O(N) or O(log N)    | O(1)            | O(1)                |
+| Handles hot spots            | No          | Partially           | No              | Partially           |
 
 ## Health Checks and Failover
 
@@ -328,12 +328,12 @@ With interval=5s, threshold=3, timeout=2s: **17 seconds** worst case.
 
 For faster detection:
 
-| Setting | Aggressive | Balanced | Conservative |
-|---------|------------|----------|--------------|
-| Interval | 2s | 5s | 30s |
-| Timeout | 1s | 2s | 5s |
-| Unhealthy threshold | 2 | 3 | 5 |
-| Detection time | 5s | 17s | 155s |
+| Setting             | Aggressive | Balanced | Conservative |
+| ------------------- | ---------- | -------- | ------------ |
+| Interval            | 2s         | 5s       | 30s          |
+| Timeout             | 1s         | 2s       | 5s           |
+| Unhealthy threshold | 2          | 3        | 5            |
+| Detection time      | 5s         | 17s      | 155s         |
 
 **Trade-off:** Aggressive settings increase false positives (transient network blips mark healthy servers as down) and health check load.
 
@@ -426,13 +426,13 @@ When a backend recovers or new capacity is added, all LBs may route traffic to i
 
 ### Decision Guide
 
-| Requirement | Recommendation |
-|-------------|---------------|
-| Need L7 routing | Terminate or re-encrypt |
-| Compliance: LB can't see data | Passthrough |
-| Internal network untrusted | Re-encrypt |
-| Maximum performance | Terminate only |
-| Backend certificate rotation | Terminate (centralize certs) |
+| Requirement                   | Recommendation               |
+| ----------------------------- | ---------------------------- |
+| Need L7 routing               | Terminate or re-encrypt      |
+| Compliance: LB can't see data | Passthrough                  |
+| Internal network untrusted    | Re-encrypt                   |
+| Maximum performance           | Terminate only               |
+| Backend certificate rotation  | Terminate (centralize certs) |
 
 **Production pattern:** 68% of enterprise deployments use termination at LB with plaintext to backends in trusted networks. Re-encryption is growing with zero-trust adoption.
 
@@ -491,12 +491,12 @@ backend servers
 
 ### Alternatives to Sticky Sessions
 
-| Approach | How It Works | Trade-off |
-|----------|--------------|-----------|
-| Shared session store | Redis/Memcached stores sessions | Network latency per request |
-| Stateless tokens | JWT or encrypted session in cookie | Token size, can't revoke easily |
-| Client-side storage | LocalStorage/SessionStorage | Limited size, security considerations |
-| Database session table | Session in PostgreSQL/MySQL | Higher latency, DB load |
+| Approach               | How It Works                       | Trade-off                             |
+| ---------------------- | ---------------------------------- | ------------------------------------- |
+| Shared session store   | Redis/Memcached stores sessions    | Network latency per request           |
+| Stateless tokens       | JWT or encrypted session in cookie | Token size, can't revoke easily       |
+| Client-side storage    | LocalStorage/SessionStorage        | Limited size, security considerations |
+| Database session table | Session in PostgreSQL/MySQL        | Higher latency, DB load               |
 
 **Modern recommendation:** Avoid sticky sessions for horizontally-scaled services. Use stateless design or shared session stores. Reserve stickiness for truly stateful protocols (WebSocket where server holds connection state).
 

@@ -43,10 +43,10 @@ flowchart TB
 
 DNS is a **hierarchical, eventually consistent, globally distributed key-value store** optimized for read-heavy workloads. The mental model:
 
-| Layer | Role | Caching Behavior |
-|-------|------|------------------|
-| **Stub resolver** | OS-level client | Browser: 1min, OS: varies |
-| **Recursive resolver** | Walks hierarchy, caches | TTL-based, negative caching |
+| Layer                    | Role                     | Caching Behavior                   |
+| ------------------------ | ------------------------ | ---------------------------------- |
+| **Stub resolver**        | OS-level client          | Browser: 1min, OS: varies          |
+| **Recursive resolver**   | Walks hierarchy, caches  | TTL-based, negative caching        |
 | **Authoritative server** | Source of truth for zone | No caching (serves from zone file) |
 
 **Core design trade-offs:**
@@ -87,6 +87,7 @@ For `www.example.com` from a cold cache:
 4. **Caching**: Resolver caches all responses per their TTLs—root referrals (48 hours typical), TLD referrals (24-48 hours), final answer (varies by record).
 
 **Latency breakdown** (typical uncached):
+
 - Root query: 5-20ms (anycast)
 - TLD query: 10-30ms
 - Authoritative query: 10-100ms+ (depends on server location)
@@ -97,12 +98,14 @@ For `www.example.com` from a cold cache:
 When a domain doesn't exist (NXDOMAIN) or has no records of the requested type (NODATA), the response is cached to prevent repeated queries.
 
 **Mechanism**: The authoritative server includes its SOA record in the response. The negative cache TTL is the **minimum of**:
+
 - SOA record's TTL
 - SOA MINIMUM field value
 
 **Design rationale**: Without negative caching, attackers could flood resolvers with queries for non-existent domains, causing repeated hierarchy traversals. RFC 2308 mandates negative caching when SOA is present.
 
 **Production impact**:
+
 - Setting SOA MINIMUM too high (e.g., 86400s) means a typo in DNS configuration takes a day to "undo" in caches
 - Setting it too low increases authoritative server load
 - Typical recommendation: 300-3600 seconds
@@ -140,6 +143,7 @@ CNAME creates an alias from one domain to another. When a resolver queries a CNA
 **Zone apex problem**: The apex (`example.com` without subdomain) requires NS and SOA records. Since CNAME cannot coexist with these, **you cannot use CNAME at the zone apex**.
 
 **Workarounds**:
+
 - **CNAME flattening** (Cloudflare): DNS provider resolves CNAME at query time, returns A record to client
 - **ALIAS/ANAME records** (Route53, others): Proprietary record types that behave like CNAME but resolve to A at the authoritative level
 - Route53 ALIAS works only for AWS resources; Cloudflare CNAME flattening is automatic at apex
@@ -164,6 +168,7 @@ example.com.  IN MX  20 mail2.example.com.
 TXT records store arbitrary text, limited to 255 characters per string but multiple strings concatenate.
 
 **Primary uses**:
+
 - **SPF** (Sender Policy Framework): Lists authorized mail servers. RFC 7208 deprecated dedicated SPF record type—use TXT.
 - **DKIM** (DomainKeys Identified Mail): Public key for email signature verification.
 - **DMARC**: Policy for handling SPF/DKIM failures.
@@ -185,6 +190,7 @@ _sip._tcp.example.com. IN SRV 10 40 5060 sipbackup.example.com.
 ```
 
 **Fields**:
+
 - **Priority**: Lower is preferred (like MX)
 - **Weight**: For load distribution among same-priority records (60/40 split above)
 - **Port**: Service port (allows port flexibility without hardcoding)
@@ -208,16 +214,16 @@ ns2.example.com. IN A   192.0.2.2    ; glue record
 
 ### Record Type Decision Matrix
 
-| Use Case | Record Type | Notes |
-|----------|-------------|-------|
-| Website IP (IPv4) | A | Multiple for round-robin |
-| Website IP (IPv6) | AAAA | Prefer dual-stack |
-| Alias to another domain | CNAME | Not at apex; consider ALIAS |
-| Email routing | MX | Must point to hostname, not IP |
-| Email authentication | TXT | SPF, DKIM, DMARC |
-| Service with port | SRV | Weight for load distribution |
-| Zone delegation | NS | Include glue if needed |
-| Subdomain delegation | NS | At delegation point |
+| Use Case                | Record Type | Notes                          |
+| ----------------------- | ----------- | ------------------------------ |
+| Website IP (IPv4)       | A           | Multiple for round-robin       |
+| Website IP (IPv6)       | AAAA        | Prefer dual-stack              |
+| Alias to another domain | CNAME       | Not at apex; consider ALIAS    |
+| Email routing           | MX          | Must point to hostname, not IP |
+| Email authentication    | TXT         | SPF, DKIM, DMARC               |
+| Service with port       | SRV         | Weight for load distribution   |
+| Zone delegation         | NS          | Include glue if needed         |
+| Subdomain delegation    | NS          | At delegation point            |
 
 ## TTL Strategies and Trade-offs
 
@@ -228,12 +234,14 @@ TTL (Time To Live) controls how long resolvers cache a record. This single value
 #### Low TTL (60-300 seconds)
 
 **When to use**:
+
 - Health-checked failover records
 - Blue-green deployments
 - Active/passive disaster recovery
 - Frequently changing infrastructure
 
 **Trade-offs**:
+
 - ✅ Fast failover (changes propagate in minutes)
 - ✅ Flexibility for infrastructure changes
 - ❌ Higher query volume to authoritative servers
@@ -245,11 +253,13 @@ TTL (Time To Live) controls how long resolvers cache a record. This single value
 #### High TTL (3600-86400 seconds)
 
 **When to use**:
+
 - Stable records (NS, MX for established domains)
 - Root/TLD referrals (48 hours typical)
 - CDN endpoints that don't change
 
 **Trade-offs**:
+
 - ✅ Reduced authoritative server load
 - ✅ Lower latency (higher cache hit rate)
 - ✅ Resilient to authoritative server outages (cached answers continue working)
@@ -274,12 +284,12 @@ Before DNS changes, temporarily lower TTL to minimize propagation delay:
 
 Beyond DNS resolver caching, browsers and operating systems have their own caches:
 
-| Layer | Default TTL | Notes |
-|-------|-------------|-------|
-| Chrome | 60 seconds | Ignores TTL; fixed duration |
-| Firefox | 60 seconds | Respects TTL with 60s minimum |
-| Windows DNS Client | Honors TTL | Can be configured via registry |
-| macOS | Honors TTL | `dscacheutil -flushcache` to clear |
+| Layer              | Default TTL | Notes                              |
+| ------------------ | ----------- | ---------------------------------- |
+| Chrome             | 60 seconds  | Ignores TTL; fixed duration        |
+| Firefox            | 60 seconds  | Respects TTL with 60s minimum      |
+| Windows DNS Client | Honors TTL  | Can be configured via registry     |
+| macOS              | Honors TTL  | `dscacheutil -flushcache` to clear |
 
 **Implication**: Even with 30s DNS TTL, browser-level caching means users may see stale IPs for 1-2 minutes. For truly instant failover, use application-level health checks or service mesh.
 
@@ -294,6 +304,7 @@ Return multiple A/AAAA records; resolvers/clients rotate through them.
 **Mechanism**: Authoritative server returns all records. Resolvers may shuffle order. Clients typically use first record.
 
 **Limitations**:
+
 - No health checking (returns dead servers)
 - No session affinity (different IPs per query)
 - No load awareness (even distribution, not load-based)
@@ -312,6 +323,7 @@ www  300  IN A  192.0.2.2  ; weight 30
 ```
 
 **Use cases**:
+
 - Canary deployments (1% to new version)
 - Gradual migration (shift traffic over time)
 - A/B testing (split by DNS)
@@ -331,6 +343,7 @@ Route53 measures latency from resolver locations to AWS regions and returns the 
 Return different records based on client geographic location.
 
 **Location determination**:
+
 1. **Resolver IP**: GeoIP database lookup. Inaccurate when users use public resolvers (8.8.8.8, 1.1.1.1)
 2. **EDNS Client Subnet (ECS)** (RFC 7871): Resolver sends truncated client IP to authoritative. More accurate but leaks client location.
 
@@ -345,12 +358,14 @@ Instead of GeoDNS (different IPs per region), use the same IP announced via BGP 
 **Mechanism**: Multiple servers advertise the same IP prefix. BGP routing delivers packets to the "closest" (by AS path) server.
 
 **Advantages**:
+
 - No DNS-level complexity
 - Works with any resolver (no ECS needed)
 - Instant failover (BGP withdrawal)
 - DDoS resilience (attack traffic distributed)
 
 **Disadvantages**:
+
 - Requires BGP/AS number (not for small deployments)
 - TCP affinity issues (route changes mid-connection)
 - Debugging harder (which server answered?)
@@ -359,13 +374,13 @@ Instead of GeoDNS (different IPs per region), use the same IP announced via BGP 
 
 ### Load Balancing Decision Matrix
 
-| Approach | Health Checks | Granularity | Operational Complexity |
-|----------|---------------|-------------|------------------------|
-| Round-robin | No | Per-record | Low |
-| Weighted (Route53/CF) | Optional | Per-record | Low |
-| Latency-based | No | Per-region | Medium |
-| GeoDNS | Optional | Per-country/region | Medium |
-| Anycast + BGP | Via BGP withdrawal | Per-datacenter | High |
+| Approach              | Health Checks      | Granularity        | Operational Complexity |
+| --------------------- | ------------------ | ------------------ | ---------------------- |
+| Round-robin           | No                 | Per-record         | Low                    |
+| Weighted (Route53/CF) | Optional           | Per-record         | Low                    |
+| Latency-based         | No                 | Per-region         | Medium                 |
+| GeoDNS                | Optional           | Per-country/region | Medium                 |
+| Anycast + BGP         | Via BGP withdrawal | Per-datacenter     | High                   |
 
 **Recommendation**: For most applications, use a load balancer (ALB, NLB, HAProxy) with DNS pointing to the load balancer. DNS-based load balancing is best for global distribution to load balancers, not to individual servers.
 
@@ -394,12 +409,14 @@ Dan Kaminsky demonstrated that the 16-bit transaction ID (65,536 possibilities) 
 DNSSEC (RFC 4033-4035, 2005) adds digital signatures to DNS responses, enabling validation of authenticity and integrity.
 
 **Key record types**:
+
 - **DNSKEY**: Public key for the zone
 - **RRSIG**: Signature over a record set
 - **DS (Delegation Signer)**: Hash of child zone's DNSKEY, stored in parent zone—creates chain of trust
 - **NSEC/NSEC3**: Proves non-existence of a name (prevents forged NXDOMAIN)
 
 **Chain of trust**:
+
 ```
 Root (.) → DS for .com → .com DNSKEY validates →
 .com → DS for example.com → example.com DNSKEY validates →
@@ -411,11 +428,13 @@ example.com → RRSIG validates A record
 **Key rollover complexity**: Changing keys requires coordinating with parent zone (updating DS record) and waiting for TTLs. The root zone's first KSK rollover (2018) took years of planning.
 
 **Operational challenges**:
+
 - Signature expiration: Signatures have validity periods. Failure to re-sign causes validation failures.
 - Clock skew: Validators check signature timestamps. Clock drift causes spurious failures.
 - Deployment: As of 2024, ~30% of domains are signed, but only ~25% of resolvers validate.
 
 **Validation failure debugging**:
+
 ```bash
 # Check DNSSEC chain
 dig +dnssec +multi example.com
@@ -430,26 +449,29 @@ dig +cd example.com  # "checking disabled"
 DNSSEC authenticates responses but doesn't encrypt queries. Anyone on the network path can see what domains you query.
 
 **DNS over TLS (DoT)** (RFC 7858, 2016):
+
 - Wraps DNS in TLS on port 853
 - Easy to identify and block (dedicated port)
 - Supported by Android 9+, iOS 14+
 
 **DNS over HTTPS (DoH)** (RFC 8484, 2018):
+
 - Sends DNS queries as HTTPS requests on port 443
 - Indistinguishable from regular HTTPS traffic
 - Supported by Chrome, Firefox, Windows 11
 
 **Trade-offs**:
 
-| Aspect | DoT | DoH |
-|--------|-----|-----|
-| Port | 853 (dedicated) | 443 (shared with HTTPS) |
-| Blocking | Easy (port-based) | Hard (looks like web traffic) |
-| Firewall inspection | Visible as DNS | Hidden in HTTPS |
-| Performance | Lower overhead | HTTP/2 overhead |
-| Enterprise control | Easier to manage | Harder to enforce policies |
+| Aspect              | DoT               | DoH                           |
+| ------------------- | ----------------- | ----------------------------- |
+| Port                | 853 (dedicated)   | 443 (shared with HTTPS)       |
+| Blocking            | Easy (port-based) | Hard (looks like web traffic) |
+| Firewall inspection | Visible as DNS    | Hidden in HTTPS               |
+| Performance         | Lower overhead    | HTTP/2 overhead               |
+| Enterprise control  | Easier to manage  | Harder to enforce policies    |
 
 **Privacy considerations**:
+
 - Encrypts resolver ↔ client. Resolver ↔ authoritative remains unencrypted (unless authoritative supports DoH).
 - Resolver still sees all your queries. 1.1.1.1 and 8.8.8.8 have privacy policies; ISP resolvers may not.
 - **Oblivious DoH (ODoH)** (RFC 9230, 2022): Adds proxy layer so no single party sees both client IP and query content.
@@ -464,19 +486,20 @@ Open resolvers answer queries from any source. Attackers exploit this for DDoS:
 4. Amplification factor: 50-70×
 
 **Mitigations**:
+
 - **Response Rate Limiting (RRL)**: Limit responses per source IP per second
 - **BCP38/BCP84**: ISPs should filter spoofed source addresses
 - **Disable open recursion**: Only serve configured clients
 
 ### DNS Security Checklist
 
-| Threat | Mitigation | Status |
-|--------|------------|--------|
-| Cache poisoning | Source port randomization | Standard since 2008 |
-| Cache poisoning | DNSSEC validation | ~25% of resolvers |
-| Eavesdropping | DoH/DoT | Growing adoption |
-| Amplification DDoS | RRL + BCP38 | Partial deployment |
-| Zone hijacking | Registrar locks + MFA | Recommended |
+| Threat             | Mitigation                | Status              |
+| ------------------ | ------------------------- | ------------------- |
+| Cache poisoning    | Source port randomization | Standard since 2008 |
+| Cache poisoning    | DNSSEC validation         | ~25% of resolvers   |
+| Eavesdropping      | DoH/DoT                   | Growing adoption    |
+| Amplification DDoS | RRL + BCP38               | Partial deployment  |
+| Zone hijacking     | Registrar locks + MFA     | Recommended         |
 
 ## DNS Failover and Health Checks
 
@@ -490,6 +513,7 @@ DNS-based failover removes unhealthy endpoints from responses. It's slower than 
 4. **Propagation delay**: Existing cached responses continue until TTL expires
 
 **Health check options**:
+
 - HTTP/HTTPS: Check specific path, status code, response body
 - TCP: Port connectivity only
 - Calculated: Combine multiple checks with AND/OR logic
@@ -514,12 +538,14 @@ Time 3:00 - All caches expired, traffic flows to secondary
 ### Active-Active vs. Active-Passive
 
 **Active-Active**: Multiple endpoints in rotation; unhealthy ones removed.
+
 ```
 www.example.com.  60  IN  A  192.0.2.1  ; health checked
 www.example.com.  60  IN  A  192.0.2.2  ; health checked
 ```
 
 **Active-Passive**: Secondary only used when primary fails.
+
 ```
 ; Route53 failover routing policy
 www.example.com.  60  IN  A  192.0.2.1  ; primary, health checked
@@ -535,6 +561,7 @@ www.example.com.  60  IN  A  192.0.2.2  ; secondary, returned if primary fails
 **Problem**: Provide the fastest, most private public DNS resolver.
 
 **Design choices**:
+
 - **Anycast from 330+ cities**: Same IP (1.1.1.1) announced everywhere. BGP routes queries to nearest PoP.
 - **Aggressive caching**: Cache responses at edge; pre-populate popular domains.
 - **Minimal logging**: Purge query logs within 24 hours. No selling of data.
@@ -550,6 +577,7 @@ www.example.com.  60  IN  A  192.0.2.2  ; secondary, returned if primary fails
 **Scale**: Handles 100+ billion queries/day across millions of hosted zones.
 
 **Design choices**:
+
 - **Four anycast networks**: Geographically distributed. Health-checked routing to nearest healthy PoP.
 - **EDNS Client Subnet support**: More accurate latency-based and geo routing.
 - **Alias records**: Proprietary record type that resolves AWS resources at the authoritative level (no CNAME chain).
@@ -562,6 +590,7 @@ www.example.com.  60  IN  A  192.0.2.2  ; secondary, returned if primary fails
 **Challenge**: High-value target for DDoS attacks while serving millions of developers.
 
 **Approach**:
+
 - **Multiple DNS providers**: Redundancy against provider outages.
 - **Anycast for github.com**: Multiple IPs, each anycast to multiple datacenters.
 - **DDoS mitigation partners**: Traffic scrubbing before reaching origin.
@@ -631,11 +660,13 @@ DNS is deceptively simple—a hierarchical lookup system—but its design choice
 **Load balancing via DNS**: Useful for global distribution to regional load balancers. Not suitable for server-level health checking or sub-minute failover. Combine with anycast for DDoS resilience.
 
 **Security layers**:
+
 - DNSSEC authenticates responses but doesn't encrypt
 - DoH/DoT encrypt the client-resolver path
 - Neither fully solves DNS security—defense in depth required
 
 **Production patterns**:
+
 - Use managed DNS (Route53, Cloudflare) for reliability and features
 - Enable DNSSEC if your registrar and provider support it
 - Monitor resolution from multiple global locations

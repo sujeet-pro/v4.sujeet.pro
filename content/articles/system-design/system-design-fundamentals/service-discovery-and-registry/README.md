@@ -47,11 +47,11 @@ The core trade-off is **freshness vs. stability**:
 
 Three patterns dominate:
 
-| Pattern | Discovery Logic | Network Hops | Coupling |
-|---------|----------------|--------------|----------|
-| Client-side | In the client | 1 (direct) | High (registry-aware) |
-| Server-side | In a proxy/LB | 2 (via proxy) | Low (proxy handles) |
-| Service mesh | In sidecar | 2 (via sidecar) | Zero (transparent) |
+| Pattern      | Discovery Logic | Network Hops    | Coupling              |
+| ------------ | --------------- | --------------- | --------------------- |
+| Client-side  | In the client   | 1 (direct)      | High (registry-aware) |
+| Server-side  | In a proxy/LB   | 2 (via proxy)   | Low (proxy handles)   |
+| Service mesh | In sidecar      | 2 (via sidecar) | Zero (transparent)    |
 
 Registries differ by consistency model: **CP systems** (ZooKeeper, etcd) guarantee you never route to a deregistered instance but may reject registrations during partitions. **AP systems** (Eureka) stay available but may temporarily route to stale endpoints.
 
@@ -144,15 +144,15 @@ A proxy sidecar runs alongside each service instance, handling all inbound and o
 
 ### Decision Matrix
 
-| Factor | Client-Side | Server-Side | Service Mesh |
-|--------|-------------|-------------|--------------|
-| Latency overhead | None | +1-5ms | +0.5-1ms |
-| Client complexity | High | Low | None |
-| Language support | Per-language | Any | Any |
-| Operational overhead | Low | Medium | High |
-| mTLS/security | DIY | DIY or LB feature | Built-in |
-| Traffic management | Limited | LB-dependent | Comprehensive |
-| Best scale | < 50 services | Any | > 20 services |
+| Factor               | Client-Side   | Server-Side       | Service Mesh  |
+| -------------------- | ------------- | ----------------- | ------------- |
+| Latency overhead     | None          | +1-5ms            | +0.5-1ms      |
+| Client complexity    | High          | Low               | None          |
+| Language support     | Per-language  | Any               | Any           |
+| Operational overhead | Low           | Medium            | High          |
+| mTLS/security        | DIY           | DIY or LB feature | Built-in      |
+| Traffic management   | Limited       | LB-dependent      | Comprehensive |
+| Best scale           | < 50 services | Any               | > 20 services |
 
 ## Registry Design and Technologies
 
@@ -278,13 +278,13 @@ The calculation: If 2 instances are registered, Eureka expects `(2 instances × 
 
 ### Health Check Types
 
-| Type | Mechanism | Detects | Doesn't Detect |
-|------|-----------|---------|----------------|
-| TCP | Connect to port | Process crash, port not listening | Application deadlock, OOM, logic bugs |
-| HTTP | GET /health returns 2xx | Above + app can handle requests | Dependency failures, partial failures |
-| gRPC | grpc.health.v1.Health | Same as HTTP for gRPC services | Same limitations |
-| Script | Run arbitrary command | Custom conditions | Slow if script is expensive |
-| TTL | Service must actively report | Service-reported health | Service hangs but doesn't report |
+| Type   | Mechanism                    | Detects                           | Doesn't Detect                        |
+| ------ | ---------------------------- | --------------------------------- | ------------------------------------- |
+| TCP    | Connect to port              | Process crash, port not listening | Application deadlock, OOM, logic bugs |
+| HTTP   | GET /health returns 2xx      | Above + app can handle requests   | Dependency failures, partial failures |
+| gRPC   | grpc.health.v1.Health        | Same as HTTP for gRPC services    | Same limitations                      |
+| Script | Run arbitrary command        | Custom conditions                 | Slow if script is expensive           |
+| TTL    | Service must actively report | Service-reported health           | Service hangs but doesn't report      |
 
 ### Designing Health Endpoints
 
@@ -329,12 +329,12 @@ func healthHandler(db *sql.DB) http.HandlerFunc {
 
 **Interval and timeout configuration:**
 
-| Parameter | Too Low | Too High | Typical Range |
-|-----------|---------|----------|---------------|
-| Interval | High load on registry/services | Slow failure detection | 5-30 seconds |
-| Timeout | False positives from slow networks | Delayed detection of hung services | 2-10 seconds |
-| Unhealthy threshold | Flapping | Traffic to dead instances | 2-3 consecutive failures |
-| Healthy threshold | Premature traffic to recovering instances | Slow recovery | 2-3 consecutive successes |
+| Parameter           | Too Low                                   | Too High                           | Typical Range             |
+| ------------------- | ----------------------------------------- | ---------------------------------- | ------------------------- |
+| Interval            | High load on registry/services            | Slow failure detection             | 5-30 seconds              |
+| Timeout             | False positives from slow networks        | Delayed detection of hung services | 2-10 seconds              |
+| Unhealthy threshold | Flapping                                  | Traffic to dead instances          | 2-3 consecutive failures  |
+| Healthy threshold   | Premature traffic to recovering instances | Slow recovery                      | 2-3 consecutive successes |
 
 **Failure detection time:** `interval × unhealthy_threshold + timeout`
 
@@ -405,11 +405,11 @@ Service mesh deployments typically enforce mTLS between all services:
 
 **Service-to-service authorization patterns:**
 
-| Pattern | How It Works | Complexity | Flexibility |
-|---------|--------------|------------|-------------|
-| mTLS identity | Certificate SAN/CN checked by sidecar | Medium | Service-level |
-| JWT validation | Bearer token verified by app or sidecar | Medium | Request-level claims |
-| External authz (OPA) | Sidecar calls policy engine | High | Arbitrary policies |
+| Pattern              | How It Works                            | Complexity | Flexibility          |
+| -------------------- | --------------------------------------- | ---------- | -------------------- |
+| mTLS identity        | Certificate SAN/CN checked by sidecar   | Medium     | Service-level        |
+| JWT validation       | Bearer token verified by app or sidecar | Medium     | Request-level claims |
+| External authz (OPA) | Sidecar calls policy engine             | High       | Arbitrary policies   |
 
 ### Threat Model
 
@@ -470,12 +470,12 @@ Both partitions continue operating independently. Each partition's registry dive
 
 **Registry sizing:**
 
-| Metric | ZooKeeper | etcd | Consul |
-|--------|-----------|------|--------|
-| Max services | ~100K znodes | ~1M keys | ~10K services |
-| Memory per entry | ~1KB | ~256B | ~1KB |
-| Write throughput | ~10K/sec | ~35K/sec | ~5K/sec |
-| Read throughput | ~100K/sec | ~100K/sec | Limited by Raft |
+| Metric           | ZooKeeper    | etcd      | Consul          |
+| ---------------- | ------------ | --------- | --------------- |
+| Max services     | ~100K znodes | ~1M keys  | ~10K services   |
+| Memory per entry | ~1KB         | ~256B     | ~1KB            |
+| Write throughput | ~10K/sec     | ~35K/sec  | ~5K/sec         |
+| Read throughput  | ~100K/sec    | ~100K/sec | Limited by Raft |
 
 **Health check load:** `number_of_instances × check_frequency × checkers_per_instance`
 
