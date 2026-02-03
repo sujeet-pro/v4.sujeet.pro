@@ -31,7 +31,7 @@ const ARTICLE_GLOB = path.join(ARTICLES_DIR, "**/README.md")
 const VANITY_FILE_PATH = "./content/vanity.json5"
 
 /** Static pages to always exclude from sitemap */
-const EXCLUDED_PATHS = ["/articles/drafts", "/drafts", "/posts/drafts"]
+const EXCLUDED_PATHS = ["/articles/drafts", "/drafts", "/posts/drafts", "/random"]
 
 /** Path prefixes to exclude (all pages under these paths) */
 const EXCLUDED_PREFIXES = ["/in-research"]

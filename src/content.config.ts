@@ -43,7 +43,9 @@ const home = defineCollection({
       imageAlt: z.string(),
     }),
     profileActions: z.object({
+      linkedin: z.string(),
       viewCv: z.string(),
+      randomArticle: z.string(),
       allArticles: z.string(),
     }),
   }),

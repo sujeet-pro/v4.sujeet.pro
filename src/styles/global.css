@@ -335,7 +335,7 @@ h3 {
      * - Content is max 80ch centered
      * - Total max-width caps the layout at sidebar + content + sidebar + gaps
      */
-    grid-template-columns: minmax(0, 1fr) minmax(0, var(--content-width-wide)) minmax(0, 1fr);
+    grid-template-columns: 1fr minmax(auto, var(--content-width-wide)) 1fr;
     gap: var(--sidebar-gap);
     /* Cap total width: sidebars (45ch each) + content (80ch) + 2 gaps */
     max-width: calc(
@@ -351,6 +351,7 @@ h3 {
 
   .layout-3col-sidebar {
     display: block;
+    width: 100%;
   }
 
   .layout-3col-sidebar-left {
@@ -681,6 +682,10 @@ button {
   border-color: var(--color-accent);
 }
 
+.btn-outline.btn-icon-only {
+  @apply px-3;
+}
+
 /* ==========================================================================
    ARTICLE & CATEGORY CARDS
    ========================================================================== */
@@ -887,7 +892,7 @@ button {
 }
 
 .profile-actions {
-  @apply flex flex-col items-center justify-center gap-4 sm:flex-row;
+  @apply flex flex-wrap items-center justify-center gap-3;
 }
 
 .profile-expertise {

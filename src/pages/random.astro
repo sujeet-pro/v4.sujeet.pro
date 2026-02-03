@@ -1,0 +1,49 @@
+---
+import { getAllArticlePaths } from "@/utils/content"
+
+// Get all article paths at build time
+const paths = await getAllArticlePaths()
+const articleUrls = paths.map((p) => `/articles/${p.category}/${p.topic}/${p.slug}`)
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Random Article</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background: #fefefe;
+        color: #1f2937;
+        font-family: system-ui, sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: #0d1117;
+          color: #e6edf3;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <p>Taking you to a random article...</p>
+    <script is:inline define:vars={{ articleUrls }}>
+      // Pick a random article and redirect
+      function redirectToRandomArticle() {
+        const randomIndex = Math.floor(Math.random() * articleUrls.length)
+        const randomUrl = articleUrls[randomIndex]
+        // Use replaceState to avoid adding to history
+        window.location.replace(randomUrl)
+      }
+
+      // Redirect immediately on page load
+      redirectToRandomArticle()
+    </script>
+  </body>
+</html>

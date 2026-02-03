@@ -7,6 +7,7 @@ import AccordionScript from "@/components/accordion-script.astro"
 import TopicAccordion from "@/components/topic-accordion.astro"
 import Link from "@/components/link.astro"
 import { getFeaturedArticlesCards, getFeaturedTopics } from "@/utils/content"
+import { getSocialLinks } from "@/utils/site.utils"
 import sujeetImage from "@/assets/sujeet.jpg"
 
 // Get home page content
@@ -15,6 +16,9 @@ if (!homeEntry) {
   throw new Error("Home page content not found. Ensure content/home.json5 exists.")
 }
 const { pageTitle, pageDescription, profile, profileActions } = homeEntry.data
+
+// Get social links for LinkedIn
+const social = await getSocialLinks()
 
 // Get ordered content using centralized utilities
 const featuredArticles = await getFeaturedArticlesCards()
@@ -39,9 +43,16 @@ const featuredTopics = await getFeaturedTopics()
       </div>
 
       <div class="profile-actions">
+        <Link href={social.linkedin.url} class="btn-outline btn-icon-only" aria-label={profileActions.linkedin}>
+          <Icon name="carbon:logo-linkedin" class="icon-md" />
+        </Link>
         <Link href="/cv" class="btn-outline" isVanity={true}>
           <Icon name="carbon:document" class="icon-md" />
           {profileActions.viewCv}
+        </Link>
+        <Link href="/random" class="btn-outline">
+          <Icon name="carbon:shuffle" class="icon-md" />
+          {profileActions.randomArticle}
         </Link>
         <Link href="/articles" class="btn-outline">
           <Icon name="carbon:blog" class="icon-md" />

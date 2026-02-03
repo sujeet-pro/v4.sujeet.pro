@@ -19,7 +19,9 @@
 
   // Profile Action Buttons
   profileActions: {
-    viewCv: "View CV",
+    linkedin: "LinkedIn",
+    viewCv: "CV",
+    randomArticle: "I'm Feeling Lucky",
     allArticles: "All Articles",
   },
 }

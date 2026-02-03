@@ -1,6 +1,6 @@
 # Exactly-Once Delivery
 
-True exactly-once delivery is impossible in distributed systems—the Two Generals Problem and FLP impossibility theorem prove this mathematically. What we call "exactly-once" is actually "effectively exactly-once": at-least-once delivery combined with idempotency and deduplication mechanisms that ensure each message's effect occurs exactly once, even when the message itself is delivered multiple times.
+True exactly-once delivery is impossible in distributed systems—the Two Generals Problem (1975) and FLP impossibility theorem (1985) prove this mathematically. What we call "exactly-once" is actually "effectively exactly-once": at-least-once delivery combined with idempotency and deduplication mechanisms that ensure each message's effect occurs exactly once, even when the message itself is delivered multiple times.
 
 <figure>
 
@@ -33,10 +33,12 @@ The mental model for exactly-once semantics:
 
 3. **Three implementation layers**:
    - **Producer side**: Idempotent producers with sequence numbers (Kafka), idempotency keys (Stripe)
-   - **Broker side**: Deduplication windows, FIFO ordering, transactional commits
+   - **Broker side**: Deduplication windows (SQS: 5 min, Azure: up to 7 days), FIFO ordering, transactional commits
    - **Consumer side**: Idempotent operations, processed-message tracking, atomic state updates
 
 4. **The deduplication window trade-off**: Every system must choose how long to remember message IDs. Shorter windows save storage but risk duplicates from slow retries. Longer windows add overhead but catch more duplicates.
+
+5. **Boundary matters**: Most exactly-once guarantees (Kafka, Pub/Sub) stop at system boundaries. Cross-system exactly-once requires additional patterns (transactional outbox, idempotent consumers).
 
 ## The Problem
 
@@ -69,9 +71,9 @@ The fundamental tension: **reliability requires retries, but retries create dupl
 
 The Two Generals Problem proves this mathematically. Two parties cannot achieve certainty of agreement over an unreliable channel—any finite sequence of confirmations leaves doubt about whether the final message arrived.
 
-> **FLP Impossibility (1985)**: There is no deterministic algorithm that solves consensus in an asynchronous system where even one process can crash. This means exactly-once delivery cannot be guaranteed at the protocol level.
+> **FLP Impossibility (Fischer, Lynch, Patterson, 1985)**: No deterministic algorithm can solve consensus in an asynchronous system where even one process may fail. The theorem assumes reliable message delivery but unbounded delays—any fault-tolerant consensus algorithm has runs that never terminate.
 
-The solution isn't to achieve true exactly-once delivery—it's to make duplicates harmless.
+Practical systems circumvent FLP through randomized algorithms (Ben-Or, Rabin), partial synchrony assumptions (Paxos, Raft), or failure detectors. The implication for exactly-once: we cannot guarantee it at the protocol level, so we make duplicates harmless instead.
 
 ## Delivery Semantics
 
@@ -285,9 +287,9 @@ Message broker tracks message IDs and filters duplicates before delivery to cons
 - Duplicates filtered before consumer delivery
 - Window-based: IDs forgotten after expiry
 
-**Kafka idempotent producer (since 0.11):**
+**Kafka idempotent producer (since 0.11, default since 3.0):**
 
-The broker assigns a Producer ID (PID) to each producer instance. The producer assigns monotonically increasing sequence numbers per topic-partition:
+The broker assigns a 64-bit Producer ID (PID) to each producer instance. The producer assigns monotonically increasing 32-bit sequence numbers per topic-partition:
 
 ```
 Producer → [PID: 12345, Seq: 0] → Broker (accepts)
@@ -296,18 +298,25 @@ Producer → [PID: 12345, Seq: 1] → Broker (duplicate, rejects)
 Producer → [PID: 12345, Seq: 3] → Broker (out-of-order, error)
 ```
 
-**Configuration (Kafka 3.0+, enabled by default):**
+**Configuration (Kafka 3.0+):**
 
 ```properties
+# Defaults changed in Kafka 3.0 - these are now on by default
 enable.idempotence=true
 acks=all
 ```
 
+> **Prior to Kafka 3.0**: `enable.idempotence` defaulted to `false` and `acks` defaulted to `1`. Enabling idempotence required explicit configuration.
+
+**Key limitation**: Idempotence is only guaranteed within a producer session. If the producer crashes and restarts without a `transactional.id`, it gets a new PID and sequence numbers reset—previously sent messages may be duplicated.
+
 **AWS SQS FIFO deduplication:**
 
-- 5-minute deduplication window
+- **Fixed** 5-minute deduplication window (cannot be changed)
 - Two methods: explicit `MessageDeduplicationId` or content-based (SHA-256 of body)
 - After window expires, same ID can be submitted again
+- Best practice: anchor `MessageDeduplicationId` to business context (e.g., `order-12345.payment`)
+- With partitioning enabled: `MessageDeduplicationId + MessageGroupId` determines uniqueness
 
 **Trade-offs vs other paths:**
 
@@ -500,6 +509,112 @@ function transform(value: Buffer | null): string {
 | Cross-system | Kafka ecosystem only  | Works with any broker    |
 | Recovery     | Automatic             | Manual offset management |
 
+### Path 6: Transactional Outbox
+
+Solve the dual-write problem by writing business data and events to the same database transaction, then asynchronously publishing events to the message broker.
+
+**When to choose this path:**
+
+- Need to update a database AND publish an event atomically
+- Cannot tolerate lost events or phantom events (event published but DB write failed)
+- Using a broker that doesn't support distributed transactions with your database
+
+**Key characteristics:**
+
+- Business data and outbox event written in single database transaction
+- Background process reads outbox and publishes to broker
+- Events marked as published or deleted after successful publish
+- Requires idempotent consumers (relay may publish duplicates on crash recovery)
+
+**Implementation approaches:**
+
+| Approach                  | Description                                            | Trade-offs                                          |
+| ------------------------- | ------------------------------------------------------ | --------------------------------------------------- |
+| Polling Publisher         | Background service polls outbox table periodically     | Simple, adds latency (polling interval)             |
+| Change Data Capture (CDC) | Tools like Debezium read database transaction logs     | Lower latency, preserves order, more infrastructure |
+| Log-only outbox           | PostgreSQL logical decoding without materializing rows | Minimal database growth, Postgres-specific          |
+
+**Implementation with polling publisher:**
+
+```typescript collapse={1-10, 35-50}
+// Transactional outbox pattern
+import { Pool, PoolClient } from "pg"
+
+interface OutboxEvent {
+  id: string
+  aggregateType: string
+  aggregateId: string
+  eventType: string
+  payload: unknown
+  createdAt: Date
+}
+
+async function createOrderWithEvent(pool: Pool, order: Order): Promise<void> {
+  const client = await pool.connect()
+  try {
+    await client.query("BEGIN")
+
+    // Write business data
+    await client.query(
+      `INSERT INTO orders (id, customer_id, total, status)
+       VALUES ($1, $2, $3, $4)`,
+      [order.id, order.customerId, order.total, "created"],
+    )
+
+    // Write event to outbox in same transaction
+    await client.query(
+      `INSERT INTO outbox (id, aggregate_type, aggregate_id, event_type, payload)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [crypto.randomUUID(), "Order", order.id, "OrderCreated", JSON.stringify(order)],
+    )
+
+    await client.query("COMMIT")
+  } catch (error) {
+    await client.query("ROLLBACK")
+    throw error
+  } finally {
+    client.release()
+  }
+}
+
+// Polling publisher (separate process)
+async function publishOutboxEvents(pool: Pool, publisher: MessagePublisher): Promise<void> {
+  const client = await pool.connect()
+  // ... polling and publishing logic
+}
+```
+
+**Outbox table schema:**
+
+```sql
+CREATE TABLE outbox (
+  id UUID PRIMARY KEY,
+  aggregate_type VARCHAR(255) NOT NULL,
+  aggregate_id VARCHAR(255) NOT NULL,
+  event_type VARCHAR(255) NOT NULL,
+  payload JSONB NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  published_at TIMESTAMP NULL
+);
+
+CREATE INDEX idx_outbox_unpublished ON outbox (created_at)
+  WHERE published_at IS NULL;
+```
+
+**Trade-offs vs direct publishing:**
+
+| Aspect         | Transactional Outbox      | Direct to Broker   |
+| -------------- | ------------------------- | ------------------ |
+| Atomicity      | Guaranteed                | Dual-write problem |
+| Latency        | Higher (async relay)      | Lower (direct)     |
+| Complexity     | Higher (outbox + relay)   | Lower              |
+| Ordering       | Preserved (by created_at) | Depends on broker  |
+| Infrastructure | Database + relay process  | Broker only        |
+
+**Real-world usage:**
+
+Debezium's outbox connector reads the outbox table via CDC and publishes to Kafka. This eliminates the need for a custom polling publisher and provides exactly-once delivery when combined with Kafka transactions.
+
 ### Decision Framework
 
 ```mermaid
@@ -507,16 +622,18 @@ flowchart TD
     A[Need exactly-once?] --> B{Control consumer?}
     B -->|Yes| C{Operations naturally idempotent?}
     C -->|Yes| D[Path 1: Idempotent Operations]
-    C -->|No| E{Using Kafka?}
-    E -->|Yes| F{Read-transform-write?}
-    F -->|Yes| G[Path 5: Transactions]
-    F -->|No| H[Path 3: Idempotent Producer]
-    E -->|No| I[Path 4: Consumer-Side Dedup]
-    B -->|No| J{Exposing API?}
-    J -->|Yes| K[Path 2: Idempotency Keys]
-    J -->|No| L{Broker supports dedup?}
-    L -->|Yes| M[Path 3: Broker-Side Dedup]
-    L -->|No| N[Path 4: Consumer-Side Dedup]
+    C -->|No| E{Dual-write problem?}
+    E -->|Yes| F[Path 6: Transactional Outbox]
+    E -->|No| G{Using Kafka?}
+    G -->|Yes| H{Read-transform-write?}
+    H -->|Yes| I[Path 5: Transactions]
+    H -->|No| J[Path 3: Idempotent Producer]
+    G -->|No| K[Path 4: Consumer-Side Dedup]
+    B -->|No| L{Exposing API?}
+    L -->|Yes| M[Path 2: Idempotency Keys]
+    L -->|No| N{Broker supports dedup?}
+    N -->|Yes| O[Path 3: Broker-Side Dedup]
+    N -->|No| P[Path 4: Consumer-Side Dedup]
 ```
 
 ## Production Implementations
@@ -560,6 +677,18 @@ flowchart LR
 - `transactional.id` persists PID across producer restarts
 - Transaction coordinator manages two-phase commit for multi-partition writes
 
+**Version evolution:**
+
+| Version    | Change                                                                              |
+| ---------- | ----------------------------------------------------------------------------------- |
+| Kafka 0.11 | KIP-98 introduced idempotent producers and transactions                             |
+| Kafka 2.5  | EOS v2 introduced (improved scalability via KIP-447)                                |
+| Kafka 3.0  | `enable.idempotence=true` and `acks=all` become defaults                            |
+| Kafka 3.3  | KIP-618 added exactly-once for Kafka Connect source connectors                      |
+| Kafka 4.0  | Will remove deprecated `exactly_once` and `exactly_once_beta` processing guarantees |
+
+> **KIP-939 (in progress, 2024)**: Enables Kafka to participate in externally-coordinated 2PC transactions with databases. Adds a "prepare" RPC to the transaction coordinator, enabling atomic dual-writes between Kafka and external databases without the transactional outbox pattern.
+
 **What worked:**
 
 - Zero-overhead idempotency when enabled by default (Kafka 3.0+)
@@ -570,6 +699,7 @@ flowchart LR
 - Transaction coordinator becomes single point of coordination
 - `transactional.id` management across producer instances
 - Consumer rebalancing during transaction can cause duplicates if not using `read_committed`
+- **EOS stops at the Kafka cluster boundary**—beyond Kafka, consumers must be idempotent
 
 **Source:** [KIP-98 - Exactly Once Delivery and Transactional Messaging](https://cwiki.apache.org/confluence/display/KAFKA/KIP-98+-+Exactly+Once+Delivery+and+Transactional+Messaging)
 
@@ -633,7 +763,7 @@ sequenceDiagram
 
 ### Google Pub/Sub: Exactly-Once Delivery
 
-**Context:** Google Cloud's managed messaging service. Added exactly-once delivery in December 2022.
+**Context:** Google Cloud's managed messaging service. Added exactly-once delivery (GA December 2022).
 
 **Implementation choices:**
 
@@ -643,11 +773,35 @@ sequenceDiagram
 
 **Specific details:**
 
-- Exactly-once only within a single cloud region
+- Exactly-once guaranteed **within a single cloud region only**
 - Uses unique message IDs assigned by Pub/Sub
 - Subscribers receive acknowledgment confirmation (acknowledge succeeded or failed)
-- Only pull subscriptions and StreamingPull API support exactly-once
-- Push subscriptions do NOT support exactly-once
+- Only the **latest acknowledgment ID** can acknowledge a message—previous IDs fail
+- Default ack deadline: 60 seconds if unspecified
+
+**Supported configurations:**
+
+| Feature              | Exactly-Once Support |
+| -------------------- | -------------------- |
+| Pull subscriptions   | Yes                  |
+| StreamingPull API    | Yes                  |
+| Push subscriptions   | No                   |
+| Export subscriptions | No                   |
+
+**Performance trade-offs:**
+
+- **Higher latency**: Significantly higher publish-to-subscribe latency vs regular subscriptions
+- **Throughput limitation**: ~1,000 messages/second when combined with ordered delivery
+- **Publish-side duplicates**: Subscription may still receive duplicates originating from the publish side
+
+**Client library minimum versions (required for exactly-once):**
+
+| Language | Version   |
+| -------- | --------- |
+| Python   | v2.13.6+  |
+| Java     | v1.139.0+ |
+| Go       | v1.25.1+  |
+| Node.js  | v3.2.0+   |
 
 **What worked:**
 
@@ -659,19 +813,117 @@ sequenceDiagram
 - **Regional constraint**: Cross-region subscribers may receive duplicates
 - Push subscriptions excluded (no ack confirmation mechanism)
 - Still requires idempotent handlers for regional failover scenarios
+- "The feature does not provide any guarantees around exactly-once side effects"—side effects are outside scope
 
 **Source:** [Cloud Pub/Sub exactly-once delivery](https://cloud.google.com/pubsub/docs/exactly-once-delivery)
 
+### Azure Service Bus: Duplicate Detection
+
+**Context:** Microsoft's managed messaging service with configurable deduplication windows.
+
+**Implementation choices:**
+
+- Pattern variant: Broker-side deduplication with configurable window
+- Key customization: Window from 20 seconds to 7 days
+- Limitation: Standard/Premium tiers only (not Basic)
+
+**Specific details:**
+
+- Tracks `MessageId` of all messages during the deduplication window
+- Duplicate messages are **accepted** (send succeeds) but **instantly dropped**
+- Cannot enable/disable duplicate detection after queue/topic creation
+- With partitioning: `MessageId + PartitionKey` determines uniqueness
+
+**Configuration:**
+
+```
+duplicateDetectionHistoryTimeWindow: P7D  // ISO 8601 duration, max 7 days
+```
+
+**Best practice for MessageId:**
+
+```
+{application-context}.{message-subject}
+Example: purchase-order-12345.payment
+```
+
+**Trade-off:** Longer windows provide better duplicate protection but consume more storage for tracking message IDs.
+
+**Source:** [Azure Service Bus duplicate detection](https://learn.microsoft.com/en-us/azure/service-bus-messaging/duplicate-detection)
+
+### NATS JetStream: Message Deduplication
+
+**Context:** High-performance messaging system with built-in deduplication.
+
+**Implementation choices:**
+
+- Pattern variant: Header-based deduplication with sliding window
+- Key customization: Configurable window (default 2 minutes)
+- Alternative: Infinite deduplication via `DiscardNewPerSubject` (NATS 2.9.0+)
+
+**Specific details:**
+
+- Uses `Nats-Msg-Id` header for duplicate detection
+- Server tracks message IDs within deduplication window
+- **Double acknowledgment** mechanism prevents erroneous re-sends after failures
+
+**Infinite deduplication pattern (NATS 2.9.0+):**
+
+```
+// Stream configuration for infinite deduplication
+{
+  "discard": "new",
+  "discard_new_per_subject": true,
+  "max_msgs_per_subject": 1
+}
+
+// Include unique ID in subject
+Subject: orders.create.{order-id}
+```
+
+Publish fails if a message with that subject already exists—provides infinite exactly-once publication.
+
+**Source:** [JetStream Model Deep Dive](https://docs.nats.io/using-nats/developer/develop_jetstream/model_deep_dive)
+
+### Apache Pulsar: Transactions
+
+**Context:** Multi-tenant distributed messaging with native exactly-once support since Pulsar 2.8.0.
+
+**Implementation choices:**
+
+- Pattern variant: Transaction API for atomic produce and acknowledgement
+- Key customization: Cross-topic atomicity
+- Scale: Used in production at Yahoo, Tencent, Verizon
+
+**Specific details:**
+
+- Transaction API enables atomic produce and acknowledgement across multiple topics
+- Idempotent producer + exactly-once semantics at single partition level
+- If transaction aborts, all writes and acknowledgments roll back
+
+**Transaction flow:**
+
+```
+1. Begin transaction
+2. Produce to topic A (within transaction)
+3. Produce to topic B (within transaction)
+4. Acknowledge consumed message (within transaction)
+5. Commit or abort
+```
+
+**Integration:** Works with Apache Flink via `TwoPhaseCommitSinkFunction` for end-to-end exactly-once.
+
+**Source:** [Pulsar Transactions](https://pulsar.apache.org/docs/next/txn-what/)
+
 ### Implementation Comparison
 
-| Aspect           | Kafka EOS               | Stripe Idempotency  | Pub/Sub Exactly-Once |
-| ---------------- | ----------------------- | ------------------- | -------------------- |
-| Variant          | Producer + transactions | Client keys + cache | Broker deduplication |
-| Scope            | Kafka ecosystem         | Any HTTP client     | Single GCP region    |
-| Latency impact   | 3% overhead             | Cache lookup        | Minimal              |
-| Client changes   | Config only             | Add header          | None                 |
-| Window           | Configurable            | 24 hours            | Regional             |
-| Failure handling | Automatic rollback      | Manual retry        | Ack confirmation     |
+| Aspect         | Kafka EOS               | Stripe Idempotency  | Pub/Sub         | Azure Service Bus | NATS JetStream  | Pulsar               |
+| -------------- | ----------------------- | ------------------- | --------------- | ----------------- | --------------- | -------------------- |
+| Variant        | Producer + transactions | Client keys + cache | Broker dedup    | Broker dedup      | Header dedup    | Transactions         |
+| Scope          | Kafka cluster           | Any HTTP client     | Single region   | Queue/Topic       | Stream          | Multi-topic          |
+| Dedup window   | Session/configurable    | 24 hours            | Regional        | 20s–7 days        | 2 min (default) | Transaction          |
+| Latency impact | 3%                      | Cache lookup        | Significant     | Minimal           | Minimal         | Transaction overhead |
+| Client changes | Config only             | Add header          | Library upgrade | None              | Add header      | Transaction API      |
 
 ## Common Pitfalls
 
@@ -783,6 +1035,25 @@ sequenceDiagram
 - Use hybrid logical clocks (HLC) for ordering with physical time hints
 - Accept that LWW with physical clocks is eventually consistent, not causally consistent
 
+### 7. Assuming EOS Extends Beyond System Boundaries
+
+**The mistake:** Believing Kafka's exactly-once guarantees extend to downstream systems.
+
+**Example:**
+
+- Kafka Streams app with `processing.guarantee=exactly_once_v2`
+- App reads from Kafka, processes, writes to PostgreSQL
+- Assumption: "Kafka handles exactly-once, so PostgreSQL writes are safe"
+- Reality: Kafka EOS only covers Kafka-to-Kafka. The PostgreSQL write is outside the transaction.
+- Result: Consumer crashes after PostgreSQL write but before Kafka offset commit → duplicate write on restart
+
+**Solutions:**
+
+- Use transactional outbox pattern for database writes
+- Implement idempotent database operations (upsert with message ID)
+- Use KIP-939 (when available) for native 2PC with external databases
+- Always design downstream consumers as idempotent regardless of upstream guarantees
+
 ## Implementation Guide
 
 ### Starting Point Decision
@@ -797,10 +1068,24 @@ flowchart TD
     C -->|AWS SQS| F[Use FIFO queue<br/>+ idempotent handler]
     C -->|RabbitMQ| G[Consumer-side dedup<br/>with database]
     C -->|Pub/Sub| H[Enable exactly-once<br/>+ idempotent handler]
+    C -->|Azure Service Bus| I[Enable duplicate detection<br/>+ idempotent handler]
+    C -->|NATS JetStream| J[Use Nats-Msg-Id header<br/>+ idempotent handler]
+    C -->|Pulsar| K[Use Transaction API<br/>for cross-topic atomicity]
 
-    D -->|Yes| I[Implement idempotency keys<br/>à la Stripe]
-    D -->|No| J[Design idempotent operations<br/>+ version vectors]
+    D -->|Yes| L[Implement idempotency keys<br/>à la Stripe]
+    D -->|No| M[Design idempotent operations<br/>+ version vectors]
 ```
+
+### System Selection Guide
+
+| Requirement           | Recommended System  | Reason                           |
+| --------------------- | ------------------- | -------------------------------- |
+| Kafka ecosystem       | Kafka with EOS v2   | Native support, minimal overhead |
+| Serverless/managed    | SQS FIFO or Pub/Sub | No infrastructure to manage      |
+| Configurable window   | Azure Service Bus   | 20s to 7 days window             |
+| High performance      | NATS JetStream      | Low latency, simple model        |
+| Cross-topic atomicity | Pulsar or Kafka     | Transaction APIs                 |
+| HTTP API idempotency  | Redis + custom code | Stripe pattern                   |
 
 ### When to Build Custom
 
@@ -856,11 +1141,14 @@ Choose your implementation based on your constraints:
 
 - **Idempotent operations** when you control the state model
 - **Idempotency keys** for external-facing APIs
-- **Broker-side deduplication** when your broker supports it
+- **Broker-side deduplication** when your broker supports it (Kafka, SQS FIFO, Pub/Sub, Azure Service Bus, NATS JetStream)
 - **Consumer-side deduplication** for maximum control and longer windows
-- **Transactional processing** for Kafka consume-transform-produce patterns
+- **Transactional processing** for Kafka/Pulsar consume-transform-produce patterns
+- **Transactional outbox** when you need atomic database + event writes
 
 Every approach has failure modes around the deduplication window. Design your retry policies to fit within the window, and consider layered approaches (broker + consumer deduplication) for critical paths.
+
+**Critical reminder**: Most exactly-once guarantees stop at system boundaries. Kafka EOS doesn't extend to your PostgreSQL database. Pub/Sub exactly-once is regional. Always design downstream consumers as idempotent, regardless of upstream guarantees.
 
 ## Appendix
 
@@ -873,32 +1161,64 @@ Every approach has failure modes around the deduplication window. Design your re
 ### Terminology
 
 - **Idempotency**: Property where applying an operation multiple times produces the same result as applying it once
-- **PID (Producer ID)**: Unique identifier assigned to a Kafka producer instance by the broker
+- **PID (Producer ID)**: Unique 64-bit identifier assigned to a Kafka producer instance by the broker
 - **Deduplication window**: Time period during which the system remembers message IDs for duplicate detection
 - **EOS (Exactly-Once Semantics)**: Kafka's term for effectively exactly-once processing guarantees
 - **2PC (Two-Phase Commit)**: Distributed transaction protocol that ensures atomic commits across multiple participants
+- **CDC (Change Data Capture)**: Technique for reading database changes from transaction logs
+- **Transactional outbox**: Pattern where events are written to an outbox table in the same database transaction as business data
 
 ### Summary
 
-- True exactly-once delivery is impossible (Two Generals, FLP impossibility)
+- True exactly-once delivery is impossible (Two Generals 1975, FLP 1985)
 - "Exactly-once" means at-least-once delivery + idempotent consumption
-- Five implementation paths: idempotent operations, idempotency keys, broker-side dedup, consumer-side dedup, transactional processing
+- Six implementation paths: idempotent operations, idempotency keys, broker-side dedup, consumer-side dedup, transactional processing, transactional outbox
 - Every deduplication mechanism has a window—design retry policies accordingly
-- Kafka EOS: idempotent producers (PID + sequence) + transactional consumers (`read_committed`)
-- Stripe pattern: client-generated idempotency keys with 24-hour server-side cache
+- Kafka EOS: idempotent producers (PID + sequence) + transactional consumers (`read_committed`); default since Kafka 3.0
+- Deduplication windows vary: SQS FIFO (5 min fixed), Azure Service Bus (20s–7 days), NATS (2 min default)
+- Most exactly-once guarantees stop at system boundaries—always design downstream consumers as idempotent
 - Test with chaos: network partitions, restarts, rebalancing, clock skew
 
 ### References
 
+**Theoretical Foundations**
+
+- [Impossibility of Distributed Consensus with One Faulty Process](https://groups.csail.mit.edu/tds/papers/Lynch/jacm85.pdf) - FLP impossibility theorem (1985)
+- [A Brief Tour of FLP Impossibility](https://www.the-paper-trail.org/post/2008-08-13-a-brief-tour-of-flp-impossibility/) - Accessible explanation of FLP
+- [Two Generals' Problem](https://en.wikipedia.org/wiki/Two_Generals%27_Problem) - First computer communication problem proven unsolvable
+
+**Apache Kafka**
+
 - [KIP-98 - Exactly Once Delivery and Transactional Messaging](https://cwiki.apache.org/confluence/display/KAFKA/KIP-98+-+Exactly+Once+Delivery+and+Transactional+Messaging) - Kafka's exactly-once specification
 - [KIP-129 - Streams Exactly-Once Semantics](https://cwiki.apache.org/confluence/display/KAFKA/KIP-129%3A+Streams+Exactly-Once+Semantics) - Kafka Streams exactly-once
-- [Designing robust and predictable APIs with idempotency](https://stripe.com/blog/idempotency) - Stripe's idempotency key pattern
-- [Implementing Stripe-like Idempotency Keys in Postgres](https://brandur.org/idempotency-keys) - Detailed implementation guide
+- [KIP-447 - Producer scalability for exactly once semantics](https://cwiki.apache.org/confluence/display/KAFKA/KIP-447:+Producer+scalability+for+exactly+once+semantics) - EOS v2 improvements
+- [KIP-939 - Support Participation in 2PC](https://cwiki.apache.org/confluence/display/KAFKA/KIP-939:+Support+Participation+in+2PC) - Kafka + external database atomic writes
 - [Message Delivery Guarantees for Apache Kafka](https://docs.confluent.io/kafka/design/delivery-semantics.html) - Confluent official docs
 - [Exactly-once Support in Apache Kafka](https://medium.com/@jaykreps/exactly-once-support-in-apache-kafka-55e1fdd0a35f) - Jay Kreps on Kafka EOS
-- [The impossibility of exactly-once delivery](https://blog.bulloak.io/post/20200917-the-impossibility-of-exactly-once/) - Theoretical foundations
-- [You Cannot Have Exactly-Once Delivery](https://bravenewgeek.com/you-cannot-have-exactly-once-delivery/) - Why true exactly-once is impossible
+
+**Cloud Messaging Services**
+
 - [Cloud Pub/Sub exactly-once delivery](https://cloud.google.com/pubsub/docs/exactly-once-delivery) - Google Pub/Sub implementation
 - [AWS SQS FIFO exactly-once processing](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/FIFO-queues-exactly-once-processing.html) - AWS implementation
+- [Azure Service Bus duplicate detection](https://learn.microsoft.com/en-us/azure/service-bus-messaging/duplicate-detection) - Azure implementation
+
+**Other Messaging Systems**
+
+- [JetStream Model Deep Dive](https://docs.nats.io/using-nats/developer/develop_jetstream/model_deep_dive) - NATS deduplication
+- [Pulsar Transactions](https://pulsar.apache.org/docs/next/txn-what/) - Apache Pulsar exactly-once
+
+**API Idempotency**
+
+- [Designing robust and predictable APIs with idempotency](https://stripe.com/blog/idempotency) - Stripe's idempotency key pattern
+- [Implementing Stripe-like Idempotency Keys in Postgres](https://brandur.org/idempotency-keys) - Detailed implementation guide
+
+**Patterns**
+
+- [Transactional outbox pattern](https://microservices.io/patterns/data/transactional-outbox.html) - Microservices.io pattern reference
 - [Reliable Microservices Data Exchange With the Outbox Pattern](https://debezium.io/blog/2019/02/19/reliable-microservices-data-exchange-with-the-outbox-pattern/) - Outbox pattern with CDC
 - [Idempotent Consumer Pattern](https://microservices.io/patterns/communication-style/idempotent-consumer.html) - Microservices.io pattern reference
+
+**General**
+
+- [The impossibility of exactly-once delivery](https://blog.bulloak.io/post/20200917-the-impossibility-of-exactly-once/) - Theoretical foundations
+- [You Cannot Have Exactly-Once Delivery](https://bravenewgeek.com/you-cannot-have-exactly-once-delivery/) - Why true exactly-once is impossible
