@@ -193,6 +193,12 @@
       "lastChecked": "2026-02-03T08:47:44.588Z",
       "hint": "fetch-node"
     },
+    "https://arxiv.org/abs/1504.05140": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:27:07.913Z",
+      "hint": "fetch-node"
+    },
     "https://arxiv.org/abs/1603.01529": {
       "status": 200,
       "ok": true,
@@ -1129,6 +1135,12 @@
       "lastChecked": "2026-02-03T08:47:43.728Z",
       "hint": "fetch-node"
     },
+    "https://cortexmetrics.io/docs/architecture/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:20.175Z",
+      "hint": "fetch-node"
+    },
     "https://courses.cs.washington.edu/courses/cse444/08au/544M/READINGS/fekete-sigmod2008.pdf": {
       "status": 200,
       "ok": true,
@@ -1769,6 +1781,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:24.561Z",
+      "hint": "fetch-node"
+    },
+    "https://deepmind.google/discover/blog/traffic-prediction-with-advanced-graph-neural-networks/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:27:07.952Z",
       "hint": "fetch-node"
     },
     "https://dequeuniversity.com/rules/axe/html": {
@@ -3123,6 +3141,12 @@
       "lastChecked": "2026-02-03T08:47:10.740Z",
       "hint": "fetch-node"
     },
+    "https://docs.influxdata.com/influxdb/v1/concepts/storage_engine/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:18.947Z",
+      "hint": "fetch-node"
+    },
     "https://docs.kernel.org/admin-guide/mm/multigen_lru.html": {
       "status": 200,
       "ok": true,
@@ -3291,6 +3315,12 @@
       "lastChecked": "2026-02-03T08:47:57.018Z",
       "hint": "fetch-node"
     },
+    "https://docs.timescale.com/use-timescale/latest/hypertables/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:20.508Z",
+      "hint": "fetch-node"
+    },
     "https://docs.tokens.studio/": {
       "status": 200,
       "ok": true,
@@ -3301,6 +3331,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:46:54.198Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.victoriametrics.com/faq/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:20.187Z",
       "hint": "fetch-node"
     },
     "https://docs.victoriametrics.com/victoriametrics/cluster-victoriametrics/": {
@@ -3555,6 +3591,18 @@
       "lastChecked": "2026-02-03T15:21:42.417Z",
       "hint": "fetch-node"
     },
+    "https://eng.uber.com/m3/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:28.853Z",
+      "hint": "playwright"
+    },
+    "https://engineering.fb.com/2021/06/21/data-infrastructure/tectonic-file-system/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:17.439Z",
+      "hint": "fetch-node"
+    },
     "https://engineering.linkedin.com/blog/2018/01/now-you-see-me--now-you-dont--linkedins-real-time-presence-platf": {
       "status": 200,
       "ok": true,
@@ -3609,6 +3657,20 @@
       "lastChecked": "2026-02-03T08:48:00.009Z",
       "hint": "fetch-node"
     },
+    "https://engineeringblog.yelp.com/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:27:08.944Z",
+      "hint": "fetch-node"
+    },
+    "https://engineeringblog.yelp.com/2021/03/personalizing-yelp-home-with-contextual-bandit.html": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-05T18:58:22.768Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
     "https://engineeringblog.yelp.com/2021/09/nrtsearch-yelps-fast-scalable-and-cost-effective-search-engine.html": {
       "status": 200,
       "ok": true,
@@ -3636,7 +3698,7 @@
     "https://etcd.io/docs/v3.5/dev-guide/api_concurrency_ref/": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-03T20:52:05.309Z",
+      "lastChecked": "2026-02-05T18:58:20.553Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -3724,6 +3786,30 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:47.662Z",
+      "hint": "fetch-node"
+    },
+    "https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Fraunces:wght@400;500;600;700;800;900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:22.285Z",
+      "hint": "fetch-node"
+    },
+    "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Archivo+Black&display=swap": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:20.269Z",
+      "hint": "fetch-node"
+    },
+    "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cormorant+Garamond:wght@300;400;500;600&family=Josefin+Sans:wght@300;400;500&display=swap": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:21.285Z",
+      "hint": "fetch-node"
+    },
+    "https://fonts.googleapis.com/css2?family=VT323&family=Fira+Code:wght@400;500;600&family=Share+Tech+Mono&display=swap": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:23.278Z",
       "hint": "fetch-node"
     },
     "https://fonttools.readthedocs.io/en/latest/subset/": {
@@ -3874,6 +3960,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:46:57.348Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/Project-OSRM/osrm-backend": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:27:08.957Z",
       "hint": "fetch-node"
     },
     "https://github.com/Schniz/fnm": {
@@ -4098,6 +4190,12 @@
       "lastChecked": "2026-02-03T08:45:51.105Z",
       "hint": "fetch-node"
     },
+    "https://github.com/mapbox/vector-tile-spec": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:27:08.018Z",
+      "hint": "fetch-node"
+    },
     "https://github.com/mcollina/fastq": {
       "status": 200,
       "ok": true,
@@ -4132,6 +4230,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:45:52.295Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/openvenues/libpostal": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:27:09.977Z",
       "hint": "fetch-node"
     },
     "https://github.com/orlp/pdqsort": {
@@ -4480,6 +4584,30 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T20:51:14.887Z",
+      "hint": "fetch-node"
+    },
+    "https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/Federation.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:18.498Z",
+      "hint": "fetch-node"
+    },
+    "https://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:17.592Z",
+      "hint": "fetch-node"
+    },
+    "https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HDFSErasureCoding.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:20.244Z",
+      "hint": "fetch-node"
+    },
+    "https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HDFSHighAvailabilityWithQJM.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:20.203Z",
       "hint": "fetch-node"
     },
     "https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsDesign.html": {
@@ -4969,6 +5097,12 @@
       "lastChecked": "2026-02-03T08:47:40.762Z",
       "hint": "fetch-node"
     },
+    "https://link.springer.com/chapter/10.1007/978-3-540-68552-4_24": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:27:09.125Z",
+      "hint": "fetch-node"
+    },
     "https://link.springer.com/chapter/10.1007/978-3-642-24550-3_29": {
       "status": 200,
       "ok": true,
@@ -4985,6 +5119,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T18:41:39.411Z",
+      "hint": "fetch-node"
+    },
+    "https://location.foursquare.com/developer/docs/pilgrim-sdk-overview": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:27:09.602Z",
       "hint": "fetch-node"
     },
     "https://loro.dev/": {
@@ -5737,6 +5877,18 @@
       "lastChecked": "2026-02-03T08:46:35.813Z",
       "hint": "fetch-node"
     },
+    "https://pdos.csail.mit.edu/6.824/notes/l-gfs.txt": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:18.518Z",
+      "hint": "fetch-node"
+    },
+    "https://pdos.csail.mit.edu/6.824/papers/gfs-faq.txt": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:19.332Z",
+      "hint": "fetch-node"
+    },
     "https://pdos.csail.mit.edu/papers/lbfs:sosp01/lbfs.pdf": {
       "status": 200,
       "ok": true,
@@ -5809,6 +5961,12 @@
       "lastChecked": "2026-02-03T08:49:26.952Z",
       "hint": "fetch-node"
     },
+    "https://postgis.net/documentation/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:27:09.457Z",
+      "hint": "fetch-node"
+    },
     "https://pragprog.com/titles/mnee2/release-it-second-edition/": {
       "status": 200,
       "ok": true,
@@ -5837,6 +5995,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:00.513Z",
+      "hint": "fetch-node"
+    },
+    "https://prometheus.io/docs/prometheus/latest/querying/basics/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:20.619Z",
       "hint": "fetch-node"
     },
     "https://prometheus.io/docs/prometheus/latest/storage/": {
@@ -5881,13 +6045,17 @@
       "lastChecked": "2026-02-03T08:49:17.067Z",
       "hint": "fetch-node"
     },
-    "https://queue-it.com/blog/overselling/": {
-      "status": 500,
+    "https://questdb.com/docs/concept/storage-model/": {
+      "status": 200,
       "ok": true,
-      "lastChecked": "2026-02-03T20:52:05.184Z",
-      "error": "HTTP 500",
-      "hint": "manual",
-      "manual": "auto"
+      "lastChecked": "2026-02-05T17:54:22.064Z",
+      "hint": "fetch-node"
+    },
+    "https://queue-it.com/blog/overselling/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:27:09.570Z",
+      "hint": "playwright"
     },
     "https://quilljs.com/docs/delta/": {
       "status": 200,
@@ -6261,6 +6429,12 @@
       "lastChecked": "2026-02-03T08:48:18.010Z",
       "hint": "fetch-node"
     },
+    "https://research.google/pubs/pub51/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:54:18.814Z",
+      "hint": "fetch-node"
+    },
     "https://research.google/pubs/the-chubby-lock-service-for-loosely-coupled-distributed-systems/": {
       "status": 200,
       "ok": true,
@@ -6289,6 +6463,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T20:26:34.338Z",
+      "hint": "fetch-node"
+    },
+    "https://s2geometry.io/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:27:07.337Z",
       "hint": "fetch-node"
     },
     "https://samnewman.io/patterns/architectural/bff/": {
@@ -6330,7 +6510,7 @@
     "https://serialized.io/blog/apache-kafka-is-not-for-event-sourcing/": {
       "status": null,
       "ok": true,
-      "lastChecked": "2026-02-03T20:52:05.259Z",
+      "lastChecked": "2026-02-05T18:58:20.054Z",
       "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://serialized.io/blog/apache-kafka-is-not-for-event-sourcing/\nCall log:\n\u001b[2m  - navigating to \"https://serialized.io/blog/apache-kafka-is-not-for-event-sourcing/\", waiting until \"domcontentloaded\"\u001b[22m\n",
       "hint": "manual",
       "manual": "auto"
@@ -7190,7 +7370,7 @@
     "https://web.dev/articles/long-animation-frames": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-03T20:52:06.887Z",
+      "lastChecked": "2026-02-05T18:58:21.578Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -7447,6 +7627,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T19:00:49.515Z",
+      "hint": "fetch-node"
+    },
+    "https://wiki.openstreetmap.org/wiki/Zoom_levels": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:27:07.817Z",
       "hint": "fetch-node"
     },
     "https://www-cs-faculty.stanford.edu/~knuth/taocp.html": {
@@ -7764,7 +7950,7 @@
     "https://www.cs.princeton.edu/courses/archive/spring13/cos598C/Lectures/SimHash.pdf": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-03T20:52:04.807Z",
+      "lastChecked": "2026-02-05T18:58:22.459Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -7895,6 +8081,12 @@
       "lastChecked": "2026-02-03T08:47:47.768Z",
       "hint": "fetch-node"
     },
+    "https://www.elastic.co/guide/en/elasticsearch/reference/current/geo-queries.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-05T17:27:10.125Z",
+      "hint": "fetch-node"
+    },
     "https://www.elastic.co/guide/en/elasticsearch/reference/current/index.html": {
       "status": 200,
       "ok": true,
@@ -8006,7 +8198,7 @@
     "https://www.figma.com/blog/section/engineering/": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-03T20:52:07.214Z",
+      "lastChecked": "2026-02-05T18:58:20.623Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -8650,7 +8842,7 @@
     "https://www.semanticscholar.org/paper/UbiCrawler:-a-scalable-fully-distributed-Web-Boldi-Codenotti/ba8269289ea5ca6bd8f3b43c0153409e6286b38e": {
       "status": 202,
       "ok": true,
-      "lastChecked": "2026-02-03T20:52:04.451Z",
+      "lastChecked": "2026-02-05T18:58:21.279Z",
       "error": "HTTP 202",
       "hint": "manual",
       "manual": "auto"

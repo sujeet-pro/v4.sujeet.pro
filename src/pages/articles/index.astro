@@ -16,14 +16,33 @@ const allArticles = await getAllArticleCards()
   <section>
     {
       allArticles.length > 0 ? (
-        <ul class="article-list">
-          {allArticles.map((article) => (
-            <ArticleCard article={article} />
+        <ul class="article-list articles-animated">
+          {allArticles.map((article, index) => (
+            <div class="article-item-animated" style={`animation-delay: ${Math.min(index * 50, 400)}ms`}>
+              <ArticleCard article={article} />
+            </div>
           ))}
         </ul>
       ) : (
-        <p class="text-muted">No articles yet. Check back soon!</p>
+        <p class="text-muted empty-state">No articles yet. Check back soon!</p>
       )
     }
   </section>
 </Layout>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  .articles-animated {
+    /* Container for animated items */
+  }
+
+  .article-item-animated {
+    animation: fadeInUp var(--transition-slow) forwards;
+    opacity: 0;
+  }
+
+  .empty-state {
+    @apply py-12 text-center;
+  }
+</style>

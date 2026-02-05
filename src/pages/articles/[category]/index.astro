@@ -32,18 +32,22 @@ const { Content } = categoryIndex
   noIndex={categoryIndex.isDraft}
 >
   <!-- Render the category's markdown content -->
-  <article class="prose mb-12">
+  <article class="prose category-content">
     <Content />
   </article>
 
   <!-- Topics Section -->
   {
     topics.length > 0 && (
-      <section class="mb-12">
-        <h2 class="section-title">Browse by Topic</h2>
+      <section class="topics-section">
+        <div class="section-divider">
+          <span class="section-divider-text">Browse by Topic</span>
+        </div>
         <div class="topic-list">
-          {topics.map((topic) => (
-            <TopicCard topic={topic} category={category} articleCount={topic.articles.length} />
+          {topics.map((topic, index) => (
+            <div class="topic-item-animated" style={`animation-delay: ${index * 80}ms`}>
+              <TopicCard topic={topic} category={category} articleCount={topic.articles.length} />
+            </div>
           ))}
         </div>
       </section>
@@ -51,18 +55,53 @@ const { Content } = categoryIndex
   }
 
   <!-- All Articles in Category -->
-  <section>
-    <h2 class="section-title">All Articles ({formatCount(articles.length, "article")})</h2>
+  <section class="articles-section">
+    <div class="section-divider">
+      <span class="section-divider-text">All Articles ({formatCount(articles.length, "article")})</span>
+    </div>
     {
       articles.length > 0 ? (
         <ul class="article-list">
-          {articles.map((article) => (
-            <ArticleCard article={article} headingLevel="h3" />
+          {articles.map((article, index) => (
+            <div class="article-item-animated" style={`animation-delay: ${Math.min(index * 50, 300)}ms`}>
+              <ArticleCard article={article} headingLevel="h3" />
+            </div>
           ))}
         </ul>
       ) : (
-        <p class="text-muted">No articles yet in this category.</p>
+        <p class="text-muted empty-state">No articles yet in this category.</p>
       )
     }
   </section>
 </Layout>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  .category-content {
+    @apply mb-16;
+    animation: fadeInUp var(--transition-slow) forwards;
+  }
+
+  .topics-section {
+    @apply mb-16;
+  }
+
+  .articles-section {
+    @apply mb-8;
+  }
+
+  .topic-item-animated {
+    animation: fadeInUp var(--transition-slow) forwards;
+    opacity: 0;
+  }
+
+  .article-item-animated {
+    animation: fadeInUp var(--transition-slow) forwards;
+    opacity: 0;
+  }
+
+  .empty-state {
+    @apply py-12 text-center;
+  }
+</style>

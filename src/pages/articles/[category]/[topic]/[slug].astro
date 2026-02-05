@@ -1,12 +1,12 @@
 ---
 import { Icon } from "astro-icon/components"
 import ArticleCard from "@/components/article-card.astro"
-import CategoryNav from "@/components/category-nav.astro"
 import TOC from "@/components/toc.astro"
 import Frontmatter from "@/components/frontmatter.astro"
 import Layout from "@/layout/layout.astro"
 import ReadingProgress from "@/layout/reading-progress.astro"
 import { getAllArticlePaths, getAllArticlesDetailed } from "@/utils/content"
+import Link from "@/components/link.astro"
 
 // Generate static paths for all articles (including drafts)
 export async function getStaticPaths() {
@@ -26,7 +26,7 @@ if (!articleDetail) {
 
 const { article, topic: topicCard, next: nextArticle, prev: prevArticle } = articleDetail
 
-// Map topic articles for category nav
+// Map topic articles for inline navigation
 const topicArticles = topicCard.articles.map((a) => ({
   id: a.id,
   title: a.title,
@@ -39,51 +39,38 @@ const crumbs = [
   { name: articleTopic.name, href: articleTopic.href, title: articleTopic.title },
 ]
 
-// Show category nav when there are other articles in the same topic
-const showCategoryNav = topicArticles.length > 1
+// Show topic articles when there are other articles in the same topic
+const showTopicArticles = topicArticles.length > 1
 ---
 
-<Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft} layout="3col">
-  <!-- Category Nav in left sidebar (desktop only) -->
+<Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft}>
+  <!-- Reading Progress Bar -->
+  <ReadingProgress />
+
+  <!-- Topic Articles Dropdown (always on top, like mobile view) -->
   {
-    showCategoryNav && (
-      <CategoryNav
-        slot="sidebar-left"
-        categoryName={topicCard.title}
-        articles={topicArticles}
-        currentArticleId={article.id}
-      />
-    )
-  }
-
-  <!-- TOC in right sidebar -->
-  <TOC slot="sidebar-right" />
-
-  <!-- Content top (above main) -->
-  <ReadingProgress slot="content-top" />
-
-  <!-- Category Nav inline (mobile/tablet only) -->
-  {
-    showCategoryNav && (
-      <details slot="content-top" class="category-nav-inline" id="category-nav-inline">
-        <summary class="category-nav-inline-summary">
-          <span class="category-nav-inline-title">
+    showTopicArticles && (
+      <details class="topic-articles-dropdown" id="topic-articles-dropdown">
+        <summary class="topic-articles-summary">
+          <span class="topic-articles-label">
             <Icon name="carbon:list" class="icon-sm" />
-            {topicCard.title}
+            <span>{topicCard.title}</span>
+            <span class="topic-articles-count">({topicArticles.length} articles)</span>
           </span>
-          <Icon name="carbon:chevron-down" class="category-nav-inline-icon" />
+          <Icon name="carbon:chevron-down" class="topic-articles-chevron" />
         </summary>
-        <nav class="category-nav-inline-content" aria-label={`${topicCard.title} articles`}>
-          <ul class="category-nav-list">
+        <nav class="topic-articles-content" aria-label={`${topicCard.title} articles`}>
+          <ul class="topic-articles-list">
             {topicArticles.map((item) => {
               const isCurrent = item.id === article.id
               return (
-                <li class="category-nav-item">
+                <li>
                   <a
                     href={item.href}
-                    class:list={["category-nav-link", { "category-nav-link-active": isCurrent }]}
+                    class:list={["topic-articles-link", { "topic-articles-link-active": isCurrent }]}
                     aria-current={isCurrent ? "page" : undefined}
                   >
+                    {isCurrent && <Icon name="carbon:chevron-right" class="topic-articles-indicator" />}
                     {item.title}
                   </a>
                 </li>
@@ -95,9 +82,10 @@ const showCategoryNav = topicArticles.length > 1
     )
   }
 
-  <Frontmatter slot="content-top" {minutesRead} {isDraft} class="my-4" />
+  <!-- Article Metadata -->
+  <Frontmatter {minutesRead} {isDraft} class="article-frontmatter" />
 
-  <!-- Main content (default slot) -->
+  <!-- Main Article Content -->
   <article class="article-prose-content">
     <Content />
   </article>
@@ -105,8 +93,10 @@ const showCategoryNav = topicArticles.length > 1
   <!-- Article Navigation (prev/next) -->
   {
     (prevArticle || nextArticle) && (
-      <section slot="content-bottom" class="mt-12">
-        <h2 class="mb-6 text-2xl font-light">Read more</h2>
+      <section class="article-navigation">
+        <div class="section-divider">
+          <span class="section-divider-text">Continue Reading</span>
+        </div>
         <ul class="article-list">
           {prevArticle && <ArticleCard textHeading="Previous" article={prevArticle} />}
           {nextArticle && <ArticleCard textHeading="Next" article={nextArticle} />}
@@ -114,4 +104,103 @@ const showCategoryNav = topicArticles.length > 1
       </section>
     )
   }
+
+  <!-- Floating TOC Button (always accessible) -->
+  <TOC />
 </Layout>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  /* Article frontmatter spacing */
+  .article-frontmatter {
+    @apply mb-8;
+  }
+
+  /* Topic Articles Dropdown - Always on top */
+  .topic-articles-dropdown {
+    @apply mb-8 rounded-xl border;
+    background: var(--color-bg-elevated);
+    border-color: var(--color-border);
+    box-shadow: var(--shadow-sm);
+    animation: fadeInUp var(--transition-slow) forwards;
+  }
+
+  .topic-articles-dropdown[open] {
+    box-shadow: var(--shadow-md);
+  }
+
+  .topic-articles-summary {
+    @apply flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4;
+    transition: background-color var(--transition-fast);
+  }
+
+  .topic-articles-summary:hover {
+    background: var(--color-accent-subtle);
+    border-radius: 11px;
+  }
+
+  .topic-articles-summary::-webkit-details-marker {
+    @apply hidden;
+  }
+
+  .topic-articles-label {
+    @apply flex items-center gap-2 text-sm font-medium;
+    color: var(--color-text);
+  }
+
+  .topic-articles-count {
+    color: var(--color-text-muted);
+    font-weight: normal;
+  }
+
+  .topic-articles-chevron {
+    @apply h-5 w-5;
+    color: var(--color-text-muted);
+    transition: transform var(--transition-normal);
+  }
+
+  .topic-articles-dropdown[open] .topic-articles-chevron {
+    transform: rotate(180deg);
+  }
+
+  .topic-articles-content {
+    @apply max-h-80 overflow-y-auto;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .topic-articles-list {
+    @apply p-3;
+  }
+
+  .topic-articles-list li {
+    @apply m-0;
+  }
+
+  .topic-articles-link {
+    @apply flex items-center gap-2 rounded-lg px-4 py-3 text-sm no-underline;
+    color: var(--color-text-muted);
+    transition: all var(--transition-fast);
+  }
+
+  .topic-articles-link:hover {
+    background: var(--color-accent-subtle);
+    color: var(--color-text);
+  }
+
+  .topic-articles-link-active {
+    @apply font-medium;
+    background: var(--color-accent-subtle);
+    color: var(--color-accent) !important;
+  }
+
+  .topic-articles-indicator {
+    @apply h-4 w-4;
+    color: var(--color-accent);
+  }
+
+  /* Article Navigation section */
+  .article-navigation {
+    @apply mt-16;
+  }
+</style>

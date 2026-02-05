@@ -8,44 +8,32 @@ interface Props {
 const { class: className } = Astro.props
 ---
 
-<!-- Desktop: Sidebar TOC (sticky/scroll handled by layout) -->
-<div class:list={["toc-sidebar", className]} id="toc-sidebar">
-  <h2 class="toc-heading">On this page</h2>
-  <nav class="toc-nav" aria-label="Table of contents">
-    <ul class="toc-list">
-      <!-- Populated by JS -->
-    </ul>
-  </nav>
-</div>
-
-<!-- Mobile: Floating TOC button (hidden by default, shown via JS) -->
+<!-- Floating TOC Button (aligned with header container) -->
 <button
   type="button"
-  id="toc-mobile-btn"
-  class="toc-mobile-btn"
+  id="toc-floating-btn"
+  class:list={["toc-floating-btn", className]}
   aria-label="Open table of contents"
-  aria-expanded="false"
-  aria-controls="toc-modal"
+  aria-haspopup="dialog"
 >
   <Icon name="carbon:list" class="icon-md" />
   <span class="sr-only">Table of Contents</span>
 </button>
 
-<!-- Mobile: TOC Modal (hidden by default) -->
-<div id="toc-modal" class="toc-modal" role="dialog" aria-modal="true" aria-labelledby="toc-modal-title">
-  <div class="toc-modal-backdrop"></div>
-  <div class="toc-modal-content">
-    <div class="toc-modal-header">
-      <h2 id="toc-modal-title" class="toc-modal-title">Table of Contents</h2>
-      <button type="button" id="toc-modal-close" class="toc-modal-close" aria-label="Close table of contents">
+<!-- TOC Dialog (native dialog element for scroll trapping) -->
+<dialog id="toc-dialog" class="toc-dialog">
+  <div class="toc-dialog-content">
+    <div class="toc-dialog-header">
+      <h2 class="toc-dialog-title">On this page</h2>
+      <button type="button" id="toc-dialog-close" class="toc-dialog-close" aria-label="Close table of contents">
         <Icon name="carbon:close" class="icon-md" />
       </button>
     </div>
-    <nav class="toc-modal-nav" aria-label="Table of contents">
-      <!-- TOC content cloned here via JS -->
+    <nav class="toc-dialog-nav" aria-label="Table of contents">
+      <!-- TOC content generated via JS -->
     </nav>
   </div>
-</div>
+</dialog>
 
 <script>
   interface TocItem {
@@ -81,33 +69,30 @@ const { class: className } = Astro.props
 
     tocItems.forEach((item) => {
       if (item.level === 2) {
-        // Start a new section
         currentSection = { h2: item, h3s: [] }
         sections.push(currentSection)
       } else if (item.level === 3 && currentSection) {
-        // Add h3 to current section
         currentSection.h3s.push(item)
       }
     })
 
     // Calculate total TOC items to determine if we should expand all
     const totalItems = sections.reduce((count, section) => count + 1 + section.h3s.length, 0)
-    const expandAllThreshold = 21
+    const expandAllThreshold = 15
     const shouldExpandAll = totalItems <= expandAllThreshold
 
     // Generate HTML with collapsible sections
     function generateTocHtml(sections: TocSection[]): string {
-      return sections
+      return `<ul class="toc-list">${sections
         .map((section) => {
           const hasChildren = section.h3s.length > 0
 
           if (hasChildren) {
-            // H2 with h3 children - use details/summary
             const h3Items = section.h3s
               .map(
                 (h3) => `
                 <li>
-                  <a href="#${h3.id}" class="toc-link toc-link-h3 text-muted hover:text-current block py-1 transition-colors">
+                  <a href="#${h3.id}" class="toc-link toc-link-h3">
                     ${h3.text}
                   </a>
                 </li>
@@ -115,14 +100,13 @@ const { class: className } = Astro.props
               )
               .join("")
 
-            // Add 'open' attribute if total items is small enough
             const openAttr = shouldExpandAll ? "open" : ""
 
             return `
               <li class="toc-section">
                 <details class="toc-details" ${openAttr}>
                   <summary class="toc-summary">
-                    <a href="#${section.h2.id}" class="toc-link toc-link-h2 text-muted hover:text-current transition-colors" data-h2-id="${section.h2.id}">
+                    <a href="#${section.h2.id}" class="toc-link toc-link-h2" data-h2-id="${section.h2.id}">
                       ${section.h2.text}
                     </a>
                     <svg class="toc-chevron" viewBox="0 0 20 20" fill="currentColor">
@@ -136,49 +120,35 @@ const { class: className } = Astro.props
               </li>
             `
           } else {
-            // H2 without children - simple link
             return `
               <li class="toc-section">
-                <a href="#${section.h2.id}" class="toc-link toc-link-h2 text-muted hover:text-current block py-1 transition-colors" data-h2-id="${section.h2.id}">
+                <a href="#${section.h2.id}" class="toc-link toc-link-h2" data-h2-id="${section.h2.id}">
                   ${section.h2.text}
                 </a>
               </li>
             `
           }
         })
-        .join("")
+        .join("")}</ul>`
     }
 
     const tocHtml = generateTocHtml(sections)
 
-    // Populate sidebar TOC
-    const sidebarList = document.querySelector("#toc-sidebar .toc-list")
-    if (sidebarList) {
-      sidebarList.innerHTML = tocHtml
+    // Get elements
+    const floatingBtn = document.getElementById("toc-floating-btn")
+    const dialog = document.getElementById("toc-dialog") as HTMLDialogElement | null
+    const dialogNav = dialog?.querySelector(".toc-dialog-nav")
+    const closeBtn = document.getElementById("toc-dialog-close")
+
+    // Move floating button to body so it's positioned correctly
+    if (floatingBtn && floatingBtn.parentElement !== document.body) {
+      document.body.appendChild(floatingBtn)
     }
 
-    // Setup link click handlers for sidebar
-    setupLinkHandlers(sidebarList as HTMLElement)
-
-    // Get mobile TOC elements
-    const mobileBtn = document.getElementById("toc-mobile-btn")
-    const modal = document.getElementById("toc-modal")
-
-    // Move floating button and modal to body so they're not hidden by sidebar's display:none
-    if (mobileBtn && mobileBtn.parentElement !== document.body) {
-      document.body.appendChild(mobileBtn)
+    // Show floating button (JS is enabled and there's content)
+    if (floatingBtn) {
+      floatingBtn.classList.add("is-visible")
     }
-    if (modal && modal.parentElement !== document.body) {
-      document.body.appendChild(modal)
-    }
-
-    // Show mobile TOC button (JS is enabled)
-    if (mobileBtn) {
-      mobileBtn.classList.add("visible")
-    }
-    const modalNav = modal?.querySelector(".toc-modal-nav")
-    const closeBtn = document.getElementById("toc-modal-close")
-    const backdrop = modal?.querySelector(".toc-modal-backdrop")
 
     function setupLinkHandlers(container: HTMLElement | null) {
       if (!container) return
@@ -186,133 +156,54 @@ const { class: className } = Astro.props
       container.querySelectorAll<HTMLAnchorElement>(".toc-link").forEach((link) => {
         link.addEventListener("click", (e) => {
           e.preventDefault()
-          e.stopPropagation() // Prevent details toggle when clicking link
+          e.stopPropagation()
           const targetId = link.getAttribute("href")?.slice(1)
           if (targetId) {
             const target = document.getElementById(targetId)
             if (target) {
-              target.scrollIntoView({ behavior: "smooth", block: "start" })
-              history.pushState(null, "", `#${targetId}`)
+              // Close dialog first, then scroll
+              closeDialog()
+              // Small delay to allow dialog to close
+              setTimeout(() => {
+                target.scrollIntoView({ behavior: "smooth", block: "start" })
+                history.pushState(null, "", `#${targetId}`)
+              }, 100)
             }
-          }
-          // Close modal if open
-          if (modal?.classList.contains("open")) {
-            closeModal()
           }
         })
       })
     }
 
-    function openModal() {
-      if (!modal || !modalNav || !sidebarList) return
+    function openDialog() {
+      if (!dialog || !dialogNav) return
 
-      // Clone TOC content into modal
-      const tocList = sidebarList.cloneNode(true) as HTMLElement
-      tocList.classList.add("text-sm")
-      modalNav.innerHTML = ""
-      modalNav.appendChild(tocList)
+      // Set TOC content
+      dialogNav.innerHTML = tocHtml
 
-      // Setup click handlers for modal
-      setupLinkHandlers(tocList)
+      // Setup click handlers
+      setupLinkHandlers(dialogNav as HTMLElement)
 
-      modal.classList.add("open")
-      mobileBtn?.setAttribute("aria-expanded", "true")
-      document.body.style.overflow = "hidden"
-      closeBtn?.focus()
+      // Show dialog as modal (traps focus and scroll)
+      dialog.showModal()
     }
 
-    function closeModal() {
-      if (!modal || !modalNav) return
-      modal.classList.remove("open")
-      mobileBtn?.setAttribute("aria-expanded", "false")
-      document.body.style.overflow = ""
-      modalNav.innerHTML = ""
-      mobileBtn?.focus()
+    function closeDialog() {
+      if (!dialog) return
+      dialog.close()
     }
 
-    // Event listeners for modal
-    mobileBtn?.addEventListener("click", openModal)
-    closeBtn?.addEventListener("click", closeModal)
-    backdrop?.addEventListener("click", closeModal)
+    // Event listeners
+    floatingBtn?.addEventListener("click", openDialog)
+    closeBtn?.addEventListener("click", closeDialog)
 
-    // Close on Escape key
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modal?.classList.contains("open")) {
-        closeModal()
+    // Close on backdrop click
+    dialog?.addEventListener("click", (e) => {
+      if (e.target === dialog) {
+        closeDialog()
       }
     })
 
-    // Highlight active section on scroll
-    const headingElements = Array.from(headings) as HTMLElement[]
-
-    function updateActiveLink() {
-      const scrollPosition = window.scrollY + 100
-
-      // Find current heading
-      let activeHeading: HTMLElement | null = null
-      for (let i = headingElements.length - 1; i >= 0; i--) {
-        const element = headingElements[i]
-        if (element && element.offsetTop <= scrollPosition) {
-          activeHeading = element
-          break
-        }
-      }
-
-      if (!activeHeading) {
-        activeHeading = headingElements[0] || null
-      }
-
-      // Remove all active states
-      document.querySelectorAll("#toc-sidebar .toc-link").forEach((link) => {
-        link.classList.add("text-muted")
-        link.classList.remove("text-accent", "font-medium")
-      })
-
-      if (activeHeading) {
-        const activeId = activeHeading.id
-        const activeLink = document.querySelector(`#toc-sidebar .toc-link[href="#${activeId}"]`)
-
-        if (activeLink) {
-          activeLink.classList.remove("text-muted")
-          activeLink.classList.add("text-accent", "font-medium")
-
-          // If it's an h3, expand its parent details and highlight parent h2 as well
-          if (activeHeading.tagName === "H3") {
-            const parentDetails = activeLink.closest(".toc-details")
-            if (parentDetails) {
-              ;(parentDetails as HTMLDetailsElement).open = true
-              // Also highlight parent h2
-              const parentH2Link = parentDetails.querySelector(".toc-link-h2")
-              if (parentH2Link) {
-                parentH2Link.classList.remove("text-muted")
-                parentH2Link.classList.add("text-accent")
-              }
-            }
-          }
-
-          // Auto-scroll the TOC to keep active link visible
-          activeLink.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-          })
-        }
-      }
-    }
-
-    // Initial highlight
-    updateActiveLink()
-
-    // Update on scroll (throttled)
-    let ticking = false
-    window.addEventListener("scroll", () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          updateActiveLink()
-          ticking = false
-        })
-        ticking = true
-      }
-    })
+    // Close on Escape is handled natively by dialog element
   }
 
   // Initialize on DOM ready
@@ -326,229 +217,226 @@ const { class: className } = Astro.props
   @reference "tailwindcss";
 
   /* ==========================================================================
-     TOC SIDEBAR STYLES
+     FLOATING TOC BUTTON - Aligned with header container
      ========================================================================== */
 
-  .toc-sidebar {
-    @apply block;
-  }
-
-  .toc-heading {
-    @apply mb-4 text-sm font-medium tracking-wide uppercase opacity-60;
-  }
-
-  .toc-list {
-    @apply space-y-2 text-sm;
-  }
-
-  /* Active link styling */
-  #toc-sidebar .toc-link.text-accent {
-    color: var(--color-accent);
-  }
-
-  /* TOC section spacing */
-  #toc-sidebar .toc-section {
-    @apply mb-1;
-  }
-
-  /* Details/Summary styling */
-  #toc-sidebar .toc-details {
-    @apply border-none;
-  }
-
-  #toc-sidebar .toc-details summary {
-    @apply list-none;
-  }
-
-  #toc-sidebar .toc-details summary::-webkit-details-marker {
-    @apply hidden;
-  }
-
-  #toc-sidebar .toc-summary {
-    @apply flex cursor-pointer items-center justify-between gap-2 py-1;
-  }
-
-  #toc-sidebar .toc-summary:hover .toc-link-h2 {
+  .toc-floating-btn {
+    @apply fixed bottom-6 z-40 hidden cursor-pointer rounded-full p-4;
+    /* Align with header container - calc from right edge */
+    right: max(1.5rem, calc((100vw - var(--header-width)) / 2 + 1.5rem));
+    background-color: var(--color-bg-elevated);
     color: var(--color-text);
-  }
-
-  /* Chevron icon */
-  #toc-sidebar .toc-chevron {
-    @apply h-4 w-4 shrink-0;
-    color: var(--color-text-muted);
-    transition: transform var(--transition-normal);
-  }
-
-  #toc-sidebar .toc-details[open] .toc-chevron {
-    transform: rotate(180deg);
-  }
-
-  /* Nested h3 list */
-  #toc-sidebar .toc-sublist {
-    @apply m-0 ml-1 list-none pl-4;
-    border-left: 1px solid var(--color-border);
-  }
-
-  #toc-sidebar .toc-sublist li {
-    @apply m-0;
-  }
-
-  /* H2 link in summary */
-  #toc-sidebar .toc-summary .toc-link-h2 {
-    @apply block flex-1 p-0;
-  }
-
-  /* Standalone h2 link (no children) */
-  #toc-sidebar .toc-section > .toc-link-h2 {
-    @apply block py-1;
-  }
-
-  /* ==========================================================================
-     TOC MOBILE BUTTON
-     ========================================================================== */
-
-  .toc-mobile-btn {
-    @apply fixed right-6 bottom-6 z-40 hidden cursor-pointer rounded-full border-none p-3.5 shadow-lg;
-    background-color: var(--color-accent);
-    color: white;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-lg);
     min-width: var(--min-touch-target);
     min-height: var(--min-touch-target);
-    transition: transform var(--transition-normal);
+    transition: all var(--transition-normal);
   }
 
-  .toc-mobile-btn:hover {
-    transform: scale(1.05);
+  .toc-floating-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+    background-color: var(--color-accent-subtle);
   }
 
-  .toc-mobile-btn:focus {
+  .toc-floating-btn:focus {
     @apply outline-2 outline-offset-2;
     outline-color: var(--color-accent);
   }
 
-  .toc-mobile-btn.visible {
-    @apply flex;
-  }
-
-  @media (min-width: 1200px) {
-    .toc-mobile-btn.visible {
-      @apply hidden;
-    }
+  .toc-floating-btn.is-visible {
+    @apply flex items-center justify-center;
   }
 
   /* ==========================================================================
-     TOC MODAL
+     TOC DIALOG - Native dialog element
      ========================================================================== */
 
-  .toc-modal {
-    @apply fixed inset-0 z-50 hidden;
+  .toc-dialog {
+    @apply fixed m-0 p-0;
+    border: none;
+    background: transparent;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: visible;
   }
 
-  .toc-modal.open {
-    @apply flex items-end justify-center;
+  /* Backdrop styling */
+  .toc-dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    animation: fadeIn var(--transition-fast) forwards;
   }
 
-  .toc-modal-backdrop {
-    @apply absolute inset-0;
-    background-color: rgb(0 0 0 / 0.5);
+  /* Mobile: Bottom sheet */
+  @media (max-width: 767px) {
+    .toc-dialog {
+      @apply inset-auto bottom-0 left-0 right-0;
+      width: 100%;
+    }
+
+    .toc-dialog[open] {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .toc-dialog-content {
+      @apply mx-4 mb-4 flex w-full max-w-md flex-col rounded-2xl;
+      max-height: 75vh;
+      background-color: var(--color-bg-elevated);
+      box-shadow: var(--shadow-xl);
+      animation: slideUp var(--transition-normal) forwards;
+    }
   }
 
-  .toc-modal-content {
-    @apply relative mx-4 mb-4 flex w-full max-w-md flex-col rounded-2xl;
-    max-height: 70vh;
-    background-color: var(--color-bg);
-    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-    animation: toc-slideUp var(--transition-normal);
+  /* Desktop: Right panel */
+  @media (min-width: 768px) {
+    .toc-dialog {
+      @apply inset-auto top-0 right-0 bottom-0;
+      height: 100vh;
+      height: 100dvh;
+    }
+
+    .toc-dialog[open] {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .toc-dialog-content {
+      @apply flex h-full w-full max-w-sm flex-col;
+      background-color: var(--color-bg-elevated);
+      box-shadow: var(--shadow-xl);
+      animation: slideInFromRight var(--transition-normal) forwards;
+    }
   }
 
-  @keyframes toc-slideUp {
+  @keyframes slideInFromRight {
     from {
-      transform: translateY(1rem);
       opacity: 0;
+      transform: translateX(100%);
     }
     to {
-      transform: translateY(0);
       opacity: 1;
+      transform: translateX(0);
     }
   }
 
-  .toc-modal-header {
-    @apply flex items-center justify-between px-5 py-4;
-    border-bottom: 1px solid var(--color-border);
+  .toc-dialog-header {
+    @apply flex shrink-0 items-center justify-between px-6 py-5;
+    border-bottom: 1px solid var(--color-border-subtle);
   }
 
-  .toc-modal-title {
-    @apply text-lg font-medium;
+  .toc-dialog-title {
+    @apply text-lg font-semibold;
+    color: var(--color-text);
   }
 
-  .toc-modal-close {
+  .toc-dialog-close {
     @apply flex cursor-pointer items-center justify-center rounded-lg border-none bg-transparent p-2;
     color: var(--color-text-muted);
     min-width: var(--min-touch-target);
     min-height: var(--min-touch-target);
-    transition: color var(--transition-fast);
+    transition: all var(--transition-fast);
   }
 
-  .toc-modal-close:hover {
+  .toc-dialog-close:hover {
     color: var(--color-text);
+    background: var(--color-accent-subtle);
   }
 
-  .toc-modal-close:focus {
+  .toc-dialog-close:focus {
     @apply outline-2 outline-offset-2;
     outline-color: var(--color-accent);
   }
 
-  .toc-modal-nav {
-    @apply overflow-y-auto px-5 py-4;
+  .toc-dialog-nav {
+    @apply flex-1 overflow-y-auto px-4 py-4;
+    /* Scroll is trapped within dialog by native dialog behavior */
   }
 
   /* ==========================================================================
-     TOC MODAL CONTENT (cloned from sidebar)
+     TOC LIST STYLES
      ========================================================================== */
 
-  .toc-modal-nav .toc-section {
+  .toc-list {
+    @apply space-y-1;
+  }
+
+  .toc-section {
     @apply mb-1;
   }
 
-  .toc-modal-nav .toc-details {
+  .toc-details {
     @apply border-none;
   }
 
-  .toc-modal-nav .toc-details summary {
+  .toc-details summary {
     @apply list-none;
   }
 
-  .toc-modal-nav .toc-details summary::-webkit-details-marker {
+  .toc-details summary::-webkit-details-marker {
     @apply hidden;
   }
 
-  .toc-modal-nav .toc-summary {
-    @apply flex cursor-pointer items-center justify-between gap-2 py-1;
+  .toc-summary {
+    @apply flex cursor-pointer items-center justify-between gap-2 rounded-lg px-3 py-2;
+    transition: background-color var(--transition-fast);
   }
 
-  .toc-modal-nav .toc-chevron {
+  .toc-summary:hover {
+    background: var(--color-accent-subtle);
+  }
+
+  .toc-link {
+    @apply text-sm no-underline;
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast);
+  }
+
+  .toc-link:hover {
+    color: var(--color-text);
+  }
+
+  .toc-link-h2 {
+    @apply flex-1 font-medium;
+  }
+
+  .toc-link-h3 {
+    @apply block rounded-lg px-3 py-2;
+  }
+
+  .toc-link-h3:hover {
+    background: var(--color-accent-subtle);
+  }
+
+  /* Chevron icon */
+  .toc-chevron {
     @apply h-4 w-4 shrink-0;
     color: var(--color-text-muted);
     transition: transform var(--transition-normal);
   }
 
-  .toc-modal-nav .toc-details[open] .toc-chevron {
+  .toc-details[open] .toc-chevron {
     transform: rotate(180deg);
   }
 
-  .toc-modal-nav .toc-sublist {
-    @apply m-0 ml-1 list-none pl-4;
-    border-left: 1px solid var(--color-border);
+  /* Nested h3 list */
+  .toc-sublist {
+    @apply mt-1 ml-3 list-none pl-3;
+    border-left: 1px solid var(--color-border-subtle);
   }
 
-  .toc-modal-nav .toc-sublist li {
+  .toc-sublist li {
     @apply m-0;
   }
 
-  .toc-modal-nav .toc-summary .toc-link-h2 {
-    @apply block flex-1 p-0;
+  /* Standalone h2 link (no children) */
+  .toc-section > .toc-link-h2 {
+    @apply block rounded-lg px-3 py-2;
   }
 
-  .toc-modal-nav .toc-section > .toc-link-h2 {
-    @apply block py-1;
+  .toc-section > .toc-link-h2:hover {
+    background: var(--color-accent-subtle);
   }
 </style>

@@ -22,15 +22,19 @@ const crumbs: { name: string; href: string }[] = []
   <p class="page-description">Explore all content organized by category and topic.</p>
 
   <p class="browse-stats">
-    {formatCount(totalCategories, "Category", "Categories")} · {formatCount(totalTopics, "Topic")} · {
+    {formatCount(totalCategories, "Category", "Categories")} &middot; {formatCount(totalTopics, "Topic")} &middot; {
       formatCount(totalArticles, "Article")
     }
   </p>
 
+  <div class="section-divider">
+    <span class="section-divider-text">Categories</span>
+  </div>
+
   <div class="browse-categories">
     {
-      categoryData.map((category) => (
-        <section class="browse-category">
+      categoryData.map((category, catIndex) => (
+        <section class="browse-category" style={`animation-delay: ${catIndex * 150}ms`}>
           <div class="browse-category-header">
             <h2 class="browse-category-title">
               <Link href={category.href}>{category.name}</Link>
@@ -58,30 +62,33 @@ const crumbs: { name: string; href: string }[] = []
 
   /* Browse page stats */
   .browse-stats {
-    @apply mb-8 text-xs;
+    @apply mb-10 text-sm;
     color: var(--color-text-muted);
+    animation: fadeInUp var(--transition-slow) 200ms forwards;
+    opacity: 0;
   }
 
   /* Category sections */
   .browse-categories {
-    @apply flex flex-col gap-8;
+    @apply flex flex-col gap-12;
   }
 
   .browse-category {
     @apply flex flex-col;
+    animation: fadeInUp var(--transition-slow) forwards;
+    opacity: 0;
   }
 
   /* Sticky category header - positioned below site header */
   .browse-category-header {
-    @apply sticky py-3;
-    /* Site header is ~3rem tall (py-2 + content) */
-    top: 3rem;
+    @apply sticky py-4;
+    top: 4rem;
     z-index: 20;
-    background: var(--color-bg);
+    background: linear-gradient(to bottom, var(--color-bg) 80%, transparent);
   }
 
   .browse-category-title {
-    @apply mb-0 font-sans text-xl font-semibold md:text-2xl;
+    @apply mb-0 font-sans text-2xl font-normal md:text-3xl;
     color: var(--color-text);
   }
 
@@ -96,11 +103,11 @@ const crumbs: { name: string; href: string }[] = []
   }
 
   .browse-category-header .browse-category-meta {
-    @apply mt-1 mb-0 text-xs;
+    @apply mt-2 mb-0 text-sm;
     color: var(--color-text-muted);
   }
 
-  /* Topic sections - no indent needed, typography provides hierarchy */
+  /* Topic sections */
   .browse-topics {
     @apply flex flex-col;
   }

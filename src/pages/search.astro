@@ -13,116 +13,132 @@ const searchSchemaJson = JSON.stringify(SEARCH_SCHEMA)
 const searchIndexPath = getFilePath("search/index.json")
 ---
 
-<Layout
-  title="Search"
-  description="Search for articles on Sujeet's blog"
-  crumbs={null}
-  pageType="default"
-  layout="3col"
->
-  <!-- Left sidebar: Filter panel -->
-  <div slot="sidebar-left" id="filter-sidebar" class="filter-sidebar">
-    <!-- Faceted Filters -->
-    <div id="search-filters" class="search-filters">
-      <!-- Categories (OR logic) -->
-      {
-        categories.length > 0 && (
-          <div class="filter-group">
-            <h3 class="filter-group-title">Categories</h3>
-            <div class="filter-group-list" id="category-filters">
-              {categories.map((cat) => (
-                <label class="filter-chip" title={cat.title} data-filter-id={cat.id}>
-                  <input type="checkbox" name="category" value={cat.id} class="filter-chip-input peer" />
-                  <span class="tag peer-checked:badge-accent">
-                    {cat.name}{" "}
-                    <span class="filter-count text-muted" data-count-for={cat.id}>
-                      ({cat.count})
-                    </span>
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-        )
-      }
-
-      <!-- Topics (OR logic) -->
-      {
-        topics.length > 0 && (
-          <div class="filter-group">
-            <h3 class="filter-group-title">Topics</h3>
-            <div class="filter-group-list" id="topic-filters">
-              {topics.map((topic) => (
-                <label class="filter-chip" title={topic.title} data-filter-id={topic.id}>
-                  <input type="checkbox" name="topic" value={topic.id} class="filter-chip-input peer" />
-                  <span class="tag peer-checked:badge-accent">
-                    {topic.name}{" "}
-                    <span class="filter-count text-muted" data-count-for={topic.id}>
-                      ({topic.count})
-                    </span>
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-        )
-      }
-    </div>
-
-    <!-- Clear filters button -->
-    <button id="clear-filters" class="clear-filters-btn is-hidden"> Clear all filters </button>
-  </div>
-
-  <!-- Main content: Search results -->
+<Layout title="Search" description="Search for articles on Sujeet's blog" crumbs={null} pageType="default">
   <div class="search-page">
-    <!-- Search Input -->
-    <div class="search-input-wrapper">
-      <input type="text" id="search-query" placeholder="Search..." class="search-input" autocomplete="off" />
-      <p id="search-hint" class="search-hint">Press Enter to search</p>
-    </div>
+    <!-- Hero Section with Search -->
+    <header class="search-hero">
+      <h1 class="search-hero-title">Search</h1>
+      <p class="search-hero-subtitle">Find articles across all categories and topics</p>
 
-    <!-- Result count -->
-    <p id="result-count" class="result-count is-hidden"></p>
+      <!-- Search Input -->
+      <div class="search-box">
+        <div class="search-box-inner">
+          <Icon name="carbon:search" class="search-box-icon" />
+          <input
+            type="text"
+            id="search-query"
+            placeholder="What are you looking for?"
+            class="search-box-input"
+            autocomplete="off"
+            autofocus
+          />
+          <kbd class="search-box-hint" id="search-hint">Enter</kbd>
+        </div>
+      </div>
+    </header>
 
-    <!-- Results -->
-    <ul id="search-results" class="article-list">
-      <li id="search-placeholder" class="search-placeholder">
-        <p class="text-muted">Loading articles...</p>
-      </li>
-    </ul>
-  </div>
+    <!-- Filters Section (Accordion) -->
+    <section id="search-filters" class="filters-accordion" aria-label="Search filters">
+      <div class="filters-header">
+        <button
+          type="button"
+          class="filters-toggle"
+          aria-expanded="false"
+          aria-controls="filters-content"
+          id="filters-trigger"
+        >
+          <Icon name="carbon:filter" class="filters-toggle-icon" />
+          <span class="filters-toggle-label">Filters</span>
+          <svg
+            class="filters-toggle-chevron"
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
 
-  <!-- Floating filter button (shown on mobile via JS) -->
-  <button
-    type="button"
-    id="filter-mobile-btn"
-    class="filter-mobile-btn"
-    aria-label="Open filters"
-    aria-expanded="false"
-    aria-controls="filter-modal"
-  >
-    <Icon name="carbon:filter" class="icon-md" />
-    <span id="active-filter-count" class="filter-badge is-hidden">0</span>
-  </button>
+        <!-- Active filter pills shown in header -->
+        <div id="active-filters-display" class="filters-active-pills"></div>
 
-  <!-- Filter Modal (populated via JS) -->
-  <div id="filter-modal" class="filter-modal" role="dialog" aria-modal="true" aria-labelledby="filter-modal-title">
-    <div class="filter-modal-backdrop"></div>
-    <div class="filter-modal-content">
-      <div class="filter-modal-header">
-        <h2 id="filter-modal-title" class="filter-modal-title">Filters</h2>
-        <button type="button" id="filter-modal-close" class="filter-modal-close" aria-label="Close filters">
-          <Icon name="carbon:close" class="icon-md" />
+        <button id="clear-filters" class="filters-clear-btn is-hidden" type="button">
+          <Icon name="carbon:close" class="icon-sm" />
+          <span>Clear all</span>
         </button>
       </div>
-      <div class="filter-modal-body">
-        <!-- Filter content cloned here via JS -->
+
+      <div id="filters-content" class="filters-body" hidden>
+        <!-- Categories -->
+        {
+          categories.length > 0 && (
+            <div class="filters-group">
+              <span class="filters-group-label">Categories</span>
+              <div class="filters-group-tags" id="category-filters">
+                {categories.map((cat) => (
+                  <label class="filter-chip" title={cat.title} data-filter-id={cat.id}>
+                    <input type="checkbox" name="category" value={cat.id} class="filter-chip-input" />
+                    <span class="filter-chip-pill">
+                      {cat.name}
+                      <span class="filter-chip-count" data-count-for={cat.id}>
+                        {cat.count}
+                      </span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )
+        }
+
+        <!-- Topics -->
+        {
+          topics.length > 0 && (
+            <div class="filters-group">
+              <span class="filters-group-label">Topics</span>
+              <div class="filters-group-tags" id="topic-filters">
+                {topics.map((topic) => (
+                  <label class="filter-chip" title={topic.title} data-filter-id={topic.id}>
+                    <input type="checkbox" name="topic" value={topic.id} class="filter-chip-input" />
+                    <span class="filter-chip-pill">
+                      {topic.name}
+                      <span class="filter-chip-count" data-count-for={topic.id}>
+                        {topic.count}
+                      </span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )
+        }
       </div>
-      <div class="filter-modal-footer">
-        <button id="modal-clear-filters" class="modal-clear-btn">Clear all</button>
-        <button id="modal-apply-filters" class="modal-apply-btn">Apply</button>
+    </section>
+
+    <!-- Results Section -->
+    <section class="search-results-section" aria-label="Search results">
+      <div class="results-header">
+        <p id="result-count" class="results-count is-hidden" aria-live="polite"></p>
       </div>
-    </div>
+
+      <ul id="search-results" class="search-results-list">
+        <li id="search-placeholder" class="search-empty-state">
+          <div class="search-empty-content">
+            <div class="search-empty-icon-wrapper">
+              <Icon name="carbon:search-locate" class="search-empty-icon" />
+            </div>
+            <p class="search-empty-text">Loading articles...</p>
+          </div>
+        </li>
+      </ul>
+    </section>
   </div>
 
   <!-- Pass data to client via JSON script tags -->
@@ -212,20 +228,23 @@ const searchIndexPath = getFilePath("search/index.json")
   // Sync UI with current URL params
   function syncUIWithParams(params: SearchParams) {
     const queryInput = document.getElementById("search-query") as HTMLInputElement
-    const hintEl = document.getElementById("search-hint") as HTMLParagraphElement
+    const hintEl = document.getElementById("search-hint") as HTMLElement
     const clearBtn = document.getElementById("clear-filters") as HTMLButtonElement
+    const activeFiltersDisplay = document.getElementById("active-filters-display") as HTMLElement
+    const filtersTrigger = document.getElementById("filters-trigger") as HTMLButtonElement
+    const filtersContent = document.getElementById("filters-content") as HTMLElement
 
     if (!queryInput) return
 
     queryInput.value = params.q
 
     // Sync category checkboxes
-    document.querySelectorAll<HTMLInputElement>('#filter-sidebar input[name="category"]').forEach((cb) => {
+    document.querySelectorAll<HTMLInputElement>('#search-filters input[name="category"]').forEach((cb) => {
       cb.checked = params.categories.includes(cb.value)
     })
 
     // Sync topic checkboxes
-    document.querySelectorAll<HTMLInputElement>('#filter-sidebar input[name="topic"]').forEach((cb) => {
+    document.querySelectorAll<HTMLInputElement>('#search-filters input[name="topic"]').forEach((cb) => {
       cb.checked = params.topics.includes(cb.value)
     })
 
@@ -236,16 +255,48 @@ const searchIndexPath = getFilePath("search/index.json")
       hintEl?.classList.remove("is-hidden")
     }
 
-    // Show clear button only when filters (not query) are active
+    // Update active filters display (pills in header) and clear button
     if (hasFiltersActive(params)) {
       clearBtn?.classList.remove("is-hidden")
+
+      // Build active filter pills HTML
+      if (activeFiltersDisplay) {
+        const pills: string[] = []
+
+        // Get category names (just the name, not the count)
+        params.categories.forEach((catId) => {
+          const label = document.querySelector(`#category-filters [data-filter-id="${catId}"]`)
+          const nameEl = label?.querySelector(".filter-chip-pill")
+          // Get just the text before the count span
+          const name = nameEl?.childNodes[0]?.textContent?.trim()
+          if (name) {
+            pills.push(`<span class="active-pill" data-type="category" data-value="${catId}">${name}</span>`)
+          }
+        })
+
+        // Get topic names (just the name, not the count)
+        params.topics.forEach((topicId) => {
+          const label = document.querySelector(`#topic-filters [data-filter-id="${topicId}"]`)
+          const nameEl = label?.querySelector(".filter-chip-pill")
+          // Get just the text before the count span
+          const name = nameEl?.childNodes[0]?.textContent?.trim()
+          if (name) {
+            pills.push(`<span class="active-pill" data-type="topic" data-value="${topicId}">${name}</span>`)
+          }
+        })
+
+        activeFiltersDisplay.innerHTML = pills.join("")
+      }
     } else {
       clearBtn?.classList.add("is-hidden")
+      if (activeFiltersDisplay) {
+        activeFiltersDisplay.innerHTML = ""
+      }
     }
   }
 
   // Render a single result item HTML
-  function renderResultItem(hit: any): string {
+  function renderResultItem(hit: any, index: number): string {
     const doc = hit.document
     const href = doc.href || ""
     const title = doc.title || "Untitled"
@@ -256,26 +307,29 @@ const searchIndexPath = getFilePath("search/index.json")
     const topicName = doc.topicName || ""
     const minutesRead = doc.minutesRead || ""
 
+    // Stagger animation delay
+    const delay = Math.min(index * 50, 400)
+
     return `
-      <li class="article-card">
-        <h3 class="article-card-title">
-          <a href="${href}" class="article-card-link">${title}</a>
-        </h3>
-        <div class="frontmatter article-card-frontmatter">
-          <span class="frontmatter-item">
-            ${categoryName ? `<button type="button" class="frontmatter-filter-btn" data-filter-type="category" data-filter-value="${categoryId}">${categoryName}</button>` : ""}
-            ${topicName ? `<span class="frontmatter-separator">/</span><button type="button" class="frontmatter-filter-btn" data-filter-type="topic" data-filter-value="${topicId}">${topicName}</button>` : ""}
-          </span>
-          ${
-            minutesRead
-              ? `<span class="frontmatter-item">
-            <svg xmlns="http://www.w3.org/2000/svg" class="frontmatter-icon" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></svg>
-            <span>${minutesRead}</span>
-          </span>`
-              : ""
-          }
-        </div>
-        <p class="article-card-excerpt">${description}</p>
+      <li class="search-result-card" style="animation-delay: ${delay}ms">
+        <article class="result-card-inner">
+          <h3 class="result-card-title">
+            <a href="${href}" class="result-card-link">${title}</a>
+          </h3>
+          <div class="result-card-meta">
+            ${categoryName ? `<button type="button" class="result-meta-btn" data-filter-type="category" data-filter-value="${categoryId}">${categoryName}</button>` : ""}
+            ${topicName ? `<span class="result-meta-sep">/</span><button type="button" class="result-meta-btn" data-filter-type="topic" data-filter-value="${topicId}">${topicName}</button>` : ""}
+            ${
+              minutesRead
+                ? `<span class="result-meta-time">
+                <svg xmlns="http://www.w3.org/2000/svg" class="result-meta-icon" viewBox="0 0 32 32"><path fill="currentColor" d="M16 30a14 14 0 1 1 14-14a14 14 0 0 1-14 14m0-26a12 12 0 1 0 12 12A12 12 0 0 0 16 4"/><path fill="currentColor" d="M20.59 22L15 16.41V7h2v8.58l5 5.01z"/></svg>
+                <span>${minutesRead}</span>
+              </span>`
+                : ""
+            }
+          </div>
+          <p class="result-card-excerpt">${description}</p>
+        </article>
       </li>
     `
   }
@@ -300,14 +354,14 @@ const searchIndexPath = getFilePath("search/index.json")
     return { categories, topics }
   }
 
-  // Update sidebar facet counts
+  // Update facet counts
   function updateFacetCounts(counts: { categories: Map<string, number>; topics: Map<string, number> }) {
     // Update category counts
     document.querySelectorAll("#category-filters [data-count-for]").forEach((el) => {
       const id = el.getAttribute("data-count-for")
       if (id) {
         const count = counts.categories.get(id) || 0
-        el.textContent = `(${count})`
+        el.textContent = `${count}`
         // Dim the label if count is 0
         const label = el.closest(".filter-chip")
         if (label) {
@@ -321,7 +375,7 @@ const searchIndexPath = getFilePath("search/index.json")
       const id = el.getAttribute("data-count-for")
       if (id) {
         const count = counts.topics.get(id) || 0
-        el.textContent = `(${count})`
+        el.textContent = `${count}`
         // Dim the label if count is 0
         const label = el.closest(".filter-chip")
         if (label) {
@@ -379,8 +433,14 @@ const searchIndexPath = getFilePath("search/index.json")
     // Handle no results
     if (finalHits.length === 0) {
       resultsEl.innerHTML = `
-        <li class="search-placeholder">
-          <p class="text-muted">No matching articles found. Try different search terms or filters.</p>
+        <li class="search-empty-state">
+          <div class="search-empty-content">
+            <div class="search-empty-icon-wrapper search-empty-icon-wrapper--muted">
+              <svg xmlns="http://www.w3.org/2000/svg" class="search-empty-icon" viewBox="0 0 32 32"><path fill="currentColor" d="M16 2a14 14 0 1 0 14 14A14 14 0 0 0 16 2m0 26a12 12 0 1 1 12-12a12 12 0 0 1-12 12"/><path fill="currentColor" d="M11.5 11a2.5 2.5 0 1 0 2.5 2.5a2.5 2.5 0 0 0-2.5-2.5m9 0a2.5 2.5 0 1 0 2.5 2.5a2.5 2.5 0 0 0-2.5-2.5M16 19a8 8 0 0 0-6.85 3.89l1.71 1a6 6 0 0 1 10.28 0l1.71-1A8 8 0 0 0 16 19"/></svg>
+            </div>
+            <p class="search-empty-text">No matching articles found</p>
+            <p class="search-empty-hint">Try different search terms or filters</p>
+          </div>
         </li>
       `
       countEl?.classList.add("is-hidden")
@@ -389,140 +449,20 @@ const searchIndexPath = getFilePath("search/index.json")
 
     // Show result count
     if (countEl) {
-      countEl.textContent = `${finalHits.length} article${finalHits.length === 1 ? "" : "s"} found`
+      const countText = finalHits.length === 1 ? "1 article found" : `${finalHits.length} articles found`
+      countEl.textContent = countText
       countEl.classList.remove("is-hidden")
     }
 
     // Render all results
-    resultsEl.innerHTML = finalHits.map(renderResultItem).join("")
-  }
-
-  // Update filter count badge
-  function updateFilterCountBadge(params: SearchParams) {
-    const countEl = document.getElementById("active-filter-count")
-    if (!countEl) return
-
-    const count = params.categories.length + params.topics.length
-    if (count > 0) {
-      countEl.textContent = String(count)
-      countEl.classList.remove("is-hidden")
-    } else {
-      countEl.classList.add("is-hidden")
-    }
+    resultsEl.innerHTML = finalHits.map((hit, index) => renderResultItem(hit, index)).join("")
   }
 
   // Handle URL change (the single source of truth for search)
   async function handleUrlChange() {
     const params = getUrlParams()
     syncUIWithParams(params)
-    updateFilterCountBadge(params)
     await executeSearch(params)
-  }
-
-  // Filter modal functions
-  function initFilterModal() {
-    const mobileBtn = document.getElementById("filter-mobile-btn")
-    const modal = document.getElementById("filter-modal")
-    const modalBody = modal?.querySelector(".filter-modal-body")
-    const closeBtn = document.getElementById("filter-modal-close")
-    const backdrop = modal?.querySelector(".filter-modal-backdrop")
-    const modalClearBtn = document.getElementById("modal-clear-filters")
-    const modalApplyBtn = document.getElementById("modal-apply-filters")
-    const filterSidebar = document.getElementById("filter-sidebar")
-    const searchFilters = document.getElementById("search-filters")
-
-    if (!mobileBtn || !modal || !modalBody || !searchFilters) return
-
-    // Show mobile button (JS is enabled)
-    mobileBtn.classList.add("is-visible")
-
-    function openModal() {
-      if (!modal || !modalBody || !searchFilters) return
-
-      // Clone filter content into modal
-      const filtersClone = searchFilters.cloneNode(true) as HTMLElement
-      filtersClone.id = "modal-filters"
-
-      // Update input names in cloned content to avoid conflicts
-      filtersClone.querySelectorAll('input[name="category"]').forEach((input) => {
-        input.setAttribute("name", "category-modal")
-      })
-      filtersClone.querySelectorAll('input[name="topic"]').forEach((input) => {
-        input.setAttribute("name", "topic-modal")
-      })
-
-      modalBody.innerHTML = ""
-      modalBody.appendChild(filtersClone)
-
-      // Sync checkbox state with current params
-      const params = getUrlParams()
-      filtersClone.querySelectorAll<HTMLInputElement>('input[name="category-modal"]').forEach((cb) => {
-        cb.checked = params.categories.includes(cb.value)
-      })
-      filtersClone.querySelectorAll<HTMLInputElement>('input[name="topic-modal"]').forEach((cb) => {
-        cb.checked = params.topics.includes(cb.value)
-      })
-
-      // Add event listeners to modal category checkboxes
-      filtersClone.querySelectorAll<HTMLInputElement>('input[name="category-modal"]').forEach((cb) => {
-        cb.addEventListener("change", () => {
-          const params = getUrlParams()
-          params.categories = toggleArrayValue(params.categories, cb.value)
-          // Sync sidebar checkbox
-          const sidebarCb = filterSidebar?.querySelector<HTMLInputElement>(
-            `input[name="category"][value="${cb.value}"]`,
-          )
-          if (sidebarCb) sidebarCb.checked = cb.checked
-          updateUrl(params)
-        })
-      })
-
-      // Add event listeners to modal topic checkboxes
-      filtersClone.querySelectorAll<HTMLInputElement>('input[name="topic-modal"]').forEach((cb) => {
-        cb.addEventListener("change", () => {
-          const params = getUrlParams()
-          params.topics = toggleArrayValue(params.topics, cb.value)
-          // Sync sidebar checkbox
-          const sidebarCb = filterSidebar?.querySelector<HTMLInputElement>(`input[name="topic"][value="${cb.value}"]`)
-          if (sidebarCb) sidebarCb.checked = cb.checked
-          updateUrl(params)
-        })
-      })
-
-      modal.classList.add("is-open")
-      mobileBtn?.setAttribute("aria-expanded", "true")
-      document.body.style.overflow = "hidden"
-      closeBtn?.focus()
-    }
-
-    function closeModal() {
-      if (!modal || !modalBody) return
-      modal.classList.remove("is-open")
-      mobileBtn?.setAttribute("aria-expanded", "false")
-      document.body.style.overflow = ""
-      modalBody.innerHTML = ""
-      mobileBtn?.focus()
-    }
-
-    // Event listeners
-    mobileBtn.addEventListener("click", openModal)
-    closeBtn?.addEventListener("click", closeModal)
-    backdrop?.addEventListener("click", closeModal)
-    modalApplyBtn?.addEventListener("click", closeModal)
-
-    modalClearBtn?.addEventListener("click", () => {
-      const params = getUrlParams()
-      // Clear only filters, keep query
-      updateUrl({ q: params.q, categories: [], topics: [] })
-      closeModal()
-    })
-
-    // Close on Escape
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && modal.classList.contains("is-open")) {
-        closeModal()
-      }
-    })
   }
 
   // Main initialization function
@@ -537,20 +477,32 @@ const searchIndexPath = getFilePath("search/index.json")
 
     const clearBtn = document.getElementById("clear-filters") as HTMLButtonElement
     const resultsEl = document.getElementById("search-results")
-    const filterSidebar = document.getElementById("filter-sidebar")
-
-    // Initialize filter modal
-    initFilterModal()
+    const filtersEl = document.getElementById("search-filters")
+    const filtersTrigger = document.getElementById("filters-trigger") as HTMLButtonElement
+    const filtersContent = document.getElementById("filters-content") as HTMLElement
 
     // Listen for URL changes (back/forward navigation)
     window.addEventListener("popstate", handleUrlChange)
+
+    // Accordion toggle for filters
+    filtersTrigger?.addEventListener("click", (e) => {
+      // Don't toggle if clicking the clear button
+      if ((e.target as HTMLElement).closest(".filters-clear")) {
+        return
+      }
+      const expanded = filtersTrigger.getAttribute("aria-expanded") === "true"
+      filtersTrigger.setAttribute("aria-expanded", String(!expanded))
+      if (filtersContent) {
+        filtersContent.hidden = expanded
+      }
+    })
 
     // Handle filter button clicks in search results (event delegation)
     resultsEl?.addEventListener("click", (e: Event) => {
       const target = e.target as HTMLElement
       if (!target) return
 
-      const filterBtn = target.closest(".frontmatter-filter-btn") as HTMLButtonElement | null
+      const filterBtn = target.closest(".result-meta-btn") as HTMLButtonElement | null
       if (!filterBtn) return
 
       e.preventDefault()
@@ -571,8 +523,8 @@ const searchIndexPath = getFilePath("search/index.json")
       updateUrl(params)
     })
 
-    // Handle sidebar filter changes (event delegation on sidebar)
-    filterSidebar?.addEventListener("change", (e: Event) => {
+    // Handle filter changes (event delegation)
+    filtersEl?.addEventListener("change", (e: Event) => {
       const target = e.target as HTMLInputElement
       if (!target || target.type !== "checkbox") return
 
@@ -615,206 +567,485 @@ const searchIndexPath = getFilePath("search/index.json")
   document.addEventListener("DOMContentLoaded", initSearchPage)
 
   // Re-initialize on Astro page navigation (for SPA)
-  // DOM marker will be naturally reset when page content is replaced
   document.addEventListener("astro:page-load", initSearchPage)
 </script>
 
-<style>
-  .search-input:focus {
+<style is:global>
+  @reference "tailwindcss";
+
+  /* ==========================================================================
+     SEARCH PAGE - "Serene Scholar" Design System
+     ========================================================================== */
+
+  .search-page {
+    @apply py-6;
+  }
+
+  /* ==========================================================================
+     HERO SECTION
+     ========================================================================== */
+
+  .search-hero {
+    @apply mb-12 text-center;
+    animation: fadeInUp var(--transition-slow) forwards;
+  }
+
+  .search-hero-title {
+    @apply mb-3 font-sans font-normal;
+    font-size: clamp(36px, 6vw, 52px);
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--color-text);
+  }
+
+  .search-hero-subtitle {
+    @apply mb-10;
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--color-text-muted);
+    animation: fadeInUp var(--transition-slow) 100ms forwards;
+    opacity: 0;
+  }
+
+  /* ==========================================================================
+     SEARCH BOX
+     ========================================================================== */
+
+  .search-box {
+    @apply mx-auto;
+    max-width: 600px;
+    animation: fadeInUp var(--transition-slow) 150ms forwards;
+    opacity: 0;
+  }
+
+  .search-box-inner {
+    @apply relative flex items-center;
+  }
+
+  .search-box-icon {
+    @apply absolute left-5 h-5 w-5;
+    color: var(--color-text-muted);
+    pointer-events: none;
+    transition: color var(--transition-fast);
+  }
+
+  .search-box-input {
+    @apply w-full rounded-2xl border-2 py-4 pr-20 pl-14 text-lg;
+    border-color: var(--color-border);
+    background: var(--color-bg-elevated);
+    color: var(--color-text);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+  }
+
+  .search-box-input:focus {
+    @apply outline-none;
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md), 0 0 0 4px var(--color-accent-subtle);
+  }
+
+  .search-box-input:focus ~ .search-box-icon {
+    color: var(--color-accent);
+  }
+
+  .search-box-input::placeholder {
+    color: var(--color-text-muted);
+    font-weight: 400;
+  }
+
+  .search-box-hint {
+    @apply absolute right-4 rounded-lg px-2.5 py-1.5 font-mono text-xs;
+    background: var(--color-bg-alt);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border-subtle);
+    pointer-events: none;
+    transition: opacity var(--transition-fast);
+  }
+
+  .search-box-hint.is-hidden {
+    opacity: 0;
+  }
+
+  /* ==========================================================================
+     FILTERS ACCORDION
+     ========================================================================== */
+
+  .filters-accordion {
+    @apply mb-10 rounded-xl border;
+    border-color: var(--color-border-subtle);
+    background: var(--color-bg-alt);
+    animation: fadeInUp var(--transition-slow) 200ms forwards;
+    opacity: 0;
+  }
+
+  /* Header row - contains toggle, active pills, and clear button */
+  .filters-header {
+    @apply flex items-center gap-3 px-4 py-3;
+  }
+
+  /* Toggle button */
+  .filters-toggle {
+    @apply flex cursor-pointer items-center gap-2 rounded-lg border-0 bg-transparent px-2 py-1.5;
+    transition: background-color var(--transition-fast);
+  }
+
+  .filters-toggle:hover {
+    background: var(--color-accent-subtle);
+  }
+
+  .filters-toggle-icon {
+    @apply h-4 w-4 shrink-0;
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast);
+  }
+
+  .filters-toggle:hover .filters-toggle-icon,
+  .filters-toggle[aria-expanded="true"] .filters-toggle-icon {
+    color: var(--color-accent);
+  }
+
+  .filters-toggle-label {
+    @apply font-sans text-sm font-medium;
+    color: var(--color-text);
+  }
+
+  .filters-toggle-chevron {
+    @apply shrink-0;
+    color: var(--color-text-muted);
+    transition: transform var(--transition-normal), color var(--transition-fast);
+  }
+
+  .filters-toggle:hover .filters-toggle-chevron {
+    color: var(--color-text);
+  }
+
+  .filters-toggle[aria-expanded="true"] .filters-toggle-chevron {
+    transform: rotate(180deg);
+    color: var(--color-accent);
+  }
+
+  /* Active filter pills in header */
+  .filters-active-pills {
+    @apply flex flex-1 flex-wrap items-center gap-2;
+  }
+
+  .active-pill {
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium;
+    background: var(--color-accent);
+    color: white;
+  }
+
+  /* Clear button */
+  .filters-clear-btn {
+    @apply ml-auto flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium;
+    background: transparent;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+    transition: all var(--transition-fast);
+  }
+
+  .filters-clear-btn:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+    background: var(--color-accent-subtle);
+  }
+
+  .filters-clear-btn.is-hidden {
+    @apply hidden;
+  }
+
+  /* Filter body (expandable content) */
+  .filters-body {
+    @apply px-4 pb-4;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .filters-body[hidden] {
+    display: none;
+  }
+
+  .filters-group {
+    @apply pt-4;
+  }
+
+  .filters-group + .filters-group {
+    @apply mt-4;
+  }
+
+  .filters-group-label {
+    @apply mb-3 block text-xs font-semibold uppercase tracking-wider;
+    color: var(--color-text-muted);
+  }
+
+  .filters-group-tags {
+    @apply flex flex-wrap gap-2;
+  }
+
+  /* Filter chips */
+  .filter-chip {
+    @apply cursor-pointer;
+  }
+
+  .filter-chip-input {
+    @apply sr-only;
+  }
+
+  .filter-chip-pill {
+    @apply inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm;
+    background: var(--color-bg-elevated);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    transition: all var(--transition-fast);
+  }
+
+  .filter-chip-pill:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .filter-chip-count {
+    @apply rounded px-1.5 py-0.5 text-xs;
+    background: var(--color-bg-alt);
+    color: var(--color-text-muted);
+  }
+
+  /* Selected state */
+  .filter-chip-input:checked + .filter-chip-pill {
+    background: var(--color-accent);
+    color: white;
     border-color: var(--color-accent);
   }
 
-  .filter-group {
-    min-width: 200px;
+  .filter-chip-input:checked + .filter-chip-pill .filter-chip-count {
+    background: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
   }
 
-  .search-placeholder {
-    padding: 2rem 0;
-  }
-
-  /* Active filter chip styling */
-  .filter-chip input:checked + .tag {
-    background: var(--color-accent);
-    color: var(--color-bg);
-  }
-
-  .filter-chip input:checked + .tag .text-muted-foreground {
-    color: rgba(255, 255, 255, 0.8);
-  }
-
-  /* Empty filter chip (count is 0) */
+  /* Empty state (count is 0) */
   .filter-chip--empty {
     opacity: 0.4;
     pointer-events: none;
   }
 
-  .filter-chip--empty .tag {
+  .filter-chip--empty .filter-chip-pill {
     cursor: not-allowed;
   }
 
-  /* Floating filter button - hidden by default, shown via JS */
-  .filter-mobile-btn {
-    display: none;
-    position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    z-index: 40;
-    padding: 0.875rem;
-    background-color: var(--color-accent);
-    color: white;
-    border: none;
-    border-radius: 9999px;
-    box-shadow:
-      0 4px 6px -1px rgb(0 0 0 / 0.1),
-      0 2px 4px -2px rgb(0 0 0 / 0.1);
-    cursor: pointer;
-    transition: all 0.2s ease;
+  /* ==========================================================================
+     FILTER TAG PILL
+     ========================================================================== */
+
+  .filter-tag {
+    @apply cursor-pointer;
   }
 
-  .filter-mobile-btn:hover {
-    transform: scale(1.05);
+  .filter-tag-input {
+    @apply sr-only;
   }
 
-  .filter-mobile-btn:focus {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
+  .filter-tag-pill {
+    @apply inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium;
+    background: var(--color-bg-elevated);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    transition: all var(--transition-fast);
   }
 
-  /* Show button only when sidebar is hidden (JS enabled) */
-  .filter-mobile-btn.is-visible {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .filter-tag-pill:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
   }
 
-  @media (min-width: 1200px) {
-    .filter-mobile-btn.is-visible {
-      display: none;
-    }
-  }
-
-  /* Filter badge on floating button */
-  .filter-badge {
-    position: absolute;
-    top: -0.25rem;
-    right: -0.25rem;
-    min-width: 1.25rem;
-    height: 1.25rem;
-    padding: 0 0.25rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    line-height: 1.25rem;
-    text-align: center;
-    background-color: var(--color-text);
-    color: var(--color-bg);
-    border-radius: 9999px;
-  }
-
-  /* Filter modal styles */
-  .filter-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    z-index: 50;
-  }
-
-  .filter-modal.is-open {
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-  }
-
-  .filter-modal-backdrop {
-    position: absolute;
-    inset: 0;
-    background-color: rgb(0 0 0 / 0.5);
-  }
-
-  .filter-modal-content {
-    position: relative;
-    width: 100%;
-    max-width: 28rem;
-    max-height: 70vh;
-    margin: 0 1rem 1rem;
-    background-color: var(--color-bg);
-    border-radius: 1rem;
-    box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-    display: flex;
-    flex-direction: column;
-    animation: filterSlideUp 0.2s ease-out;
-  }
-
-  @keyframes filterSlideUp {
-    from {
-      transform: translateY(1rem);
-      opacity: 0;
-    }
-    to {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  }
-
-  .filter-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .filter-modal-close {
-    padding: 0.5rem;
-    border: none;
-    background: transparent;
+  .filter-tag-count {
+    @apply rounded-full px-2 py-0.5 text-xs;
+    background: var(--color-bg-alt);
     color: var(--color-text-muted);
-    border-radius: 0.5rem;
-    cursor: pointer;
-    transition: color 0.2s;
+    min-width: 1.5rem;
+    text-align: center;
+    transition: all var(--transition-fast);
   }
 
-  .filter-modal-close:hover {
+  /* Active state */
+  .filter-tag input:checked + .filter-tag-pill {
+    background: var(--color-accent);
+    color: white;
+    border-color: var(--color-accent);
+  }
+
+  .filter-tag input:checked + .filter-tag-pill .filter-tag-count {
+    background: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Empty state (count is 0) */
+  .filter-tag--empty {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .filter-tag--empty .filter-tag-pill {
+    cursor: not-allowed;
+  }
+
+  /* ==========================================================================
+     RESULTS SECTION
+     ========================================================================== */
+
+  .search-results-section {
+    animation: fadeInUp var(--transition-slow) 250ms forwards;
+    opacity: 0;
+  }
+
+  .results-header {
+    @apply mb-6;
+  }
+
+  .results-count {
+    @apply font-mono text-sm uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+  }
+
+  .results-count.is-hidden {
+    @apply hidden;
+  }
+
+  .search-results-list {
+    @apply flex flex-col;
+  }
+
+  /* ==========================================================================
+     RESULT CARD
+     ========================================================================== */
+
+  .search-result-card {
+    @apply relative;
+    border-bottom: 1px solid var(--color-border-subtle);
+    animation: fadeInUp var(--transition-normal) forwards;
+    opacity: 0;
+  }
+
+  .search-result-card:last-child {
+    border-bottom: none;
+  }
+
+  .result-card-inner {
+    @apply py-7;
+    transition: all var(--transition-normal);
+  }
+
+  .search-result-card:hover .result-card-inner {
+    padding-left: 1rem;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-right: 1rem;
+    background: linear-gradient(90deg, var(--color-accent-subtle), transparent 80%);
+    border-radius: 8px;
+  }
+
+  .result-card-title {
+    @apply mb-2 font-sans text-lg font-medium;
+    line-height: 1.4;
+  }
+
+  .result-card-link {
+    @apply no-underline;
     color: var(--color-text);
+    transition: color var(--transition-fast);
   }
 
-  .filter-modal-close:focus {
-    outline: 2px solid var(--color-accent);
-    outline-offset: 2px;
+  .search-result-card:hover .result-card-link {
+    color: var(--color-accent);
   }
 
-  .filter-modal-body {
-    padding: 1rem 1.25rem;
-    overflow-y: auto;
-    flex: 1;
+  /* Clickable overlay */
+  .result-card-link::after {
+    content: "";
+    @apply absolute top-0 left-0 h-full w-full;
   }
 
-  .filter-modal-footer {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    border-top: 1px solid var(--color-border);
+  .result-card-meta {
+    @apply mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs;
+    color: var(--color-text-muted);
+    position: relative;
+    z-index: 1;
   }
 
-  /* Filter buttons in search results */
-  .frontmatter-filter-btn {
+  .result-meta-btn {
     background: none;
     border: none;
     padding: 0;
     font: inherit;
     color: var(--color-text-muted);
     cursor: pointer;
-    transition: color 0.15s ease;
+    transition: color var(--transition-fast);
   }
 
-  .frontmatter-filter-btn:hover {
+  .result-meta-btn:hover {
     color: var(--color-accent);
-    text-decoration: underline;
   }
 
-  .frontmatter-filter-btn:focus {
+  .result-meta-btn:focus {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
     border-radius: 2px;
+  }
+
+  .result-meta-sep {
+    color: var(--color-border);
+  }
+
+  .result-meta-time {
+    @apply ml-3 inline-flex items-center gap-1.5;
+  }
+
+  .result-meta-icon {
+    @apply h-3.5 w-3.5;
+  }
+
+  .result-card-excerpt {
+    @apply line-clamp-2 text-sm leading-relaxed;
+    color: var(--color-text-muted);
+  }
+
+  /* ==========================================================================
+     EMPTY STATE
+     ========================================================================== */
+
+  .search-empty-state {
+    @apply py-20 text-center;
+  }
+
+  .search-empty-content {
+    @apply flex flex-col items-center gap-4;
+  }
+
+  .search-empty-icon-wrapper {
+    @apply flex h-20 w-20 items-center justify-center rounded-full;
+    background: var(--color-accent-subtle);
+    animation: scaleIn var(--transition-slow) forwards;
+  }
+
+  .search-empty-icon-wrapper--muted {
+    background: var(--color-bg-alt);
+  }
+
+  .search-empty-icon {
+    @apply h-10 w-10;
+    color: var(--color-accent);
+  }
+
+  .search-empty-icon-wrapper--muted .search-empty-icon {
+    color: var(--color-text-muted);
+  }
+
+  .search-empty-text {
+    @apply text-lg font-medium;
+    color: var(--color-text);
+  }
+
+  .search-empty-hint {
+    @apply text-sm;
+    color: var(--color-text-muted);
   }
 </style>

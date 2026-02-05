@@ -32,25 +32,49 @@ const { Content } = topicIndex
   noIndex={topicIndex.isDraft}
 >
   <!-- Render the topic's markdown content -->
-  <article class="prose">
+  <article class="prose topic-content">
     <Content />
   </article>
 
-  <!-- Divider and Articles Section -->
-  <hr class="my-12 border-t border-[var(--color-border)]" />
-
-  <section>
-    <h2 class="section-title">All Articles ({formatCount(articles.length, "article")})</h2>
+  <!-- Articles Section -->
+  <section class="articles-section">
+    <div class="section-divider">
+      <span class="section-divider-text">All Articles ({formatCount(articles.length, "article")})</span>
+    </div>
     {
       articles.length > 0 ? (
         <ul class="article-list">
-          {articles.map((article) => (
-            <ArticleCard article={article} headingLevel="h3" />
+          {articles.map((article, index) => (
+            <div class="article-item-animated" style={`animation-delay: ${Math.min(index * 50, 300)}ms`}>
+              <ArticleCard article={article} headingLevel="h3" />
+            </div>
           ))}
         </ul>
       ) : (
-        <p class="text-muted">No articles yet in this topic.</p>
+        <p class="text-muted empty-state">No articles yet in this topic.</p>
       )
     }
   </section>
 </Layout>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  .topic-content {
+    @apply mb-12;
+    animation: fadeInUp var(--transition-slow) forwards;
+  }
+
+  .articles-section {
+    @apply mb-8;
+  }
+
+  .article-item-animated {
+    animation: fadeInUp var(--transition-slow) forwards;
+    opacity: 0;
+  }
+
+  .empty-state {
+    @apply py-12 text-center;
+  }
+</style>

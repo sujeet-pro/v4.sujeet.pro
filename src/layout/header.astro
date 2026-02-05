@@ -8,13 +8,15 @@ const navItems = await getNavItems()
 ---
 
 <header class="site-header">
-  <div class="content-container">
-    <nav class="site-nav">
-      <!-- Logo - always visible -->
-      <Link href="/" class="nav-link nav-logo"> sujeet.pro </Link>
+  <div class="header-container">
+    <nav class="header-nav">
+      <!-- Logo - left on mobile, in grid on desktop -->
+      <Link href="/" class="header-logo">
+        <span class="header-logo-name">sujeet.pro</span>
+      </Link>
 
-      <!-- Nav Links - visible on sm and above -->
-      <div class="nav-links-container">
+      <!-- Nav links - hidden on mobile -->
+      <div class="header-nav-links">
         {
           navItems.map((item) => (
             <Link href={item.path} class="nav-link">
@@ -24,26 +26,29 @@ const navItems = await getNavItems()
         }
       </div>
 
-      <!-- Search Icon - visible on sm only -->
-      <Link href="/search" class="nav-search-icon" aria-label="Search">
-        <Icon name="carbon:search" class="icon-lg" />
-      </Link>
+      <!-- Search and hamburger -->
+      <div class="header-actions">
+        <!-- Search Icon - visible on sm only -->
+        <Link href="/search" class="nav-search-icon" aria-label="Search">
+          <Icon name="carbon:search" class="icon-md" />
+        </Link>
 
-      <!-- Search Input - visible on md and above -->
-      <div class="nav-search-input">
-        <Search />
+        <!-- Search Input - visible on md and above -->
+        <div class="nav-search-input">
+          <Search />
+        </div>
+
+        <!-- Hamburger Menu - visible on mobile only -->
+        <button
+          id="mobile-menu-btn"
+          class="mobile-menu-btn"
+          aria-label="Open menu"
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+        >
+          <Icon name="carbon:menu" class="icon-lg" />
+        </button>
       </div>
-
-      <!-- Hamburger Menu - visible on default only (below sm) -->
-      <button
-        id="mobile-menu-btn"
-        class="mobile-menu-btn"
-        aria-label="Open menu"
-        aria-expanded="false"
-        aria-controls="mobile-menu"
-      >
-        <Icon name="carbon:menu" class="icon-lg" />
-      </button>
     </nav>
   </div>
 </header>
@@ -115,3 +120,44 @@ const navItems = await getNavItems()
   document.addEventListener("DOMContentLoaded", initMobileMenu)
   document.addEventListener("astro:page-load", initMobileMenu)
 </script>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  /* Header container */
+  .header-container {
+    @apply mx-auto w-full px-5 md:px-8;
+    max-width: var(--header-width);
+  }
+
+  /* Header nav - flexbox layout */
+  .header-nav {
+    @apply flex items-center justify-between gap-6 py-4;
+  }
+
+  /* Logo */
+  .header-logo {
+    @apply no-underline;
+  }
+
+  .header-logo-name {
+    @apply text-xl font-semibold;
+    color: var(--color-text);
+    letter-spacing: -0.02em;
+    transition: color var(--transition-fast);
+  }
+
+  .header-logo:hover .header-logo-name {
+    color: var(--color-accent);
+  }
+
+  /* Nav links - center, hidden on mobile */
+  .header-nav-links {
+    @apply hidden items-center gap-8 md:flex;
+  }
+
+  /* Header actions - right side */
+  .header-actions {
+    @apply flex items-center gap-2;
+  }
+</style>

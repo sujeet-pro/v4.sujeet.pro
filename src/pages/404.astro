@@ -52,38 +52,41 @@ import { Icon } from "astro-icon/components"
   @reference "tailwindcss";
 
   .not-found {
-    @apply flex items-center justify-center py-16 md:py-24;
+    @apply flex items-center justify-center py-20 md:py-28;
   }
 
   .not-found-container {
     @apply flex flex-col items-center text-center;
+    animation: fadeInUp var(--transition-slow) forwards;
   }
 
   .not-found-image-wrapper {
-    @apply mb-6;
+    @apply mb-8;
   }
 
   .not-found-image {
-    @apply h-24 w-24 rounded-full object-cover;
+    @apply h-28 w-28 rounded-full object-cover;
     border: 3px solid var(--color-border);
+    box-shadow: var(--shadow-lg);
   }
 
   .not-found-header {
-    @apply mb-4;
+    @apply mb-6;
   }
 
   .not-found-code {
-    @apply text-6xl font-bold md:text-8xl;
+    @apply text-7xl font-light md:text-8xl;
     color: var(--color-text-muted);
+    opacity: 0.5;
   }
 
   .not-found-title {
-    @apply mt-2 text-2xl font-semibold md:text-3xl;
+    @apply mt-3 text-2xl font-normal md:text-3xl;
     color: var(--color-text);
   }
 
   .not-found-message {
-    @apply mb-8 max-w-md;
+    @apply mb-10 max-w-md;
   }
 
   .not-found-text {
@@ -92,17 +95,6 @@ import { Icon } from "astro-icon/components"
   }
 
   .not-found-actions {
-    @apply flex flex-wrap items-center justify-center gap-3;
-  }
-
-  .btn-primary {
-    @apply inline-flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium;
-    background: var(--color-accent);
-    color: white;
-    transition: background-color 150ms ease;
-  }
-
-  .btn-primary:hover {
-    background: var(--color-accent-hover);
+    @apply flex flex-wrap items-center justify-center gap-4;
   }
 </style>

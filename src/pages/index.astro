@@ -27,37 +27,35 @@ const featuredTopics = await getFeaturedTopics()
 
 <Layout title={pageTitle} description={pageDescription} crumbs={null} pageType="default">
   <!-- Profile Section -->
-  <section class="profile">
-    <div class="profile-container">
+  <section class="profile-section">
+    <div class="profile-layout">
       <div class="profile-image-wrapper">
         <img src={sujeetImage.src} alt={profile.imageAlt} class="profile-image" />
       </div>
 
-      <div class="profile-header">
+      <div class="profile-content">
         <h1 class="profile-name">{profile.name}</h1>
-        <h2 class="profile-title">{profile.title}</h2>
-      </div>
+        <p class="profile-title">{profile.title}</p>
 
-      <div class="profile-bio">
-        <p class="profile-bio-text">{profile.bio}</p>
-      </div>
+        <p class="profile-bio">{profile.bio}</p>
 
-      <div class="profile-actions">
-        <Link href={social.linkedin.url} class="btn-outline btn-icon-only" aria-label={profileActions.linkedin}>
-          <Icon name="carbon:logo-linkedin" class="icon-md" />
-        </Link>
-        <Link href="/cv" class="btn-outline" isVanity={true}>
-          <Icon name="carbon:document" class="icon-md" />
-          {profileActions.viewCv}
-        </Link>
-        <Link href="/random" class="btn-outline">
-          <Icon name="carbon:shuffle" class="icon-md" />
-          {profileActions.randomArticle}
-        </Link>
-        <Link href="/articles" class="btn-outline">
-          <Icon name="carbon:blog" class="icon-md" />
-          {profileActions.allArticles}
-        </Link>
+        <div class="profile-actions">
+          <Link href={social.linkedin.url} class="btn-outline btn-icon-only" aria-label={profileActions.linkedin}>
+            <Icon name="carbon:logo-linkedin" class="icon-md" />
+          </Link>
+          <Link href="/cv" class="btn-outline" isVanity={true}>
+            <Icon name="carbon:document" class="icon-md" />
+            {profileActions.viewCv}
+          </Link>
+          <Link href="/random" class="btn-outline">
+            <Icon name="carbon:shuffle" class="icon-md" />
+            {profileActions.randomArticle}
+          </Link>
+          <Link href="/articles" class="btn-primary">
+            <Icon name="carbon:blog" class="icon-md" />
+            {profileActions.allArticles}
+          </Link>
+        </div>
       </div>
     </div>
   </section>
@@ -65,19 +63,21 @@ const featuredTopics = await getFeaturedTopics()
   <!-- Featured Topics Section -->
   {
     featuredTopics.length > 0 && (
-      <section class="my-12 md:my-16">
-        <div class="mb-6 flex items-baseline justify-between gap-4">
-          <div>
-            <h2 class="text-2xl font-semibold">Featured Topics</h2>
-            <p class="text-muted text-sm">Deep-dive into specific areas</p>
-          </div>
-          <Link href="/browse" class="nav-link shrink-0 text-sm">
+      <section class="content-section">
+        <div class="section-divider">
+          <span class="section-divider-text">Featured Topics</span>
+        </div>
+        <div class="section-header">
+          <p class="section-subtitle">Deep-dive into specific areas</p>
+          <Link href="/browse" class="nav-link section-link">
             Browse all &rarr;
           </Link>
         </div>
         <div class="featured-topics">
-          {featuredTopics.map((topic) => (
-            <TopicAccordion topic={topic} showCategory={true} headingLevel="h3" defaultExpanded={true} />
+          {featuredTopics.map((topic, index) => (
+            <div class="topic-item" style={`animation-delay: ${index * 100}ms`}>
+              <TopicAccordion topic={topic} showCategory={true} headingLevel="h3" defaultExpanded={true} />
+            </div>
           ))}
         </div>
       </section>
@@ -87,19 +87,21 @@ const featuredTopics = await getFeaturedTopics()
   <!-- Featured Articles Section -->
   {
     featuredArticles.length > 0 && (
-      <section class="my-12 md:my-16">
-        <div class="mb-6 flex items-baseline justify-between gap-4">
-          <div>
-            <h2 class="text-2xl font-semibold">Featured Articles</h2>
-            <p class="text-muted text-sm">Hand-picked articles worth reading</p>
-          </div>
-          <Link href="/articles" class="nav-link shrink-0 text-sm">
+      <section class="content-section">
+        <div class="section-divider">
+          <span class="section-divider-text">Featured Articles</span>
+        </div>
+        <div class="section-header">
+          <p class="section-subtitle">Hand-picked articles worth reading</p>
+          <Link href="/articles" class="nav-link section-link">
             All articles &rarr;
           </Link>
         </div>
-        <ul class="article-list">
-          {featuredArticles.map((article) => (
-            <ArticleCard article={article} />
+        <ul class="article-list featured-articles">
+          {featuredArticles.map((article, index) => (
+            <div class="article-item" style={`animation-delay: ${index * 80}ms`}>
+              <ArticleCard article={article} />
+            </div>
           ))}
         </ul>
       </section>
@@ -112,7 +114,91 @@ const featuredTopics = await getFeaturedTopics()
 <style is:global>
   @reference "tailwindcss";
 
+  /* Profile section */
+  .profile-section {
+    @apply mb-20 md:mb-24;
+    animation: fadeInUp var(--transition-slow) forwards;
+  }
+
+  .profile-layout {
+    @apply flex flex-col items-center gap-10 md:flex-row md:items-start md:gap-14;
+  }
+
+  .profile-image-wrapper {
+    @apply shrink-0;
+    animation: scaleIn var(--transition-slow) forwards;
+  }
+
+  .profile-image {
+    @apply rounded-full object-cover;
+    @apply h-44 w-44 md:h-52 md:w-52;
+    border: 3px solid var(--color-border);
+    box-shadow: var(--shadow-lg);
+    transition: all var(--transition-normal);
+  }
+
+  .profile-image:hover {
+    box-shadow: var(--shadow-xl);
+    transform: scale(1.02);
+  }
+
+  .profile-content {
+    @apply flex-1 text-center md:text-left;
+    animation: fadeInUp var(--transition-slow) 150ms forwards;
+    opacity: 0;
+  }
+
+  .profile-name {
+    @apply mb-3 font-sans font-normal;
+    font-size: clamp(30px, 4vw, 40px);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+  }
+
+  .profile-title {
+    @apply mb-6 font-sans text-lg font-light md:text-xl;
+    color: var(--color-text-muted);
+  }
+
+  .profile-bio {
+    @apply mb-10 text-lg leading-relaxed;
+    color: var(--color-text-secondary);
+  }
+
+  .profile-actions {
+    @apply flex flex-wrap items-center justify-center gap-3 md:justify-start;
+  }
+
+  /* Content sections */
+  .content-section {
+    @apply mb-20 md:mb-24;
+  }
+
+  .section-header {
+    @apply mb-8 flex flex-wrap items-baseline justify-between gap-4;
+  }
+
+  .section-subtitle {
+    @apply m-0 text-sm;
+    color: var(--color-text-muted);
+  }
+
+  .section-link {
+    @apply shrink-0 text-sm;
+  }
+
   .featured-topics {
     @apply flex flex-col;
+  }
+
+  /* Animated list items */
+  .topic-item,
+  .article-item {
+    animation: fadeInUp var(--transition-slow) forwards;
+    opacity: 0;
+  }
+
+  .featured-articles {
+    /* Reset list styles for animation wrapper */
   }
 </style>

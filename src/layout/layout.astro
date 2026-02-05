@@ -16,20 +16,19 @@ import GoogleAnalytics from "./google-analytics.astro"
 interface Props extends SeoProps {
   noIndex?: boolean | undefined | null
   crumbs: Crumb[] | null
-  /** Use "3col" for pages with sidebars (articles with TOC, search with filters) */
-  layout?: "default" | "3col"
+  /** Container width: "default" (720px) or "wide" (900px) */
+  containerWidth?: "default" | "wide"
 }
 
-const { noIndex, crumbs, layout = "default", ...seoProps } = Astro.props
-
-// Check if sidebar slots are provided
-const hasSidebarLeft = Astro.slots.has("sidebar-left")
-const hasSidebarRight = Astro.slots.has("sidebar-right")
+const { noIndex, crumbs, containerWidth = "default", ...seoProps } = Astro.props
 
 // Font paths with base path support
 const openSansFontPath = getFilePath("fonts/open-sans-latin-wght-normal.woff2")
 const jetBrainsMonoFontPath = getFilePath("fonts/jetbrains-mono-latin-400-normal.woff2")
 const searchIndexPath = getFilePath("search/index.json")
+
+// Container class based on width prop
+const containerClass = containerWidth === "wide" ? "content-container-wide" : "content-container"
 ---
 
 <!doctype html>
@@ -79,40 +78,12 @@ const searchIndexPath = getFilePath("search/index.json")
   <body>
     <a href="#main" class="skip-link">Skip to main content</a>
     <Header />
-    {
-      layout === "3col" ? (
-        /* 3-column layout: sidebars outside content, content centered */
-        <div class="layout-3col-grid page-content flex-1">
-          {/* Left sidebar column */}
-          <aside class="layout-3col-sidebar layout-3col-sidebar-left">
-            {hasSidebarLeft && <slot name="sidebar-left" />}
-          </aside>
-
-          {/* Center content column */}
-          <div class="layout-3col-content">
-            {crumbs && <Breadcrumb {crumbs} />}
-            <slot name="content-top" />
-            <main id="main">
-              <slot />
-            </main>
-            <slot name="content-bottom" />
-          </div>
-
-          {/* Right sidebar column */}
-          <aside class="layout-3col-sidebar layout-3col-sidebar-right">
-            {hasSidebarRight && <slot name="sidebar-right" />}
-          </aside>
-        </div>
-      ) : (
-        /* Default layout: constrained width */
-        <main id="main" class="flex-1">
-          <div class="content-container page-content">
-            {crumbs && <Breadcrumb {crumbs} />}
-            <slot />
-          </div>
-        </main>
-      )
-    }
+    <main id="main" class="flex-1">
+      <div class:list={[containerClass, "page-content"]}>
+        {crumbs && <Breadcrumb {crumbs} />}
+        <slot />
+      </div>
+    </main>
     <Footer />
     <ImageModal />
     <KatexCSS />
