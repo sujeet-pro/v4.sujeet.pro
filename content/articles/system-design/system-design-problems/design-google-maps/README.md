@@ -65,49 +65,53 @@ The core tradeoff: **preprocessing time vs. query latency**. CH requires 5+ minu
 
 ### Functional Requirements
 
-| Feature | Priority | In Scope |
-|---------|----------|----------|
-| Map tile rendering | Core | Yes |
-| Turn-by-turn routing | Core | Yes |
-| Real-time traffic | Core | Yes |
-| ETA prediction | Core | Yes |
-| Geocoding (address → coordinates) | Core | Yes |
-| Reverse geocoding (coordinates → address) | Core | Yes |
-| POI search | High | Yes |
-| Place autocomplete | High | Yes |
-| Offline maps | High | Yes |
-| Street View | Medium | Brief mention |
-| Transit routing | Medium | Out of scope |
-| Indoor maps | Low | Out of scope |
+| Feature                                   | Priority | In Scope      |
+| ----------------------------------------- | -------- | ------------- |
+| Map tile rendering                        | Core     | Yes           |
+| Turn-by-turn routing                      | Core     | Yes           |
+| Real-time traffic                         | Core     | Yes           |
+| ETA prediction                            | Core     | Yes           |
+| Geocoding (address → coordinates)         | Core     | Yes           |
+| Reverse geocoding (coordinates → address) | Core     | Yes           |
+| POI search                                | High     | Yes           |
+| Place autocomplete                        | High     | Yes           |
+| Offline maps                              | High     | Yes           |
+| Street View                               | Medium   | Brief mention |
+| Transit routing                           | Medium   | Out of scope  |
+| Indoor maps                               | Low      | Out of scope  |
 
 ### Non-Functional Requirements
 
-| Requirement | Target | Rationale |
-|-------------|--------|-----------|
-| Availability | 99.99% | User-facing, safety-critical for navigation |
-| Tile latency | p99 < 100ms | Map rendering responsiveness |
-| Routing latency | p99 < 500ms | User expectation for route calculation |
-| ETA accuracy | 97%+ trips within ±10% | User trust in arrival predictions |
-| Offline storage | < 2GB per region | Mobile device constraints |
-| Traffic update frequency | < 2 minutes | Real-time usefulness |
+| Requirement              | Target                 | Rationale                                   |
+| ------------------------ | ---------------------- | ------------------------------------------- |
+| Availability             | 99.99%                 | User-facing, safety-critical for navigation |
+| Tile latency             | p99 < 100ms            | Map rendering responsiveness                |
+| Routing latency          | p99 < 500ms            | User expectation for route calculation      |
+| ETA accuracy             | 97%+ trips within ±10% | User trust in arrival predictions           |
+| Offline storage          | < 2GB per region       | Mobile device constraints                   |
+| Traffic update frequency | < 2 minutes            | Real-time usefulness                        |
 
 ### Scale Estimation
 
 **Users:**
+
 - DAU: 1 billion (Google Maps actual scale)
 - Peak concurrent: 100M (10% of DAU)
 
 **Tile Traffic:**
+
 - Average session: 50 tile requests (zoom/pan interactions)
 - Daily tile requests: 1B × 50 = 50B requests/day
 - Peak RPS: 50B / 86400 × 3 (peak multiplier) ≈ 1.7M RPS
 
 **Routing Traffic:**
+
 - Routes per DAU: 2 average
 - Daily routing requests: 2B/day ≈ 23K RPS
 - Peak: 70K RPS
 
 **Storage:**
+
 - Global road network: ~1 billion road segments
 - CH index size: 50-100 bytes/node × 1B ≈ 50-100 TB
 - Vector tiles (all zoom levels): ~50 PB
@@ -118,16 +122,19 @@ The core tradeoff: **preprocessing time vs. query latency**. CH requires 5+ minu
 ### Path A: Preprocessing-Heavy (Contraction Hierarchies)
 
 **Best when:**
+
 - Road network changes infrequently (< daily)
 - Query latency is critical (< 1ms routing)
 - Traffic updates can be overlaid without full recomputation
 
 **Architecture:**
+
 - Precompute Contraction Hierarchies offline (5-10 minutes for continental networks)
 - Store preprocessed graph in memory-mapped files
 - Apply traffic as edge weight multipliers at query time
 
 **Trade-offs:**
+
 - ✅ Sub-millisecond query time (163 µs median)
 - ✅ Predictable latency under load
 - ❌ Preprocessing blocks road network updates
@@ -138,16 +145,19 @@ The core tradeoff: **preprocessing time vs. query latency**. CH requires 5+ minu
 ### Path B: Dynamic Routing (ALT Algorithm)
 
 **Best when:**
+
 - Road network changes frequently (construction, closures)
 - Real-time edge weights are primary concern
 - Preprocessing time must be minimal
 
 **Architecture:**
+
 - Precompute distances to landmark nodes only
 - Use triangle inequality for search pruning
 - Full dynamic edge weights without reprocessing
 
 **Trade-offs:**
+
 - ✅ Handles dynamic networks well
 - ✅ Lighter preprocessing (seconds to minutes)
 - ❌ 10-100x slower queries than CH
@@ -155,13 +165,13 @@ The core tradeoff: **preprocessing time vs. query latency**. CH requires 5+ minu
 
 ### Path Comparison
 
-| Factor | Path A (CH) | Path B (ALT) |
-|--------|-------------|--------------|
-| Query time | 163 µs | 1-10 ms |
-| Preprocessing | 5-10 minutes | Seconds |
-| Dynamic updates | Overlay required | Native support |
-| Memory overhead | High (21-68 B/node) | Moderate |
-| Best for | Production routing | Experimental/dynamic |
+| Factor          | Path A (CH)         | Path B (ALT)         |
+| --------------- | ------------------- | -------------------- |
+| Query time      | 163 µs              | 1-10 ms              |
+| Preprocessing   | 5-10 minutes        | Seconds              |
+| Dynamic updates | Overlay required    | Native support       |
+| Memory overhead | High (21-68 B/node) | Moderate             |
+| Best for        | Production routing  | Experimental/dynamic |
 
 ### This Article's Focus
 
@@ -174,32 +184,34 @@ This article focuses on **Path A (Contraction Hierarchies)** because production 
 Serves pre-rendered or dynamically generated map tiles using a quadtree addressing scheme.
 
 **Tile Addressing (Web Mercator):**
+
 ```
 /{z}/{x}/{y}.{format}
 ```
+
 - `z`: Zoom level (0-22)
 - `x`: Column index (0 to 2^z - 1)
 - `y`: Row index (0 to 2^z - 1)
 
 **Zoom Level Properties:**
 
-| Zoom | Tile Count | Meters/Pixel (Equator) | Use Case |
-|------|------------|------------------------|----------|
-| 0 | 1 | 156,543 m | World view |
-| 10 | 1,048,576 | 152.87 m | City-level |
-| 15 | ~1 billion | 4.78 m | Street-level |
-| 18 | ~69 billion | 0.60 m | Building-level |
-| 20 | ~1.1 trillion | 0.15 m | Maximum detail |
+| Zoom | Tile Count    | Meters/Pixel (Equator) | Use Case       |
+| ---- | ------------- | ---------------------- | -------------- |
+| 0    | 1             | 156,543 m              | World view     |
+| 10   | 1,048,576     | 152.87 m               | City-level     |
+| 15   | ~1 billion    | 4.78 m                 | Street-level   |
+| 18   | ~69 billion   | 0.60 m                 | Building-level |
+| 20   | ~1.1 trillion | 0.15 m                 | Maximum detail |
 
 **Vector Tiles vs. Raster Tiles:**
 
-| Aspect | Raster Tiles | Vector Tiles |
-|--------|--------------|--------------|
-| Format | Pre-rendered PNG/JPEG | Protobuf-encoded geometry |
-| Size | 100-300 KB | 20-50 KB compressed |
-| Styling | Fixed at render time | Client-side, dynamic |
-| Scaling | Pixelates | Infinite (vector math) |
-| Updates | Full tile replacement | Delta updates possible |
+| Aspect  | Raster Tiles          | Vector Tiles              |
+| ------- | --------------------- | ------------------------- |
+| Format  | Pre-rendered PNG/JPEG | Protobuf-encoded geometry |
+| Size    | 100-300 KB            | 20-50 KB compressed       |
+| Styling | Fixed at render time  | Client-side, dynamic      |
+| Scaling | Pixelates             | Infinite (vector math)    |
+| Updates | Full tile replacement | Delta updates possible    |
 
 Vector tiles (Mapbox Vector Tile specification) encode features as Protocol Buffers with a default extent of 4096 coordinate units per tile. This enables client-side rendering with custom styles and smooth zooming.
 
@@ -243,12 +255,12 @@ flowchart LR
 
 **Performance Benchmarks (North America, 87M vertices):**
 
-| Metric | Value |
-|--------|-------|
-| Preprocessing time | 307 seconds (~5 min) |
-| Query time (median) | 163 microseconds |
-| Speedup over Dijkstra | ~30,000x |
-| Storage overhead | 21-68 bytes/node |
+| Metric                | Value                |
+| --------------------- | -------------------- |
+| Preprocessing time    | 307 seconds (~5 min) |
+| Query time (median)   | 163 microseconds     |
+| Speedup over Dijkstra | ~30,000x             |
+| Storage overhead      | 21-68 bytes/node     |
 
 **Traffic-Aware Routing:**
 
@@ -268,13 +280,13 @@ Collects, processes, and serves real-time traffic data.
 
 **Data Sources:**
 
-| Source | Quality | Latency | Coverage |
-|--------|---------|---------|----------|
-| GPS probes (mobile) | Medium | Real-time | High (urban) |
-| Connected cars (OEM) | High | Real-time | Growing |
-| Road sensors | High | Real-time | Limited |
-| User reports | Variable | Real-time | Incident-specific |
-| Historical patterns | N/A | N/A | Baseline |
+| Source               | Quality  | Latency   | Coverage          |
+| -------------------- | -------- | --------- | ----------------- |
+| GPS probes (mobile)  | Medium   | Real-time | High (urban)      |
+| Connected cars (OEM) | High     | Real-time | Growing           |
+| Road sensors         | High     | Real-time | Limited           |
+| User reports         | Variable | Real-time | Incident-specific |
+| Historical patterns  | N/A      | N/A       | Baseline          |
 
 **Floating Car Data (FCD) Pipeline:**
 
@@ -297,6 +309,7 @@ Google's DeepMind collaboration uses GNNs to predict travel times:
 - **Output**: Predicted travel time distribution
 
 Results:
+
 - 97%+ trips with ETA within ±10%
 - Up to 50% reduction in negative ETA outcomes (Sydney, Tokyo, Berlin)
 
@@ -330,11 +343,11 @@ Given (lat, lon), find the nearest address:
 
 **Spatial Indexing Options:**
 
-| Index | Structure | Use Case |
-|-------|-----------|----------|
-| R-tree | Bounding rectangles | General spatial queries, PostGIS |
-| Quadtree | Recursive quadrants | Tile-based lookups |
-| S2 Geometry | Spherical cells (Hilbert curve) | Global-scale, hierarchical |
+| Index       | Structure                       | Use Case                         |
+| ----------- | ------------------------------- | -------------------------------- |
+| R-tree      | Bounding rectangles             | General spatial queries, PostGIS |
+| Quadtree    | Recursive quadrants             | Tile-based lookups               |
+| S2 Geometry | Spherical cells (Hilbert curve) | Global-scale, hierarchical       |
 
 Google uses S2 Geometry for global coverage with hierarchical cell IDs that enable efficient prefix-based queries.
 
@@ -342,15 +355,16 @@ Google uses S2 Geometry for global coverage with hierarchical cell IDs that enab
 
 **Place Autocomplete Data Structures:**
 
-| Structure | Lookup Time | Space | Best For |
-|-----------|-------------|-------|----------|
-| Trie | O(m) | High | Exact prefix match |
-| Ternary Search Tree | O(m) | Medium | Space-efficient prefix |
-| Pruning Radix Trie | O(m) | Low | Production autocomplete |
+| Structure           | Lookup Time | Space  | Best For                |
+| ------------------- | ----------- | ------ | ----------------------- |
+| Trie                | O(m)        | High   | Exact prefix match      |
+| Ternary Search Tree | O(m)        | Medium | Space-efficient prefix  |
+| Pruning Radix Trie  | O(m)        | Low    | Production autocomplete |
 
 Where m = query length.
 
 **Ranking Signals:**
+
 - Text relevance (edit distance, prefix match)
 - Popularity (visit frequency)
 - Recency (user's recent searches)
@@ -364,12 +378,14 @@ Where m = query length.
 **Endpoint:** `GET /tiles/{z}/{x}/{y}.{format}`
 
 **Path Parameters:**
+
 - `z`: Zoom level (0-22)
 - `x`: Tile column
 - `y`: Tile row
 - `format`: `png`, `mvt` (vector), `pbf`
 
 **Response Headers:**
+
 ```http
 Content-Type: image/png | application/vnd.mapbox-vector-tile
 Cache-Control: public, max-age=86400
@@ -379,6 +395,7 @@ ETag: "abc123"
 **Response:** Binary tile data
 
 **Caching Strategy:**
+
 - CDN cache: 24 hours for zoom < 15, 1 hour for zoom ≥ 15
 - Client cache: ETag-based conditional requests
 - Cache hit rate target: > 95%
@@ -388,11 +405,12 @@ ETag: "abc123"
 **Endpoint:** `POST /routes`
 
 **Request:**
+
 ```json
 {
-  "origin": {"lat": 37.4220, "lng": -122.0841},
-  "destination": {"lat": 37.7749, "lng": -122.4194},
-  "waypoints": [{"lat": 37.5585, "lng": -122.2711}],
+  "origin": { "lat": 37.422, "lng": -122.0841 },
+  "destination": { "lat": 37.7749, "lng": -122.4194 },
+  "waypoints": [{ "lat": 37.5585, "lng": -122.2711 }],
   "mode": "driving",
   "departure_time": "2024-01-15T08:00:00Z",
   "alternatives": true,
@@ -401,6 +419,7 @@ ETag: "abc123"
 ```
 
 **Response:**
+
 ```json
 {
   "routes": [
@@ -430,6 +449,7 @@ ETag: "abc123"
 ```
 
 **Error Responses:**
+
 - `400 Bad Request`: Invalid coordinates, missing required fields
 - `404 Not Found`: No route found (disconnected points)
 - `429 Too Many Requests`: Rate limit exceeded
@@ -443,6 +463,7 @@ ETag: "abc123"
 `GET /geocode?address={address}&bounds={sw_lat,sw_lng,ne_lat,ne_lng}`
 
 **Response:**
+
 ```json
 {
   "results": [
@@ -472,6 +493,7 @@ ETag: "abc123"
 **Endpoint:** `GET /places/autocomplete?input={query}&location={lat},{lng}&radius={meters}`
 
 **Response:**
+
 ```json
 {
   "predictions": [
@@ -514,6 +536,7 @@ Edge:
 ```
 
 **Storage:**
+
 - Memory-mapped file for O(1) access
 - Compressed with LZ4 for disk storage
 - Sharded by geographic region (continent-level)
@@ -533,6 +556,7 @@ Value: {
 ```
 
 **Tile Generation Pipeline:**
+
 1. Raw map data (OpenStreetMap format)
 2. Feature extraction and simplification per zoom level
 3. Vector tile encoding (Mapbox Vector Tile spec)
@@ -561,6 +585,7 @@ ON traffic_observations(segment_id, timestamp DESC);
 ```
 
 **Retention:**
+
 - Raw observations: 7 days
 - Hourly aggregates: 1 year
 - Daily patterns: 5 years
@@ -588,14 +613,14 @@ CREATE INDEX idx_places_name_trgm ON places USING GIN(name gin_trgm_ops);
 
 ### Database Selection Matrix
 
-| Data Type | Store | Rationale |
-|-----------|-------|-----------|
-| Road graph | Memory-mapped file | O(1) access, no serialization overhead |
-| Tiles | Object storage + CDN | Static content, high read volume |
-| Traffic (real-time) | Time-series DB | Time-windowed queries, retention policies |
-| Places/POI | PostgreSQL + PostGIS | Spatial queries, full-text search |
-| User data | PostgreSQL | ACID, relational queries |
-| Search index | Elasticsearch | Full-text, autocomplete, facets |
+| Data Type           | Store                | Rationale                                 |
+| ------------------- | -------------------- | ----------------------------------------- |
+| Road graph          | Memory-mapped file   | O(1) access, no serialization overhead    |
+| Tiles               | Object storage + CDN | Static content, high read volume          |
+| Traffic (real-time) | Time-series DB       | Time-windowed queries, retention policies |
+| Places/POI          | PostgreSQL + PostGIS | Spatial queries, full-text search         |
+| User data           | PostgreSQL           | ACID, relational queries                  |
+| Search index        | Elasticsearch        | Full-text, autocomplete, facets           |
 
 ## Low-Level Design
 
@@ -636,6 +661,7 @@ priority(v) = edge_difference(v)
 ```
 
 Where:
+
 - `edge_difference`: Number of shortcuts that would be added minus edges removed
 - `contract_depth`: Maximum hierarchy level among neighbors
 - `original_edges`: Number of non-shortcut edges (prefer removing shortcuts first)
@@ -705,12 +731,12 @@ Map matching assigns GPS probes to road segments. The standard approach uses a H
 
 **Simplification Tolerance:**
 
-| Zoom Level | Tolerance (meters) | Rationale |
-|------------|-------------------|-----------|
-| 0-5 | 1000+ | Only major features visible |
-| 6-10 | 100-1000 | Country/state level |
-| 11-15 | 10-100 | City level |
-| 16+ | 1-10 | Street level, minimal simplification |
+| Zoom Level | Tolerance (meters) | Rationale                            |
+| ---------- | ------------------ | ------------------------------------ |
+| 0-5        | 1000+              | Only major features visible          |
+| 6-10       | 100-1000           | Country/state level                  |
+| 11-15      | 10-100             | City level                           |
+| 16+        | 1-10               | Street level, minimal simplification |
 
 **MVT Structure:**
 
@@ -745,25 +771,25 @@ Keys and values are deduplicated across features for compression.
 
 ```typescript
 interface Viewport {
-  center: LatLng;
-  zoom: number;
-  bounds: LatLngBounds;
+  center: LatLng
+  zoom: number
+  bounds: LatLngBounds
 }
 
 function getTilesForViewport(viewport: Viewport): TileCoord[] {
-  const { bounds, zoom } = viewport;
-  const tiles: TileCoord[] = [];
+  const { bounds, zoom } = viewport
+  const tiles: TileCoord[] = []
 
-  const minTile = latLngToTile(bounds.southwest, zoom);
-  const maxTile = latLngToTile(bounds.northeast, zoom);
+  const minTile = latLngToTile(bounds.southwest, zoom)
+  const maxTile = latLngToTile(bounds.northeast, zoom)
 
   for (let x = minTile.x; x <= maxTile.x; x++) {
     for (let y = minTile.y; y <= maxTile.y; y++) {
-      tiles.push({ z: zoom, x, y });
+      tiles.push({ z: zoom, x, y })
     }
   }
 
-  return tiles;
+  return tiles
 }
 ```
 
@@ -777,27 +803,27 @@ function getTilesForViewport(viewport: Viewport): TileCoord[] {
 
 ```typescript
 class TileCache {
-  private cache: Map<string, ImageBitmap>;
-  private maxSize: number = 500; // tiles
-  private lru: string[] = [];
+  private cache: Map<string, ImageBitmap>
+  private maxSize: number = 500 // tiles
+  private lru: string[] = []
 
   get(key: string): ImageBitmap | undefined {
-    const tile = this.cache.get(key);
+    const tile = this.cache.get(key)
     if (tile) {
       // Move to end of LRU
-      this.lru = this.lru.filter(k => k !== key);
-      this.lru.push(key);
+      this.lru = this.lru.filter((k) => k !== key)
+      this.lru.push(key)
     }
-    return tile;
+    return tile
   }
 
   set(key: string, tile: ImageBitmap): void {
     if (this.cache.size >= this.maxSize) {
-      const evict = this.lru.shift()!;
-      this.cache.delete(evict);
+      const evict = this.lru.shift()!
+      this.cache.delete(evict)
     }
-    this.cache.set(key, tile);
-    this.lru.push(key);
+    this.cache.set(key, tile)
+    this.lru.push(key)
   }
 }
 ```
@@ -812,6 +838,7 @@ class TileCache {
 4. Render with appropriate shaders
 
 **Libraries:**
+
 - Mapbox GL JS / MapLibre GL JS (WebGL-based)
 - Leaflet with vector tile plugins (Canvas/SVG fallback)
 - deck.gl for data visualization layers
@@ -830,29 +857,29 @@ class TileCache {
 ```typescript
 interface RouteLayer {
   // Decoded polyline as [lat, lng] pairs
-  coordinates: [number, number][];
+  coordinates: [number, number][]
 
   // Style
-  strokeColor: string;
-  strokeWidth: number;
+  strokeColor: string
+  strokeWidth: number
 
   // Animation state (for traffic coloring)
   trafficSegments: {
-    startIndex: number;
-    endIndex: number;
-    severity: 'free_flow' | 'light' | 'moderate' | 'heavy';
-  }[];
+    startIndex: number
+    endIndex: number
+    severity: "free_flow" | "light" | "moderate" | "heavy"
+  }[]
 }
 ```
 
 **Traffic Coloring:**
 
-| Severity | Color | Speed Ratio |
-|----------|-------|-------------|
-| Free flow | Green (#4CAF50) | > 0.8 |
-| Light | Yellow (#FFEB3B) | 0.6-0.8 |
-| Moderate | Orange (#FF9800) | 0.4-0.6 |
-| Heavy | Red (#F44336) | < 0.4 |
+| Severity  | Color            | Speed Ratio |
+| --------- | ---------------- | ----------- |
+| Free flow | Green (#4CAF50)  | > 0.8       |
+| Light     | Yellow (#FFEB3B) | 0.6-0.8     |
+| Moderate  | Orange (#FF9800) | 0.4-0.6     |
+| Heavy     | Red (#F44336)    | < 0.4       |
 
 **Animation (Navigation Mode):**
 
@@ -866,26 +893,27 @@ interface RouteLayer {
 
 ```typescript
 interface OfflineRegion {
-  bounds: LatLngBounds;
-  minZoom: number;
-  maxZoom: number;
-  includeRouting: boolean;
+  bounds: LatLngBounds
+  minZoom: number
+  maxZoom: number
+  includeRouting: boolean
 }
 
 function estimateDownloadSize(region: OfflineRegion): number {
-  let totalTiles = 0;
+  let totalTiles = 0
   for (let z = region.minZoom; z <= region.maxZoom; z++) {
-    const tilesAtZoom = countTilesInBounds(region.bounds, z);
-    totalTiles += tilesAtZoom;
+    const tilesAtZoom = countTilesInBounds(region.bounds, z)
+    totalTiles += tilesAtZoom
   }
   // Average 30KB per compressed vector tile
-  return totalTiles * 30 * 1024;
+  return totalTiles * 30 * 1024
 }
 ```
 
 **Storage Format:**
 
 SQLite database with:
+
 - Tile blobs keyed by (z, x, y)
 - Metadata (region bounds, version, expiry)
 - Road graph subset for offline routing
@@ -904,6 +932,7 @@ Bandwidth reduction: up to 75% compared to full re-download.
 ### CDN Architecture
 
 **Tile CDN Requirements:**
+
 - Edge locations in 100+ cities
 - Cache hit rate > 95%
 - Origin shield to protect tile servers
@@ -917,11 +946,11 @@ User → Edge PoP → Regional Cache → Origin Shield → Tile Server
 
 **Cache TTLs:**
 
-| Zoom Level | TTL | Rationale |
-|------------|-----|-----------|
-| 0-10 | 30 days | Rarely changes (coastlines, countries) |
-| 11-15 | 7 days | City infrastructure |
-| 16-22 | 1 day | Street details, POIs |
+| Zoom Level | TTL     | Rationale                              |
+| ---------- | ------- | -------------------------------------- |
+| 0-10       | 30 days | Rarely changes (coastlines, countries) |
+| 11-15      | 7 days  | City infrastructure                    |
+| 16-22      | 1 day   | Street details, POIs                   |
 
 ### Routing Service Deployment
 
@@ -940,16 +969,16 @@ User → Edge PoP → Regional Cache → Origin Shield → Tile Server
 
 ### Cloud Architecture (AWS)
 
-| Component | Service | Configuration |
-|-----------|---------|---------------|
-| Tile CDN | CloudFront | Global edge, S3 origin |
-| Tile Storage | S3 | Standard for hot tiles, Glacier for archive |
-| Routing Service | ECS Fargate | Memory-optimized (r6g.4xlarge equivalent) |
-| Traffic Ingestion | Kinesis | Sharded by region |
-| Traffic Processing | Lambda + Kinesis Analytics | Real-time aggregation |
-| Geocoding | OpenSearch | Geo queries, autocomplete |
-| POI Database | RDS PostgreSQL | PostGIS extension |
-| Graph Storage | EFS | Shared memory-mapped files |
+| Component          | Service                    | Configuration                               |
+| ------------------ | -------------------------- | ------------------------------------------- |
+| Tile CDN           | CloudFront                 | Global edge, S3 origin                      |
+| Tile Storage       | S3                         | Standard for hot tiles, Glacier for archive |
+| Routing Service    | ECS Fargate                | Memory-optimized (r6g.4xlarge equivalent)   |
+| Traffic Ingestion  | Kinesis                    | Sharded by region                           |
+| Traffic Processing | Lambda + Kinesis Analytics | Real-time aggregation                       |
+| Geocoding          | OpenSearch                 | Geo queries, autocomplete                   |
+| POI Database       | RDS PostgreSQL             | PostGIS extension                           |
+| Graph Storage      | EFS                        | Shared memory-mapped files                  |
 
 <figure>
 
@@ -999,41 +1028,44 @@ flowchart TB
 
 ### Self-Hosted Alternatives
 
-| Managed Service | Self-Hosted | When to Self-Host |
-|-----------------|-------------|-------------------|
-| CloudFront | Nginx + Varnish | Cost at extreme scale |
-| OpenSearch | Elasticsearch | Specific plugins needed |
-| RDS PostgreSQL | PostgreSQL on EC2 | PostGIS extensions, cost |
-| Kinesis | Apache Kafka | Higher throughput, cost |
-| Timestream | InfluxDB | Open-source flexibility |
+| Managed Service | Self-Hosted       | When to Self-Host        |
+| --------------- | ----------------- | ------------------------ |
+| CloudFront      | Nginx + Varnish   | Cost at extreme scale    |
+| OpenSearch      | Elasticsearch     | Specific plugins needed  |
+| RDS PostgreSQL  | PostgreSQL on EC2 | PostGIS extensions, cost |
+| Kinesis         | Apache Kafka      | Higher throughput, cost  |
+| Timestream      | InfluxDB          | Open-source flexibility  |
 
 ## Monitoring and Observability
 
 ### Key Metrics
 
 **Tile Service:**
+
 - Cache hit rate (target: > 95%)
 - Tile generation latency (p99 < 200ms)
 - Error rate by zoom level
 
 **Routing Service:**
+
 - Query latency (p50, p99)
 - Routes not found rate
 - Traffic overlay staleness
 
 **Traffic Service:**
+
 - Probe ingestion lag (target: < 30s)
 - Segment coverage (% of roads with data)
 - ETA accuracy (actual vs. predicted)
 
 ### Alerting Thresholds
 
-| Metric | Warning | Critical |
-|--------|---------|----------|
-| Tile cache hit rate | < 90% | < 80% |
-| Routing p99 latency | > 500ms | > 1s |
-| Traffic data lag | > 2 min | > 5 min |
-| ETA accuracy | < 95% | < 90% |
+| Metric              | Warning | Critical |
+| ------------------- | ------- | -------- |
+| Tile cache hit rate | < 90%   | < 80%    |
+| Routing p99 latency | > 500ms | > 1s     |
+| Traffic data lag    | > 2 min | > 5 min  |
+| ETA accuracy        | < 95%   | < 90%    |
 
 ## Conclusion
 
@@ -1046,16 +1078,19 @@ This design addresses the core challenges of a mapping platform:
 3. **Accurate ETAs**: Graph Neural Networks on supersegments achieve 97%+ accuracy. The key insight: model road sections with shared traffic patterns rather than individual segments.
 
 **Key tradeoffs accepted:**
+
 - Preprocessing time for query speed (CH approach)
 - Storage overhead (21-68 bytes/node) for routing performance
 - Eventual consistency in traffic data (2-minute lag acceptable)
 
 **Limitations:**
+
 - CH preprocessing blocks rapid road network updates (construction, closures)
 - Traffic accuracy depends on probe density (sparse in rural areas)
 - Offline routing requires downloading regional graph subsets
 
 **Future improvements:**
+
 - Machine learning for route personalization
 - Real-time construction detection from probe data
 - Federated routing across providers
@@ -1064,21 +1099,21 @@ This design addresses the core challenges of a mapping platform:
 
 ### Prerequisites
 
-- Graph algorithms (Dijkstra, A*)
+- Graph algorithms (Dijkstra, A\*)
 - Spatial indexing concepts (R-tree, quadtree)
 - Distributed systems fundamentals
 - CDN caching strategies
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
+| Term                             | Definition                                                                 |
+| -------------------------------- | -------------------------------------------------------------------------- |
 | **CH (Contraction Hierarchies)** | Preprocessing technique that creates shortcuts to speed up routing queries |
-| **MVT (Mapbox Vector Tile)** | Protocol buffer format for encoding map features as vectors |
-| **FCD (Floating Car Data)** | Anonymized GPS traces from vehicles used for traffic estimation |
-| **Supersegment** | Group of adjacent road segments with shared traffic patterns (GNN concept) |
-| **Map Matching** | Algorithm to assign GPS probes to road network segments |
-| **Web Mercator** | Map projection (EPSG:3857) used by most web maps |
+| **MVT (Mapbox Vector Tile)**     | Protocol buffer format for encoding map features as vectors                |
+| **FCD (Floating Car Data)**      | Anonymized GPS traces from vehicles used for traffic estimation            |
+| **Supersegment**                 | Group of adjacent road segments with shared traffic patterns (GNN concept) |
+| **Map Matching**                 | Algorithm to assign GPS probes to road network segments                    |
+| **Web Mercator**                 | Map projection (EPSG:3857) used by most web maps                           |
 
 ### Summary
 

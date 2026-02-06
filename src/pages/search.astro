@@ -231,9 +231,6 @@ const searchIndexPath = getFilePath("search/index.json")
     const hintEl = document.getElementById("search-hint") as HTMLElement
     const clearBtn = document.getElementById("clear-filters") as HTMLButtonElement
     const activeFiltersDisplay = document.getElementById("active-filters-display") as HTMLElement
-    const filtersTrigger = document.getElementById("filters-trigger") as HTMLButtonElement
-    const filtersContent = document.getElementById("filters-content") as HTMLElement
-
     if (!queryInput) return
 
     queryInput.value = params.q
@@ -641,7 +638,9 @@ const searchIndexPath = getFilePath("search/index.json")
   .search-box-input:focus {
     @apply outline-none;
     border-color: var(--color-accent);
-    box-shadow: var(--shadow-md), 0 0 0 4px var(--color-accent-subtle);
+    box-shadow:
+      var(--shadow-md),
+      0 0 0 4px var(--color-accent-subtle);
   }
 
   .search-box-input:focus ~ .search-box-icon {
@@ -712,7 +711,9 @@ const searchIndexPath = getFilePath("search/index.json")
   .filters-toggle-chevron {
     @apply shrink-0;
     color: var(--color-text-muted);
-    transition: transform var(--transition-normal), color var(--transition-fast);
+    transition:
+      transform var(--transition-normal),
+      color var(--transition-fast);
   }
 
   .filters-toggle:hover .filters-toggle-chevron {
@@ -773,7 +774,7 @@ const searchIndexPath = getFilePath("search/index.json")
   }
 
   .filters-group-label {
-    @apply mb-3 block text-xs font-semibold uppercase tracking-wider;
+    @apply mb-3 block text-xs font-semibold tracking-wider uppercase;
     color: var(--color-text-muted);
   }
 

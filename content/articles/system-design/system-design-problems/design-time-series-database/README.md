@@ -73,32 +73,32 @@ The storage engine uses a **Log-Structured Merge Tree (LSM)** variant. Writes ap
 
 ### Functional Requirements
 
-| Feature                          | Priority | Scope    |
-| -------------------------------- | -------- | -------- |
-| Metric ingestion (push model)    | Core     | Full     |
-| Range queries by time            | Core     | Full     |
-| Tag-based filtering              | Core     | Full     |
-| Aggregations (sum, avg, max, p99)| Core     | Full     |
-| Downsampling and rollups         | Core     | Full     |
-| Retention policies               | Core     | Full     |
-| Alerting integration             | High     | Overview |
-| Multi-tenancy                    | High     | Overview |
-| Distributed queries              | High     | Full     |
-| Cardinality management           | High     | Full     |
-| Exemplar storage (traces)        | Medium   | Brief    |
-| Anomaly detection                | Low      | Out of scope |
+| Feature                           | Priority | Scope        |
+| --------------------------------- | -------- | ------------ |
+| Metric ingestion (push model)     | Core     | Full         |
+| Range queries by time             | Core     | Full         |
+| Tag-based filtering               | Core     | Full         |
+| Aggregations (sum, avg, max, p99) | Core     | Full         |
+| Downsampling and rollups          | Core     | Full         |
+| Retention policies                | Core     | Full         |
+| Alerting integration              | High     | Overview     |
+| Multi-tenancy                     | High     | Overview     |
+| Distributed queries               | High     | Full         |
+| Cardinality management            | High     | Full         |
+| Exemplar storage (traces)         | Medium   | Brief        |
+| Anomaly detection                 | Low      | Out of scope |
 
 ### Non-Functional Requirements
 
-| Requirement              | Target                        | Rationale                                           |
-| ------------------------ | ----------------------------- | --------------------------------------------------- |
-| Write throughput         | 1M+ samples/sec per node      | Modern infrastructure generates massive telemetry   |
-| Read latency (hot data)  | p99 < 100ms                   | Dashboard refresh and alerting requirements         |
-| Read latency (cold data) | p99 < 5s                      | Historical analysis acceptable with higher latency  |
-| Storage efficiency       | < 2 bytes/sample compressed   | Cost-effective retention of years of data           |
-| Availability             | 99.9%                         | Monitoring systems must be highly available         |
-| Data durability          | 99.999%                       | Metrics are valuable for incident investigation     |
-| Retention                | Raw: 15 days, Aggregated: 2 years | Balance granularity vs. storage cost            |
+| Requirement              | Target                            | Rationale                                          |
+| ------------------------ | --------------------------------- | -------------------------------------------------- |
+| Write throughput         | 1M+ samples/sec per node          | Modern infrastructure generates massive telemetry  |
+| Read latency (hot data)  | p99 < 100ms                       | Dashboard refresh and alerting requirements        |
+| Read latency (cold data) | p99 < 5s                          | Historical analysis acceptable with higher latency |
+| Storage efficiency       | < 2 bytes/sample compressed       | Cost-effective retention of years of data          |
+| Availability             | 99.9%                             | Monitoring systems must be highly available        |
+| Data durability          | 99.999%                           | Metrics are valuable for incident investigation    |
+| Retention                | Raw: 15 days, Aggregated: 2 years | Balance granularity vs. storage cost               |
 
 ### Scale Estimation
 
@@ -209,14 +209,14 @@ The storage engine uses a **Log-Structured Merge Tree (LSM)** variant. Writes ap
 
 ### Path Comparison
 
-| Factor             | Path A (In-Memory) | Path B (LSM)         | Path C (Distributed) |
-| ------------------ | ------------------ | -------------------- | -------------------- |
-| Query latency (hot)| Sub-ms             | 10-100ms             | 50-500ms             |
-| Retention          | Hours              | Weeks-Months         | Years                |
-| Storage efficiency | Low (in-memory)    | High (12x compression)| High                |
-| Cardinality limit  | Memory-bound       | Disk-bound           | Configurable         |
-| Operational complexity| Low             | Medium               | High                 |
-| Best for           | Real-time dashboards| Single-cluster monitoring | Multi-tenant SaaS |
+| Factor                 | Path A (In-Memory)   | Path B (LSM)              | Path C (Distributed) |
+| ---------------------- | -------------------- | ------------------------- | -------------------- |
+| Query latency (hot)    | Sub-ms               | 10-100ms                  | 50-500ms             |
+| Retention              | Hours                | Weeks-Months              | Years                |
+| Storage efficiency     | Low (in-memory)      | High (12x compression)    | High                 |
+| Cardinality limit      | Memory-bound         | Disk-bound                | Configurable         |
+| Operational complexity | Low                  | Medium                    | High                 |
+| Best for               | Real-time dashboards | Single-cluster monitoring | Multi-tenant SaaS    |
 
 ### This Article's Focus
 
@@ -384,12 +384,12 @@ Remote-write enables hybrid: Prometheus scrapes locally, pushes to central TSDB.
 
 **Query Parameters:**
 
-| Parameter | Type    | Description                                       |
-| --------- | ------- | ------------------------------------------------- |
-| `query`   | string  | Query expression (PromQL, InfluxQL)               |
-| `start`   | int64   | Start timestamp (Unix seconds or RFC3339)         |
-| `end`     | int64   | End timestamp                                     |
-| `step`    | duration| Query resolution (e.g., "1m", "5m")              |
+| Parameter | Type     | Description                               |
+| --------- | -------- | ----------------------------------------- |
+| `query`   | string   | Query expression (PromQL, InfluxQL)       |
+| `start`   | int64    | Start timestamp (Unix seconds or RFC3339) |
+| `end`     | int64    | End timestamp                             |
+| `step`    | duration | Query resolution (e.g., "1m", "5m")       |
 
 **Example Query:**
 
@@ -453,12 +453,12 @@ Used for cardinality analysis and debugging high-cardinality labels.
 
 ```typescript
 interface Sample {
-  timestamp: number    // Unix milliseconds
-  value: number        // IEEE 754 double (64-bit)
+  timestamp: number // Unix milliseconds
+  value: number // IEEE 754 double (64-bit)
 }
 
 interface Series {
-  labels: Map<string, string>  // Metric name + tags
+  labels: Map<string, string> // Metric name + tags
   samples: Sample[]
 }
 
@@ -575,15 +575,15 @@ CREATE INDEX idx_blocks_time ON blocks(min_time, max_time);
 
 ### Storage Selection Matrix
 
-| Data Type        | Storage                  | Rationale                                      |
-| ---------------- | ------------------------ | ---------------------------------------------- |
-| Active samples   | Memory (memtable)        | Sub-ms writes, recent data hottest             |
-| WAL              | Local SSD (sequential)   | Durability, sequential writes                  |
-| Hot blocks       | Local SSD (random read)  | Frequent queries, compression                  |
-| Warm blocks      | Networked SSD            | Less frequent access, cost efficiency          |
-| Cold blocks      | Object storage (S3)      | Long retention, lowest cost                    |
-| Inverted index   | Memory + SSD             | Fast label lookups, memory-mapped              |
-| Downsampled data | Separate retention tier  | Query without scanning raw data                |
+| Data Type        | Storage                 | Rationale                             |
+| ---------------- | ----------------------- | ------------------------------------- |
+| Active samples   | Memory (memtable)       | Sub-ms writes, recent data hottest    |
+| WAL              | Local SSD (sequential)  | Durability, sequential writes         |
+| Hot blocks       | Local SSD (random read) | Frequent queries, compression         |
+| Warm blocks      | Networked SSD           | Less frequent access, cost efficiency |
+| Cold blocks      | Object storage (S3)     | Long retention, lowest cost           |
+| Inverted index   | Memory + SSD            | Fast label lookups, memory-mapped     |
+| Downsampled data | Separate retention tier | Query without scanning raw data       |
 
 ## Low-Level Design
 
@@ -618,18 +618,18 @@ function encodeTimestamps(timestamps: number[]): BitStream {
 
   // Second timestamp: delta from first
   let prevDelta = timestamps[1] - timestamps[0]
-  stream.writeBits(prevDelta, 14)  // Assuming max delta fits in 14 bits
+  stream.writeBits(prevDelta, 14) // Assuming max delta fits in 14 bits
 
   // Remaining: delta-of-delta
   for (let i = 2; i < timestamps.length; i++) {
-    const delta = timestamps[i] - timestamps[i-1]
+    const delta = timestamps[i] - timestamps[i - 1]
     const deltaOfDelta = delta - prevDelta
 
     if (deltaOfDelta === 0) {
-      stream.writeBit(0)  // 1 bit for regular intervals
+      stream.writeBit(0) // 1 bit for regular intervals
     } else if (deltaOfDelta >= -63 && deltaOfDelta <= 64) {
       stream.writeBits(0b10, 2)
-      stream.writeBits(deltaOfDelta + 63, 7)  // Offset to positive
+      stream.writeBits(deltaOfDelta + 63, 7) // Offset to positive
     } else if (deltaOfDelta >= -255 && deltaOfDelta <= 256) {
       stream.writeBits(0b110, 3)
       stream.writeBits(deltaOfDelta + 255, 9)
@@ -664,7 +664,7 @@ Consecutive metric values often share many bits (e.g., CPU at 0.75 then 0.76):
 // We encode: (leading zeros count, significant bits count, significant bits)
 
 interface XORState {
-  prevValue: bigint        // Previous value as 64-bit integer
+  prevValue: bigint // Previous value as 64-bit integer
   prevLeadingZeros: number
   prevTrailingZeros: number
 }
@@ -679,7 +679,7 @@ function encodeValues(values: number[]): BitStream {
   let state: XORState = {
     prevValue: firstBits,
     prevLeadingZeros: 0,
-    prevTrailingZeros: 0
+    prevTrailingZeros: 0,
   }
 
   for (let i = 1; i < values.length; i++) {
@@ -690,14 +690,13 @@ function encodeValues(values: number[]): BitStream {
       // Identical value: write '0' (1 bit)
       stream.writeBit(0)
     } else {
-      stream.writeBit(1)  // Values differ
+      stream.writeBit(1) // Values differ
 
       const leadingZeros = countLeadingZeros(xor)
       const trailingZeros = countTrailingZeros(xor)
       const significantBits = 64 - leadingZeros - trailingZeros
 
-      if (leadingZeros >= state.prevLeadingZeros &&
-          trailingZeros >= state.prevTrailingZeros) {
+      if (leadingZeros >= state.prevLeadingZeros && trailingZeros >= state.prevTrailingZeros) {
         // Fits in previous window: write '0' + significant bits
         stream.writeBit(0)
         const shift = 64 - state.prevLeadingZeros - significantBits
@@ -706,7 +705,7 @@ function encodeValues(values: number[]): BitStream {
         // New window: write '1' + leading zeros + length + bits
         stream.writeBit(1)
         stream.writeBits(leadingZeros, 5)
-        stream.writeBits(significantBits - 1, 6)  // -1 because min is 1
+        stream.writeBits(significantBits - 1, 6) // -1 because min is 1
         stream.writeBits(xor >> BigInt(trailingZeros), significantBits)
 
         state.prevLeadingZeros = leadingZeros
@@ -750,14 +749,14 @@ interface WALSegment {
 }
 
 interface WALRecord {
-  type: 'series' | 'samples' | 'tombstone'
+  type: "series" | "samples" | "tombstone"
   data: Uint8Array
 }
 
 class WriteAheadLog {
   private currentSegment: WALSegment
   private segments: WALSegment[] = []
-  private readonly maxSegmentSize = 128 * 1024 * 1024  // 128MB
+  private readonly maxSegmentSize = 128 * 1024 * 1024 // 128MB
   private readonly minSegmentsKept = 3
 
   async append(records: WALRecord[]): Promise<void> {
@@ -771,19 +770,18 @@ class WriteAheadLog {
 
     // Sync write to disk (critical for durability)
     await this.currentSegment.write(encoded)
-    await this.currentSegment.sync()  // fsync
+    await this.currentSegment.sync() // fsync
   }
 
   async truncate(checkpointSegmentId: number): Promise<void> {
     // Remove segments before checkpoint, keeping minimum
     const toRemove = this.segments.filter(
-      s => s.id < checkpointSegmentId &&
-           this.segments.length - 1 >= this.minSegmentsKept
+      (s) => s.id < checkpointSegmentId && this.segments.length - 1 >= this.minSegmentsKept,
     )
 
     for (const segment of toRemove) {
       await fs.unlink(segment.path)
-      this.segments = this.segments.filter(s => s.id !== segment.id)
+      this.segments = this.segments.filter((s) => s.id !== segment.id)
     }
   }
 
@@ -808,7 +806,7 @@ The in-memory index maps labels to series IDs for fast query planning:
 // Uses posting lists (sorted arrays of series IDs)
 
 type SeriesID = number
-type PostingList = SeriesID[]  // Sorted, deduplicated
+type PostingList = SeriesID[] // Sorted, deduplicated
 
 class InMemoryIndex {
   // Label name → label value → posting list
@@ -857,9 +855,7 @@ class InMemoryIndex {
     }
 
     // Start with smallest posting list (most selective)
-    const sorted = [...matchers].sort((a, b) =>
-      this.getPostingListSize(a) - this.getPostingListSize(b)
-    )
+    const sorted = [...matchers].sort((a, b) => this.getPostingListSize(a) - this.getPostingListSize(b))
 
     let result = this.getPostingList(sorted[0])
 
@@ -868,7 +864,7 @@ class InMemoryIndex {
       const other = this.getPostingList(sorted[i])
       result = this.intersect(result, other)
 
-      if (result.length === 0) break  // Early exit
+      if (result.length === 0) break // Early exit
     }
 
     return result
@@ -877,7 +873,8 @@ class InMemoryIndex {
   private intersect(a: PostingList, b: PostingList): PostingList {
     // Sorted merge intersection: O(n + m)
     const result: SeriesID[] = []
-    let i = 0, j = 0
+    let i = 0,
+      j = 0
 
     while (i < a.length && j < b.length) {
       if (a[i] === b[j]) {
@@ -939,7 +936,7 @@ interface CompactionPlan {
 }
 
 class Compactor {
-  private readonly maxBlockDuration = 31 * 24 * 60 * 60 * 1000  // 31 days
+  private readonly maxBlockDuration = 31 * 24 * 60 * 60 * 1000 // 31 days
 
   async planCompaction(blocks: Block[]): Promise<CompactionPlan[]> {
     const plans: CompactionPlan[] = []
@@ -955,13 +952,12 @@ class Compactor {
         const candidates = [sorted[i]]
         let j = i + 1
 
-        while (j < sorted.length &&
-               sorted[j].minTime === candidates[candidates.length - 1].maxTime) {
+        while (j < sorted.length && sorted[j].minTime === candidates[candidates.length - 1].maxTime) {
           candidates.push(sorted[j])
           j++
 
           // Check if merged duration exceeds max
-          const duration = candidates[j-1].maxTime - candidates[0].minTime
+          const duration = candidates[j - 1].maxTime - candidates[0].minTime
           if (duration > this.maxBlockDuration) break
 
           // Typical: merge 4 blocks at a time
@@ -972,9 +968,9 @@ class Compactor {
           plans.push({
             sources: candidates,
             targetLevel: level + 1,
-            estimatedSize: candidates.reduce((sum, b) => sum + b.size, 0) * 0.9
+            estimatedSize: candidates.reduce((sum, b) => sum + b.size, 0) * 0.9,
           })
-          i = j - 1  // Skip merged blocks
+          i = j - 1 // Skip merged blocks
         }
       }
     }
@@ -984,7 +980,7 @@ class Compactor {
 
   async compact(plan: CompactionPlan): Promise<Block> {
     // 1. Open iterators for all source blocks
-    const iterators = plan.sources.map(b => b.createIterator())
+    const iterators = plan.sources.map((b) => b.createIterator())
 
     // 2. Merge-sort by (seriesID, timestamp)
     const mergedSamples = this.mergeSortIterators(iterators)
@@ -1016,14 +1012,14 @@ Downsampling creates aggregated views for long-term queries:
 // - 1-hour: min/max/sum/count/avg, 2 years
 
 interface DownsampleConfig {
-  sourceResolution: string  // "raw", "1m", "1h"
+  sourceResolution: string // "raw", "1m", "1h"
   targetResolution: string
-  aggregations: string[]    // ["min", "max", "sum", "count"]
-  retention: number         // milliseconds
+  aggregations: string[] // ["min", "max", "sum", "count"]
+  retention: number // milliseconds
 }
 
 interface DownsampledSample {
-  timestamp: number     // Bucket start time
+  timestamp: number // Bucket start time
   min: number
   max: number
   sum: number
@@ -1032,11 +1028,7 @@ interface DownsampledSample {
 }
 
 class Downsampler {
-  async downsample(
-    seriesId: number,
-    sourceBlock: Block,
-    config: DownsampleConfig
-  ): Promise<DownsampledSample[]> {
+  async downsample(seriesId: number, sourceBlock: Block, config: DownsampleConfig): Promise<DownsampledSample[]> {
     const bucketMs = this.parseDuration(config.targetResolution)
     const buckets = new Map<number, DownsampledSample>()
 
@@ -1051,7 +1043,7 @@ class Downsampler {
           min: sample.value,
           max: sample.value,
           sum: sample.value,
-          count: 1
+          count: 1,
         })
       } else {
         const bucket = buckets.get(bucketStart)!
@@ -1068,12 +1060,14 @@ class Downsampler {
 
 // Query routing: select appropriate resolution based on query range
 function selectResolution(queryRange: number): string {
-  if (queryRange <= 24 * 60 * 60 * 1000) {        // ≤ 1 day
-    return 'raw'
-  } else if (queryRange <= 30 * 24 * 60 * 60 * 1000) {  // ≤ 30 days
-    return '1m'
+  if (queryRange <= 24 * 60 * 60 * 1000) {
+    // ≤ 1 day
+    return "raw"
+  } else if (queryRange <= 30 * 24 * 60 * 60 * 1000) {
+    // ≤ 30 days
+    return "1m"
   } else {
-    return '1h'
+    return "1h"
   }
 }
 ```
@@ -1086,8 +1080,8 @@ High cardinality is the primary operational challenge in TSDBs:
 // Cardinality tracking and enforcement
 
 interface CardinalityLimits {
-  maxSeriesPerMetric: number      // e.g., 100,000
-  maxTotalSeries: number          // e.g., 10,000,000
+  maxSeriesPerMetric: number // e.g., 100,000
+  maxTotalSeries: number // e.g., 10,000,000
   maxLabelValueCardinality: number // e.g., 10,000 per label name
 }
 
@@ -1097,16 +1091,16 @@ class CardinalityTracker {
   private totalSeries: number = 0
 
   checkLimits(labels: Map<string, string>, limits: CardinalityLimits): CardinalityError | null {
-    const metricName = labels.get('__name__')!
+    const metricName = labels.get("__name__")!
 
     // Check per-metric cardinality
     const metricSeries = this.seriesPerMetric.get(metricName)?.size ?? 0
     if (metricSeries >= limits.maxSeriesPerMetric) {
       return {
-        type: 'metric_cardinality_exceeded',
+        type: "metric_cardinality_exceeded",
         metric: metricName,
         current: metricSeries,
-        limit: limits.maxSeriesPerMetric
+        limit: limits.maxSeriesPerMetric,
       }
     }
 
@@ -1115,10 +1109,10 @@ class CardinalityTracker {
       const labelValues = this.seriesPerLabel.get(name)
       if (labelValues && labelValues.size >= limits.maxLabelValueCardinality) {
         return {
-          type: 'label_cardinality_exceeded',
+          type: "label_cardinality_exceeded",
           label: name,
           current: labelValues.size,
-          limit: limits.maxLabelValueCardinality
+          limit: limits.maxLabelValueCardinality,
         }
       }
     }
@@ -1126,9 +1120,9 @@ class CardinalityTracker {
     // Check total cardinality
     if (this.totalSeries >= limits.maxTotalSeries) {
       return {
-        type: 'total_cardinality_exceeded',
+        type: "total_cardinality_exceeded",
         current: this.totalSeries,
-        limit: limits.maxTotalSeries
+        limit: limits.maxTotalSeries,
       }
     }
 
@@ -1136,8 +1130,8 @@ class CardinalityTracker {
   }
 
   // Identify high-cardinality labels for alerting
-  getHighCardinalityLabels(threshold: number): {label: string, cardinality: number}[] {
-    const results: {label: string, cardinality: number}[] = []
+  getHighCardinalityLabels(threshold: number): { label: string; cardinality: number }[] {
+    const results: { label: string; cardinality: number }[] = []
 
     for (const [label, values] of this.seriesPerLabel) {
       if (values.size > threshold) {
@@ -1179,7 +1173,7 @@ interface DashboardQuery {
 
 async function fetchDashboard(queries: DashboardQuery[]): Promise<Map<string, QueryResult>> {
   // Group queries by time range (likely the same for most panels)
-  const byRange = groupBy(queries, q => `${q.range.start}-${q.range.end}`)
+  const byRange = groupBy(queries, (q) => `${q.range.start}-${q.range.end}`)
 
   const results = new Map<string, QueryResult>()
 
@@ -1192,7 +1186,7 @@ async function fetchDashboard(queries: DashboardQuery[]): Promise<Map<string, Qu
       for (const [panelId, result] of batchResult) {
         results.set(panelId, result)
       }
-    })
+    }),
   )
 
   return results
@@ -1221,13 +1215,13 @@ async function fetchDashboard(queries: DashboardQuery[]): Promise<Map<string, Qu
 
 ### Cloud-Agnostic Concepts
 
-| Component          | Requirement                   | Options                                    |
-| ------------------ | ----------------------------- | ------------------------------------------ |
-| **Ingest/Query**   | Stateless, auto-scaling       | Kubernetes Deployment, ECS Service         |
-| **Storage Engine** | Stateful, local SSD           | StatefulSet with local volumes             |
-| **Block Storage**  | High IOPS, low latency        | Local NVMe, EBS gp3, Persistent Disks      |
-| **Object Storage** | Cold tier, cheap, durable     | S3, GCS, MinIO                             |
-| **Coordination**   | Leader election, config       | etcd, Consul, ZooKeeper                    |
+| Component          | Requirement               | Options                               |
+| ------------------ | ------------------------- | ------------------------------------- |
+| **Ingest/Query**   | Stateless, auto-scaling   | Kubernetes Deployment, ECS Service    |
+| **Storage Engine** | Stateful, local SSD       | StatefulSet with local volumes        |
+| **Block Storage**  | High IOPS, low latency    | Local NVMe, EBS gp3, Persistent Disks |
+| **Object Storage** | Cold tier, cheap, durable | S3, GCS, MinIO                        |
+| **Coordination**   | Leader election, config   | etcd, Consul, ZooKeeper               |
 
 ### AWS Reference Architecture
 
@@ -1269,23 +1263,23 @@ flowchart TB
     QE1 & QE2 --> S3
 ```
 
-| Component    | AWS Service         | Configuration                              |
-| ------------ | ------------------- | ------------------------------------------ |
-| Load Balancer| NLB                 | TCP passthrough, cross-AZ                  |
-| Distributors | EKS (Fargate)       | 3-10 pods, 2 vCPU / 4GB each               |
-| Ingesters    | EKS (EC2)           | i3.xlarge (NVMe), 3+ nodes, StatefulSet    |
-| Query Engines| EKS (Fargate)       | 2-10 pods, 4 vCPU / 8GB each               |
-| Cold Storage | S3 Standard-IA      | Lifecycle to Glacier after 90 days         |
-| Query Cache  | ElastiCache Redis   | cache.r6g.large, cluster mode              |
-| Coordination | Managed etcd (EKS)  | Built into EKS control plane               |
+| Component     | AWS Service        | Configuration                           |
+| ------------- | ------------------ | --------------------------------------- |
+| Load Balancer | NLB                | TCP passthrough, cross-AZ               |
+| Distributors  | EKS (Fargate)      | 3-10 pods, 2 vCPU / 4GB each            |
+| Ingesters     | EKS (EC2)          | i3.xlarge (NVMe), 3+ nodes, StatefulSet |
+| Query Engines | EKS (Fargate)      | 2-10 pods, 4 vCPU / 8GB each            |
+| Cold Storage  | S3 Standard-IA     | Lifecycle to Glacier after 90 days      |
+| Query Cache   | ElastiCache Redis  | cache.r6g.large, cluster mode           |
+| Coordination  | Managed etcd (EKS) | Built into EKS control plane            |
 
 ### Self-Hosted Alternatives
 
-| Managed Service | Self-Hosted        | When to Self-Host                            |
-| --------------- | ------------------ | -------------------------------------------- |
-| ElastiCache     | Redis on EC2       | Cost, specific modules                       |
-| S3              | MinIO              | On-premises, data sovereignty                |
-| EKS             | k3s/k8s on EC2     | Cost, full control                           |
+| Managed Service | Self-Hosted    | When to Self-Host             |
+| --------------- | -------------- | ----------------------------- |
+| ElastiCache     | Redis on EC2   | Cost, specific modules        |
+| S3              | MinIO          | On-premises, data sovereignty |
+| EKS             | k3s/k8s on EC2 | Cost, full control            |
 
 ### High Availability
 

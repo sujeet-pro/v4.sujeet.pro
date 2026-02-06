@@ -15,7 +15,12 @@ interface Props {
   class?: string
 }
 
-const { categoryName, articles, currentArticleId, class: className } = Astro.props
+const {
+  categoryName: _categoryName,
+  articles: _articles,
+  currentArticleId: _currentArticleId,
+  class: className,
+} = Astro.props
 ---
 
 <!-- This component is deprecated - use inline topic-articles-dropdown in article page instead -->

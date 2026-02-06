@@ -43,13 +43,13 @@ Distributed file systems solve the problem of storing and accessing files that e
 
 **Core architectural decisions:**
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Metadata management | Single master | Simplifies placement, enables global optimization |
-| Chunk size | 64-128 MB | Amortizes metadata overhead, optimizes for large files |
-| Replication | 3 replicas, rack-aware | Survives rack failure, balances write bandwidth |
-| Consistency | Relaxed (defined regions) | Enables concurrent appends, simplifies implementation |
-| Write model | Append-only preferred | Eliminates random write complexity, enables atomic appends |
+| Decision            | Choice                    | Rationale                                                  |
+| ------------------- | ------------------------- | ---------------------------------------------------------- |
+| Metadata management | Single master             | Simplifies placement, enables global optimization          |
+| Chunk size          | 64-128 MB                 | Amortizes metadata overhead, optimizes for large files     |
+| Replication         | 3 replicas, rack-aware    | Survives rack failure, balances write bandwidth            |
+| Consistency         | Relaxed (defined regions) | Enables concurrent appends, simplifies implementation      |
+| Write model         | Append-only preferred     | Eliminates random write complexity, enables atomic appends |
 
 **Key trade-offs accepted:**
 
@@ -67,26 +67,26 @@ Distributed file systems solve the problem of storing and accessing files that e
 
 ### Functional Requirements
 
-| Requirement | Priority | Notes |
-|-------------|----------|-------|
-| File creation/deletion | Core | Hierarchical namespace |
-| Large file read | Core | Multi-GB to TB files, sequential access |
-| Large file write | Core | Streaming writes, immutable after close |
-| Record append | Core | Multiple clients appending concurrently |
-| Snapshot | Extended | Point-in-time copy for backups |
-| Namespace operations | Extended | Rename, move, permissions |
-| Small file support | Extended | Not optimized, but functional |
+| Requirement            | Priority | Notes                                   |
+| ---------------------- | -------- | --------------------------------------- |
+| File creation/deletion | Core     | Hierarchical namespace                  |
+| Large file read        | Core     | Multi-GB to TB files, sequential access |
+| Large file write       | Core     | Streaming writes, immutable after close |
+| Record append          | Core     | Multiple clients appending concurrently |
+| Snapshot               | Extended | Point-in-time copy for backups          |
+| Namespace operations   | Extended | Rename, move, permissions               |
+| Small file support     | Extended | Not optimized, but functional           |
 
 ### Non-Functional Requirements
 
-| Requirement | Target | Rationale |
-|-------------|--------|-----------|
-| Availability | 99.9% (3 nines) | Batch processing tolerates brief outages |
-| Read throughput | 100+ MB/s per client | Saturate network, not disk |
-| Write throughput | 50+ MB/s per client | Pipeline limits write speed |
-| Append latency | p99 < 100ms | Real-time log ingestion |
-| Durability | 99.9999% | Data survives multiple simultaneous failures |
-| Recovery time | < 10 min for node failure | Re-replication must not overwhelm cluster |
+| Requirement      | Target                    | Rationale                                    |
+| ---------------- | ------------------------- | -------------------------------------------- |
+| Availability     | 99.9% (3 nines)           | Batch processing tolerates brief outages     |
+| Read throughput  | 100+ MB/s per client      | Saturate network, not disk                   |
+| Write throughput | 50+ MB/s per client       | Pipeline limits write speed                  |
+| Append latency   | p99 < 100ms               | Real-time log ingestion                      |
+| Durability       | 99.9999%                  | Data survives multiple simultaneous failures |
+| Recovery time    | < 10 min for node failure | Re-replication must not overwhelm cluster    |
 
 ### Scale Estimation
 
@@ -265,14 +265,14 @@ flowchart TB
 
 ### Path Comparison
 
-| Factor | Single Master | Federation | Distributed |
-|--------|---------------|------------|-------------|
-| Files | ~100M | ~1B (sum of namespaces) | Unlimited |
-| Metadata ops/sec | 10K | 10K × N namespaces | 100K+ |
-| Complexity | Low | Medium | High |
-| Cross-namespace ops | N/A | No | Yes |
-| Operational burden | Low | Medium | High |
-| Best for | Most deployments | Large enterprises | Hyperscalers |
+| Factor              | Single Master    | Federation              | Distributed  |
+| ------------------- | ---------------- | ----------------------- | ------------ |
+| Files               | ~100M            | ~1B (sum of namespaces) | Unlimited    |
+| Metadata ops/sec    | 10K              | 10K × N namespaces      | 100K+        |
+| Complexity          | Low              | Medium                  | High         |
+| Cross-namespace ops | N/A              | No                      | Yes          |
+| Operational burden  | Low              | Medium                  | High         |
+| Best for            | Most deployments | Large enterprises       | Hyperscalers |
 
 ### This Article's Focus
 
@@ -341,21 +341,21 @@ Manages all filesystem metadata and coordinates cluster operations.
 
 **Design decisions:**
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Metadata storage | In-memory | Sub-millisecond lookups, 64GB supports 100M files |
-| Persistence | Operation log + checkpoints | Fast recovery, crash consistency |
-| Chunk locations | Not persisted | Rebuilt from heartbeats in 30-60 seconds |
-| Failover | Manual + shadow masters | Simplicity; automatic adds complexity |
+| Decision         | Choice                      | Rationale                                         |
+| ---------------- | --------------------------- | ------------------------------------------------- |
+| Metadata storage | In-memory                   | Sub-millisecond lookups, 64GB supports 100M files |
+| Persistence      | Operation log + checkpoints | Fast recovery, crash consistency                  |
+| Chunk locations  | Not persisted               | Rebuilt from heartbeats in 30-60 seconds          |
+| Failover         | Manual + shadow masters     | Simplicity; automatic adds complexity             |
 
 **Memory layout (per 64GB master):**
 
-| Data | Size | Count Supported |
-|------|------|-----------------|
-| Namespace tree | ~200 bytes/file | 100M files = 20GB |
-| File→chunk mapping | ~100 bytes/file | 100M files = 10GB |
-| Chunk metadata | ~64 bytes/chunk | 500M chunks = 32GB |
-| **Total** | ~62GB | **100M files, 500M chunks** |
+| Data               | Size            | Count Supported             |
+| ------------------ | --------------- | --------------------------- |
+| Namespace tree     | ~200 bytes/file | 100M files = 20GB           |
+| File→chunk mapping | ~100 bytes/file | 100M files = 10GB           |
+| Chunk metadata     | ~64 bytes/chunk | 500M chunks = 32GB          |
+| **Total**          | ~62GB           | **100M files, 500M chunks** |
 
 ### Chunk Server
 
@@ -372,12 +372,12 @@ Stores chunks as local files and serves read/write requests.
 
 **Design decisions:**
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Chunk storage | Local filesystem (ext4/xfs) | Leverage OS buffer cache, simple |
-| Checksumming | 32KB blocks, CRC32C | Detect corruption before serving |
-| Heartbeat interval | 3 seconds | Balance failure detection vs overhead |
-| Chunk report | Piggyback on heartbeat | Reduce message count |
+| Decision           | Choice                      | Rationale                             |
+| ------------------ | --------------------------- | ------------------------------------- |
+| Chunk storage      | Local filesystem (ext4/xfs) | Leverage OS buffer cache, simple      |
+| Checksumming       | 32KB blocks, CRC32C         | Detect corruption before serving      |
+| Heartbeat interval | 3 seconds                   | Balance failure detection vs overhead |
+| Chunk report       | Piggyback on heartbeat      | Reduce message count                  |
 
 **Disk layout:**
 
@@ -410,12 +410,12 @@ Provides file system interface and handles complexity of distributed operations.
 
 **Design decisions:**
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Location cache | LRU, 10K entries, 10min TTL | Reduces master load by 100x |
-| Write buffer | 64MB (one chunk) | Batch small writes |
-| Retry policy | Exponential backoff, 3 retries | Handle transient failures |
-| Checksum verification | On read | Catch corruption early |
+| Decision              | Choice                         | Rationale                   |
+| --------------------- | ------------------------------ | --------------------------- |
+| Location cache        | LRU, 10K entries, 10min TTL    | Reduces master load by 100x |
+| Write buffer          | 64MB (one chunk)               | Batch small writes          |
+| Retry policy          | Exponential backoff, 3 retries | Handle transient failures   |
+| Checksum verification | On read                        | Catch corruption early      |
 
 ## API Design
 
@@ -466,9 +466,9 @@ Response:
   "chunkId": "chunk_abc123",
   "version": 42,
   "replicas": [
-    {"server": "cs1.example.com:9000", "rack": "rack1"},
-    {"server": "cs4.example.com:9000", "rack": "rack2"},
-    {"server": "cs7.example.com:9000", "rack": "rack3"}
+    { "server": "cs1.example.com:9000", "rack": "rack1" },
+    { "server": "cs4.example.com:9000", "rack": "rack2" },
+    { "server": "cs7.example.com:9000", "rack": "rack3" }
   ],
   "primary": "cs1.example.com:9000",
   "leaseExpiry": "2024-02-03T10:05:00Z"
@@ -641,8 +641,8 @@ chunk_<handle>.meta:
     "available": 16000000000000
   },
   "chunkReports": [
-    {"handle": 67890, "version": 42, "size": 67108864},
-    {"handle": 67891, "version": 15, "size": 33554432}
+    { "handle": 67890, "version": 42, "size": 67108864 },
+    { "handle": 67891, "version": 15, "size": 33554432 }
   ],
   "corruptChunks": [67892],
   "load": {
@@ -659,9 +659,9 @@ chunk_<handle>.meta:
 ```json
 {
   "commands": [
-    {"type": "DELETE", "chunks": [67893, 67894]},
-    {"type": "REPLICATE", "chunk": 67895, "target": "cs5.example.com:9000"},
-    {"type": "REPORT_FULL", "reason": "version_mismatch"}
+    { "type": "DELETE", "chunks": [67893, 67894] },
+    { "type": "REPLICATE", "chunk": 67895, "target": "cs5.example.com:9000" },
+    { "type": "REPORT_FULL", "reason": "version_mismatch" }
   ]
 }
 ```
@@ -755,12 +755,12 @@ If replica fails during append:
 
 GFS-style distributed file systems use a **relaxed consistency model**:
 
-| After Operation | Consistent | Defined |
-|-----------------|------------|---------|
-| Write (single client) | Yes | Yes |
-| Write (concurrent clients) | Yes | No (interleaved) |
-| Record Append (success) | Yes | Yes (at some offset) |
-| Record Append (failure) | No | No |
+| After Operation            | Consistent | Defined              |
+| -------------------------- | ---------- | -------------------- |
+| Write (single client)      | Yes        | Yes                  |
+| Write (concurrent clients) | Yes        | No (interleaved)     |
+| Record Append (success)    | Yes        | Yes (at some offset) |
+| Record Append (failure)    | No         | No                   |
 
 **Definitions:**
 
@@ -827,11 +827,11 @@ def select_server(rack: str, exclude: Server = None) -> Server:
 
 **Write bandwidth analysis:**
 
-| Replica Placement | Cross-Rack Transfers |
-|-------------------|---------------------|
-| All same rack | 0 |
-| Spread across 3 racks | 2 |
-| 1 rack + 2 another rack | 1 |
+| Replica Placement       | Cross-Rack Transfers |
+| ----------------------- | -------------------- |
+| All same rack           | 0                    |
+| Spread across 3 racks   | 2                    |
+| 1 rack + 2 another rack | 1                    |
 
 The third approach (1 + 2) balances reliability and bandwidth.
 
@@ -874,13 +874,13 @@ flowchart TB
 
 **Recovery time breakdown:**
 
-| Phase | Duration |
-|-------|----------|
-| Detection | 10-30 seconds |
+| Phase              | Duration                       |
+| ------------------ | ------------------------------ |
+| Detection          | 10-30 seconds                  |
 | Promotion decision | Manual: minutes, Auto: seconds |
-| Log replay | Seconds (incremental) |
-| Chunk reports | 30-60 seconds |
-| **Total** | 1-5 minutes |
+| Log replay         | Seconds (incremental)          |
+| Chunk reports      | 30-60 seconds                  |
+| **Total**          | 1-5 minutes                    |
 
 #### Data Corruption Detection
 
@@ -976,11 +976,11 @@ def get_input_splits(file_path: str) -> List[InputSplit]:
 
 **Data locality statistics:**
 
-| Locality Level | Typical Rate | Impact |
-|----------------|--------------|--------|
-| Node-local | 70-90% | Zero network for read |
-| Rack-local | 95-99% | Low network overhead |
-| Off-rack | 1-5% | Full network cost |
+| Locality Level | Typical Rate | Impact                |
+| -------------- | ------------ | --------------------- |
+| Node-local     | 70-90%       | Zero network for read |
+| Rack-local     | 95-99%       | Low network overhead  |
+| Off-rack       | 1-5%         | Full network cost     |
 
 ### CLI and Admin Tools
 
@@ -1004,46 +1004,46 @@ dfs safemode enter|leave    # Maintenance mode
 
 **Key metrics for operators:**
 
-| Metric | Warning Threshold | Critical Threshold |
-|--------|-------------------|-------------------|
-| Under-replicated blocks | > 100 | > 1000 |
-| Corrupt blocks | > 0 | > 10 |
-| Dead nodes | > 0 | > N × 0.05 |
-| Capacity used | > 70% | > 85% |
-| Pending replications | > 10000 | > 100000 |
-| Master heap usage | > 70% | > 85% |
+| Metric                  | Warning Threshold | Critical Threshold |
+| ----------------------- | ----------------- | ------------------ |
+| Under-replicated blocks | > 100             | > 1000             |
+| Corrupt blocks          | > 0               | > 10               |
+| Dead nodes              | > 0               | > N × 0.05         |
+| Capacity used           | > 70%             | > 85%              |
+| Pending replications    | > 10000           | > 100000           |
+| Master heap usage       | > 70%             | > 85%              |
 
 ## Infrastructure
 
 ### Cloud-Agnostic Components
 
-| Component | Purpose | Options |
-|-----------|---------|---------|
+| Component      | Purpose                    | Options                             |
+| -------------- | -------------------------- | ----------------------------------- |
 | Master storage | Operation log, checkpoints | Local SSD, NFS, cloud block storage |
-| Chunk storage | Data storage | Local HDD/SSD arrays |
-| Network | Data transfer | 10-100 Gbps, leaf-spine topology |
-| Monitoring | Health, metrics | Prometheus, Grafana, Datadog |
-| Configuration | Cluster config | ZooKeeper, etcd, Consul |
+| Chunk storage  | Data storage               | Local HDD/SSD arrays                |
+| Network        | Data transfer              | 10-100 Gbps, leaf-spine topology    |
+| Monitoring     | Health, metrics            | Prometheus, Grafana, Datadog        |
+| Configuration  | Cluster config             | ZooKeeper, etcd, Consul             |
 
 ### Hardware Recommendations
 
 **Master server (per server):**
 
-| Component | Specification | Rationale |
-|-----------|---------------|-----------|
-| CPU | 32+ cores | Metadata operations are CPU-bound |
-| Memory | 128-256 GB | All metadata in RAM |
-| Storage | 2× NVMe SSD (RAID 1) | Operation log durability |
-| Network | 25 Gbps | Heartbeat + client traffic |
+| Component | Specification        | Rationale                         |
+| --------- | -------------------- | --------------------------------- |
+| CPU       | 32+ cores            | Metadata operations are CPU-bound |
+| Memory    | 128-256 GB           | All metadata in RAM               |
+| Storage   | 2× NVMe SSD (RAID 1) | Operation log durability          |
+| Network   | 25 Gbps              | Heartbeat + client traffic        |
 
 **Chunk server (per server):**
 
-| Component | Specification | Rationale |
-|-----------|---------------|-----------|
-| CPU | 8-16 cores | I/O bound, not CPU bound |
-| Memory | 64-128 GB | OS buffer cache |
-| Storage | 12-24× 4-16 TB HDD | Cost-effective bulk storage |
-| Network | 25-100 Gbps | Saturate disk throughput |
+| Component | Specification      | Rationale                   |
+| --------- | ------------------ | --------------------------- |
+| CPU       | 8-16 cores         | I/O bound, not CPU bound    |
+| Memory    | 64-128 GB          | OS buffer cache             |
+| Storage   | 12-24× 4-16 TB HDD | Cost-effective bulk storage |
+| Network   | 25-100 Gbps        | Saturate disk throughput    |
 
 ### Capacity Planning
 
@@ -1094,19 +1094,19 @@ flowchart TB
 
 **Instance selection:**
 
-| Role | Instance | vCPUs | Memory | Storage | Network |
-|------|----------|-------|--------|---------|---------|
-| Master | i3en.12xlarge | 48 | 384 GB | 4× 7.5TB NVMe | 50 Gbps |
-| Chunk Server | d3en.12xlarge | 48 | 192 GB | 12× 14TB HDD | 50 Gbps |
+| Role         | Instance      | vCPUs | Memory | Storage       | Network |
+| ------------ | ------------- | ----- | ------ | ------------- | ------- |
+| Master       | i3en.12xlarge | 48    | 384 GB | 4× 7.5TB NVMe | 50 Gbps |
+| Chunk Server | d3en.12xlarge | 48    | 192 GB | 12× 14TB HDD  | 50 Gbps |
 
 **Cost comparison (300 servers, 3-year reserved):**
 
-| Component | Monthly Cost |
-|-----------|--------------|
-| d3en.12xlarge × 297 | ~$400K |
-| i3en.12xlarge × 3 | ~$8K |
-| Network (inter-AZ) | ~$50K |
-| **Total** | ~$460K/month |
+| Component           | Monthly Cost |
+| ------------------- | ------------ |
+| d3en.12xlarge × 297 | ~$400K       |
+| i3en.12xlarge × 3   | ~$8K         |
+| Network (inter-AZ)  | ~$50K        |
+| **Total**           | ~$460K/month |
 
 **Alternative: Self-hosted on-prem often 60-70% cheaper for sustained workloads.**
 
@@ -1134,12 +1134,12 @@ This design provides a distributed file system capable of:
 
 **When to use alternatives:**
 
-| Requirement | Better Choice |
-|-------------|---------------|
-| Many small files (millions of < 1MB) | Object storage (S3, MinIO) |
-| POSIX semantics required | CephFS, Lustre |
-| Real-time random reads | Key-value stores (Cassandra, DynamoDB) |
-| Exabyte scale | Colossus-style distributed metadata |
+| Requirement                          | Better Choice                          |
+| ------------------------------------ | -------------------------------------- |
+| Many small files (millions of < 1MB) | Object storage (S3, MinIO)             |
+| POSIX semantics required             | CephFS, Lustre                         |
+| Real-time random reads               | Key-value stores (Cassandra, DynamoDB) |
+| Exabyte scale                        | Colossus-style distributed metadata    |
 
 ## Appendix
 
@@ -1151,16 +1151,16 @@ This design provides a distributed file system capable of:
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| **Chunk** | Fixed-size unit of file data (64-128 MB), called "block" in HDFS |
-| **Master** | Server managing metadata, called "NameNode" in HDFS |
-| **Chunk Server** | Server storing chunk data, called "DataNode" in HDFS |
-| **Lease** | Time-limited grant to a client for write operations |
-| **Operation Log** | Append-only journal of metadata changes for recovery |
-| **Checkpoint** | Snapshot of in-memory metadata state |
-| **Rack-aware** | Placement strategy considering physical rack topology |
-| **Re-replication** | Process of copying chunks to restore replication factor |
+| Term               | Definition                                                       |
+| ------------------ | ---------------------------------------------------------------- |
+| **Chunk**          | Fixed-size unit of file data (64-128 MB), called "block" in HDFS |
+| **Master**         | Server managing metadata, called "NameNode" in HDFS              |
+| **Chunk Server**   | Server storing chunk data, called "DataNode" in HDFS             |
+| **Lease**          | Time-limited grant to a client for write operations              |
+| **Operation Log**  | Append-only journal of metadata changes for recovery             |
+| **Checkpoint**     | Snapshot of in-memory metadata state                             |
+| **Rack-aware**     | Placement strategy considering physical rack topology            |
+| **Re-replication** | Process of copying chunks to restore replication factor          |
 
 ### Summary
 

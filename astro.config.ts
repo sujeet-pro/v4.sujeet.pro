@@ -58,24 +58,6 @@ export default defineConfig({
     headingIdCompat: true,
   },
 
-  // Redirects for old routes
-  // Note: Dynamic path redirects with parameters are not supported in static mode
-  // Old URLs will 404 - users should update their bookmarks
-  redirects: {
-    // Backward compatibility: /posts -> /articles
-    "/posts": "/articles",
-    "/posts/drafts": "/articles/drafts",
-
-    // Legacy redirects (now point to /articles)
-    "/deep-dives": "/articles",
-    "/notes": "/articles",
-    "/drafts": "/articles/drafts",
-    "/post": "/articles",
-    "/writing": "/articles",
-    "/work": "/articles",
-    "/uses": "/articles",
-  },
-
   // Define environment schema for type safety
   env: {
     schema: {

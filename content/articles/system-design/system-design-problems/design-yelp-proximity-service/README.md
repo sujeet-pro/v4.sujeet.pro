@@ -93,31 +93,31 @@ Proximity services solve a fundamentally different problem than traditional text
 
 ### Functional Requirements
 
-| Feature | Priority | Description |
-|---------|----------|-------------|
-| Nearby search | Core | Find businesses within radius of a location |
-| Business profiles | Core | View business details, hours, attributes |
-| Reviews & ratings | Core | Read/write reviews, aggregate ratings |
-| Photos | Core | View/upload business photos |
-| Search by category | Core | Filter by cuisine, service type |
-| Search by attributes | High | Filter by price, hours, amenities |
-| Check-ins | Medium | Record visits, see activity |
-| Bookmarks | Medium | Save businesses for later |
-| Personalization | Medium | Recommendations based on history |
-| Business owner tools | Medium | Claim business, respond to reviews |
+| Feature              | Priority | Description                                 |
+| -------------------- | -------- | ------------------------------------------- |
+| Nearby search        | Core     | Find businesses within radius of a location |
+| Business profiles    | Core     | View business details, hours, attributes    |
+| Reviews & ratings    | Core     | Read/write reviews, aggregate ratings       |
+| Photos               | Core     | View/upload business photos                 |
+| Search by category   | Core     | Filter by cuisine, service type             |
+| Search by attributes | High     | Filter by price, hours, amenities           |
+| Check-ins            | Medium   | Record visits, see activity                 |
+| Bookmarks            | Medium   | Save businesses for later                   |
+| Personalization      | Medium   | Recommendations based on history            |
+| Business owner tools | Medium   | Claim business, respond to reviews          |
 
 **Scope for this article**: We'll design the core proximity search, business data, and review systems. Check-ins and advanced personalization are covered briefly; advertising and business analytics are out of scope.
 
 ### Non-Functional Requirements
 
-| Requirement | Target | Rationale |
-|-------------|--------|-----------|
-| Search latency | p99 < 100ms | User expectation for "instant" results |
-| Write latency | p99 < 500ms | Acceptable for review submission |
-| Availability | 99.99% | Revenue-critical, user trust |
-| Read/Write ratio | 100:1 | Read-heavy workload |
-| Data freshness | < 30s for reviews, < 5min for business data | Reviews need quick visibility; business data changes rarely |
-| Global coverage | Multi-region | Users travel; businesses are everywhere |
+| Requirement      | Target                                      | Rationale                                                   |
+| ---------------- | ------------------------------------------- | ----------------------------------------------------------- |
+| Search latency   | p99 < 100ms                                 | User expectation for "instant" results                      |
+| Write latency    | p99 < 500ms                                 | Acceptable for review submission                            |
+| Availability     | 99.99%                                      | Revenue-critical, user trust                                |
+| Read/Write ratio | 100:1                                       | Read-heavy workload                                         |
+| Data freshness   | < 30s for reviews, < 5min for business data | Reviews need quick visibility; business data changes rarely |
+| Global coverage  | Multi-region                                | Users travel; businesses are everywhere                     |
 
 ### Scale Estimation
 
@@ -304,15 +304,15 @@ flowchart LR
 
 ### Path Comparison
 
-| Factor | Geohash | Quadtree/S2 | R-tree (ES) |
-|--------|---------|-------------|-------------|
-| Implementation complexity | Low | High | Medium (if using ES) |
-| Query latency | ~5ms | ~10ms | ~30ms |
-| Variable radius | Multiple queries | Native | Native |
-| Density handling | Poor | Excellent | Good |
-| Text search | Separate system | Separate system | Integrated |
-| Operational overhead | Low | Medium | Medium-High |
-| Best for | Fixed-radius, uniform | Complex geo, variable | Full-featured search |
+| Factor                    | Geohash               | Quadtree/S2           | R-tree (ES)          |
+| ------------------------- | --------------------- | --------------------- | -------------------- |
+| Implementation complexity | Low                   | High                  | Medium (if using ES) |
+| Query latency             | ~5ms                  | ~10ms                 | ~30ms                |
+| Variable radius           | Multiple queries      | Native                | Native               |
+| Density handling          | Poor                  | Excellent             | Good                 |
+| Text search               | Separate system       | Separate system       | Integrated           |
+| Operational overhead      | Low                   | Medium                | Medium-High          |
+| Best for                  | Fixed-radius, uniform | Complex geo, variable | Full-featured search |
 
 ### This Article's Focus
 
@@ -333,17 +333,17 @@ For systems requiring sub-10ms geo queries at massive scale (e.g., ride-sharing 
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `lat` | float | Yes | Latitude (-90 to 90) |
-| `lon` | float | Yes | Longitude (-180 to 180) |
-| `radius` | int | No | Search radius in meters (default: 5000, max: 50000) |
-| `category` | string | No | Category filter (e.g., "restaurants", "coffee") |
-| `price` | string | No | Price filter ("1", "2", "3", "4" or ranges "1,2") |
-| `open_now` | bool | No | Filter to currently open businesses |
-| `sort` | string | No | Sort order: "distance", "rating", "review_count", "relevance" (default) |
-| `cursor` | string | No | Pagination cursor |
-| `limit` | int | No | Results per page (default: 20, max: 50) |
+| Parameter  | Type   | Required | Description                                                             |
+| ---------- | ------ | -------- | ----------------------------------------------------------------------- |
+| `lat`      | float  | Yes      | Latitude (-90 to 90)                                                    |
+| `lon`      | float  | Yes      | Longitude (-180 to 180)                                                 |
+| `radius`   | int    | No       | Search radius in meters (default: 5000, max: 50000)                     |
+| `category` | string | No       | Category filter (e.g., "restaurants", "coffee")                         |
+| `price`    | string | No       | Price filter ("1", "2", "3", "4" or ranges "1,2")                       |
+| `open_now` | bool   | No       | Filter to currently open businesses                                     |
+| `sort`     | string | No       | Sort order: "distance", "rating", "review_count", "relevance" (default) |
+| `cursor`   | string | No       | Pagination cursor                                                       |
+| `limit`    | int    | No       | Results per page (default: 20, max: 50)                                 |
 
 **Response (200 OK):**
 
@@ -364,9 +364,7 @@ For systems requiring sub-10ms geo queries at massive scale (e.g., ride-sharing 
         "country": "US"
       },
       "distance_meters": 450,
-      "categories": [
-        {"id": "coffee", "name": "Coffee & Tea"}
-      ],
+      "categories": [{ "id": "coffee", "name": "Coffee & Tea" }],
       "rating": 4.5,
       "review_count": 1247,
       "price_level": 2,
@@ -388,7 +386,7 @@ For systems requiring sub-10ms geo queries at massive scale (e.g., ride-sharing 
   "total": 847,
   "cursor": "eyJvZmZzZXQiOjIwfQ==",
   "search_metadata": {
-    "center": {"lat": 37.7749, "lon": -122.4194},
+    "center": { "lat": 37.7749, "lon": -122.4194 },
     "radius_meters": 5000,
     "query_time_ms": 42
   }
@@ -429,19 +427,17 @@ For systems requiring sub-10ms geo queries at massive scale (e.g., ride-sharing 
     "website": "https://joescoffee.com"
   },
   "categories": [
-    {"id": "coffee", "name": "Coffee & Tea"},
-    {"id": "breakfast", "name": "Breakfast & Brunch"}
+    { "id": "coffee", "name": "Coffee & Tea" },
+    { "id": "breakfast", "name": "Breakfast & Brunch" }
   ],
   "rating": 4.5,
   "review_count": 1247,
   "price_level": 2,
   "hours": {
-    "monday": [{"open": "07:00", "close": "20:00"}],
-    "tuesday": [{"open": "07:00", "close": "20:00"}],
+    "monday": [{ "open": "07:00", "close": "20:00" }],
+    "tuesday": [{ "open": "07:00", "close": "20:00" }],
     "is_open_now": true,
-    "special_hours": [
-      {"date": "2024-12-25", "is_closed": true}
-    ]
+    "special_hours": [{ "date": "2024-12-25", "is_closed": true }]
   },
   "photos": [
     {
@@ -459,10 +455,7 @@ For systems requiring sub-10ms geo queries at massive scale (e.g., ride-sharing 
     "good_for": ["working", "casual_dining"],
     "accepts": ["credit_cards", "apple_pay"]
   },
-  "highlights": [
-    "Great for working remotely",
-    "Excellent espresso"
-  ]
+  "highlights": ["Great for working remotely", "Excellent espresso"]
 }
 ```
 
@@ -494,9 +487,7 @@ For systems requiring sub-10ms geo queries at massive scale (e.g., ride-sharing 
   },
   "rating": 4,
   "text": "Great coffee and atmosphere...",
-  "photos": [
-    {"id": "photo_1", "url": "https://cdn.example.com/..."}
-  ],
+  "photos": [{ "id": "photo_1", "url": "https://cdn.example.com/..." }],
   "created_at": "2024-01-15T10:30:00Z",
   "status": "pending_moderation"
 }
@@ -674,43 +665,43 @@ CREATE INDEX idx_reviews_pending ON reviews (status, created_at)
 {
   "mappings": {
     "properties": {
-      "id": {"type": "keyword"},
+      "id": { "type": "keyword" },
       "name": {
         "type": "text",
         "analyzer": "standard",
         "fields": {
-          "keyword": {"type": "keyword"},
+          "keyword": { "type": "keyword" },
           "autocomplete": {
             "type": "text",
             "analyzer": "autocomplete"
           }
         }
       },
-      "location": {"type": "geo_point"},
-      "geohash": {"type": "keyword"},
-      "city": {"type": "keyword"},
-      "country": {"type": "keyword"},
-      "categories": {"type": "keyword"},
-      "price_level": {"type": "integer"},
-      "rating_avg": {"type": "float"},
-      "review_count": {"type": "integer"},
+      "location": { "type": "geo_point" },
+      "geohash": { "type": "keyword" },
+      "city": { "type": "keyword" },
+      "country": { "type": "keyword" },
+      "categories": { "type": "keyword" },
+      "price_level": { "type": "integer" },
+      "rating_avg": { "type": "float" },
+      "review_count": { "type": "integer" },
       "attributes": {
         "type": "object",
         "properties": {
-          "wifi": {"type": "boolean"},
-          "outdoor_seating": {"type": "boolean"},
-          "parking": {"type": "keyword"}
+          "wifi": { "type": "boolean" },
+          "outdoor_seating": { "type": "boolean" },
+          "parking": { "type": "keyword" }
         }
       },
       "hours": {
         "type": "nested",
         "properties": {
-          "day": {"type": "integer"},
-          "open": {"type": "integer"},
-          "close": {"type": "integer"}
+          "day": { "type": "integer" },
+          "open": { "type": "integer" },
+          "close": { "type": "integer" }
         }
       },
-      "updated_at": {"type": "date"}
+      "updated_at": { "type": "date" }
     }
   },
   "settings": {
@@ -736,14 +727,14 @@ CREATE INDEX idx_reviews_pending ON reviews (status, created_at)
 
 ### Database Selection Rationale
 
-| Data Type | Store | Rationale |
-|-----------|-------|-----------|
-| Business profiles | PostgreSQL | ACID, complex queries, foreign keys, moderate scale |
-| Reviews | PostgreSQL | ACID for integrity, complex moderation queries |
-| Search index | Elasticsearch | Geo queries, full-text, filtering, aggregations |
-| Session/rate limiting | Redis | Sub-ms latency, TTL support, atomic operations |
-| Photos | S3 + CloudFront | Object storage, CDN delivery, cost-effective |
-| Analytics events | Kafka → ClickHouse | High write throughput, analytical queries |
+| Data Type             | Store              | Rationale                                           |
+| --------------------- | ------------------ | --------------------------------------------------- |
+| Business profiles     | PostgreSQL         | ACID, complex queries, foreign keys, moderate scale |
+| Reviews               | PostgreSQL         | ACID for integrity, complex moderation queries      |
+| Search index          | Elasticsearch      | Geo queries, full-text, filtering, aggregations     |
+| Session/rate limiting | Redis              | Sub-ms latency, TTL support, atomic operations      |
+| Photos                | S3 + CloudFront    | Object storage, CDN delivery, cost-effective        |
+| Analytics events      | Kafka → ClickHouse | High write throughput, analytical queries           |
 
 ### Sharding Strategy
 
@@ -798,9 +789,7 @@ sequenceDiagram
 {
   "query": {
     "bool": {
-      "must": [
-        {"match": {"status": "active"}}
-      ],
+      "must": [{ "match": { "status": "active" } }],
       "filter": [
         {
           "geo_distance": {
@@ -817,7 +806,7 @@ sequenceDiagram
   "sort": [
     {
       "_geo_distance": {
-        "location": {"lat": 37.7749, "lon": -122.4194},
+        "location": { "lat": 37.7749, "lon": -122.4194 },
         "order": "asc",
         "unit": "m"
       }
@@ -832,19 +821,17 @@ sequenceDiagram
 {
   "query": {
     "bool": {
-      "must": [
-        {"match": {"status": "active"}}
-      ],
+      "must": [{ "match": { "status": "active" } }],
       "filter": [
         {
           "geo_distance": {
             "distance": "5km",
-            "location": {"lat": 37.7749, "lon": -122.4194}
+            "location": { "lat": 37.7749, "lon": -122.4194 }
           }
         },
-        {"terms": {"categories": ["coffee", "cafe"]}},
-        {"term": {"attributes.wifi": true}},
-        {"range": {"price_level": {"lte": 2}}}
+        { "terms": { "categories": ["coffee", "cafe"] } },
+        { "term": { "attributes.wifi": true } },
+        { "range": { "price_level": { "lte": 2 } } }
       ]
     }
   }
@@ -866,9 +853,9 @@ The "open now" query requires knowing the current day/time in the business's tim
             "query": {
               "bool": {
                 "must": [
-                  {"term": {"hours.day": 1}},
-                  {"range": {"hours.open": {"lte": 1030}}},
-                  {"range": {"hours.close": {"gt": 1030}}}
+                  { "term": { "hours.day": 1 } },
+                  { "range": { "hours.open": { "lte": 1030 } } },
+                  { "range": { "hours.close": { "gt": 1030 } } }
                 ]
               }
             }
@@ -922,13 +909,13 @@ Where:
 
 **Default weights (tuned via A/B testing):**
 
-| Signal | Weight | Rationale |
-|--------|--------|-----------|
-| Distance | 0.25 | Important but not dominant |
-| Rating | 0.30 | Primary quality signal |
-| Review count | 0.20 | Social proof, data confidence |
-| Recency | 0.15 | Fresh data preferred |
-| Personal | 0.10 | Light personalization |
+| Signal       | Weight | Rationale                     |
+| ------------ | ------ | ----------------------------- |
+| Distance     | 0.25   | Important but not dominant    |
+| Rating       | 0.30   | Primary quality signal        |
+| Review count | 0.20   | Social proof, data confidence |
+| Recency      | 0.15   | Fresh data preferred          |
+| Personal     | 0.10   | Light personalization         |
 
 **Elasticsearch function_score implementation:**
 
@@ -1037,14 +1024,14 @@ sequenceDiagram
 
 ### Spam Detection Signals
 
-| Signal | Weight | Description |
-|--------|--------|-------------|
-| Account age | 0.15 | New accounts more suspicious |
-| Review velocity | 0.20 | Multiple reviews in short time |
-| Text quality | 0.25 | Gibberish, excessive caps, links |
-| Sentiment mismatch | 0.15 | 5-star rating with negative text |
-| IP/device clustering | 0.15 | Multiple accounts from same source |
-| Business relationship | 0.10 | Employee/owner detection |
+| Signal                | Weight | Description                        |
+| --------------------- | ------ | ---------------------------------- |
+| Account age           | 0.15   | New accounts more suspicious       |
+| Review velocity       | 0.20   | Multiple reviews in short time     |
+| Text quality          | 0.25   | Gibberish, excessive caps, links   |
+| Sentiment mismatch    | 0.15   | 5-star rating with negative text   |
+| IP/device clustering  | 0.15   | Multiple accounts from same source |
+| Business relationship | 0.10   | Employee/owner detection           |
 
 **Thresholds:**
 
@@ -1120,26 +1107,26 @@ A separate process reads the outbox and updates Elasticsearch + invalidates cach
 ```typescript
 interface SearchState {
   // Normalized entities
-  businesses: Record<string, Business>;
+  businesses: Record<string, Business>
 
   // Search result ordering
-  resultIds: string[];
+  resultIds: string[]
 
   // Pagination
-  cursor: string | null;
-  hasMore: boolean;
+  cursor: string | null
+  hasMore: boolean
 
   // Search params (for cache key)
   searchParams: {
-    lat: number;
-    lon: number;
-    radius: number;
-    filters: Record<string, unknown>;
-  };
+    lat: number
+    lon: number
+    radius: number
+    filters: Record<string, unknown>
+  }
 
   // UI state
-  isLoading: boolean;
-  error: string | null;
+  isLoading: boolean
+  error: string | null
 }
 ```
 
@@ -1162,10 +1149,10 @@ interface SearchState {
 ```typescript
 interface MapSearchParams {
   bounds: {
-    ne: { lat: number; lon: number };
-    sw: { lat: number; lon: number };
-  };
-  zoom: number;
+    ne: { lat: number; lon: number }
+    sw: { lat: number; lon: number }
+  }
+  zoom: number
 }
 
 // Debounce map move events (300ms)
@@ -1257,18 +1244,18 @@ flowchart TB
 
 ### AWS Reference Implementation
 
-| Component | Service | Configuration |
-|-----------|---------|---------------|
-| Global LB | Route 53 + CloudFront | Latency-based routing |
-| Regional LB | ALB | Auto-scaling target groups |
-| API servers | ECS Fargate | 2-100 tasks, auto-scaling |
-| Background workers | ECS Fargate | Spot instances (70% savings) |
-| PostgreSQL | RDS Multi-AZ | db.r6g.xlarge, 3 read replicas |
-| Elasticsearch | OpenSearch Service | 3 master + 6 data nodes, r6g.large |
-| Redis | ElastiCache Cluster | 3 shards, r6g.large |
-| Message queue | MSK (Managed Kafka) | 3 brokers, kafka.m5.large |
-| Object storage | S3 + CloudFront | Intelligent tiering |
-| ML inference | SageMaker Serverless | For spam detection |
+| Component          | Service               | Configuration                      |
+| ------------------ | --------------------- | ---------------------------------- |
+| Global LB          | Route 53 + CloudFront | Latency-based routing              |
+| Regional LB        | ALB                   | Auto-scaling target groups         |
+| API servers        | ECS Fargate           | 2-100 tasks, auto-scaling          |
+| Background workers | ECS Fargate           | Spot instances (70% savings)       |
+| PostgreSQL         | RDS Multi-AZ          | db.r6g.xlarge, 3 read replicas     |
+| Elasticsearch      | OpenSearch Service    | 3 master + 6 data nodes, r6g.large |
+| Redis              | ElastiCache Cluster   | 3 shards, r6g.large                |
+| Message queue      | MSK (Managed Kafka)   | 3 brokers, kafka.m5.large          |
+| Object storage     | S3 + CloudFront       | Intelligent tiering                |
+| ML inference       | SageMaker Serverless  | For spam detection                 |
 
 ### Multi-Region Strategy
 
@@ -1292,15 +1279,15 @@ flowchart TB
 
 ### Cost Optimization
 
-| Component | Monthly Cost (estimate) | Optimization |
-|-----------|------------------------|--------------|
-| Elasticsearch | $8,000 | Reserved instances, optimize shards |
-| RDS PostgreSQL | $3,000 | Reserved instances, right-size replicas |
-| ElastiCache | $1,500 | Reserved instances |
-| ECS Fargate | $5,000 | Spot for workers, right-size tasks |
-| Data transfer | $2,000 | CloudFront caching, compression |
-| S3 | $1,000 | Intelligent tiering, lifecycle policies |
-| **Total** | ~$20,000/month | At 100M MAU scale |
+| Component      | Monthly Cost (estimate) | Optimization                            |
+| -------------- | ----------------------- | --------------------------------------- |
+| Elasticsearch  | $8,000                  | Reserved instances, optimize shards     |
+| RDS PostgreSQL | $3,000                  | Reserved instances, right-size replicas |
+| ElastiCache    | $1,500                  | Reserved instances                      |
+| ECS Fargate    | $5,000                  | Spot for workers, right-size tasks      |
+| Data transfer  | $2,000                  | CloudFront caching, compression         |
+| S3             | $1,000                  | Intelligent tiering, lifecycle policies |
+| **Total**      | ~$20,000/month          | At 100M MAU scale                       |
 
 ## Common Pitfalls
 
@@ -1387,14 +1374,14 @@ This design prioritizes **search latency** and **result quality** as the primary
 
 ### Terminology
 
-| Term | Definition |
-|------|------------|
-| Geohash | A hierarchical spatial encoding that converts coordinates to a string where prefix matches indicate proximity |
-| Quadtree | A tree data structure that recursively subdivides 2D space into four quadrants |
-| R-tree | A tree data structure for indexing multi-dimensional data, optimized for range queries |
-| BKD tree | A variant of KD-tree used by Lucene/Elasticsearch for efficient multi-dimensional indexing |
-| Geo_point | Elasticsearch field type that stores latitude/longitude and enables geospatial queries |
-| Bayesian average | A weighted average that incorporates prior knowledge to handle small sample sizes |
+| Term             | Definition                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------------- |
+| Geohash          | A hierarchical spatial encoding that converts coordinates to a string where prefix matches indicate proximity |
+| Quadtree         | A tree data structure that recursively subdivides 2D space into four quadrants                                |
+| R-tree           | A tree data structure for indexing multi-dimensional data, optimized for range queries                        |
+| BKD tree         | A variant of KD-tree used by Lucene/Elasticsearch for efficient multi-dimensional indexing                    |
+| Geo_point        | Elasticsearch field type that stores latitude/longitude and enables geospatial queries                        |
+| Bayesian average | A weighted average that incorporates prior knowledge to handle small sample sizes                             |
 
 ### Summary
 

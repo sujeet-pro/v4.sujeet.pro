@@ -13,26 +13,27 @@ This document defines the visual design system for the site, implementing "The L
 
 ### Core Palette
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--color-bg` | `#ffffff` | Pure white background |
-| `--color-bg-alt` | `#fafafa` | Secondary surfaces, code blocks, footer |
-| `--color-text` | `#1a1a1a` | Headings, primary text |
-| `--color-text-secondary` | `#4a4a4a` | Body paragraphs |
-| `--color-text-muted` | `#8a8a8a` | Meta info, captions, dates |
-| `--color-border` | `#e5e5e5` | Subtle dividers |
+| Token                    | Value     | Usage                                   |
+| ------------------------ | --------- | --------------------------------------- |
+| `--color-bg`             | `#ffffff` | Pure white background                   |
+| `--color-bg-alt`         | `#fafafa` | Secondary surfaces, code blocks, footer |
+| `--color-text`           | `#1a1a1a` | Headings, primary text                  |
+| `--color-text-secondary` | `#4a4a4a` | Body paragraphs                         |
+| `--color-text-muted`     | `#8a8a8a` | Meta info, captions, dates              |
+| `--color-border`         | `#e5e5e5` | Subtle dividers                         |
 
 ### Accent Colors (Muted Rose)
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--color-accent` | `#8b6b6b` | Links, active states, buttons |
-| `--color-accent-hover` | `#6b4b4b` | Hover states |
-| `--color-accent-subtle` | `#c4a4a4` | Subtle accents, borders |
+| Token                   | Value     | Usage                         |
+| ----------------------- | --------- | ----------------------------- |
+| `--color-accent`        | `#8b6b6b` | Links, active states, buttons |
+| `--color-accent-hover`  | `#6b4b4b` | Hover states                  |
+| `--color-accent-subtle` | `#c4a4a4` | Subtle accents, borders       |
 
 ### WCAG Contrast Ratios
 
 All color combinations meet WCAG 2.1 AA requirements:
+
 - `--color-text` on `--color-bg`: 17.4:1
 - `--color-text-secondary` on `--color-bg`: 9.7:1
 - `--color-text-muted` on `--color-bg`: 4.5:1
@@ -47,14 +48,14 @@ All color combinations meet WCAG 2.1 AA requirements:
 
 ### Type Scale
 
-| Element | Size | Weight | Line Height |
-|---------|------|--------|-------------|
-| H1 (Page title) | clamp(32px, 5vw, 42px) | 400 (light/normal) | 1.2 |
-| H2 | 26px | 600 | 1.35 |
-| H3 | 20px | 500 | 1.4 |
-| Body | 17px | 400 | 1.8 |
-| Lead paragraph | 19px | 400 | 1.7 |
-| Meta text | 12px | 400 (uppercase) | 1.5 |
+| Element         | Size                   | Weight             | Line Height |
+| --------------- | ---------------------- | ------------------ | ----------- |
+| H1 (Page title) | clamp(32px, 5vw, 42px) | 400 (light/normal) | 1.2         |
+| H2              | 26px                   | 600                | 1.35        |
+| H3              | 20px                   | 500                | 1.4         |
+| Body            | 17px                   | 400                | 1.8         |
+| Lead paragraph  | 19px                   | 400                | 1.7         |
+| Meta text       | 12px                   | 400 (uppercase)    | 1.5         |
 
 ### Special Typography Elements
 
@@ -91,15 +92,16 @@ Small caps category/label text above titles:
 
 ### Content Width
 
-| Context | Width |
-|---------|-------|
-| Header | 1100px max |
-| Content (articles) | 900px max |
-| Narrow content | 680px max |
+| Context            | Width      |
+| ------------------ | ---------- |
+| Header             | 1100px max |
+| Content (articles) | 900px max  |
+| Narrow content     | 680px max  |
 
 ### Spacing Scale
 
 Use Tailwind spacing utilities with these common values:
+
 - Section margins: `my-12` to `my-16`
 - Component gaps: `gap-6` to `gap-8`
 - Card padding: `py-6`
