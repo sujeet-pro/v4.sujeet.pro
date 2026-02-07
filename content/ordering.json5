@@ -139,12 +139,28 @@
             "facebook-2021-outage-analysis",
             "aws-kinesis-2020-outage",
             // Architecture Transformations
+            "shopify-pod-architecture",
+            "netflix-microservices-evolution",
+            "twitter-timeline-architecture",
+            "facebook-tao-social-graph",
             "uber-microservices-journey",
+            "uber-schemaless-datastore",
             "slack-distributed-architecture",
+            "linkedin-kafka-origin",
             // Database & Storage Migrations
+            "dropbox-magic-pocket",
+            "instagram-cassandra-migration",
+            "youtube-vitess-scaling",
             "github-mysql-migration",
+            "pinterest-mysql-sharding",
+            // Reliability Patterns
+            "stripe-idempotency-reliability",
             // Performance Optimizations
+            "discord-rust-read-states",
             "discord-message-storage",
+            // Unconventional Solutions
+            "figma-multiplayer-infrastructure",
+            "whatsapp-erlang-scaling",
           ],
         },
       ],
