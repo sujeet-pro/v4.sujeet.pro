@@ -2,7 +2,8 @@
    INTERACTIVE ELEMENTS
    ========================================================================== */
 
-a, button {
+a,
+button {
   @apply cursor-pointer;
 }
 

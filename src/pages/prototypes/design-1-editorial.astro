@@ -99,7 +99,15 @@
           <details class="ed-cat" open>
             <summary class="ed-cat-summary">
               <span class="ed-cat-name">System Design</span>
-              <svg class="ed-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <svg
+                class="ed-chevron"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg
+              >
             </summary>
             <div class="ed-cat-body">
               <details class="ed-topic">
@@ -126,7 +134,15 @@
           <details class="ed-cat">
             <summary class="ed-cat-summary">
               <span class="ed-cat-name">Frontend Engineering</span>
-              <svg class="ed-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <svg
+                class="ed-chevron"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg
+              >
             </summary>
             <div class="ed-cat-body">
               <details class="ed-topic">
@@ -150,7 +166,15 @@
           <details class="ed-cat">
             <summary class="ed-cat-summary">
               <span class="ed-cat-name">Programming Patterns</span>
-              <svg class="ed-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <svg
+                class="ed-chevron"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg
+              >
             </summary>
             <div class="ed-cat-body">
               <details class="ed-topic">
@@ -232,7 +256,8 @@
           </div>
           <h1 class="ed-article-title">Understanding Distributed Consensus Algorithms</h1>
           <p class="ed-article-subtitle">
-            How systems like Paxos and Raft enable multiple nodes to agree on a single value, even in the presence of failures.
+            How systems like Paxos and Raft enable multiple nodes to agree on a single value, even in the presence of
+            failures.
           </p>
           <div class="ed-article-meta-bottom">
             <span>18 min read</span>
@@ -247,32 +272,34 @@
         <div class="ed-prose">
           <h2 id="overview">Overview</h2>
           <p class="ed-dropcap">
-            Distributed consensus is the cornerstone of reliable distributed systems. When multiple computers
-            need to work together, they must agree on shared state despite network partitions, message delays,
-            and node failures. This article explores the fundamental algorithms that make this possible.
+            Distributed consensus is the cornerstone of reliable distributed systems. When multiple computers need to
+            work together, they must agree on shared state despite network partitions, message delays, and node
+            failures. This article explores the fundamental algorithms that make this possible.
           </p>
           <p>
-            The challenge of achieving consensus has been studied extensively since the 1980s. From Leslie
-            Lamport's pioneering work on Paxos to Diego Ongaro's more approachable Raft algorithm, the field
-            has evolved to provide practical solutions for real-world systems like etcd, ZooKeeper, and CockroachDB.
+            The challenge of achieving consensus has been studied extensively since the 1980s. From Leslie Lamport's
+            pioneering work on Paxos to Diego Ongaro's more approachable Raft algorithm, the field has evolved to
+            provide practical solutions for real-world systems like etcd, ZooKeeper, and CockroachDB.
           </p>
 
           <blockquote>
-            <p>"A distributed system is one in which the failure of a computer you didn't even know existed can render your own computer unusable."</p>
+            <p>
+              "A distributed system is one in which the failure of a computer you didn't even know existed can render
+              your own computer unusable."
+            </p>
             <cite>&mdash; Leslie Lamport</cite>
           </blockquote>
 
           <h2 id="the-consensus-problem">The Consensus Problem</h2>
           <p>
-            At its core, the consensus problem requires a group of processes to agree on a single value.
-            This sounds simple, but becomes remarkably difficult when processes can fail and messages can
-            be lost or delayed.
+            At its core, the consensus problem requires a group of processes to agree on a single value. This sounds
+            simple, but becomes remarkably difficult when processes can fail and messages can be lost or delayed.
           </p>
 
           <h3 id="why-consensus-matters">Why Consensus Matters</h3>
           <p>
-            Consensus is essential for many distributed systems primitives including leader election,
-            atomic broadcast, state machine replication, and distributed locking.
+            Consensus is essential for many distributed systems primitives including leader election, atomic broadcast,
+            state machine replication, and distributed locking.
           </p>
           <ul>
             <li><strong>Leader Election</strong> &mdash; Selecting a single coordinator among replicas</li>
@@ -283,9 +310,9 @@
 
           <h3 id="flp-impossibility">FLP Impossibility</h3>
           <p>
-            The Fischer, Lynch, and Paterson impossibility result (1985) proves that no deterministic
-            algorithm can guarantee consensus in an asynchronous system where even one process may crash.
-            This foundational result shapes how all practical consensus algorithms are designed.
+            The Fischer, Lynch, and Paterson impossibility result (1985) proves that no deterministic algorithm can
+            guarantee consensus in an asynchronous system where even one process may crash. This foundational result
+            shapes how all practical consensus algorithms are designed.
           </p>
 
           <table>
@@ -317,16 +344,22 @@
 
           <h2 id="paxos-algorithm">Paxos Algorithm</h2>
           <p>
-            Paxos, introduced by Leslie Lamport in 1989, was the first practical consensus algorithm.
-            Despite its reputation for difficulty, the core idea is elegant: a proposer must convince
-            a majority of acceptors before a value is chosen.
+            Paxos, introduced by Leslie Lamport in 1989, was the first practical consensus algorithm. Despite its
+            reputation for difficulty, the core idea is elegant: a proposer must convince a majority of acceptors before
+            a value is chosen.
           </p>
 
           <h3 id="paxos-phases">Phases of Paxos</h3>
           <p>The basic Paxos protocol operates in two phases:</p>
           <ol>
-            <li><strong>Prepare Phase</strong> &mdash; A proposer sends a prepare request with a unique proposal number to a majority of acceptors.</li>
-            <li><strong>Accept Phase</strong> &mdash; If a majority responds, the proposer sends an accept request with the value.</li>
+            <li>
+              <strong>Prepare Phase</strong> &mdash; A proposer sends a prepare request with a unique proposal number to a
+              majority of acceptors.
+            </li>
+            <li>
+              <strong>Accept Phase</strong> &mdash; If a majority responds, the proposer sends an accept request with the
+              value.
+            </li>
           </ol>
 
           <pre><code>// Simplified Paxos proposer logic
@@ -355,28 +388,27 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
 
           <h3 id="multi-paxos">Multi-Paxos</h3>
           <p>
-            Basic Paxos requires two round-trips for each consensus decision. Multi-Paxos optimizes this
-            by electing a stable leader that can skip the prepare phase for subsequent proposals, reducing
-            latency to a single round-trip in the common case.
+            Basic Paxos requires two round-trips for each consensus decision. Multi-Paxos optimizes this by electing a
+            stable leader that can skip the prepare phase for subsequent proposals, reducing latency to a single
+            round-trip in the common case.
           </p>
 
           <h2 id="raft-consensus">Raft Consensus</h2>
           <p>
-            Raft was designed by Diego Ongaro and John Ousterhout in 2014 as a more understandable
-            alternative to Paxos. It decomposes consensus into three sub-problems: leader election,
-            log replication, and safety.
+            Raft was designed by Diego Ongaro and John Ousterhout in 2014 as a more understandable alternative to Paxos.
+            It decomposes consensus into three sub-problems: leader election, log replication, and safety.
           </p>
 
           <h3 id="leader-election">Leader Election</h3>
           <p>
-            Raft uses randomized timeouts to trigger elections. When a follower doesn't hear from a leader
-            within its timeout period, it becomes a candidate and requests votes from other nodes.
+            Raft uses randomized timeouts to trigger elections. When a follower doesn't hear from a leader within its
+            timeout period, it becomes a candidate and requests votes from other nodes.
           </p>
 
           <h3 id="log-replication">Log Replication</h3>
           <p>
-            Once elected, the leader accepts client requests and replicates log entries to followers.
-            An entry is considered committed when a majority of nodes have acknowledged it.
+            Once elected, the leader accepts client requests and replicates log entries to followers. An entry is
+            considered committed when a majority of nodes have acknowledged it.
           </p>
 
           <figure>
@@ -392,13 +424,16 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
                 <div class="ed-diagram-node">Follower 3</div>
               </div>
             </div>
-            <figcaption>Figure 1: Leader replicates log entries to all followers. Entry is committed after majority acknowledgment.</figcaption>
+            <figcaption>
+              Figure 1: Leader replicates log entries to all followers. Entry is committed after majority
+              acknowledgment.
+            </figcaption>
           </figure>
 
           <h2 id="comparison">Comparison</h2>
           <p>
-            While both Paxos and Raft solve the same fundamental problem, they differ significantly
-            in their approach to understandability, implementation complexity, and operational behavior.
+            While both Paxos and Raft solve the same fundamental problem, they differ significantly in their approach to
+            understandability, implementation complexity, and operational behavior.
           </p>
 
           <table>
@@ -442,15 +477,18 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
           </ul>
           <h3>Summary</h3>
           <p>
-            Distributed consensus enables reliable systems by allowing multiple nodes to agree on shared state.
-            Paxos pioneered the field but is complex to understand. Raft provides equivalent guarantees with
-            a clearer structure. Modern systems like etcd and CockroachDB rely on Raft for their consensus layer.
+            Distributed consensus enables reliable systems by allowing multiple nodes to agree on shared state. Paxos
+            pioneered the field but is complex to understand. Raft provides equivalent guarantees with a clearer
+            structure. Modern systems like etcd and CockroachDB rely on Raft for their consensus layer.
           </p>
           <h3>References</h3>
           <ul>
             <li>Lamport, L. "The Part-Time Parliament" (1998)</li>
             <li>Ongaro, D. & Ousterhout, J. "In Search of an Understandable Consensus Algorithm" (2014)</li>
-            <li>Fischer, M., Lynch, N., Paterson, M. "Impossibility of Distributed Consensus with One Faulty Process" (1985)</li>
+            <li>
+              Fischer, M., Lynch, N., Paterson, M. "Impossibility of Distributed Consensus with One Faulty Process"
+              (1985)
+            </li>
           </ul>
         </div>
 
@@ -478,27 +516,33 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
      ================================================================ */
 
   /* --- Reset --- */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
   /* --- Design Tokens --- */
   :root {
-    --ed-bg: #FDFBF7;
-    --ed-bg-alt: #F5F0E8;
-    --ed-bg-elevated: #FFFFFF;
-    --ed-text: #2D2A26;
-    --ed-text-secondary: #4A453E;
-    --ed-text-muted: #8B7E74;
-    --ed-accent: #B5322A;
-    --ed-accent-hover: #8F2720;
+    --ed-bg: #fdfbf7;
+    --ed-bg-alt: #f5f0e8;
+    --ed-bg-elevated: #ffffff;
+    --ed-text: #2d2a26;
+    --ed-text-secondary: #4a453e;
+    --ed-text-muted: #8b7e74;
+    --ed-accent: #b5322a;
+    --ed-accent-hover: #8f2720;
     --ed-accent-subtle: rgba(181, 50, 42, 0.08);
-    --ed-border: #E2DCD3;
-    --ed-border-subtle: #EDE8E0;
-    --ed-code-bg: #F0EBE3;
+    --ed-border: #e2dcd3;
+    --ed-border-subtle: #ede8e0;
+    --ed-code-bg: #f0ebe3;
 
-    --ed-font-display: 'Playfair Display', Georgia, serif;
-    --ed-font-body: 'Source Serif 4', Georgia, serif;
-    --ed-font-mono: 'JetBrains Mono', monospace;
-    --ed-font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --ed-font-display: "Playfair Display", Georgia, serif;
+    --ed-font-body: "Source Serif 4", Georgia, serif;
+    --ed-font-mono: "JetBrains Mono", monospace;
+    --ed-font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
     --ed-content-width: 720px;
     --ed-sidebar-width: 280px;
@@ -508,7 +552,10 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
   }
 
   /* --- Base --- */
-  html { scroll-behavior: smooth; scroll-padding-top: calc(var(--ed-header-height) + 2rem); }
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--ed-header-height) + 2rem);
+  }
   body {
     font-family: var(--ed-font-body);
     font-size: 18px;
@@ -521,148 +568,239 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
 
   /* --- Skip Link --- */
   .ed-skip-link {
-    position: absolute; top: 0; left: 0; z-index: 200;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 200;
     padding: 8px 16px;
-    background: var(--ed-accent); color: white;
-    font-family: var(--ed-font-ui); font-size: 14px;
+    background: var(--ed-accent);
+    color: white;
+    font-family: var(--ed-font-ui);
+    font-size: 14px;
     text-decoration: none;
     transform: translateY(-100%);
     transition: transform var(--ed-transition-fast);
   }
-  .ed-skip-link:focus { transform: translateY(0); }
+  .ed-skip-link:focus {
+    transform: translateY(0);
+  }
 
   /* ================================================================
      HEADER
      ================================================================ */
   .ed-header {
-    position: sticky; top: 0; z-index: 50;
+    position: sticky;
+    top: 0;
+    z-index: 50;
     height: var(--ed-header-height);
     background: rgba(253, 251, 247, 0.92);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--ed-border-subtle);
   }
   .ed-header-inner {
-    display: flex; align-items: center; justify-content: space-between;
-    max-width: 1200px; margin: 0 auto;
-    padding: 0 20px; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 100%;
   }
   .ed-logo {
     font-family: var(--ed-font-display);
-    font-size: 22px; font-weight: 700;
-    color: var(--ed-text); text-decoration: none;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ed-text);
+    text-decoration: none;
     letter-spacing: -0.02em;
   }
-  .ed-logo-dot { color: var(--ed-accent); }
-  .ed-header-actions { display: flex; align-items: center; gap: 4px; }
+  .ed-logo-dot {
+    color: var(--ed-accent);
+  }
+  .ed-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
   .ed-header-btn {
-    display: flex; align-items: center; justify-content: center;
-    width: 44px; height: 44px;
-    background: none; border: none; cursor: pointer;
-    color: var(--ed-text-muted); border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ed-text-muted);
+    border-radius: 8px;
     transition: all var(--ed-transition-fast);
   }
-  .ed-header-btn:hover { background: var(--ed-accent-subtle); color: var(--ed-text); }
-  .ed-header-btn[aria-expanded="true"] { color: var(--ed-accent); background: var(--ed-accent-subtle); }
+  .ed-header-btn:hover {
+    background: var(--ed-accent-subtle);
+    color: var(--ed-text);
+  }
+  .ed-header-btn[aria-expanded="true"] {
+    color: var(--ed-accent);
+    background: var(--ed-accent-subtle);
+  }
 
   /* ================================================================
      BACKDROP
      ================================================================ */
   .ed-backdrop {
-    position: fixed; inset: 0; z-index: 59;
+    position: fixed;
+    inset: 0;
+    z-index: 59;
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: blur(4px);
-    opacity: 0; pointer-events: none;
+    opacity: 0;
+    pointer-events: none;
     transition: opacity var(--ed-transition);
   }
-  .ed-backdrop.is-visible { opacity: 1; pointer-events: auto; }
+  .ed-backdrop.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
 
   /* ================================================================
      SIDEBARS (shared)
      ================================================================ */
   .ed-sidebar {
-    position: fixed; top: 0; z-index: 60;
+    position: fixed;
+    top: 0;
+    z-index: 60;
     width: var(--ed-sidebar-width);
-    height: 100vh; height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
     background: var(--ed-bg-elevated);
-    display: flex; flex-direction: column;
+    display: flex;
+    flex-direction: column;
     transition: transform var(--ed-transition);
     overflow: hidden;
   }
   .ed-sidebar-left {
-    left: 0; border-right: 1px solid var(--ed-border-subtle);
+    left: 0;
+    border-right: 1px solid var(--ed-border-subtle);
     transform: translateX(-100%);
-    box-shadow: 4px 0 24px rgba(0,0,0,0.08);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
   }
-  .ed-sidebar-left.is-open { transform: translateX(0); }
+  .ed-sidebar-left.is-open {
+    transform: translateX(0);
+  }
 
   .ed-sidebar-right {
-    right: 0; border-left: 1px solid var(--ed-border-subtle);
+    right: 0;
+    border-left: 1px solid var(--ed-border-subtle);
     transform: translateX(100%);
-    box-shadow: -4px 0 24px rgba(0,0,0,0.08);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.08);
   }
-  .ed-sidebar-right.is-open { transform: translateX(0); }
+  .ed-sidebar-right.is-open {
+    transform: translateX(0);
+  }
 
   .ed-sidebar-header {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 16px 20px;
     border-bottom: 1px solid var(--ed-border-subtle);
     flex-shrink: 0;
   }
   .ed-sidebar-title {
     font-family: var(--ed-font-ui);
-    font-size: 11px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.12em;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
     color: var(--ed-text-muted);
   }
   .ed-sidebar-close {
-    display: flex; align-items: center; justify-content: center;
-    width: 36px; height: 36px;
-    background: none; border: none; cursor: pointer;
-    color: var(--ed-text-muted); border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--ed-text-muted);
+    border-radius: 8px;
     transition: all var(--ed-transition-fast);
   }
-  .ed-sidebar-close:hover { background: var(--ed-accent-subtle); color: var(--ed-text); }
-  .ed-sidebar-body { flex: 1; overflow-y: auto; padding: 16px 0; }
+  .ed-sidebar-close:hover {
+    background: var(--ed-accent-subtle);
+    color: var(--ed-text);
+  }
+  .ed-sidebar-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 0;
+  }
 
   /* --- Nav Section (merged nav links) --- */
-  .ed-nav-section { padding: 0 12px 12px; }
+  .ed-nav-section {
+    padding: 0 12px 12px;
+  }
   .ed-nav-link {
-    display: block; padding: 10px 12px;
+    display: block;
+    padding: 10px 12px;
     font-family: var(--ed-font-ui);
-    font-size: 14px; font-weight: 500;
-    color: var(--ed-text); text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ed-text);
+    text-decoration: none;
     border-radius: 6px;
     transition: all var(--ed-transition-fast);
   }
-  .ed-nav-link:hover { background: var(--ed-accent-subtle); color: var(--ed-accent); }
+  .ed-nav-link:hover {
+    background: var(--ed-accent-subtle);
+    color: var(--ed-accent);
+  }
   .ed-nav-divider {
-    height: 1px; margin: 8px 20px;
+    height: 1px;
+    margin: 8px 20px;
     background: var(--ed-border-subtle);
   }
 
   /* --- Browse Section --- */
-  .ed-browse { padding: 0 12px; }
+  .ed-browse {
+    padding: 0 12px;
+  }
   .ed-browse-label {
-    display: block; padding: 8px 12px;
+    display: block;
+    padding: 8px 12px;
     font-family: var(--ed-font-ui);
-    font-size: 10px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.15em;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
     color: var(--ed-text-muted);
   }
 
   /* Category accordion */
-  .ed-cat { border: none; }
+  .ed-cat {
+    border: none;
+  }
   .ed-cat-summary {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 12px; cursor: pointer;
-    list-style: none; border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    cursor: pointer;
+    list-style: none;
+    border-radius: 6px;
     transition: background var(--ed-transition-fast);
   }
-  .ed-cat-summary::-webkit-details-marker { display: none; }
-  .ed-cat-summary:hover { background: var(--ed-accent-subtle); }
+  .ed-cat-summary::-webkit-details-marker {
+    display: none;
+  }
+  .ed-cat-summary:hover {
+    background: var(--ed-accent-subtle);
+  }
   .ed-cat-name {
     font-family: var(--ed-font-ui);
-    font-size: 13px; font-weight: 600;
+    font-size: 13px;
+    font-weight: 600;
     color: var(--ed-text);
   }
   .ed-chevron {
@@ -670,39 +808,66 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
     transition: transform var(--ed-transition);
     flex-shrink: 0;
   }
-  .ed-cat[open] > .ed-cat-summary .ed-chevron { transform: rotate(180deg); }
-  .ed-cat-body { padding: 0 0 4px 8px; }
+  .ed-cat[open] > .ed-cat-summary .ed-chevron {
+    transform: rotate(180deg);
+  }
+  .ed-cat-body {
+    padding: 0 0 4px 8px;
+  }
 
   /* Topic accordion */
-  .ed-topic { border: none; }
+  .ed-topic {
+    border: none;
+  }
   .ed-topic-summary {
-    display: flex; align-items: center; gap: 8px;
-    padding: 6px 12px; cursor: pointer;
-    list-style: none; border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    list-style: none;
+    border-radius: 6px;
     font-family: var(--ed-font-ui);
-    font-size: 12px; font-weight: 500;
+    font-size: 12px;
+    font-weight: 500;
     color: var(--ed-text-secondary);
     transition: all var(--ed-transition-fast);
   }
-  .ed-topic-summary::-webkit-details-marker { display: none; }
-  .ed-topic-summary:hover { background: var(--ed-accent-subtle); color: var(--ed-accent); }
+  .ed-topic-summary::-webkit-details-marker {
+    display: none;
+  }
+  .ed-topic-summary:hover {
+    background: var(--ed-accent-subtle);
+    color: var(--ed-accent);
+  }
   .ed-count {
-    font-size: 10px; color: var(--ed-text-muted);
-    background: var(--ed-bg-alt); padding: 1px 6px;
+    font-size: 10px;
+    color: var(--ed-text-muted);
+    background: var(--ed-bg-alt);
+    padding: 1px 6px;
     border-radius: 99px;
   }
 
   /* Article links in sidebar */
-  .ed-article-list { list-style: none; padding: 2px 0 2px 12px; }
+  .ed-article-list {
+    list-style: none;
+    padding: 2px 0 2px 12px;
+  }
   .ed-article-link {
-    display: block; padding: 5px 12px;
+    display: block;
+    padding: 5px 12px;
     font-family: var(--ed-font-ui);
-    font-size: 12px; color: var(--ed-text-muted);
-    text-decoration: none; border-radius: 4px;
+    font-size: 12px;
+    color: var(--ed-text-muted);
+    text-decoration: none;
+    border-radius: 4px;
     transition: all var(--ed-transition-fast);
     border-left: 2px solid transparent;
   }
-  .ed-article-link:hover { color: var(--ed-text); background: var(--ed-accent-subtle); }
+  .ed-article-link:hover {
+    color: var(--ed-text);
+    background: var(--ed-accent-subtle);
+  }
   .ed-article-link--active {
     color: var(--ed-accent) !important;
     border-left-color: var(--ed-accent);
@@ -711,19 +876,41 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
   }
 
   /* --- TOC in right sidebar --- */
-  .ed-toc-nav { padding: 12px; }
-  .ed-toc-list, .ed-toc-sublist { list-style: none; }
-  .ed-toc-list { padding: 0; }
-  .ed-toc-sublist { padding: 2px 0 4px 16px; border-left: 1px solid var(--ed-border-subtle); }
+  .ed-toc-nav {
+    padding: 12px;
+  }
+  .ed-toc-list,
+  .ed-toc-sublist {
+    list-style: none;
+  }
+  .ed-toc-list {
+    padding: 0;
+  }
+  .ed-toc-sublist {
+    padding: 2px 0 4px 16px;
+    border-left: 1px solid var(--ed-border-subtle);
+  }
   .ed-toc-link {
-    display: block; padding: 6px 10px;
+    display: block;
+    padding: 6px 10px;
     font-family: var(--ed-font-ui);
-    text-decoration: none; border-radius: 4px;
+    text-decoration: none;
+    border-radius: 4px;
     transition: all var(--ed-transition-fast);
   }
-  .ed-toc-h2 { font-size: 13px; font-weight: 600; color: var(--ed-text); }
-  .ed-toc-h3 { font-size: 12px; color: var(--ed-text-muted); }
-  .ed-toc-link:hover { background: var(--ed-accent-subtle); color: var(--ed-accent); }
+  .ed-toc-h2 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ed-text);
+  }
+  .ed-toc-h3 {
+    font-size: 12px;
+    color: var(--ed-text-muted);
+  }
+  .ed-toc-link:hover {
+    background: var(--ed-accent-subtle);
+    color: var(--ed-accent);
+  }
 
   /* ================================================================
      MAIN CONTENT - Always Centered
@@ -736,61 +923,94 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
 
   /* --- Breadcrumb --- */
   .ed-breadcrumb {
-    display: flex; align-items: center; gap: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     padding: 24px 0 8px;
     font-family: var(--ed-font-ui);
     font-size: 12px;
   }
-  .ed-breadcrumb a { color: var(--ed-text-muted); text-decoration: none; transition: color var(--ed-transition-fast); }
-  .ed-breadcrumb a:hover { color: var(--ed-accent); }
-  .ed-breadcrumb-sep { color: var(--ed-border); }
+  .ed-breadcrumb a {
+    color: var(--ed-text-muted);
+    text-decoration: none;
+    transition: color var(--ed-transition-fast);
+  }
+  .ed-breadcrumb a:hover {
+    color: var(--ed-accent);
+  }
+  .ed-breadcrumb-sep {
+    color: var(--ed-border);
+  }
 
   /* --- Article Header --- */
-  .ed-article-header { padding: 32px 0 0; text-align: center; }
+  .ed-article-header {
+    padding: 32px 0 0;
+    text-align: center;
+  }
   .ed-article-meta-top {
-    display: flex; align-items: center; justify-content: center; gap: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     font-family: var(--ed-font-ui);
-    font-size: 11px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.1em;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
     color: var(--ed-text-muted);
     margin-bottom: 20px;
   }
-  .ed-eyebrow { color: var(--ed-accent); }
-  .ed-meta-sep { color: var(--ed-border); }
+  .ed-eyebrow {
+    color: var(--ed-accent);
+  }
+  .ed-meta-sep {
+    color: var(--ed-border);
+  }
   .ed-article-title {
     font-family: var(--ed-font-display);
     font-size: clamp(32px, 5vw, 52px);
-    font-weight: 700; line-height: 1.12;
+    font-weight: 700;
+    line-height: 1.12;
     color: var(--ed-text);
     letter-spacing: -0.02em;
     margin-bottom: 20px;
   }
   .ed-article-subtitle {
     font-family: var(--ed-font-body);
-    font-size: 20px; line-height: 1.6;
+    font-size: 20px;
+    line-height: 1.6;
     color: var(--ed-text-muted);
     font-style: italic;
-    max-width: 600px; margin: 0 auto 16px;
+    max-width: 600px;
+    margin: 0 auto 16px;
   }
   .ed-article-meta-bottom {
-    display: flex; align-items: center; justify-content: center; gap: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     font-family: var(--ed-font-ui);
-    font-size: 12px; color: var(--ed-text-muted);
+    font-size: 12px;
+    color: var(--ed-text-muted);
   }
 
   /* --- Rule --- */
   .ed-rule {
-    height: 1px; margin: 32px auto;
+    height: 1px;
+    margin: 32px auto;
     max-width: 120px;
     background: linear-gradient(90deg, transparent, var(--ed-border), transparent);
   }
 
   /* --- Prose Content --- */
-  .ed-prose { padding: 16px 0 48px; }
+  .ed-prose {
+    padding: 16px 0 48px;
+  }
   .ed-prose h2 {
     font-family: var(--ed-font-display);
     font-size: clamp(24px, 3.5vw, 32px);
-    font-weight: 600; line-height: 1.25;
+    font-weight: 600;
+    line-height: 1.25;
     color: var(--ed-text);
     margin: 56px 0 20px;
     letter-spacing: -0.01em;
@@ -798,24 +1018,31 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
   .ed-prose h3 {
     font-family: var(--ed-font-display);
     font-size: clamp(18px, 2.5vw, 22px);
-    font-weight: 600; line-height: 1.35;
+    font-weight: 600;
+    line-height: 1.35;
     color: var(--ed-text);
     margin: 40px 0 12px;
     font-style: italic;
   }
-  .ed-prose p { margin-bottom: 24px; }
+  .ed-prose p {
+    margin-bottom: 24px;
+  }
   .ed-prose a {
-    color: var(--ed-accent); text-decoration: none;
+    color: var(--ed-accent);
+    text-decoration: none;
     border-bottom: 1px solid var(--ed-accent);
     transition: border-color var(--ed-transition-fast);
   }
-  .ed-prose a:hover { border-bottom-width: 2px; }
+  .ed-prose a:hover {
+    border-bottom-width: 2px;
+  }
 
   /* Drop cap */
   .ed-dropcap::first-letter {
     float: left;
     font-family: var(--ed-font-display);
-    font-size: 4.5rem; line-height: 0.8;
+    font-size: 4.5rem;
+    line-height: 0.8;
     font-weight: 700;
     color: var(--ed-accent);
     margin: 4px 14px 0 0;
@@ -831,22 +1058,48 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
     border-radius: 0 8px 8px 0;
     font-style: italic;
   }
-  .ed-prose blockquote p { margin-bottom: 8px; color: var(--ed-text); font-size: 19px; line-height: 1.7; }
-  .ed-prose blockquote cite { font-size: 14px; color: var(--ed-text-muted); font-style: normal; font-family: var(--ed-font-ui); }
+  .ed-prose blockquote p {
+    margin-bottom: 8px;
+    color: var(--ed-text);
+    font-size: 19px;
+    line-height: 1.7;
+  }
+  .ed-prose blockquote cite {
+    font-size: 14px;
+    color: var(--ed-text-muted);
+    font-style: normal;
+    font-family: var(--ed-font-ui);
+  }
 
   /* Lists */
-  .ed-prose ul, .ed-prose ol { margin: 20px 0; padding-left: 28px; }
-  .ed-prose li { margin-bottom: 10px; }
-  .ed-prose li strong { color: var(--ed-text); }
+  .ed-prose ul,
+  .ed-prose ol {
+    margin: 20px 0;
+    padding-left: 28px;
+  }
+  .ed-prose li {
+    margin-bottom: 10px;
+  }
+  .ed-prose li strong {
+    color: var(--ed-text);
+  }
 
   /* Table */
-  .ed-prose table { width: 100%; margin: 32px 0; border-collapse: collapse; font-size: 15px; }
+  .ed-prose table {
+    width: 100%;
+    margin: 32px 0;
+    border-collapse: collapse;
+    font-size: 15px;
+  }
   .ed-prose th {
     font-family: var(--ed-font-ui);
-    font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.08em;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     color: var(--ed-text-muted);
-    text-align: left; padding: 10px 16px;
+    text-align: left;
+    padding: 10px 16px;
     border-bottom: 2px solid var(--ed-border);
   }
   .ed-prose td {
@@ -854,83 +1107,150 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
     border-bottom: 1px solid var(--ed-border-subtle);
     color: var(--ed-text-secondary);
   }
-  .ed-prose tr:last-child td { border-bottom: none; }
+  .ed-prose tr:last-child td {
+    border-bottom: none;
+  }
 
   /* Code */
   .ed-prose code {
     font-family: var(--ed-font-mono);
     font-size: 14px;
-    background: var(--ed-code-bg); padding: 2px 6px;
+    background: var(--ed-code-bg);
+    padding: 2px 6px;
     border-radius: 4px;
   }
   .ed-prose pre {
-    margin: 32px 0; padding: 24px;
+    margin: 32px 0;
+    padding: 24px;
     background: var(--ed-code-bg);
-    border-radius: 8px; border: 1px solid var(--ed-border-subtle);
-    overflow-x: auto; font-size: 14px; line-height: 1.7;
+    border-radius: 8px;
+    border: 1px solid var(--ed-border-subtle);
+    overflow-x: auto;
+    font-size: 14px;
+    line-height: 1.7;
   }
-  .ed-prose pre code { background: none; padding: 0; font-size: inherit; }
+  .ed-prose pre code {
+    background: none;
+    padding: 0;
+    font-size: inherit;
+  }
 
   /* Figure/Diagram placeholder */
   .ed-placeholder-diagram {
-    margin: 32px 0; padding: 40px;
-    background: var(--ed-bg-alt); border: 1px dashed var(--ed-border);
-    border-radius: 8px; text-align: center;
-    font-family: var(--ed-font-ui); color: var(--ed-text-muted);
+    margin: 32px 0;
+    padding: 40px;
+    background: var(--ed-bg-alt);
+    border: 1px dashed var(--ed-border);
+    border-radius: 8px;
+    text-align: center;
+    font-family: var(--ed-font-ui);
+    color: var(--ed-text-muted);
   }
-  .ed-placeholder-diagram > span { font-weight: 600; font-size: 14px; display: block; margin-bottom: 16px; }
-  .ed-diagram-nodes { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .ed-placeholder-diagram > span {
+    font-weight: 600;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 16px;
+  }
+  .ed-diagram-nodes {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
   .ed-diagram-node {
-    padding: 8px 16px; background: var(--ed-bg-elevated);
-    border: 1px solid var(--ed-border); border-radius: 6px;
-    font-size: 12px; font-weight: 500;
+    padding: 8px 16px;
+    background: var(--ed-bg-elevated);
+    border: 1px solid var(--ed-border);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
   }
-  .ed-diagram-leader { background: var(--ed-accent); color: white; border-color: var(--ed-accent); }
-  .ed-diagram-arrows { color: var(--ed-accent); font-size: 18px; display: flex; gap: 4px; }
+  .ed-diagram-leader {
+    background: var(--ed-accent);
+    color: white;
+    border-color: var(--ed-accent);
+  }
+  .ed-diagram-arrows {
+    color: var(--ed-accent);
+    font-size: 18px;
+    display: flex;
+    gap: 4px;
+  }
   .ed-prose figcaption {
-    text-align: center; font-size: 14px; font-style: italic;
-    color: var(--ed-text-muted); margin-top: 12px;
+    text-align: center;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ed-text-muted);
+    margin-top: 12px;
     font-family: var(--ed-font-body);
   }
 
   /* --- Article Navigation --- */
   .ed-article-nav {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
     padding: 32px 0 48px;
   }
-  .ed-nav-prev, .ed-nav-next {
-    display: flex; flex-direction: column; gap: 4px;
-    padding: 20px; border: 1px solid var(--ed-border-subtle);
-    border-radius: 8px; text-decoration: none;
+  .ed-nav-prev,
+  .ed-nav-next {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 20px;
+    border: 1px solid var(--ed-border-subtle);
+    border-radius: 8px;
+    text-decoration: none;
     transition: all var(--ed-transition);
   }
-  .ed-nav-prev:hover, .ed-nav-next:hover {
+  .ed-nav-prev:hover,
+  .ed-nav-next:hover {
     border-color: var(--ed-accent);
     background: var(--ed-accent-subtle);
   }
-  .ed-nav-next { text-align: right; }
+  .ed-nav-next {
+    text-align: right;
+  }
   .ed-nav-label {
     font-family: var(--ed-font-ui);
-    font-size: 10px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.12em;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
     color: var(--ed-accent);
   }
   .ed-nav-title {
     font-family: var(--ed-font-display);
-    font-size: 15px; font-weight: 600;
-    color: var(--ed-text); line-height: 1.4;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ed-text);
+    line-height: 1.4;
   }
 
   /* ================================================================
      RESPONSIVE
      ================================================================ */
   @media (max-width: 640px) {
-    .ed-sidebar { width: min(85vw, 320px); }
-    .ed-article-header { text-align: left; }
-    .ed-article-meta-top { justify-content: flex-start; }
-    .ed-article-meta-bottom { justify-content: flex-start; }
-    .ed-article-nav { grid-template-columns: 1fr; }
-    .ed-main { padding: 0 16px 80px; }
+    .ed-sidebar {
+      width: min(85vw, 320px);
+    }
+    .ed-article-header {
+      text-align: left;
+    }
+    .ed-article-meta-top {
+      justify-content: flex-start;
+    }
+    .ed-article-meta-bottom {
+      justify-content: flex-start;
+    }
+    .ed-article-nav {
+      grid-template-columns: 1fr;
+    }
+    .ed-main {
+      padding: 0 16px 80px;
+    }
   }
 
   /* ================================================================
@@ -944,75 +1264,75 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
 
 <script>
   function initEditorialLayout() {
-    const toggleLeft = document.querySelector('.ed-toggle-left') as HTMLButtonElement | null;
-    const toggleRight = document.querySelector('.ed-toggle-right') as HTMLButtonElement | null;
-    const sidebarLeft = document.getElementById('sidebar-left');
-    const sidebarRight = document.getElementById('sidebar-right');
-    const backdrop = document.getElementById('sidebar-backdrop');
+    const toggleLeft = document.querySelector(".ed-toggle-left") as HTMLButtonElement | null
+    const toggleRight = document.querySelector(".ed-toggle-right") as HTMLButtonElement | null
+    const sidebarLeft = document.getElementById("sidebar-left")
+    const sidebarRight = document.getElementById("sidebar-right")
+    const backdrop = document.getElementById("sidebar-backdrop")
 
     function closeSidebars() {
-      sidebarLeft?.classList.remove('is-open');
-      sidebarRight?.classList.remove('is-open');
-      backdrop?.classList.remove('is-visible');
-      toggleLeft?.setAttribute('aria-expanded', 'false');
-      toggleRight?.setAttribute('aria-expanded', 'false');
-      document.body.style.overflow = '';
+      sidebarLeft?.classList.remove("is-open")
+      sidebarRight?.classList.remove("is-open")
+      backdrop?.classList.remove("is-visible")
+      toggleLeft?.setAttribute("aria-expanded", "false")
+      toggleRight?.setAttribute("aria-expanded", "false")
+      document.body.style.overflow = ""
     }
 
     function toggleSidebar(sidebar: HTMLElement | null, toggle: HTMLButtonElement | null) {
-      if (!sidebar || !toggle) return;
-      const isOpen = sidebar.classList.contains('is-open');
-      closeSidebars();
+      if (!sidebar || !toggle) return
+      const isOpen = sidebar.classList.contains("is-open")
+      closeSidebars()
       if (!isOpen) {
-        sidebar.classList.add('is-open');
-        backdrop?.classList.add('is-visible');
-        toggle.setAttribute('aria-expanded', 'true');
-        document.body.style.overflow = 'hidden';
+        sidebar.classList.add("is-open")
+        backdrop?.classList.add("is-visible")
+        toggle.setAttribute("aria-expanded", "true")
+        document.body.style.overflow = "hidden"
       }
     }
 
-    toggleLeft?.addEventListener('click', () => toggleSidebar(sidebarLeft, toggleLeft));
-    toggleRight?.addEventListener('click', () => toggleSidebar(sidebarRight, toggleRight));
-    backdrop?.addEventListener('click', closeSidebars);
+    toggleLeft?.addEventListener("click", () => toggleSidebar(sidebarLeft, toggleLeft))
+    toggleRight?.addEventListener("click", () => toggleSidebar(sidebarRight, toggleRight))
+    backdrop?.addEventListener("click", closeSidebars)
 
     // Close buttons inside sidebars
-    document.querySelectorAll('.ed-sidebar-close').forEach(btn => {
-      btn.addEventListener('click', closeSidebars);
-    });
+    document.querySelectorAll(".ed-sidebar-close").forEach((btn) => {
+      btn.addEventListener("click", closeSidebars)
+    })
 
     // Escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeSidebars();
-    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeSidebars()
+    })
 
     // Remember sidebar state on desktop via localStorage
-    const savedLeft = localStorage.getItem('ed-sidebar-left');
-    const savedRight = localStorage.getItem('ed-sidebar-right');
-    const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+    const savedLeft = localStorage.getItem("ed-sidebar-left")
+    const savedRight = localStorage.getItem("ed-sidebar-right")
+    const isDesktop = window.matchMedia("(min-width: 1024px)").matches
 
-    if (isDesktop && savedLeft === 'open') {
-      sidebarLeft?.classList.add('is-open');
-      toggleLeft?.setAttribute('aria-expanded', 'true');
+    if (isDesktop && savedLeft === "open") {
+      sidebarLeft?.classList.add("is-open")
+      toggleLeft?.setAttribute("aria-expanded", "true")
     }
-    if (isDesktop && savedRight === 'open') {
-      sidebarRight?.classList.add('is-open');
-      toggleRight?.setAttribute('aria-expanded', 'true');
+    if (isDesktop && savedRight === "open") {
+      sidebarRight?.classList.add("is-open")
+      toggleRight?.setAttribute("aria-expanded", "true")
     }
 
     // Save state on toggle (desktop only)
-    toggleLeft?.addEventListener('click', () => {
-      if (window.matchMedia('(min-width: 1024px)').matches) {
-        const isOpen = sidebarLeft?.classList.contains('is-open');
-        localStorage.setItem('ed-sidebar-left', isOpen ? 'open' : 'closed');
+    toggleLeft?.addEventListener("click", () => {
+      if (window.matchMedia("(min-width: 1024px)").matches) {
+        const isOpen = sidebarLeft?.classList.contains("is-open")
+        localStorage.setItem("ed-sidebar-left", isOpen ? "open" : "closed")
       }
-    });
-    toggleRight?.addEventListener('click', () => {
-      if (window.matchMedia('(min-width: 1024px)').matches) {
-        const isOpen = sidebarRight?.classList.contains('is-open');
-        localStorage.setItem('ed-sidebar-right', isOpen ? 'open' : 'closed');
+    })
+    toggleRight?.addEventListener("click", () => {
+      if (window.matchMedia("(min-width: 1024px)").matches) {
+        const isOpen = sidebarRight?.classList.contains("is-open")
+        localStorage.setItem("ed-sidebar-right", isOpen ? "open" : "closed")
       }
-    });
+    })
   }
 
-  document.addEventListener('DOMContentLoaded', initEditorialLayout);
+  document.addEventListener("DOMContentLoaded", initEditorialLayout)
 </script>

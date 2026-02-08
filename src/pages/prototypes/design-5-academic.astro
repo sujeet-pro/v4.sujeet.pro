@@ -99,7 +99,15 @@
           <details class="acad-cat" open>
             <summary class="acad-cat-summary">
               <span class="acad-cat-name">System Design</span>
-              <svg class="acad-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <svg
+                class="acad-chevron"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg
+              >
             </summary>
             <div class="acad-cat-body">
               <details class="acad-topic">
@@ -126,7 +134,15 @@
           <details class="acad-cat">
             <summary class="acad-cat-summary">
               <span class="acad-cat-name">Frontend Engineering</span>
-              <svg class="acad-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <svg
+                class="acad-chevron"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg
+              >
             </summary>
             <div class="acad-cat-body">
               <details class="acad-topic">
@@ -150,7 +166,15 @@
           <details class="acad-cat">
             <summary class="acad-cat-summary">
               <span class="acad-cat-name">Programming Patterns</span>
-              <svg class="acad-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <svg
+                class="acad-chevron"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg
+              >
             </summary>
             <div class="acad-cat-body">
               <details class="acad-topic">
@@ -274,7 +298,8 @@
           </div>
           <h1 class="acad-article-title">Understanding Distributed Consensus Algorithms</h1>
           <p class="acad-article-subtitle">
-            How systems like Paxos and Raft enable multiple nodes to agree on a single value, even in the presence of failures.
+            How systems like Paxos and Raft enable multiple nodes to agree on a single value, even in the presence of
+            failures.
           </p>
           <div class="acad-article-meta-bottom">
             <span class="acad-author">Sujeet Kumar</span>
@@ -294,46 +319,51 @@
           <!-- Section 1 -->
           <h2 id="overview"><span class="acad-section-num">1.</span> Overview</h2>
           <p class="acad-dropcap">
-            Distributed consensus is the cornerstone of reliable distributed systems. When multiple computers
-            need to work together, they must agree on shared state despite network partitions, message delays,
-            and node failures. This article explores the fundamental algorithms that make this possible.
+            Distributed consensus is the cornerstone of reliable distributed systems. When multiple computers need to
+            work together, they must agree on shared state despite network partitions, message delays, and node
+            failures. This article explores the fundamental algorithms that make this possible.
           </p>
           <p>
-            The challenge of achieving consensus has been studied extensively since the 1980s. From Leslie
-            Lamport's pioneering work on Paxos to Diego Ongaro's more approachable Raft algorithm, the field
-            has evolved to provide practical solutions for real-world systems like etcd, ZooKeeper, and
-            CockroachDB.<sup class="acad-fn-ref"><a href="#fn-1" id="fn-ref-1">1</a></sup>
+            The challenge of achieving consensus has been studied extensively since the 1980s. From Leslie Lamport's
+            pioneering work on Paxos to Diego Ongaro's more approachable Raft algorithm, the field has evolved to
+            provide practical solutions for real-world systems like etcd, ZooKeeper, and CockroachDB.<sup
+              class="acad-fn-ref"><a href="#fn-1" id="fn-ref-1">1</a></sup
+            >
           </p>
 
           <blockquote>
-            <p>A distributed system is one in which the failure of a computer you didn't even know existed can render your own computer unusable.</p>
+            <p>
+              A distributed system is one in which the failure of a computer you didn't even know existed can render
+              your own computer unusable.
+            </p>
             <cite>&mdash; Leslie Lamport</cite>
           </blockquote>
 
           <!-- Margin note example -->
           <div class="acad-margin-note-container">
             <p>
-              The key insight behind all consensus protocols is that agreement among a majority of nodes
-              is sufficient to make progress, even when some nodes have failed.<sup class="acad-fn-ref"><a href="#fn-2" id="fn-ref-2">2</a></sup>
+              The key insight behind all consensus protocols is that agreement among a majority of nodes is sufficient
+              to make progress, even when some nodes have failed.<sup class="acad-fn-ref"
+                ><a href="#fn-2" id="fn-ref-2">2</a></sup
+              >
             </p>
             <aside class="acad-margin-note" aria-label="Margin note">
-              A majority quorum of <em>n</em> nodes requires at least &lfloor;<em>n</em>/2&rfloor; + 1
-              responses. This is why consensus clusters typically use an odd number of nodes (3, 5, 7).
+              A majority quorum of <em>n</em> nodes requires at least &lfloor;<em>n</em>/2&rfloor; + 1 responses. This
+              is why consensus clusters typically use an odd number of nodes (3, 5, 7).
             </aside>
           </div>
 
           <!-- Section 2 -->
           <h2 id="the-consensus-problem"><span class="acad-section-num">2.</span> The Consensus Problem</h2>
           <p>
-            At its core, the consensus problem requires a group of processes to agree on a single value.
-            This sounds simple, but becomes remarkably difficult when processes can fail and messages can
-            be lost or delayed.
+            At its core, the consensus problem requires a group of processes to agree on a single value. This sounds
+            simple, but becomes remarkably difficult when processes can fail and messages can be lost or delayed.
           </p>
 
           <h3 id="why-consensus-matters"><span class="acad-section-num">2.1</span> Why Consensus Matters</h3>
           <p>
-            Consensus is essential for many distributed systems primitives including leader election,
-            atomic broadcast, state machine replication, and distributed locking.
+            Consensus is essential for many distributed systems primitives including leader election, atomic broadcast,
+            state machine replication, and distributed locking.
           </p>
           <ul>
             <li><strong>Leader Election</strong> &mdash; Selecting a single coordinator among replicas</li>
@@ -344,9 +374,11 @@
 
           <h3 id="flp-impossibility"><span class="acad-section-num">2.2</span> FLP Impossibility</h3>
           <p>
-            The Fischer, Lynch, and Paterson impossibility result (1985) proves that no deterministic
-            algorithm can guarantee consensus in an asynchronous system where even one process may crash.
-            This foundational result shapes how all practical consensus algorithms are designed.<sup class="acad-fn-ref"><a href="#fn-3" id="fn-ref-3">3</a></sup>
+            The Fischer, Lynch, and Paterson impossibility result (1985) proves that no deterministic algorithm can
+            guarantee consensus in an asynchronous system where even one process may crash. This foundational result
+            shapes how all practical consensus algorithms are designed.<sup class="acad-fn-ref"
+              ><a href="#fn-3" id="fn-ref-3">3</a></sup
+            >
           </p>
 
           <table>
@@ -380,21 +412,27 @@
           <h2 id="paxos-algorithm"><span class="acad-section-num">3.</span> Paxos Algorithm</h2>
           <div class="acad-margin-note-container">
             <p>
-              Paxos, introduced by Leslie Lamport in 1989, was the first practical consensus algorithm.
-              Despite its reputation for difficulty, the core idea is elegant: a proposer must convince
-              a majority of acceptors before a value is chosen.<sup class="acad-fn-ref"><a href="#fn-4" id="fn-ref-4">4</a></sup>
+              Paxos, introduced by Leslie Lamport in 1989, was the first practical consensus algorithm. Despite its
+              reputation for difficulty, the core idea is elegant: a proposer must convince a majority of acceptors
+              before a value is chosen.<sup class="acad-fn-ref"><a href="#fn-4" id="fn-ref-4">4</a></sup>
             </p>
             <aside class="acad-margin-note" aria-label="Margin note">
-              Lamport originally described Paxos using a metaphor of a parliamentary system on the
-              fictional Greek island of Paxos. The paper was famously rejected for years before publication.
+              Lamport originally described Paxos using a metaphor of a parliamentary system on the fictional Greek
+              island of Paxos. The paper was famously rejected for years before publication.
             </aside>
           </div>
 
           <h3 id="paxos-phases"><span class="acad-section-num">3.1</span> Phases of Paxos</h3>
           <p>The basic Paxos protocol operates in two phases:</p>
           <ol>
-            <li><strong>Prepare Phase</strong> &mdash; A proposer sends a prepare request with a unique proposal number to a majority of acceptors.</li>
-            <li><strong>Accept Phase</strong> &mdash; If a majority responds, the proposer sends an accept request with the value.</li>
+            <li>
+              <strong>Prepare Phase</strong> &mdash; A proposer sends a prepare request with a unique proposal number to a
+              majority of acceptors.
+            </li>
+            <li>
+              <strong>Accept Phase</strong> &mdash; If a majority responds, the proposer sends an accept request with the
+              value.
+            </li>
           </ol>
 
           <pre><code>// Simplified Paxos proposer logic
@@ -423,34 +461,35 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
 
           <h3 id="multi-paxos"><span class="acad-section-num">3.2</span> Multi-Paxos</h3>
           <p>
-            Basic Paxos requires two round-trips for each consensus decision. Multi-Paxos optimizes this
-            by electing a stable leader that can skip the prepare phase for subsequent proposals, reducing
-            latency to a single round-trip in the common case.
+            Basic Paxos requires two round-trips for each consensus decision. Multi-Paxos optimizes this by electing a
+            stable leader that can skip the prepare phase for subsequent proposals, reducing latency to a single
+            round-trip in the common case.
           </p>
 
           <!-- Section 4 -->
           <h2 id="raft-consensus"><span class="acad-section-num">4.</span> Raft Consensus</h2>
           <p>
-            Raft was designed by Diego Ongaro and John Ousterhout in 2014 as a more understandable
-            alternative to Paxos. It decomposes consensus into three sub-problems: leader election,
-            log replication, and safety.<sup class="acad-fn-ref"><a href="#fn-5" id="fn-ref-5">5</a></sup>
+            Raft was designed by Diego Ongaro and John Ousterhout in 2014 as a more understandable alternative to Paxos.
+            It decomposes consensus into three sub-problems: leader election, log replication, and safety.<sup
+              class="acad-fn-ref"><a href="#fn-5" id="fn-ref-5">5</a></sup
+            >
           </p>
 
           <h3 id="leader-election"><span class="acad-section-num">4.1</span> Leader Election</h3>
           <p>
-            Raft uses randomized timeouts to trigger elections. When a follower doesn't hear from a leader
-            within its timeout period, it becomes a candidate and requests votes from other nodes.
+            Raft uses randomized timeouts to trigger elections. When a follower doesn't hear from a leader within its
+            timeout period, it becomes a candidate and requests votes from other nodes.
           </p>
 
           <h3 id="log-replication"><span class="acad-section-num">4.2</span> Log Replication</h3>
           <div class="acad-margin-note-container">
             <p>
-              Once elected, the leader accepts client requests and replicates log entries to followers.
-              An entry is considered committed when a majority of nodes have acknowledged it.
+              Once elected, the leader accepts client requests and replicates log entries to followers. An entry is
+              considered committed when a majority of nodes have acknowledged it.
             </p>
             <aside class="acad-margin-note" aria-label="Margin note">
-              The commit index advances monotonically. A leader never overwrites or deletes entries in
-              its log; it only appends new entries.
+              The commit index advances monotonically. A leader never overwrites or deletes entries in its log; it only
+              appends new entries.
             </aside>
           </div>
 
@@ -467,14 +506,17 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
                 <div class="acad-diagram-node">Follower 3</div>
               </div>
             </div>
-            <figcaption>Figure 1. Leader replicates log entries to all followers. Entry is committed after majority acknowledgment.</figcaption>
+            <figcaption>
+              Figure 1. Leader replicates log entries to all followers. Entry is committed after majority
+              acknowledgment.
+            </figcaption>
           </figure>
 
           <!-- Section 5 -->
           <h2 id="comparison"><span class="acad-section-num">5.</span> Comparison</h2>
           <p>
-            While both Paxos and Raft solve the same fundamental problem, they differ significantly
-            in their approach to understandability, implementation complexity, and operational behavior.
+            While both Paxos and Raft solve the same fundamental problem, they differ significantly in their approach to
+            understandability, implementation complexity, and operational behavior.
           </p>
 
           <table>
@@ -519,9 +561,9 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
           </ul>
           <h3><span class="acad-section-num">6.2</span> Summary</h3>
           <p>
-            Distributed consensus enables reliable systems by allowing multiple nodes to agree on shared state.
-            Paxos pioneered the field but is complex to understand. Raft provides equivalent guarantees with
-            a clearer structure. Modern systems like etcd and CockroachDB rely on Raft for their consensus layer.
+            Distributed consensus enables reliable systems by allowing multiple nodes to agree on shared state. Paxos
+            pioneered the field but is complex to understand. Raft provides equivalent guarantees with a clearer
+            structure. Modern systems like etcd and CockroachDB rely on Raft for their consensus layer.
           </p>
 
           <!-- Footnotes / References -->
@@ -533,15 +575,19 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
           <ol class="acad-footnotes">
             <li id="fn-1">
               <a href="#fn-ref-1" class="acad-fn-back" aria-label="Back to reference 1">&uarr;</a>
-              Lamport, L. "The Part-Time Parliament." <em>ACM Transactions on Computer Systems</em>, 16(2):133&ndash;169, 1998.
+              Lamport, L. "The Part-Time Parliament." <em>ACM Transactions on Computer Systems</em>,
+              16(2):133&ndash;169, 1998.
             </li>
             <li id="fn-2">
               <a href="#fn-ref-2" class="acad-fn-back" aria-label="Back to reference 2">&uarr;</a>
-              The quorum intersection property ensures that any two majorities share at least one member, preventing conflicting decisions.
+              The quorum intersection property ensures that any two majorities share at least one member, preventing conflicting
+              decisions.
             </li>
             <li id="fn-3">
               <a href="#fn-ref-3" class="acad-fn-back" aria-label="Back to reference 3">&uarr;</a>
-              Fischer, M., Lynch, N., Paterson, M. "Impossibility of Distributed Consensus with One Faulty Process." <em>Journal of the ACM</em>, 32(2):374&ndash;382, 1985.
+              Fischer, M., Lynch, N., Paterson, M. "Impossibility of Distributed Consensus with One Faulty Process." <em
+                >Journal of the ACM</em
+              >, 32(2):374&ndash;382, 1985.
             </li>
             <li id="fn-4">
               <a href="#fn-ref-4" class="acad-fn-back" aria-label="Back to reference 4">&uarr;</a>
@@ -549,7 +595,9 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
             </li>
             <li id="fn-5">
               <a href="#fn-ref-5" class="acad-fn-back" aria-label="Back to reference 5">&uarr;</a>
-              Ongaro, D. &amp; Ousterhout, J. "In Search of an Understandable Consensus Algorithm." <em>Proceedings of USENIX ATC</em>, 2014.
+              Ongaro, D. &amp; Ousterhout, J. "In Search of an Understandable Consensus Algorithm." <em
+                >Proceedings of USENIX ATC</em
+              >, 2014.
             </li>
           </ol>
         </div>
@@ -581,28 +629,34 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
      ================================================================ */
 
   /* --- Reset --- */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
   /* --- Design Tokens --- */
   :root {
-    --acad-bg: #FFFEF5;
-    --acad-bg-alt: #F8F5EC;
-    --acad-bg-elevated: #FFFEF8;
+    --acad-bg: #fffef5;
+    --acad-bg-alt: #f8f5ec;
+    --acad-bg-elevated: #fffef8;
     --acad-text: #333333;
-    --acad-text-secondary: #4A4A4A;
-    --acad-text-muted: #7A7060;
-    --acad-accent: #1B2A4A;
-    --acad-accent-hover: #0F1B33;
+    --acad-text-secondary: #4a4a4a;
+    --acad-text-muted: #7a7060;
+    --acad-accent: #1b2a4a;
+    --acad-accent-hover: #0f1b33;
     --acad-accent-subtle: rgba(27, 42, 74, 0.06);
-    --acad-secondary: #6B4C3B;
+    --acad-secondary: #6b4c3b;
     --acad-secondary-subtle: rgba(107, 76, 59, 0.08);
-    --acad-border: #E8E0D0;
-    --acad-border-subtle: #EDE7DA;
-    --acad-code-bg: #F5F1E8;
+    --acad-border: #e8e0d0;
+    --acad-border-subtle: #ede7da;
+    --acad-code-bg: #f5f1e8;
 
-    --acad-font-serif: 'EB Garamond', 'Georgia', 'Times New Roman', serif;
-    --acad-font-mono: 'Inconsolata', 'Courier New', monospace;
-    --acad-font-ui: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --acad-font-serif: "EB Garamond", "Georgia", "Times New Roman", serif;
+    --acad-font-mono: "Inconsolata", "Courier New", monospace;
+    --acad-font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
     --acad-content-width: 680px;
     --acad-sidebar-width: 280px;
@@ -625,158 +679,248 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
     /* Subtle paper texture/grain using CSS noise */
-    background-image:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
   }
 
   /* --- Skip Link --- */
   .acad-skip-link {
-    position: absolute; top: 0; left: 0; z-index: 200;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 200;
     padding: 8px 16px;
-    background: var(--acad-accent); color: #FFFEF5;
-    font-family: var(--acad-font-ui); font-size: 14px;
+    background: var(--acad-accent);
+    color: #fffef5;
+    font-family: var(--acad-font-ui);
+    font-size: 14px;
     text-decoration: none;
     transform: translateY(-100%);
     transition: transform var(--acad-transition-fast);
   }
-  .acad-skip-link:focus { transform: translateY(0); }
+  .acad-skip-link:focus {
+    transform: translateY(0);
+  }
 
   /* ================================================================
      HEADER - Minimal, almost invisible thin-line
      ================================================================ */
   .acad-header {
-    position: sticky; top: 0; z-index: 50;
+    position: sticky;
+    top: 0;
+    z-index: 50;
     height: var(--acad-header-height);
     background: rgba(255, 254, 245, 0.9);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--acad-border-subtle);
   }
   .acad-header-inner {
-    display: flex; align-items: center; justify-content: space-between;
-    max-width: 1200px; margin: 0 auto;
-    padding: 0 20px; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 100%;
   }
   .acad-logo {
     font-family: var(--acad-font-serif);
-    font-size: 20px; font-weight: 500;
-    color: var(--acad-accent); text-decoration: none;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--acad-accent);
+    text-decoration: none;
     letter-spacing: 0.01em;
   }
-  .acad-logo-dot { color: var(--acad-secondary); }
-  .acad-header-actions { display: flex; align-items: center; gap: 4px; }
+  .acad-logo-dot {
+    color: var(--acad-secondary);
+  }
+  .acad-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
   .acad-header-btn {
-    display: flex; align-items: center; justify-content: center;
-    width: 44px; height: 44px;
-    background: none; border: none; cursor: pointer;
-    color: var(--acad-text-muted); border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--acad-text-muted);
+    border-radius: 4px;
     transition: all var(--acad-transition-fast);
   }
-  .acad-header-btn:hover { background: var(--acad-accent-subtle); color: var(--acad-accent); }
-  .acad-header-btn[aria-expanded="true"] { color: var(--acad-accent); background: var(--acad-accent-subtle); }
+  .acad-header-btn:hover {
+    background: var(--acad-accent-subtle);
+    color: var(--acad-accent);
+  }
+  .acad-header-btn[aria-expanded="true"] {
+    color: var(--acad-accent);
+    background: var(--acad-accent-subtle);
+  }
 
   /* ================================================================
      BACKDROP
      ================================================================ */
   .acad-backdrop {
-    position: fixed; inset: 0; z-index: 59;
+    position: fixed;
+    inset: 0;
+    z-index: 59;
     background: rgba(27, 42, 74, 0.18);
     backdrop-filter: blur(2px);
-    opacity: 0; pointer-events: none;
+    opacity: 0;
+    pointer-events: none;
     transition: opacity var(--acad-transition);
   }
-  .acad-backdrop.is-visible { opacity: 1; pointer-events: auto; }
+  .acad-backdrop.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
 
   /* ================================================================
      SIDEBARS (shared)
      ================================================================ */
   .acad-sidebar {
-    position: fixed; top: 0; z-index: 60;
+    position: fixed;
+    top: 0;
+    z-index: 60;
     width: var(--acad-sidebar-width);
-    height: 100vh; height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
     background: var(--acad-bg-elevated);
-    display: flex; flex-direction: column;
+    display: flex;
+    flex-direction: column;
     transition: transform var(--acad-transition);
     overflow: hidden;
     border-color: var(--acad-border);
   }
   .acad-sidebar-left {
-    left: 0; border-right: 1px solid var(--acad-border);
+    left: 0;
+    border-right: 1px solid var(--acad-border);
     transform: translateX(-100%);
     box-shadow: 2px 0 20px rgba(27, 42, 74, 0.08);
   }
-  .acad-sidebar-left.is-open { transform: translateX(0); }
+  .acad-sidebar-left.is-open {
+    transform: translateX(0);
+  }
 
   .acad-sidebar-right {
-    right: 0; border-left: 1px solid var(--acad-border);
+    right: 0;
+    border-left: 1px solid var(--acad-border);
     transform: translateX(100%);
     box-shadow: -2px 0 20px rgba(27, 42, 74, 0.08);
   }
-  .acad-sidebar-right.is-open { transform: translateX(0); }
+  .acad-sidebar-right.is-open {
+    transform: translateX(0);
+  }
 
   .acad-sidebar-header {
-    display: flex; align-items: center; justify-content: space-between;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 16px 20px;
     border-bottom: 1px solid var(--acad-border);
     flex-shrink: 0;
   }
   .acad-sidebar-title {
     font-family: var(--acad-font-serif);
-    font-size: 13px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.15em;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
     color: var(--acad-secondary);
     font-variant: small-caps;
   }
   .acad-sidebar-close {
-    display: flex; align-items: center; justify-content: center;
-    width: 36px; height: 36px;
-    background: none; border: none; cursor: pointer;
-    color: var(--acad-text-muted); border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--acad-text-muted);
+    border-radius: 4px;
     transition: all var(--acad-transition-fast);
   }
-  .acad-sidebar-close:hover { background: var(--acad-accent-subtle); color: var(--acad-accent); }
-  .acad-sidebar-body { flex: 1; overflow-y: auto; padding: 16px 0; }
+  .acad-sidebar-close:hover {
+    background: var(--acad-accent-subtle);
+    color: var(--acad-accent);
+  }
+  .acad-sidebar-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 0;
+  }
 
   /* --- Left Sidebar: Library/Catalog Nav --- */
-  .acad-nav-section { padding: 0 12px 12px; }
+  .acad-nav-section {
+    padding: 0 12px 12px;
+  }
   .acad-nav-link {
-    display: block; padding: 8px 14px;
+    display: block;
+    padding: 8px 14px;
     font-family: var(--acad-font-serif);
-    font-size: 15px; font-weight: 400;
-    color: var(--acad-text); text-decoration: none;
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--acad-text);
+    text-decoration: none;
     border-radius: 3px;
     transition: all var(--acad-transition-fast);
     letter-spacing: 0.02em;
   }
-  .acad-nav-link:hover { background: var(--acad-accent-subtle); color: var(--acad-accent); }
+  .acad-nav-link:hover {
+    background: var(--acad-accent-subtle);
+    color: var(--acad-accent);
+  }
   .acad-nav-divider {
-    height: 1px; margin: 8px 20px;
+    height: 1px;
+    margin: 8px 20px;
     background: var(--acad-border);
   }
 
   /* --- Browse Section --- */
-  .acad-browse { padding: 0 12px; }
+  .acad-browse {
+    padding: 0 12px;
+  }
   .acad-browse-label {
-    display: block; padding: 8px 14px;
+    display: block;
+    padding: 8px 14px;
     font-family: var(--acad-font-serif);
-    font-size: 12px; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.18em;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
     color: var(--acad-secondary);
     font-variant: small-caps;
   }
 
   /* Category accordion */
-  .acad-cat { border: none; }
+  .acad-cat {
+    border: none;
+  }
   .acad-cat-summary {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 7px 14px; cursor: pointer;
-    list-style: none; border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 14px;
+    cursor: pointer;
+    list-style: none;
+    border-radius: 3px;
     transition: background var(--acad-transition-fast);
   }
-  .acad-cat-summary::-webkit-details-marker { display: none; }
-  .acad-cat-summary:hover { background: var(--acad-accent-subtle); }
+  .acad-cat-summary::-webkit-details-marker {
+    display: none;
+  }
+  .acad-cat-summary:hover {
+    background: var(--acad-accent-subtle);
+  }
   .acad-cat-name {
     font-family: var(--acad-font-serif);
-    font-size: 14px; font-weight: 600;
+    font-size: 14px;
+    font-weight: 600;
     color: var(--acad-accent);
     font-variant: small-caps;
     letter-spacing: 0.04em;
@@ -786,40 +930,67 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
     transition: transform var(--acad-transition);
     flex-shrink: 0;
   }
-  .acad-cat[open] > .acad-cat-summary .acad-chevron { transform: rotate(180deg); }
-  .acad-cat-body { padding: 0 0 4px 10px; }
+  .acad-cat[open] > .acad-cat-summary .acad-chevron {
+    transform: rotate(180deg);
+  }
+  .acad-cat-body {
+    padding: 0 0 4px 10px;
+  }
 
   /* Topic accordion */
-  .acad-topic { border: none; }
+  .acad-topic {
+    border: none;
+  }
   .acad-topic-summary {
-    display: flex; align-items: center; gap: 8px;
-    padding: 5px 14px; cursor: pointer;
-    list-style: none; border-radius: 3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 14px;
+    cursor: pointer;
+    list-style: none;
+    border-radius: 3px;
     font-family: var(--acad-font-serif);
-    font-size: 13px; font-weight: 500;
+    font-size: 13px;
+    font-weight: 500;
     color: var(--acad-text-secondary);
     transition: all var(--acad-transition-fast);
   }
-  .acad-topic-summary::-webkit-details-marker { display: none; }
-  .acad-topic-summary:hover { background: var(--acad-accent-subtle); color: var(--acad-accent); }
+  .acad-topic-summary::-webkit-details-marker {
+    display: none;
+  }
+  .acad-topic-summary:hover {
+    background: var(--acad-accent-subtle);
+    color: var(--acad-accent);
+  }
   .acad-count {
     font-family: var(--acad-font-mono);
-    font-size: 10px; color: var(--acad-text-muted);
-    background: var(--acad-bg-alt); padding: 1px 6px;
+    font-size: 10px;
+    color: var(--acad-text-muted);
+    background: var(--acad-bg-alt);
+    padding: 1px 6px;
     border-radius: 2px;
   }
 
   /* Article links in sidebar */
-  .acad-article-list { list-style: none; padding: 2px 0 2px 14px; }
+  .acad-article-list {
+    list-style: none;
+    padding: 2px 0 2px 14px;
+  }
   .acad-article-link {
-    display: block; padding: 4px 14px;
+    display: block;
+    padding: 4px 14px;
     font-family: var(--acad-font-serif);
-    font-size: 13px; color: var(--acad-text-muted);
-    text-decoration: none; border-radius: 3px;
+    font-size: 13px;
+    color: var(--acad-text-muted);
+    text-decoration: none;
+    border-radius: 3px;
     transition: all var(--acad-transition-fast);
     border-left: 2px solid transparent;
   }
-  .acad-article-link:hover { color: var(--acad-accent); background: var(--acad-accent-subtle); }
+  .acad-article-link:hover {
+    color: var(--acad-accent);
+    background: var(--acad-accent-subtle);
+  }
   .acad-article-link--active {
     color: var(--acad-accent) !important;
     border-left-color: var(--acad-accent);
@@ -830,18 +1001,29 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
   /* ================================================================
      RIGHT SIDEBAR - Paper Outline TOC with Section Numbers
      ================================================================ */
-  .acad-toc-nav { padding: 12px; }
-  .acad-toc-list, .acad-toc-sublist { list-style: none; }
-  .acad-toc-list { padding: 0; counter-reset: none; }
+  .acad-toc-nav {
+    padding: 12px;
+  }
+  .acad-toc-list,
+  .acad-toc-sublist {
+    list-style: none;
+  }
+  .acad-toc-list {
+    padding: 0;
+    counter-reset: none;
+  }
   .acad-toc-sublist {
     padding: 2px 0 6px 20px;
     border-left: 1px solid var(--acad-border);
   }
   .acad-toc-link {
-    display: flex; align-items: baseline; gap: 6px;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
     padding: 5px 10px;
     font-family: var(--acad-font-serif);
-    text-decoration: none; border-radius: 3px;
+    text-decoration: none;
+    border-radius: 3px;
     transition: all var(--acad-transition-fast);
   }
   .acad-toc-num {
@@ -852,13 +1034,22 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
     min-width: 24px;
   }
   .acad-toc-h2 {
-    font-size: 14px; font-weight: 500; color: var(--acad-accent);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--acad-accent);
   }
   .acad-toc-h3 {
-    font-size: 13px; font-weight: 400; color: var(--acad-text-muted);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--acad-text-muted);
   }
-  .acad-toc-link:hover { background: var(--acad-accent-subtle); color: var(--acad-accent); }
-  .acad-toc-link:hover .acad-toc-num { color: var(--acad-accent); }
+  .acad-toc-link:hover {
+    background: var(--acad-accent-subtle);
+    color: var(--acad-accent);
+  }
+  .acad-toc-link:hover .acad-toc-num {
+    color: var(--acad-accent);
+  }
 
   /* ================================================================
      MAIN CONTENT - Always Centered
@@ -871,7 +1062,9 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
 
   /* --- Breadcrumb --- */
   .acad-breadcrumb {
-    display: flex; align-items: center; gap: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
     padding: 24px 0 8px;
     font-family: var(--acad-font-serif);
     font-size: 13px;
@@ -879,18 +1072,31 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
     letter-spacing: 0.05em;
   }
   .acad-breadcrumb a {
-    color: var(--acad-text-muted); text-decoration: none;
+    color: var(--acad-text-muted);
+    text-decoration: none;
     transition: color var(--acad-transition-fast);
   }
-  .acad-breadcrumb a:hover { color: var(--acad-accent); }
-  .acad-breadcrumb-sep { color: var(--acad-border); font-size: 16px; }
+  .acad-breadcrumb a:hover {
+    color: var(--acad-accent);
+  }
+  .acad-breadcrumb-sep {
+    color: var(--acad-border);
+    font-size: 16px;
+  }
 
   /* --- Article Header --- */
-  .acad-article-header { padding: 40px 0 0; text-align: center; }
+  .acad-article-header {
+    padding: 40px 0 0;
+    text-align: center;
+  }
   .acad-article-meta-top {
-    display: flex; align-items: center; justify-content: center; gap: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     font-family: var(--acad-font-serif);
-    font-size: 13px; font-weight: 500;
+    font-size: 13px;
+    font-weight: 500;
     color: var(--acad-text-muted);
     margin-bottom: 24px;
   }
@@ -900,26 +1106,35 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
     text-transform: lowercase;
     color: var(--acad-secondary);
   }
-  .acad-meta-dot { color: var(--acad-border); }
+  .acad-meta-dot {
+    color: var(--acad-border);
+  }
   .acad-article-title {
     font-family: var(--acad-font-serif);
     font-size: clamp(28px, 4.5vw, 42px);
-    font-weight: 500; line-height: 1.2;
+    font-weight: 500;
+    line-height: 1.2;
     color: var(--acad-accent);
     letter-spacing: -0.01em;
     margin-bottom: 20px;
   }
   .acad-article-subtitle {
     font-family: var(--acad-font-serif);
-    font-size: 18px; line-height: 1.7;
+    font-size: 18px;
+    line-height: 1.7;
     color: var(--acad-text-muted);
     font-style: italic;
-    max-width: 560px; margin: 0 auto 20px;
+    max-width: 560px;
+    margin: 0 auto 20px;
   }
   .acad-article-meta-bottom {
-    display: flex; align-items: center; justify-content: center; gap: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     font-family: var(--acad-font-serif);
-    font-size: 14px; color: var(--acad-text-muted);
+    font-size: 14px;
+    color: var(--acad-text-muted);
     font-variant: small-caps;
     letter-spacing: 0.04em;
   }
@@ -930,17 +1145,23 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
 
   /* --- Ornamental Rule (three dots) --- */
   .acad-rule {
-    display: flex; align-items: center; justify-content: center; gap: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
     margin: 36px auto;
     height: 20px;
   }
   .acad-rule span {
-    display: block; width: 5px; height: 5px;
+    display: block;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     background: var(--acad-border);
   }
   .acad-rule span:nth-child(2) {
-    width: 6px; height: 6px;
+    width: 6px;
+    height: 6px;
     background: var(--acad-secondary);
     opacity: 0.5;
   }
@@ -948,7 +1169,9 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
   /* ================================================================
      PROSE CONTENT - Academic scholarly style
      ================================================================ */
-  .acad-prose { padding: 8px 0 48px; }
+  .acad-prose {
+    padding: 8px 0 48px;
+  }
 
   /* Section number styling */
   .acad-section-num {
@@ -962,7 +1185,8 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
   .acad-prose h2 {
     font-family: var(--acad-font-serif);
     font-size: clamp(22px, 3vw, 28px);
-    font-weight: 600; line-height: 1.3;
+    font-weight: 600;
+    line-height: 1.3;
     color: var(--acad-accent);
     margin: 56px 0 18px;
     padding-bottom: 8px;
@@ -971,24 +1195,32 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
   .acad-prose h3 {
     font-family: var(--acad-font-serif);
     font-size: clamp(18px, 2.5vw, 22px);
-    font-weight: 500; line-height: 1.4;
+    font-weight: 500;
+    line-height: 1.4;
     color: var(--acad-accent);
     margin: 40px 0 12px;
     font-style: italic;
   }
-  .acad-prose p { margin-bottom: 22px; }
+  .acad-prose p {
+    margin-bottom: 22px;
+  }
   .acad-prose a {
-    color: var(--acad-accent); text-decoration: none;
+    color: var(--acad-accent);
+    text-decoration: none;
     border-bottom: 1px solid var(--acad-secondary);
     transition: border-color var(--acad-transition-fast);
   }
-  .acad-prose a:hover { border-bottom-color: var(--acad-accent); border-bottom-width: 2px; }
+  .acad-prose a:hover {
+    border-bottom-color: var(--acad-accent);
+    border-bottom-width: 2px;
+  }
 
   /* Drop cap - elegant serif */
   .acad-dropcap::first-letter {
     float: left;
     font-family: var(--acad-font-serif);
-    font-size: 5rem; line-height: 0.78;
+    font-size: 5rem;
+    line-height: 0.78;
     font-weight: 400;
     color: var(--acad-accent);
     margin: 6px 14px 0 -4px;
@@ -1009,21 +1241,35 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
     color: var(--acad-text-secondary);
   }
   .acad-prose blockquote cite {
-    font-size: 14px; color: var(--acad-text-muted);
+    font-size: 14px;
+    color: var(--acad-text-muted);
     font-style: normal;
     font-variant: small-caps;
     letter-spacing: 0.05em;
   }
 
   /* Lists */
-  .acad-prose ul, .acad-prose ol { margin: 20px 0; padding-left: 32px; }
-  .acad-prose li { margin-bottom: 8px; line-height: 1.8; }
-  .acad-prose li strong { color: var(--acad-accent); font-weight: 600; }
+  .acad-prose ul,
+  .acad-prose ol {
+    margin: 20px 0;
+    padding-left: 32px;
+  }
+  .acad-prose li {
+    margin-bottom: 8px;
+    line-height: 1.8;
+  }
+  .acad-prose li strong {
+    color: var(--acad-accent);
+    font-weight: 600;
+  }
 
   /* Tables - classic academic: top/bottom rules, no vertical lines */
   .acad-prose table {
-    width: 100%; margin: 32px 0; border-collapse: collapse;
-    font-size: 16px; line-height: 1.6;
+    width: 100%;
+    margin: 32px 0;
+    border-collapse: collapse;
+    font-size: 16px;
+    line-height: 1.6;
   }
   .acad-prose thead {
     border-top: 2px solid var(--acad-accent);
@@ -1031,18 +1277,22 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
   }
   .acad-prose th {
     font-family: var(--acad-font-serif);
-    font-size: 14px; font-weight: 600;
+    font-size: 14px;
+    font-weight: 600;
     font-variant: small-caps;
     letter-spacing: 0.06em;
     color: var(--acad-accent);
-    text-align: left; padding: 10px 16px;
+    text-align: left;
+    padding: 10px 16px;
   }
   .acad-prose td {
     padding: 10px 16px;
     color: var(--acad-text-secondary);
     border: none;
   }
-  .acad-prose tbody { border-bottom: 2px solid var(--acad-accent); }
+  .acad-prose tbody {
+    border-bottom: 2px solid var(--acad-accent);
+  }
   .acad-prose tbody tr:not(:last-child) td {
     border-bottom: 1px solid var(--acad-border-subtle);
   }
@@ -1051,21 +1301,27 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
   .acad-prose code {
     font-family: var(--acad-font-mono);
     font-size: 15px;
-    background: var(--acad-code-bg); padding: 2px 6px;
+    background: var(--acad-code-bg);
+    padding: 2px 6px;
     border-radius: 2px;
     color: var(--acad-secondary);
   }
   .acad-prose pre {
-    margin: 32px 0; padding: 24px;
+    margin: 32px 0;
+    padding: 24px;
     background: var(--acad-code-bg);
     border-radius: 3px;
     border-top: 2px solid var(--acad-border);
     border-bottom: 2px solid var(--acad-border);
-    overflow-x: auto; font-size: 14px; line-height: 1.7;
+    overflow-x: auto;
+    font-size: 14px;
+    line-height: 1.7;
   }
   .acad-prose pre code {
-    background: none; padding: 0;
-    font-size: inherit; color: var(--acad-text);
+    background: none;
+    padding: 0;
+    font-size: inherit;
+    color: var(--acad-text);
   }
 
   /* Footnote references (superscript) */
@@ -1082,13 +1338,18 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
     padding: 0 2px;
     transition: color var(--acad-transition-fast);
   }
-  .acad-fn-ref a:hover { color: var(--acad-accent); }
+  .acad-fn-ref a:hover {
+    color: var(--acad-accent);
+  }
 
   /* Footnotes section */
   .acad-footnotes {
-    list-style: none; padding: 0; margin: 20px 0 0;
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0;
     counter-reset: fn-counter;
-    font-size: 15px; line-height: 1.7;
+    font-size: 15px;
+    line-height: 1.7;
     color: var(--acad-text-secondary);
   }
   .acad-footnotes li {
@@ -1098,10 +1359,14 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
     margin-bottom: 4px;
     border-bottom: 1px solid var(--acad-border-subtle);
   }
-  .acad-footnotes li:last-child { border-bottom: none; }
+  .acad-footnotes li:last-child {
+    border-bottom: none;
+  }
   .acad-footnotes li::before {
     content: counter(fn-counter) ".";
-    position: absolute; left: 0; top: 6px;
+    position: absolute;
+    left: 0;
+    top: 6px;
     font-family: var(--acad-font-mono);
     font-size: 12px;
     color: var(--acad-secondary);
@@ -1115,7 +1380,9 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
     border: none !important;
     margin-right: 6px;
   }
-  .acad-fn-back:hover { color: var(--acad-accent) !important; }
+  .acad-fn-back:hover {
+    color: var(--acad-accent) !important;
+  }
 
   /* Margin notes */
   .acad-margin-note-container {
@@ -1124,7 +1391,8 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
   .acad-margin-note {
     display: none; /* Hidden by default, shown on wide screens */
     font-family: var(--acad-font-serif);
-    font-size: 13px; line-height: 1.6;
+    font-size: 13px;
+    line-height: 1.6;
     color: var(--acad-text-muted);
     font-style: italic;
     padding: 8px 0 8px 16px;
@@ -1149,81 +1417,133 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
 
   /* Figure/Diagram placeholder */
   .acad-placeholder-diagram {
-    margin: 32px 0; padding: 40px;
+    margin: 32px 0;
+    padding: 40px;
     background: var(--acad-bg-alt);
     border-top: 2px solid var(--acad-border);
     border-bottom: 2px solid var(--acad-border);
     text-align: center;
-    font-family: var(--acad-font-serif); color: var(--acad-text-muted);
+    font-family: var(--acad-font-serif);
+    color: var(--acad-text-muted);
   }
   .acad-diagram-title {
-    font-weight: 500; font-size: 14px;
-    display: block; margin-bottom: 16px;
+    font-weight: 500;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 16px;
     font-variant: small-caps;
     letter-spacing: 0.06em;
     color: var(--acad-accent);
   }
   .acad-diagram-nodes {
-    display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
   }
   .acad-diagram-node {
-    padding: 8px 16px; background: var(--acad-bg-elevated);
-    border: 1px solid var(--acad-border); border-radius: 3px;
-    font-size: 13px; font-weight: 500;
+    padding: 8px 16px;
+    background: var(--acad-bg-elevated);
+    border: 1px solid var(--acad-border);
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 500;
     font-family: var(--acad-font-mono);
   }
   .acad-diagram-leader {
-    background: var(--acad-accent); color: var(--acad-bg);
+    background: var(--acad-accent);
+    color: var(--acad-bg);
     border-color: var(--acad-accent);
   }
-  .acad-diagram-arrows { color: var(--acad-secondary); font-size: 20px; display: flex; gap: 4px; }
+  .acad-diagram-arrows {
+    color: var(--acad-secondary);
+    font-size: 20px;
+    display: flex;
+    gap: 4px;
+  }
   .acad-prose figcaption {
-    text-align: center; font-size: 14px; font-style: italic;
-    color: var(--acad-text-muted); margin-top: 12px;
+    text-align: center;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--acad-text-muted);
+    margin-top: 12px;
     font-family: var(--acad-font-serif);
   }
 
   /* --- Article Navigation --- */
   .acad-article-nav {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
     padding: 16px 0 48px;
   }
-  .acad-nav-prev, .acad-nav-next {
-    display: flex; flex-direction: column; gap: 4px;
-    padding: 20px; border: 1px solid var(--acad-border);
-    border-radius: 3px; text-decoration: none;
+  .acad-nav-prev,
+  .acad-nav-next {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 20px;
+    border: 1px solid var(--acad-border);
+    border-radius: 3px;
+    text-decoration: none;
     transition: all var(--acad-transition);
   }
-  .acad-nav-prev:hover, .acad-nav-next:hover {
+  .acad-nav-prev:hover,
+  .acad-nav-next:hover {
     border-color: var(--acad-accent);
     background: var(--acad-accent-subtle);
   }
-  .acad-nav-next { text-align: right; }
+  .acad-nav-next {
+    text-align: right;
+  }
   .acad-nav-label {
     font-family: var(--acad-font-serif);
-    font-size: 11px; font-weight: 500;
-    text-transform: uppercase; letter-spacing: 0.12em;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
     color: var(--acad-secondary);
     font-variant: small-caps;
   }
   .acad-nav-title {
     font-family: var(--acad-font-serif);
-    font-size: 16px; font-weight: 500;
-    color: var(--acad-accent); line-height: 1.4;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--acad-accent);
+    line-height: 1.4;
   }
 
   /* ================================================================
      RESPONSIVE
      ================================================================ */
   @media (max-width: 640px) {
-    .acad-sidebar { width: min(85vw, 320px); }
-    .acad-article-header { text-align: left; }
-    .acad-article-meta-top { justify-content: flex-start; }
-    .acad-article-meta-bottom { justify-content: flex-start; flex-wrap: wrap; }
-    .acad-article-nav { grid-template-columns: 1fr; }
-    .acad-main { padding: 0 16px 80px; }
-    .acad-prose blockquote { margin-left: 20px; }
-    .acad-dropcap::first-letter { font-size: 3.8rem; margin-right: 10px; }
+    .acad-sidebar {
+      width: min(85vw, 320px);
+    }
+    .acad-article-header {
+      text-align: left;
+    }
+    .acad-article-meta-top {
+      justify-content: flex-start;
+    }
+    .acad-article-meta-bottom {
+      justify-content: flex-start;
+      flex-wrap: wrap;
+    }
+    .acad-article-nav {
+      grid-template-columns: 1fr;
+    }
+    .acad-main {
+      padding: 0 16px 80px;
+    }
+    .acad-prose blockquote {
+      margin-left: 20px;
+    }
+    .acad-dropcap::first-letter {
+      font-size: 3.8rem;
+      margin-right: 10px;
+    }
   }
 
   /* ================================================================
@@ -1237,80 +1557,80 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
 
 <script>
   function initAcademicLayout() {
-    const toggleLeft = document.querySelector('.acad-toggle-left') as HTMLButtonElement | null;
-    const toggleRight = document.querySelector('.acad-toggle-right') as HTMLButtonElement | null;
-    const sidebarLeft = document.getElementById('sidebar-left');
-    const sidebarRight = document.getElementById('sidebar-right');
-    const backdrop = document.getElementById('sidebar-backdrop');
+    const toggleLeft = document.querySelector(".acad-toggle-left") as HTMLButtonElement | null
+    const toggleRight = document.querySelector(".acad-toggle-right") as HTMLButtonElement | null
+    const sidebarLeft = document.getElementById("sidebar-left")
+    const sidebarRight = document.getElementById("sidebar-right")
+    const backdrop = document.getElementById("sidebar-backdrop")
 
     function closeSidebars() {
-      sidebarLeft?.classList.remove('is-open');
-      sidebarRight?.classList.remove('is-open');
-      backdrop?.classList.remove('is-visible');
-      toggleLeft?.setAttribute('aria-expanded', 'false');
-      toggleRight?.setAttribute('aria-expanded', 'false');
-      document.body.style.overflow = '';
+      sidebarLeft?.classList.remove("is-open")
+      sidebarRight?.classList.remove("is-open")
+      backdrop?.classList.remove("is-visible")
+      toggleLeft?.setAttribute("aria-expanded", "false")
+      toggleRight?.setAttribute("aria-expanded", "false")
+      document.body.style.overflow = ""
     }
 
     function toggleSidebar(sidebar: HTMLElement | null, toggle: HTMLButtonElement | null) {
-      if (!sidebar || !toggle) return;
-      const isOpen = sidebar.classList.contains('is-open');
-      closeSidebars();
+      if (!sidebar || !toggle) return
+      const isOpen = sidebar.classList.contains("is-open")
+      closeSidebars()
       if (!isOpen) {
-        sidebar.classList.add('is-open');
-        backdrop?.classList.add('is-visible');
-        toggle.setAttribute('aria-expanded', 'true');
-        document.body.style.overflow = 'hidden';
+        sidebar.classList.add("is-open")
+        backdrop?.classList.add("is-visible")
+        toggle.setAttribute("aria-expanded", "true")
+        document.body.style.overflow = "hidden"
       }
     }
 
-    toggleLeft?.addEventListener('click', () => toggleSidebar(sidebarLeft, toggleLeft));
-    toggleRight?.addEventListener('click', () => toggleSidebar(sidebarRight, toggleRight));
-    backdrop?.addEventListener('click', closeSidebars);
+    toggleLeft?.addEventListener("click", () => toggleSidebar(sidebarLeft, toggleLeft))
+    toggleRight?.addEventListener("click", () => toggleSidebar(sidebarRight, toggleRight))
+    backdrop?.addEventListener("click", closeSidebars)
 
     // Close buttons inside sidebars
-    document.querySelectorAll('.acad-sidebar-close').forEach(btn => {
-      btn.addEventListener('click', closeSidebars);
-    });
+    document.querySelectorAll(".acad-sidebar-close").forEach((btn) => {
+      btn.addEventListener("click", closeSidebars)
+    })
 
     // Escape key closes sidebars
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeSidebars();
-    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeSidebars()
+    })
 
     // localStorage for sidebar state
-    const STORAGE_KEY_LEFT = 'acad-sidebar-left';
-    const STORAGE_KEY_RIGHT = 'acad-sidebar-right';
+    const STORAGE_KEY_LEFT = "acad-sidebar-left"
+    const STORAGE_KEY_RIGHT = "acad-sidebar-right"
 
     // Restore saved state on desktop
-    const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+    const isDesktop = window.matchMedia("(min-width: 1024px)").matches
     if (isDesktop) {
-      const savedLeft = localStorage.getItem(STORAGE_KEY_LEFT);
-      const savedRight = localStorage.getItem(STORAGE_KEY_RIGHT);
-      if (savedLeft === 'open') {
-        sidebarLeft?.classList.add('is-open');
-        toggleLeft?.setAttribute('aria-expanded', 'true');
+      const savedLeft = localStorage.getItem(STORAGE_KEY_LEFT)
+      const savedRight = localStorage.getItem(STORAGE_KEY_RIGHT)
+      if (savedLeft === "open") {
+        sidebarLeft?.classList.add("is-open")
+        toggleLeft?.setAttribute("aria-expanded", "true")
       }
-      if (savedRight === 'open') {
-        sidebarRight?.classList.add('is-open');
-        toggleRight?.setAttribute('aria-expanded', 'true');
+      if (savedRight === "open") {
+        sidebarRight?.classList.add("is-open")
+        toggleRight?.setAttribute("aria-expanded", "true")
       }
     }
 
     // Save state on toggle (desktop only)
-    toggleLeft?.addEventListener('click', () => {
-      if (window.matchMedia('(min-width: 1024px)').matches) {
-        const isOpen = sidebarLeft?.classList.contains('is-open');
-        localStorage.setItem(STORAGE_KEY_LEFT, isOpen ? 'open' : 'closed');
+    toggleLeft?.addEventListener("click", () => {
+      if (window.matchMedia("(min-width: 1024px)").matches) {
+        const isOpen = sidebarLeft?.classList.contains("is-open")
+        localStorage.setItem(STORAGE_KEY_LEFT, isOpen ? "open" : "closed")
       }
-    });
-    toggleRight?.addEventListener('click', () => {
-      if (window.matchMedia('(min-width: 1024px)').matches) {
-        const isOpen = sidebarRight?.classList.contains('is-open');
-        localStorage.setItem(STORAGE_KEY_RIGHT, isOpen ? 'open' : 'closed');
+    })
+    toggleRight?.addEventListener("click", () => {
+      if (window.matchMedia("(min-width: 1024px)").matches) {
+        const isOpen = sidebarRight?.classList.contains("is-open")
+        localStorage.setItem(STORAGE_KEY_RIGHT, isOpen ? "open" : "closed")
       }
-    });
+    })
   }
 
-  document.addEventListener('DOMContentLoaded', initAcademicLayout);
+  document.addEventListener("DOMContentLoaded", initAcademicLayout)
 </script>

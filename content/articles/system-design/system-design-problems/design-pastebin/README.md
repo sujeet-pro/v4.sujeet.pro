@@ -58,14 +58,14 @@ A paste service maps short unique URLs to text blobs—conceptually simple, but 
 
 **Core architectural decisions:**
 
-| Decision | Choice | Rationale |
-| --- | --- | --- |
-| ID generation | KGS (Key Generation Service) with Base62 | Zero collisions, O(1) key retrieval, decoupled from write path |
-| Content storage | Object storage (S3) for bodies, PostgreSQL for metadata | Independent scaling of blobs and queryable metadata |
-| Caching | Multi-tier (CDN → Redis → S3) | Sub-100ms reads globally, pastes are immutable after creation |
-| Compression | zstd at write time | 60-70% reduction on text; fast decompression for reads |
-| Deduplication | SHA-256 content hash for internal dedup | Saves storage without leaking content existence via URL |
-| Expiration | Hybrid lazy check + active sweep | Correct reads without dedicated cleanup blocking production |
+| Decision        | Choice                                                  | Rationale                                                      |
+| --------------- | ------------------------------------------------------- | -------------------------------------------------------------- |
+| ID generation   | KGS (Key Generation Service) with Base62                | Zero collisions, O(1) key retrieval, decoupled from write path |
+| Content storage | Object storage (S3) for bodies, PostgreSQL for metadata | Independent scaling of blobs and queryable metadata            |
+| Caching         | Multi-tier (CDN → Redis → S3)                           | Sub-100ms reads globally, pastes are immutable after creation  |
+| Compression     | zstd at write time                                      | 60-70% reduction on text; fast decompression for reads         |
+| Deduplication   | SHA-256 content hash for internal dedup                 | Saves storage without leaking content existence via URL        |
+| Expiration      | Hybrid lazy check + active sweep                        | Correct reads without dedicated cleanup blocking production    |
 
 **Key trade-offs accepted:**
 
@@ -85,31 +85,31 @@ A paste service maps short unique URLs to text blobs—conceptually simple, but 
 
 ### Functional Requirements
 
-| Requirement | Priority | Notes |
-| --- | --- | --- |
-| Create paste | Core | Accept text content, return unique short URL |
-| Read paste | Core | Retrieve paste content by short URL |
-| Paste expiration | Core | Time-based (10min to never) and burn-after-read |
-| Syntax highlighting | Core | Server-side rendering with language detection |
-| Access control | Core | Public, unlisted, private (password-protected) |
-| Raw content endpoint | Core | Plain-text retrieval for CLI/API consumers |
-| Content size limits | Extended | Configurable max size (default 512 KB, paid 10 MB) |
-| Paste editing | Extended | Create new version, previous URL remains immutable |
-| Paste forking | Extended | Copy and modify another user's paste |
-| API access | Extended | RESTful API with key-based auth |
+| Requirement          | Priority | Notes                                              |
+| -------------------- | -------- | -------------------------------------------------- |
+| Create paste         | Core     | Accept text content, return unique short URL       |
+| Read paste           | Core     | Retrieve paste content by short URL                |
+| Paste expiration     | Core     | Time-based (10min to never) and burn-after-read    |
+| Syntax highlighting  | Core     | Server-side rendering with language detection      |
+| Access control       | Core     | Public, unlisted, private (password-protected)     |
+| Raw content endpoint | Core     | Plain-text retrieval for CLI/API consumers         |
+| Content size limits  | Extended | Configurable max size (default 512 KB, paid 10 MB) |
+| Paste editing        | Extended | Create new version, previous URL remains immutable |
+| Paste forking        | Extended | Copy and modify another user's paste               |
+| API access           | Extended | RESTful API with key-based auth                    |
 
 ### Non-Functional Requirements
 
-| Requirement | Target | Rationale |
-| --- | --- | --- |
-| Availability | 99.9% (3 nines) | Text sharing is useful but not mission-critical |
-| Read latency | p99 < 100ms | Fast rendering for developer workflows |
-| Write latency | p99 < 500ms | Acceptable for paste creation (compression + storage) |
-| Throughput (reads) | 5K RPS | Estimated peak from scale estimation below |
-| Throughput (writes) | 500 RPS | Write-light workload |
-| Max paste size | 512 KB (free), 10 MB (paid) | Prevents abuse while supporting real use cases |
-| Data durability | 99.999999999% (11 nines) | S3-grade durability for paste content |
-| Paste URL length | 7-8 characters | Short enough for sharing, large enough keyspace |
+| Requirement         | Target                      | Rationale                                             |
+| ------------------- | --------------------------- | ----------------------------------------------------- |
+| Availability        | 99.9% (3 nines)             | Text sharing is useful but not mission-critical       |
+| Read latency        | p99 < 100ms                 | Fast rendering for developer workflows                |
+| Write latency       | p99 < 500ms                 | Acceptable for paste creation (compression + storage) |
+| Throughput (reads)  | 5K RPS                      | Estimated peak from scale estimation below            |
+| Throughput (writes) | 500 RPS                     | Write-light workload                                  |
+| Max paste size      | 512 KB (free), 10 MB (paid) | Prevents abuse while supporting real use cases        |
+| Data durability     | 99.999999999% (11 nines)    | S3-grade durability for paste content                 |
+| Paste URL length    | 7-8 characters              | Short enough for sharing, large enough keyspace       |
 
 ### Scale Estimation
 
@@ -253,15 +253,15 @@ flowchart LR
 
 ### Path Comparison
 
-| Factor | Monolithic (A) | Split Storage (B) | Content-Addressable (C) |
-| --- | --- | --- | --- |
-| Operational complexity | Low | Medium | High |
-| Storage cost at scale | High | Low | Lowest (with dedup) |
-| Read latency (cache miss) | Lowest (one hop) | Medium (two hops) | Medium (two hops) |
-| Write consistency | ACID | Eventual | Eventual |
-| Independent scaling | No | Yes | Yes |
-| Max practical scale | ~10M pastes | Billions | Billions |
-| Deduplication | None | Optional | Native |
+| Factor                    | Monolithic (A)   | Split Storage (B) | Content-Addressable (C) |
+| ------------------------- | ---------------- | ----------------- | ----------------------- |
+| Operational complexity    | Low              | Medium            | High                    |
+| Storage cost at scale     | High             | Low               | Lowest (with dedup)     |
+| Read latency (cache miss) | Lowest (one hop) | Medium (two hops) | Medium (two hops)       |
+| Write consistency         | ACID             | Eventual          | Eventual                |
+| Independent scaling       | No               | Yes               | Yes                     |
+| Max practical scale       | ~10M pastes      | Billions          | Billions                |
+| Deduplication             | None             | Optional          | Native                  |
 
 ### This Article's Focus
 
@@ -366,12 +366,12 @@ sequenceDiagram
 
 **Design decisions:**
 
-| Decision | Choice | Rationale |
-| --- | --- | --- |
-| Compression | zstd (level 3) at write time | 65% reduction on text; fast decompression; dictionary support for similar content |
-| Write ordering | S3 first, then DB | If DB write fails, orphaned S3 object is cleaned up by periodic sweep—cheaper than inconsistent metadata |
-| Syntax highlighting | Async via queue | Highlighting large pastes (10 MB) can take seconds; don't block the write response |
-| Content hash | SHA-256, stored in metadata | Enables optional dedup without coupling to content-addressable storage |
+| Decision            | Choice                       | Rationale                                                                                                |
+| ------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Compression         | zstd (level 3) at write time | 65% reduction on text; fast decompression; dictionary support for similar content                        |
+| Write ordering      | S3 first, then DB            | If DB write fails, orphaned S3 object is cleaned up by periodic sweep—cheaper than inconsistent metadata |
+| Syntax highlighting | Async via queue              | Highlighting large pastes (10 MB) can take seconds; don't block the write response                       |
+| Content hash        | SHA-256, stored in metadata  | Enables optional dedup without coupling to content-addressable storage                                   |
 
 ### Paste Read Service
 
@@ -488,12 +488,12 @@ Asynchronous scanning for malware signatures, credential dumps, and PII (Persona
 
 **Rate limiting tiers:**
 
-| Tier | Limit | Scope |
-| --- | --- | --- |
-| Anonymous | 10 pastes/hour | Per IP |
-| Authenticated (free) | 60 pastes/hour | Per API key |
-| Authenticated (paid) | 600 pastes/hour | Per API key |
-| Read (all tiers) | 300 requests/minute | Per IP |
+| Tier                 | Limit               | Scope       |
+| -------------------- | ------------------- | ----------- |
+| Anonymous            | 10 pastes/hour      | Per IP      |
+| Authenticated (free) | 60 pastes/hour      | Per API key |
+| Authenticated (paid) | 600 pastes/hour     | Per API key |
+| Read (all tiers)     | 300 requests/minute | Per IP      |
 
 ## API Design
 
@@ -683,15 +683,15 @@ s3://paste-content/
 
 ### Database Selection Matrix
 
-| Data Type | Store | Rationale |
-| --- | --- | --- |
-| Paste metadata | PostgreSQL | ACID, complex queries (user dashboards, admin search), partial indexes for expiration |
-| Paste content | S3 | Unlimited scale, $0.023/GB, 11 nines durability, CDN-friendly |
-| Highlighted HTML | S3 | Large generated content, immutable, cacheable |
-| Hot paste cache | Redis Cluster | Sub-ms reads, TTL-based eviction, LRU for memory management |
-| Rate limit counters | Redis | Atomic increments, sliding window via sorted sets |
-| KGS key pool | PostgreSQL (or DynamoDB) | Atomic batch allocation with row-level locking |
-| User accounts | PostgreSQL | Relational data, auth queries |
+| Data Type           | Store                    | Rationale                                                                             |
+| ------------------- | ------------------------ | ------------------------------------------------------------------------------------- |
+| Paste metadata      | PostgreSQL               | ACID, complex queries (user dashboards, admin search), partial indexes for expiration |
+| Paste content       | S3                       | Unlimited scale, $0.023/GB, 11 nines durability, CDN-friendly                         |
+| Highlighted HTML    | S3                       | Large generated content, immutable, cacheable                                         |
+| Hot paste cache     | Redis Cluster            | Sub-ms reads, TTL-based eviction, LRU for memory management                           |
+| Rate limit counters | Redis                    | Atomic increments, sliding window via sorted sets                                     |
+| KGS key pool        | PostgreSQL (or DynamoDB) | Atomic batch allocation with row-level locking                                        |
+| User accounts       | PostgreSQL               | Relational data, auth queries                                                         |
 
 ### Sharding Strategy
 
@@ -806,11 +806,11 @@ RETURNING key;
 
 #### Compression Benchmarks on Text Content
 
-| Algorithm | Ratio (5 KB text) | Compress speed | Decompress speed | Notes |
-| --- | --- | --- | --- | --- |
-| gzip (level 6) | 65% reduction | 150 MB/s | 400 MB/s | Universal support |
-| zstd (level 3) | 67% reduction | 500 MB/s | 1,700 MB/s | Best balance for dynamic content |
-| Brotli (level 4) | 70% reduction | 80 MB/s | 400 MB/s | Best ratio, but slow compression |
+| Algorithm        | Ratio (5 KB text) | Compress speed | Decompress speed | Notes                            |
+| ---------------- | ----------------- | -------------- | ---------------- | -------------------------------- |
+| gzip (level 6)   | 65% reduction     | 150 MB/s       | 400 MB/s         | Universal support                |
+| zstd (level 3)   | 67% reduction     | 500 MB/s       | 1,700 MB/s       | Best balance for dynamic content |
+| Brotli (level 4) | 70% reduction     | 80 MB/s        | 400 MB/s         | Best ratio, but slow compression |
 
 **Why zstd over Brotli:** Write latency matters for paste creation. zstd at level 3 compresses 6x faster than Brotli at level 4 with only 3% less compression. For a write-path operation, this trade-off strongly favors zstd.
 
@@ -865,7 +865,7 @@ interface PasteViewerState {
   paste: {
     id: string
     content: string
-    highlightedHtml: string | null  // null = highlighting in progress
+    highlightedHtml: string | null // null = highlighting in progress
     language: string
     lineCount: number
   }
@@ -874,9 +874,9 @@ interface PasteViewerState {
   ui: {
     wordWrap: boolean
     showLineNumbers: boolean
-    selectedLines: Set<number>      // For line range selection (e.g., #L5-L10)
+    selectedLines: Set<number> // For line range selection (e.g., #L5-L10)
     searchQuery: string
-    searchMatches: number[]         // Line numbers with matches
+    searchMatches: number[] // Line numbers with matches
     currentMatchIndex: number
   }
 }
@@ -974,23 +974,23 @@ If `highlighted_html` is `null` (highlighting still in progress), the frontend f
 
 #### Compute
 
-| Component | Service | Configuration |
-| --- | --- | --- |
-| API servers | ECS Fargate | Auto-scaling 2-20 tasks, 1 vCPU / 2 GB each |
-| Highlight workers | ECS Fargate (Spot) | Cost-optimized, tolerant of interruption |
-| Expiration cron | EventBridge + Lambda | Hourly trigger, 15-min timeout |
-| KGS generator | Lambda (scheduled) | Daily batch generation |
+| Component         | Service              | Configuration                               |
+| ----------------- | -------------------- | ------------------------------------------- |
+| API servers       | ECS Fargate          | Auto-scaling 2-20 tasks, 1 vCPU / 2 GB each |
+| Highlight workers | ECS Fargate (Spot)   | Cost-optimized, tolerant of interruption    |
+| Expiration cron   | EventBridge + Lambda | Hourly trigger, 15-min timeout              |
+| KGS generator     | Lambda (scheduled)   | Daily batch generation                      |
 
 #### Data Stores
 
-| Data | Service | Rationale |
-| --- | --- | --- |
-| Paste metadata | RDS PostgreSQL (Multi-AZ) | ACID, managed backups, read replicas |
-| Paste content | S3 Standard | Durability, cost, CDN integration |
-| Warm content | S3 Infrequent Access | 40% cheaper, min 30-day retention |
-| Cold content | S3 Glacier Instant Retrieval | 68% cheaper than Standard, ms retrieval |
-| Hot cache | ElastiCache Redis Cluster | Sub-ms reads, 3 shards |
-| Rate limits | ElastiCache Redis | Atomic counters, sorted sets |
+| Data           | Service                      | Rationale                               |
+| -------------- | ---------------------------- | --------------------------------------- |
+| Paste metadata | RDS PostgreSQL (Multi-AZ)    | ACID, managed backups, read replicas    |
+| Paste content  | S3 Standard                  | Durability, cost, CDN integration       |
+| Warm content   | S3 Infrequent Access         | 40% cheaper, min 30-day retention       |
+| Cold content   | S3 Glacier Instant Retrieval | 68% cheaper than Standard, ms retrieval |
+| Hot cache      | ElastiCache Redis Cluster    | Sub-ms reads, 3 shards                  |
+| Rate limits    | ElastiCache Redis            | Atomic counters, sorted sets            |
 
 #### Storage Tiering with S3 Lifecycle
 
@@ -1021,23 +1021,23 @@ If `highlighted_html` is `null` (highlighting still in progress), the frontend f
 
 **Cost impact at 1.6 TB (5-year accumulated):**
 
-| Tier | Data Volume | Monthly Cost |
-| --- | --- | --- |
-| S3 Standard (< 30 days) | ~26 GB | $0.60 |
-| S3 IA (30-90 days) | ~52 GB | $0.65 |
-| S3 Glacier IR (> 90 days) | ~1.5 TB | $6.00 |
-| **Total** | **1.6 TB** | **~$7.25/month** |
+| Tier                      | Data Volume | Monthly Cost     |
+| ------------------------- | ----------- | ---------------- |
+| S3 Standard (< 30 days)   | ~26 GB      | $0.60            |
+| S3 IA (30-90 days)        | ~52 GB      | $0.65            |
+| S3 Glacier IR (> 90 days) | ~1.5 TB     | $6.00            |
+| **Total**                 | **1.6 TB**  | **~$7.25/month** |
 
 Storage cost is negligible. The dominant cost is compute (API servers) and Redis.
 
 #### Self-Hosted Alternatives
 
-| Managed Service | Self-Hosted Option | When to self-host |
-| --- | --- | --- |
-| RDS PostgreSQL | PostgreSQL on EC2 | Cost at scale, specific extensions (e.g., pg_partman) |
-| ElastiCache | Redis on EC2 | Specific Redis modules, cost optimization |
-| S3 | MinIO on EC2 | Multi-cloud portability, data sovereignty |
-| ECS Fargate | Kubernetes (EKS/k3s) | Existing K8s expertise, multi-cloud |
+| Managed Service | Self-Hosted Option   | When to self-host                                     |
+| --------------- | -------------------- | ----------------------------------------------------- |
+| RDS PostgreSQL  | PostgreSQL on EC2    | Cost at scale, specific extensions (e.g., pg_partman) |
+| ElastiCache     | Redis on EC2         | Specific Redis modules, cost optimization             |
+| S3              | MinIO on EC2         | Multi-cloud portability, data sovereignty             |
+| ECS Fargate     | Kubernetes (EKS/k3s) | Existing K8s expertise, multi-cloud                   |
 
 ### Production Deployment
 
@@ -1146,14 +1146,14 @@ Pastebin's design centers on three decisions that cascade through the architectu
 
 ### Terminology
 
-| Term | Definition |
-| --- | --- |
-| KGS | Key Generation Service — pre-generates unique short codes offline |
-| Base62 | Encoding using `[A-Za-z0-9]` (62 characters), producing URL-safe strings |
-| Burn-after-read | Paste that self-destructs after a single read |
-| CAS | Content-Addressable Storage — storage where the key is derived from the content's cryptographic hash |
-| zstd | Zstandard — Facebook-developed compression algorithm balancing ratio and speed |
-| PII | Personally Identifiable Information — data that can identify an individual |
+| Term            | Definition                                                                                           |
+| --------------- | ---------------------------------------------------------------------------------------------------- |
+| KGS             | Key Generation Service — pre-generates unique short codes offline                                    |
+| Base62          | Encoding using `[A-Za-z0-9]` (62 characters), producing URL-safe strings                             |
+| Burn-after-read | Paste that self-destructs after a single read                                                        |
+| CAS             | Content-Addressable Storage — storage where the key is derived from the content's cryptographic hash |
+| zstd            | Zstandard — Facebook-developed compression algorithm balancing ratio and speed                       |
+| PII             | Personally Identifiable Information — data that can identify an individual                           |
 
 ### Summary
 

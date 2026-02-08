@@ -230,7 +230,8 @@
           </div>
           <h1 class="zen-article-title">Understanding Distributed Consensus Algorithms</h1>
           <p class="zen-article-subtitle">
-            How systems like Paxos and Raft enable multiple nodes to agree on a single value, even in the presence of failures.
+            How systems like Paxos and Raft enable multiple nodes to agree on a single value, even in the presence of
+            failures.
           </p>
         </header>
 
@@ -239,18 +240,21 @@
           <section class="zen-fade-in" style="--zen-delay: 0.1s;">
             <h2 id="overview">Overview</h2>
             <p>
-              Distributed consensus is the cornerstone of reliable distributed systems. When multiple computers
-              need to work together, they must agree on shared state despite network partitions, message delays,
-              and node failures. This article explores the fundamental algorithms that make this possible.
+              Distributed consensus is the cornerstone of reliable distributed systems. When multiple computers need to
+              work together, they must agree on shared state despite network partitions, message delays, and node
+              failures. This article explores the fundamental algorithms that make this possible.
             </p>
             <p>
-              The challenge of achieving consensus has been studied extensively since the 1980s. From Leslie
-              Lamport's pioneering work on Paxos to Diego Ongaro's more approachable Raft algorithm, the field
-              has evolved to provide practical solutions for real-world systems like etcd, ZooKeeper, and CockroachDB.
+              The challenge of achieving consensus has been studied extensively since the 1980s. From Leslie Lamport's
+              pioneering work on Paxos to Diego Ongaro's more approachable Raft algorithm, the field has evolved to
+              provide practical solutions for real-world systems like etcd, ZooKeeper, and CockroachDB.
             </p>
 
             <blockquote>
-              <p>A distributed system is one in which the failure of a computer you didn't even know existed can render your own computer unusable.</p>
+              <p>
+                A distributed system is one in which the failure of a computer you didn't even know existed can render
+                your own computer unusable.
+              </p>
               <cite>&mdash; Leslie Lamport</cite>
             </blockquote>
           </section>
@@ -258,15 +262,14 @@
           <section class="zen-fade-in" style="--zen-delay: 0.2s;">
             <h2 id="the-consensus-problem">The Consensus Problem</h2>
             <p>
-              At its core, the consensus problem requires a group of processes to agree on a single value.
-              This sounds simple, but becomes remarkably difficult when processes can fail and messages can
-              be lost or delayed.
+              At its core, the consensus problem requires a group of processes to agree on a single value. This sounds
+              simple, but becomes remarkably difficult when processes can fail and messages can be lost or delayed.
             </p>
 
             <h3 id="why-consensus-matters">Why Consensus Matters</h3>
             <p>
-              Consensus is essential for many distributed systems primitives including leader election,
-              atomic broadcast, state machine replication, and distributed locking.
+              Consensus is essential for many distributed systems primitives including leader election, atomic
+              broadcast, state machine replication, and distributed locking.
             </p>
             <ul>
               <li><strong>Leader Election</strong> &mdash; Selecting a single coordinator among replicas</li>
@@ -277,9 +280,9 @@
 
             <h3 id="flp-impossibility">FLP Impossibility</h3>
             <p>
-              The Fischer, Lynch, and Paterson impossibility result (1985) proves that no deterministic
-              algorithm can guarantee consensus in an asynchronous system where even one process may crash.
-              This foundational result shapes how all practical consensus algorithms are designed.
+              The Fischer, Lynch, and Paterson impossibility result (1985) proves that no deterministic algorithm can
+              guarantee consensus in an asynchronous system where even one process may crash. This foundational result
+              shapes how all practical consensus algorithms are designed.
             </p>
 
             <table>
@@ -313,16 +316,22 @@
           <section class="zen-fade-in" style="--zen-delay: 0.3s;">
             <h2 id="paxos-algorithm">Paxos Algorithm</h2>
             <p>
-              Paxos, introduced by Leslie Lamport in 1989, was the first practical consensus algorithm.
-              Despite its reputation for difficulty, the core idea is elegant: a proposer must convince
-              a majority of acceptors before a value is chosen.
+              Paxos, introduced by Leslie Lamport in 1989, was the first practical consensus algorithm. Despite its
+              reputation for difficulty, the core idea is elegant: a proposer must convince a majority of acceptors
+              before a value is chosen.
             </p>
 
             <h3 id="paxos-phases">Phases of Paxos</h3>
             <p>The basic Paxos protocol operates in two phases:</p>
             <ol>
-              <li><strong>Prepare Phase</strong> &mdash; A proposer sends a prepare request with a unique proposal number to a majority of acceptors.</li>
-              <li><strong>Accept Phase</strong> &mdash; If a majority responds, the proposer sends an accept request with the value.</li>
+              <li>
+                <strong>Prepare Phase</strong> &mdash; A proposer sends a prepare request with a unique proposal number to
+                a majority of acceptors.
+              </li>
+              <li>
+                <strong>Accept Phase</strong> &mdash; If a majority responds, the proposer sends an accept request with the
+                value.
+              </li>
             </ol>
 
             <pre><code>// Simplified Paxos proposer logic
@@ -351,30 +360,29 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
 
             <h3 id="multi-paxos">Multi-Paxos</h3>
             <p>
-              Basic Paxos requires two round-trips for each consensus decision. Multi-Paxos optimizes this
-              by electing a stable leader that can skip the prepare phase for subsequent proposals, reducing
-              latency to a single round-trip in the common case.
+              Basic Paxos requires two round-trips for each consensus decision. Multi-Paxos optimizes this by electing a
+              stable leader that can skip the prepare phase for subsequent proposals, reducing latency to a single
+              round-trip in the common case.
             </p>
           </section>
 
           <section class="zen-fade-in" style="--zen-delay: 0.4s;">
             <h2 id="raft-consensus">Raft Consensus</h2>
             <p>
-              Raft was designed by Diego Ongaro and John Ousterhout in 2014 as a more understandable
-              alternative to Paxos. It decomposes consensus into three sub-problems: leader election,
-              log replication, and safety.
+              Raft was designed by Diego Ongaro and John Ousterhout in 2014 as a more understandable alternative to
+              Paxos. It decomposes consensus into three sub-problems: leader election, log replication, and safety.
             </p>
 
             <h3 id="leader-election">Leader Election</h3>
             <p>
-              Raft uses randomized timeouts to trigger elections. When a follower doesn't hear from a leader
-              within its timeout period, it becomes a candidate and requests votes from other nodes.
+              Raft uses randomized timeouts to trigger elections. When a follower doesn't hear from a leader within its
+              timeout period, it becomes a candidate and requests votes from other nodes.
             </p>
 
             <h3 id="log-replication">Log Replication</h3>
             <p>
-              Once elected, the leader accepts client requests and replicates log entries to followers.
-              An entry is considered committed when a majority of nodes have acknowledged it.
+              Once elected, the leader accepts client requests and replicates log entries to followers. An entry is
+              considered committed when a majority of nodes have acknowledged it.
             </p>
 
             <figure>
@@ -390,15 +398,18 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
                   <div class="zen-diagram-node">Follower 3</div>
                 </div>
               </div>
-              <figcaption>Figure 1: Leader replicates log entries to all followers. Entry is committed after majority acknowledgment.</figcaption>
+              <figcaption>
+                Figure 1: Leader replicates log entries to all followers. Entry is committed after majority
+                acknowledgment.
+              </figcaption>
             </figure>
           </section>
 
           <section class="zen-fade-in" style="--zen-delay: 0.5s;">
             <h2 id="comparison">Comparison</h2>
             <p>
-              While both Paxos and Raft solve the same fundamental problem, they differ significantly
-              in their approach to understandability, implementation complexity, and operational behavior.
+              While both Paxos and Raft solve the same fundamental problem, they differ significantly in their approach
+              to understandability, implementation complexity, and operational behavior.
             </p>
 
             <table>
@@ -444,15 +455,18 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
             </ul>
             <h3>Summary</h3>
             <p>
-              Distributed consensus enables reliable systems by allowing multiple nodes to agree on shared state.
-              Paxos pioneered the field but is complex to understand. Raft provides equivalent guarantees with
-              a clearer structure. Modern systems like etcd and CockroachDB rely on Raft for their consensus layer.
+              Distributed consensus enables reliable systems by allowing multiple nodes to agree on shared state. Paxos
+              pioneered the field but is complex to understand. Raft provides equivalent guarantees with a clearer
+              structure. Modern systems like etcd and CockroachDB rely on Raft for their consensus layer.
             </p>
             <h3>References</h3>
             <ul>
               <li>Lamport, L. "The Part-Time Parliament" (1998)</li>
               <li>Ongaro, D. & Ousterhout, J. "In Search of an Understandable Consensus Algorithm" (2014)</li>
-              <li>Fischer, M., Lynch, N., Paterson, M. "Impossibility of Distributed Consensus with One Faulty Process" (1985)</li>
+              <li>
+                Fischer, M., Lynch, N., Paterson, M. "Impossibility of Distributed Consensus with One Faulty Process"
+                (1985)
+              </li>
             </ul>
           </section>
         </div>
@@ -480,23 +494,29 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
      ================================================================ */
 
   /* --- Reset --- */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
   /* --- Design Tokens --- */
   :root {
-    --zen-bg: #FFFFFF;
-    --zen-bg-alt: #FAFAFA;
-    --zen-bg-code: #F8F8F8;
+    --zen-bg: #ffffff;
+    --zen-bg-alt: #fafafa;
+    --zen-bg-code: #f8f8f8;
     --zen-text: #111111;
     --zen-text-secondary: #333333;
     --zen-text-muted: #999999;
     --zen-accent: #000000;
     --zen-accent-soft: #1a1a1a;
-    --zen-border: #F0F0F0;
-    --zen-border-hover: #E0E0E0;
+    --zen-border: #f0f0f0;
+    --zen-border-hover: #e0e0e0;
 
-    --zen-font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
-    --zen-font-mono: 'DM Mono', 'Menlo', monospace;
+    --zen-font-body: "DM Sans", system-ui, -apple-system, sans-serif;
+    --zen-font-mono: "DM Mono", "Menlo", monospace;
 
     --zen-content-width: 680px;
     --zen-sidebar-width: 300px;
@@ -525,7 +545,7 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
   .zen-body {
     font-family: var(--zen-font-body);
     font-size: 17px;
-    line-height: 2.0;
+    line-height: 2;
     color: var(--zen-text-secondary);
     background: var(--zen-bg);
     -webkit-font-smoothing: antialiased;
@@ -764,8 +784,13 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
     list-style: none;
     transition: color var(--zen-transition);
   }
-  .zen-cat-summary::-webkit-details-marker { display: none; }
-  .zen-cat-summary::marker { display: none; content: ''; }
+  .zen-cat-summary::-webkit-details-marker {
+    display: none;
+  }
+  .zen-cat-summary::marker {
+    display: none;
+    content: "";
+  }
   .zen-cat-name {
     font-family: var(--zen-font-body);
     font-size: 14px;
@@ -798,8 +823,13 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
     color: var(--zen-text-secondary);
     transition: color var(--zen-transition);
   }
-  .zen-topic-summary::-webkit-details-marker { display: none; }
-  .zen-topic-summary::marker { display: none; content: ''; }
+  .zen-topic-summary::-webkit-details-marker {
+    display: none;
+  }
+  .zen-topic-summary::marker {
+    display: none;
+    content: "";
+  }
   .zen-topic-summary:hover {
     color: var(--zen-text);
   }
@@ -1200,96 +1230,96 @@ async function propose(value: string, acceptors: Acceptor[]) {'{'}
 
 <script>
   function initZenLayout() {
-    const toggleLeft = document.querySelector('.zen-toggle-left') as HTMLButtonElement | null;
-    const toggleRight = document.querySelector('.zen-toggle-right') as HTMLButtonElement | null;
-    const sidebarLeft = document.getElementById('sidebar-left');
-    const sidebarRight = document.getElementById('sidebar-right');
-    const backdrop = document.getElementById('sidebar-backdrop');
-    const progressBar = document.getElementById('zen-progress');
+    const toggleLeft = document.querySelector(".zen-toggle-left") as HTMLButtonElement | null
+    const toggleRight = document.querySelector(".zen-toggle-right") as HTMLButtonElement | null
+    const sidebarLeft = document.getElementById("sidebar-left")
+    const sidebarRight = document.getElementById("sidebar-right")
+    const backdrop = document.getElementById("sidebar-backdrop")
+    const progressBar = document.getElementById("zen-progress")
 
     // --- Sidebar Logic ---
     function closeSidebars() {
-      sidebarLeft?.classList.remove('is-open');
-      sidebarRight?.classList.remove('is-open');
-      backdrop?.classList.remove('is-visible');
-      toggleLeft?.setAttribute('aria-expanded', 'false');
-      toggleRight?.setAttribute('aria-expanded', 'false');
-      document.body.style.overflow = '';
+      sidebarLeft?.classList.remove("is-open")
+      sidebarRight?.classList.remove("is-open")
+      backdrop?.classList.remove("is-visible")
+      toggleLeft?.setAttribute("aria-expanded", "false")
+      toggleRight?.setAttribute("aria-expanded", "false")
+      document.body.style.overflow = ""
     }
 
     function toggleSidebar(sidebar: HTMLElement | null, toggle: HTMLButtonElement | null) {
-      if (!sidebar || !toggle) return;
-      const isOpen = sidebar.classList.contains('is-open');
-      closeSidebars();
+      if (!sidebar || !toggle) return
+      const isOpen = sidebar.classList.contains("is-open")
+      closeSidebars()
       if (!isOpen) {
-        sidebar.classList.add('is-open');
-        backdrop?.classList.add('is-visible');
-        toggle.setAttribute('aria-expanded', 'true');
-        document.body.style.overflow = 'hidden';
+        sidebar.classList.add("is-open")
+        backdrop?.classList.add("is-visible")
+        toggle.setAttribute("aria-expanded", "true")
+        document.body.style.overflow = "hidden"
       }
     }
 
-    toggleLeft?.addEventListener('click', () => toggleSidebar(sidebarLeft, toggleLeft));
-    toggleRight?.addEventListener('click', () => toggleSidebar(sidebarRight, toggleRight));
-    backdrop?.addEventListener('click', closeSidebars);
+    toggleLeft?.addEventListener("click", () => toggleSidebar(sidebarLeft, toggleLeft))
+    toggleRight?.addEventListener("click", () => toggleSidebar(sidebarRight, toggleRight))
+    backdrop?.addEventListener("click", closeSidebars)
 
     // Close buttons inside sidebars
-    document.querySelectorAll('.zen-sidebar-close').forEach(btn => {
-      btn.addEventListener('click', closeSidebars);
-    });
+    document.querySelectorAll(".zen-sidebar-close").forEach((btn) => {
+      btn.addEventListener("click", closeSidebars)
+    })
 
     // Escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeSidebars();
-    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeSidebars()
+    })
 
     // --- localStorage for sidebar state ---
-    const STORAGE_KEY_LEFT = 'zen-sidebar-left';
-    const STORAGE_KEY_RIGHT = 'zen-sidebar-right';
+    const STORAGE_KEY_LEFT = "zen-sidebar-left"
+    const STORAGE_KEY_RIGHT = "zen-sidebar-right"
 
     // Restore state on desktop
-    const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+    const isDesktop = window.matchMedia("(min-width: 1024px)").matches
     if (isDesktop) {
-      const savedLeft = localStorage.getItem(STORAGE_KEY_LEFT);
-      const savedRight = localStorage.getItem(STORAGE_KEY_RIGHT);
-      if (savedLeft === 'open') {
-        sidebarLeft?.classList.add('is-open');
-        toggleLeft?.setAttribute('aria-expanded', 'true');
+      const savedLeft = localStorage.getItem(STORAGE_KEY_LEFT)
+      const savedRight = localStorage.getItem(STORAGE_KEY_RIGHT)
+      if (savedLeft === "open") {
+        sidebarLeft?.classList.add("is-open")
+        toggleLeft?.setAttribute("aria-expanded", "true")
       }
-      if (savedRight === 'open') {
-        sidebarRight?.classList.add('is-open');
-        toggleRight?.setAttribute('aria-expanded', 'true');
+      if (savedRight === "open") {
+        sidebarRight?.classList.add("is-open")
+        toggleRight?.setAttribute("aria-expanded", "true")
       }
     }
 
     // Save state on toggle (desktop only)
-    toggleLeft?.addEventListener('click', () => {
-      if (window.matchMedia('(min-width: 1024px)').matches) {
-        const isOpen = sidebarLeft?.classList.contains('is-open');
-        localStorage.setItem(STORAGE_KEY_LEFT, isOpen ? 'open' : 'closed');
+    toggleLeft?.addEventListener("click", () => {
+      if (window.matchMedia("(min-width: 1024px)").matches) {
+        const isOpen = sidebarLeft?.classList.contains("is-open")
+        localStorage.setItem(STORAGE_KEY_LEFT, isOpen ? "open" : "closed")
       }
-    });
-    toggleRight?.addEventListener('click', () => {
-      if (window.matchMedia('(min-width: 1024px)').matches) {
-        const isOpen = sidebarRight?.classList.contains('is-open');
-        localStorage.setItem(STORAGE_KEY_RIGHT, isOpen ? 'open' : 'closed');
+    })
+    toggleRight?.addEventListener("click", () => {
+      if (window.matchMedia("(min-width: 1024px)").matches) {
+        const isOpen = sidebarRight?.classList.contains("is-open")
+        localStorage.setItem(STORAGE_KEY_RIGHT, isOpen ? "open" : "closed")
       }
-    });
+    })
 
     // --- Reading Progress Bar ---
     function updateProgress() {
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (docHeight <= 0) return;
-      const scrolled = window.scrollY;
-      const progress = Math.min((scrolled / docHeight) * 100, 100);
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight
+      if (docHeight <= 0) return
+      const scrolled = window.scrollY
+      const progress = Math.min((scrolled / docHeight) * 100, 100)
       if (progressBar) {
-        progressBar.style.width = progress + '%';
+        progressBar.style.width = progress + "%"
       }
     }
 
-    window.addEventListener('scroll', updateProgress, { passive: true });
-    updateProgress();
+    window.addEventListener("scroll", updateProgress, { passive: true })
+    updateProgress()
   }
 
-  document.addEventListener('DOMContentLoaded', initZenLayout);
+  document.addEventListener("DOMContentLoaded", initZenLayout)
 </script>

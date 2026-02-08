@@ -45,10 +45,7 @@ export function initSidebarToggle() {
     if (isDesktop()) {
       leftSidebar.classList.toggle("is-collapsed")
       const isCollapsed = leftSidebar.classList.contains("is-collapsed")
-      localStorage.setItem(
-        "zen-sidebar-left",
-        isCollapsed ? "collapsed" : "open"
-      )
+      localStorage.setItem("zen-sidebar-left", isCollapsed ? "collapsed" : "open")
       leftToggle?.setAttribute("aria-expanded", String(!isCollapsed))
     } else {
       const isOpen = leftSidebar.classList.contains("is-open")
@@ -69,10 +66,7 @@ export function initSidebarToggle() {
     if (isDesktop()) {
       rightSidebar.classList.toggle("is-collapsed")
       const isCollapsed = rightSidebar.classList.contains("is-collapsed")
-      localStorage.setItem(
-        "zen-sidebar-right",
-        isCollapsed ? "collapsed" : "open"
-      )
+      localStorage.setItem("zen-sidebar-right", isCollapsed ? "collapsed" : "open")
       rightToggle?.setAttribute("aria-expanded", String(!isCollapsed))
     } else {
       const isOpen = rightSidebar.classList.contains("is-open")

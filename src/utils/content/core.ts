@@ -7,12 +7,7 @@
 
 import { getCollection, render } from "astro:content"
 import { parseFrontmatter } from "./helpers"
-import {
-  getArticlesForTopicFromConfig,
-  getCategoryOrderFromConfig,
-  getTopicsForCategoryFromConfig,
-} from "./ordering"
-import { validateContentStructure } from "./validation"
+import { getArticlesForTopicFromConfig, getCategoryOrderFromConfig, getTopicsForCategoryFromConfig } from "./ordering"
 import type {
   CategoryIndex,
   CategoryRef,
@@ -22,6 +17,7 @@ import type {
   TopicIndex,
   TopicRef,
 } from "./types"
+import { validateContentStructure } from "./validation"
 
 // =============================================================================
 // Internal Types

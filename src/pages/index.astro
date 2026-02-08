@@ -20,7 +20,6 @@ const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
 
 <Layout title={pageTitle} description={pageDescription} crumbs={null} pageType="default">
   <div class="fn-page">
-
     <!-- Header (Style 4 + profile image) -->
     <header class="fn-header">
       <div class="fn-header-identity">
@@ -31,8 +30,8 @@ const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
         </div>
       </div>
       <p class="fn-desc">
-        Deep-dive technical articles on system design, browser internals,
-        frontend architecture, and everything in between.
+        Deep-dive technical articles on system design, browser internals, frontend architecture, and everything in
+        between.
       </p>
       <nav class="fn-nav">
         <Link href={social.linkedin.url} class="fn-nav-item">LinkedIn</Link>
@@ -51,59 +50,68 @@ const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
           {totalArticles}+ articles · {categories.length} categories · {totalTopics} topics
         </span>
       </div>
-      <p class="fn-hub-desc">
-        Deep-dive articles for engineers who want to understand how things actually work.
-      </p>
+      <p class="fn-hub-desc">Deep-dive articles for engineers who want to understand how things actually work.</p>
 
       <div class="fn-grid">
-        {categories.map((category, index) => (
-          <a href={category.href} class="fn-card" style={`animation-delay: ${index * 70}ms`}>
-            <div class="fn-card-head">
-              <h3 class="fn-card-name">{category.name}</h3>
-              <span class="fn-card-counts">
-                {category.topics.length} {category.topics.length === 1 ? "topic" : "topics"} · {formatCount(category.articleCount, "article")}
-              </span>
-            </div>
-            <p class="fn-card-topics">
-              {category.topics.map((topic, i) => (
-                <>{topic.name}{i < category.topics.length - 1 && <span class="fn-card-topic-sep"> · </span>}</>
-              ))}
-            </p>
-            <span class="fn-card-arrow">&rarr;</span>
-          </a>
-        ))}
+        {
+          categories.map((category, index) => (
+            <a href={category.href} class="fn-card" style={`animation-delay: ${index * 70}ms`}>
+              <div class="fn-card-head">
+                <h3 class="fn-card-name">{category.name}</h3>
+                <span class="fn-card-counts">
+                  {category.topics.length} {category.topics.length === 1 ? "topic" : "topics"} ·{" "}
+                  {formatCount(category.articleCount, "article")}
+                </span>
+              </div>
+              <p class="fn-card-topics">
+                {category.topics.map((topic, i) => (
+                  <>
+                    {topic.name}
+                    {i < category.topics.length - 1 && <span class="fn-card-topic-sep"> · </span>}
+                  </>
+                ))}
+              </p>
+              <span class="fn-card-arrow">&rarr;</span>
+            </a>
+          ))
+        }
       </div>
     </section>
 
     <hr class="fn-rule" />
 
     <!-- Featured Articles (Style 1) -->
-    {featuredArticles.length > 0 && (
-      <section class="fn-section">
-        <div class="fn-fa-label">
-          <span class="fn-label-text">Featured Articles</span>
-        </div>
-        <div class="fn-fa-header">
-          <p class="fn-fa-subtitle">Hand-picked reads</p>
-          <Link href="/articles" class="fn-fa-more">All articles &rarr;</Link>
-        </div>
+    {
+      featuredArticles.length > 0 && (
+        <section class="fn-section">
+          <div class="fn-fa-label">
+            <span class="fn-label-text">Featured Articles</span>
+          </div>
+          <div class="fn-fa-header">
+            <p class="fn-fa-subtitle">Hand-picked reads</p>
+            <Link href="/articles" class="fn-fa-more">
+              All articles &rarr;
+            </Link>
+          </div>
 
-        <ul class="fn-articles">
-          {featuredArticles.map((article, index) => (
-            <li class="fn-article" style={`animation-delay: ${index * 80}ms`}>
-              <h3 class="fn-article-title">
-                <Link href={article.href} class="fn-article-link">{article.title}</Link>
-              </h3>
-              <span class="fn-article-meta">
-                {article.category.name} · {article.topic.name}
-                {article.minutesRead && <> · {article.minutesRead}</>}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
-    )}
-
+          <ul class="fn-articles">
+            {featuredArticles.map((article, index) => (
+              <li class="fn-article" style={`animation-delay: ${index * 80}ms`}>
+                <h3 class="fn-article-title">
+                  <Link href={article.href} class="fn-article-link">
+                    {article.title}
+                  </Link>
+                </h3>
+                <span class="fn-article-meta">
+                  {article.category.name} · {article.topic.name}
+                  {article.minutesRead && <> · {article.minutesRead}</>}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
   </div>
 </Layout>
 
@@ -302,7 +310,7 @@ const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
   }
 
   .fn-card-arrow {
-    @apply absolute right-4 top-5;
+    @apply absolute top-5 right-4;
     font-family: var(--font-mono);
     font-size: 16px;
     color: var(--color-text);

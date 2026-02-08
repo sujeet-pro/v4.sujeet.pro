@@ -34,7 +34,7 @@
 /* Desktop (>=1440px): sidebars are sticky grid columns */
 @media (min-width: 1440px) {
   .zen-sidebar {
-    @apply sticky relative z-auto;
+    @apply relative sticky z-auto;
     position: sticky;
     top: var(--header-height);
     width: auto;

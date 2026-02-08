@@ -13,9 +13,15 @@ svg[data-icon] {
   @apply h-4 w-4;
 }
 
-.icon-sm { @apply h-4 w-4; }
-.icon-md { @apply h-5 w-5; }
-.icon-lg { @apply h-6 w-6; }
+.icon-sm {
+  @apply h-4 w-4;
+}
+.icon-md {
+  @apply h-5 w-5;
+}
+.icon-lg {
+  @apply h-6 w-6;
+}
 
 figure {
   img {

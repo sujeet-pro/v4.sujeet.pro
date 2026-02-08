@@ -15,7 +15,7 @@ const { tag } = Astro.params
 const tagData = await getTagContent(tag)
 if (!tagData) return Astro.redirect("/404")
 
-const crumbs = [{ label: "Tags", href: "/tags" }]
+const crumbs = [{ name: "Tags", href: "/tags" }]
 ---
 
 <Layout

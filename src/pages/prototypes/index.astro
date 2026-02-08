@@ -9,21 +9,30 @@
     <title>Design Prototypes | sujeet.pro</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div class="proto-page">
       <header class="proto-header">
         <a href="/" class="proto-back">&larr; Back to site</a>
         <h1 class="proto-title">Design Prototypes</h1>
-        <p class="proto-subtitle">Five unique article page designs for sujeet.pro. Each demonstrates a three-column layout with sidebar navigation, table of contents, and responsive behavior.</p>
+        <p class="proto-subtitle">
+          Five unique article page designs for sujeet.pro. Each demonstrates a three-column layout with sidebar
+          navigation, table of contents, and responsive behavior.
+        </p>
       </header>
 
       <div class="proto-grid">
         <a href="/prototypes/design-1-editorial" class="proto-card proto-card-1">
           <div class="proto-card-number">01</div>
           <h2 class="proto-card-title">Editorial Magazine</h2>
-          <p class="proto-card-desc">Rich typography, generous whitespace, newspaper-inspired column layout. Playfair Display + Source Serif 4. Warm cream palette with editorial red accent.</p>
+          <p class="proto-card-desc">
+            Rich typography, generous whitespace, newspaper-inspired column layout. Playfair Display + Source Serif 4.
+            Warm cream palette with editorial red accent.
+          </p>
           <div class="proto-card-tags">
             <span class="proto-tag">Serif</span>
             <span class="proto-tag">Light theme</span>
@@ -34,7 +43,10 @@
         <a href="/prototypes/design-2-ide" class="proto-card proto-card-2">
           <div class="proto-card-number">02</div>
           <h2 class="proto-card-title">Developer IDE</h2>
-          <p class="proto-card-desc">Code editor aesthetic, monospace accents, dark theme. IBM Plex Mono primary. File explorer sidebar, status bar, line numbers, syntax highlighting colors.</p>
+          <p class="proto-card-desc">
+            Code editor aesthetic, monospace accents, dark theme. IBM Plex Mono primary. File explorer sidebar, status
+            bar, line numbers, syntax highlighting colors.
+          </p>
           <div class="proto-card-tags">
             <span class="proto-tag">Monospace</span>
             <span class="proto-tag">Dark theme</span>
@@ -45,7 +57,10 @@
         <a href="/prototypes/design-3-zen" class="proto-card proto-card-3">
           <div class="proto-card-number">03</div>
           <h2 class="proto-card-title">Minimalist Zen</h2>
-          <p class="proto-card-desc">Ultra-clean, lots of breathing room, subtle animations. DM Sans. Pure black and white with massive whitespace. Typography is the only design element.</p>
+          <p class="proto-card-desc">
+            Ultra-clean, lots of breathing room, subtle animations. DM Sans. Pure black and white with massive
+            whitespace. Typography is the only design element.
+          </p>
           <div class="proto-card-tags">
             <span class="proto-tag">Sans-serif</span>
             <span class="proto-tag">Ultra-minimal</span>
@@ -56,7 +71,10 @@
         <a href="/prototypes/design-4-dashboard" class="proto-card proto-card-4">
           <div class="proto-card-number">04</div>
           <h2 class="proto-card-title">Modern Dashboard</h2>
-          <p class="proto-card-desc">Card-based UI, floating panels, glass morphism. Plus Jakarta Sans. Dark blue with indigo gradients, modern SaaS feel, micro-interactions.</p>
+          <p class="proto-card-desc">
+            Card-based UI, floating panels, glass morphism. Plus Jakarta Sans. Dark blue with indigo gradients, modern
+            SaaS feel, micro-interactions.
+          </p>
           <div class="proto-card-tags">
             <span class="proto-tag">Glass morphism</span>
             <span class="proto-tag">Dark theme</span>
@@ -67,7 +85,10 @@
         <a href="/prototypes/design-5-academic" class="proto-card proto-card-5">
           <div class="proto-card-number">05</div>
           <h2 class="proto-card-title">Academic Paper</h2>
-          <p class="proto-card-desc">Scholarly typography, section numbers, margin notes. EB Garamond serif. Paper-like background, academic journal feel, footnote references.</p>
+          <p class="proto-card-desc">
+            Scholarly typography, section numbers, margin notes. EB Garamond serif. Paper-like background, academic
+            journal feel, footnote references.
+          </p>
           <div class="proto-card-tags">
             <span class="proto-tag">Serif</span>
             <span class="proto-tag">Paper theme</span>
@@ -77,18 +98,33 @@
       </div>
 
       <footer class="proto-footer">
-        <p>Each prototype is a self-contained page with sidebar navigation, table of contents, and full article content.</p>
-        <p>Click a design to view the full prototype. Use the sidebar toggles in the header to show/hide navigation and TOC.</p>
+        <p>
+          Each prototype is a self-contained page with sidebar navigation, table of contents, and full article content.
+        </p>
+        <p>
+          Click a design to view the full prototype. Use the sidebar toggles in the header to show/hide navigation and
+          TOC.
+        </p>
       </footer>
     </div>
   </body>
 </html>
 
 <style is:global>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
   body {
-    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family:
+      "DM Sans",
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif;
     background: #0a0a0a;
     color: #e5e5e5;
     min-height: 100vh;
@@ -109,9 +145,13 @@
     margin-bottom: 32px;
     transition: color 150ms;
   }
-  .proto-back:hover { color: #fff; }
+  .proto-back:hover {
+    color: #fff;
+  }
 
-  .proto-header { margin-bottom: 60px; }
+  .proto-header {
+    margin-bottom: 60px;
+  }
 
   .proto-title {
     font-size: clamp(36px, 5vw, 56px);
@@ -147,7 +187,7 @@
     overflow: hidden;
   }
   .proto-card::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     opacity: 0;
@@ -156,18 +196,30 @@
   .proto-card:hover {
     border-color: #444;
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
   }
-  .proto-card:hover::before { opacity: 1; }
+  .proto-card:hover::before {
+    opacity: 1;
+  }
 
-  .proto-card-1::before { background: linear-gradient(135deg, rgba(181,50,42,0.08), transparent); }
-  .proto-card-2::before { background: linear-gradient(135deg, rgba(137,180,250,0.08), transparent); }
-  .proto-card-3::before { background: linear-gradient(135deg, rgba(255,255,255,0.04), transparent); }
-  .proto-card-4::before { background: linear-gradient(135deg, rgba(99,102,241,0.08), transparent); }
-  .proto-card-5::before { background: linear-gradient(135deg, rgba(107,76,59,0.08), transparent); }
+  .proto-card-1::before {
+    background: linear-gradient(135deg, rgba(181, 50, 42, 0.08), transparent);
+  }
+  .proto-card-2::before {
+    background: linear-gradient(135deg, rgba(137, 180, 250, 0.08), transparent);
+  }
+  .proto-card-3::before {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent);
+  }
+  .proto-card-4::before {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), transparent);
+  }
+  .proto-card-5::before {
+    background: linear-gradient(135deg, rgba(107, 76, 59, 0.08), transparent);
+  }
 
   .proto-card-number {
-    font-family: 'DM Mono', monospace;
+    font-family: "DM Mono", monospace;
     font-size: 12px;
     font-weight: 500;
     color: #555;
@@ -204,16 +256,26 @@
     font-weight: 500;
     padding: 4px 10px;
     border-radius: 99px;
-    background: rgba(255,255,255,0.06);
+    background: rgba(255, 255, 255, 0.06);
     color: #aaa;
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(255, 255, 255, 0.08);
   }
 
-  .proto-card-1:hover .proto-card-title { color: #E8847E; }
-  .proto-card-2:hover .proto-card-title { color: #89B4FA; }
-  .proto-card-3:hover .proto-card-title { color: #fff; }
-  .proto-card-4:hover .proto-card-title { color: #818CF8; }
-  .proto-card-5:hover .proto-card-title { color: #C4A882; }
+  .proto-card-1:hover .proto-card-title {
+    color: #e8847e;
+  }
+  .proto-card-2:hover .proto-card-title {
+    color: #89b4fa;
+  }
+  .proto-card-3:hover .proto-card-title {
+    color: #fff;
+  }
+  .proto-card-4:hover .proto-card-title {
+    color: #818cf8;
+  }
+  .proto-card-5:hover .proto-card-title {
+    color: #c4a882;
+  }
 
   .proto-footer {
     text-align: center;
@@ -228,7 +290,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid #6366F1;
+    outline: 2px solid #6366f1;
     outline-offset: 2px;
   }
 </style>

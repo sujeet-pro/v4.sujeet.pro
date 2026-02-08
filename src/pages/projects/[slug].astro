@@ -22,7 +22,7 @@ const projectEntries = await getCollection("project")
 const entry = projectEntries.find((e) => e.id === slug)
 const headings = entry ? (await render(entry)).headings : []
 
-const crumbs = [{ label: "Projects", href: "/projects" }]
+const crumbs = [{ name: "Projects", href: "/projects" }]
 ---
 
 <Layout

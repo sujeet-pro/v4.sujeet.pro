@@ -66,17 +66,17 @@ Figma's multiplayer system is a case study in choosing the simplest conflict res
 
 Figma is a browser-based design tool where multiple users edit the same document simultaneously. Unlike Google Docs (sequential text) or Miro (spatial canvas with independent objects), Figma edits affect a deeply nested tree structure — frames contain groups, groups contain shapes, shapes have hundreds of properties (position, rotation, fill, stroke, constraints, auto-layout rules). This tree structure makes real-time collaboration fundamentally harder than text editing.
 
-| Metric | Value |
-|--------|-------|
-| Max concurrent editors per file | 200 |
-| Max total participants per file (editors + viewers) | 500 |
-| Max visible multiplayer cursors | 200 |
-| Client update frequency | ~33ms (30 FPS) |
-| Journal changes received per day | >2.2 billion |
-| Change persistence (p95) | ~600ms |
-| Data loss target on crash | <1 second |
-| Client rendering engine | C++ compiled to WebAssembly |
-| Multiplayer server language | Rust (rewritten from TypeScript in 2018) |
+| Metric                                              | Value                                    |
+| --------------------------------------------------- | ---------------------------------------- |
+| Max concurrent editors per file                     | 200                                      |
+| Max total participants per file (editors + viewers) | 500                                      |
+| Max visible multiplayer cursors                     | 200                                      |
+| Client update frequency                             | ~33ms (30 FPS)                           |
+| Journal changes received per day                    | >2.2 billion                             |
+| Change persistence (p95)                            | ~600ms                                   |
+| Data loss target on crash                           | <1 second                                |
+| Client rendering engine                             | C++ compiled to WebAssembly              |
+| Multiplayer server language                         | Rust (rewritten from TypeScript in 2018) |
 
 ### The Access Pattern
 
@@ -132,15 +132,15 @@ This approach resolves conflicts at the **finest possible granularity** — indi
 
 ### Decision Factors
 
-| Factor | OT | Pure CRDT | Figma's Approach |
-|--------|-----|-----------|-----------------|
-| Implementation complexity | High (quadratic transform pairs) | High (metadata, tombstones, GC) | Low (property-level LWW) |
-| Server requirement | Yes (serialization point) | No (peer-to-peer capable) | Yes (authoritative ordering) |
-| Conflict granularity | Character/operation level | Varies by CRDT type | Property level on objects |
-| Metadata overhead | Low | High (vector clocks, tombstones) | Minimal (server assigns order) |
-| Undo/redo complexity | Well-studied | Extremely complex | Complex but tractable |
-| Design tool fit | Poor (text-optimized) | Usable but over-engineered | Purpose-built |
-| Debugging difficulty | High (divergence bugs) | High (convergence proofs) | Low (single source of truth) |
+| Factor                    | OT                               | Pure CRDT                        | Figma's Approach               |
+| ------------------------- | -------------------------------- | -------------------------------- | ------------------------------ |
+| Implementation complexity | High (quadratic transform pairs) | High (metadata, tombstones, GC)  | Low (property-level LWW)       |
+| Server requirement        | Yes (serialization point)        | No (peer-to-peer capable)        | Yes (authoritative ordering)   |
+| Conflict granularity      | Character/operation level        | Varies by CRDT type              | Property level on objects      |
+| Metadata overhead         | Low                              | High (vector clocks, tombstones) | Minimal (server assigns order) |
+| Undo/redo complexity      | Well-studied                     | Extremely complex                | Complex but tractable          |
+| Design tool fit           | Poor (text-optimized)            | Usable but over-engineered       | Purpose-built                  |
+| Debugging difficulty      | High (divergence bugs)           | High (convergence proofs)        | Low (single source of truth)   |
 
 The core insight: when you have a central server and your domain has a natural property-level conflict granularity, you can build something far simpler than either OT or general-purpose CRDTs.
 
@@ -242,11 +242,11 @@ This hybrid approach was pragmatic: Rust's async I/O ecosystem was not mature en
 
 #### Performance Results
 
-| Metric | TypeScript | Rust | Improvement |
-|--------|-----------|------|-------------|
-| Worst-case serialization | Unpredictable (GC pauses) | Deterministic | >10x faster |
+| Metric                         | TypeScript                       | Rust                                | Improvement              |
+| ------------------------------ | -------------------------------- | ----------------------------------- | ------------------------ |
+| Worst-case serialization       | Unpredictable (GC pauses)        | Deterministic                       | >10x faster              |
 | Per-document process isolation | Impractical (VM memory overhead) | Feasible (minimal memory footprint) | Enabled new architecture |
-| Latency spikes from GC | Frequent, unpredictable | None | Eliminated |
+| Latency spikes from GC         | Frequent, unpredictable          | None                                | Eliminated               |
 
 The Rust rewrite enabled per-document parallelism — the single most important architectural improvement. Previously, a hot document on a worker could degrade all other documents on that worker. With per-document Rust processes, each document is fully isolated.
 
@@ -276,13 +276,13 @@ Figma introduced a **write-ahead log (journal)** backed by **Amazon DynamoDB** t
 - Each change receives an incrementing **sequence number** tied to the file
 - On crash recovery: load the latest checkpoint from S3, then replay journal entries with sequence numbers higher than the checkpoint
 
-| Metric | Checkpoint-Only | Checkpoint + Journal |
-|--------|----------------|---------------------|
-| Worst-case data loss | ~60 seconds | <1 second |
-| Write frequency | 30-60 seconds | ~0.5 seconds |
-| Change persistence (p95) | Tens of seconds | ~600ms |
-| Recovery mechanism | Load last checkpoint | Checkpoint + journal replay |
-| Backing store | Amazon S3 | DynamoDB (journal) + S3 (checkpoints) |
+| Metric                   | Checkpoint-Only      | Checkpoint + Journal                  |
+| ------------------------ | -------------------- | ------------------------------------- |
+| Worst-case data loss     | ~60 seconds          | <1 second                             |
+| Write frequency          | 30-60 seconds        | ~0.5 seconds                          |
+| Change persistence (p95) | Tens of seconds      | ~600ms                                |
+| Recovery mechanism       | Load last checkpoint | Checkpoint + journal replay           |
+| Backing store            | Amazon S3            | DynamoDB (journal) + S3 (checkpoints) |
 
 **File locking**: To prevent split-brain scenarios where two server processes believe they own the same document, Figma implements file locking via a DynamoDB table. The multiplayer process writes a `(lock UUID, file key)` entry; all subsequent updates are conditional on the lock UUID matching. If a stale process attempts a write with an old lock UUID, the write fails.
 
@@ -292,13 +292,13 @@ Figma introduced a **write-ahead log (journal)** backed by **Amazon DynamoDB** t
 
 Figma has **two** real-time sync systems, often conflated:
 
-| Aspect | Multiplayer Server | LiveGraph |
-|--------|-------------------|-----------|
-| **Data** | Document content (shapes, properties, layers) | Product data (files, teams, comments, permissions) |
-| **Source of truth** | In-memory server state | PostgreSQL |
-| **Sync model** | Read-write (clients send edits) | Read-only (clients subscribe to queries) |
-| **Protocol** | Custom delta protocol over WebSocket | GraphQL-like subscriptions |
-| **Language** | Rust (compute) + Node.js (network) | Go |
+| Aspect              | Multiplayer Server                            | LiveGraph                                          |
+| ------------------- | --------------------------------------------- | -------------------------------------------------- |
+| **Data**            | Document content (shapes, properties, layers) | Product data (files, teams, comments, permissions) |
+| **Source of truth** | In-memory server state                        | PostgreSQL                                         |
+| **Sync model**      | Read-write (clients send edits)               | Read-only (clients subscribe to queries)           |
+| **Protocol**        | Custom delta protocol over WebSocket          | GraphQL-like subscriptions                         |
+| **Language**        | Rust (compute) + Node.js (network)            | Go                                                 |
 
 #### LiveGraph v1
 
@@ -320,14 +320,14 @@ As Figma's user base tripled and page views grew 5x, LiveGraph required a comple
 
 ### What the Architecture Enables
 
-| Capability | How It's Achieved |
-|-----------|------------------|
-| 200 concurrent editors per document | Per-document Rust process isolation; property-level conflict resolution |
-| Sub-frame latency for local edits | Optimistic local updates; server acknowledgment is async |
-| <1 second worst-case data loss | DynamoDB journal with ~0.5s write frequency |
-| Full document recovery after crash | Checkpoint (S3) + journal replay (DynamoDB) |
-| Real-time cursors for all participants | Cursor position broadcast via the same WebSocket connection |
-| Offline editing with reconnection | Client redownloads full state on reconnect, reapplies local changes |
+| Capability                             | How It's Achieved                                                       |
+| -------------------------------------- | ----------------------------------------------------------------------- |
+| 200 concurrent editors per document    | Per-document Rust process isolation; property-level conflict resolution |
+| Sub-frame latency for local edits      | Optimistic local updates; server acknowledgment is async                |
+| <1 second worst-case data loss         | DynamoDB journal with ~0.5s write frequency                             |
+| Full document recovery after crash     | Checkpoint (S3) + journal replay (DynamoDB)                             |
+| Real-time cursors for all participants | Cursor position broadcast via the same WebSocket connection             |
+| Offline editing with reconnection      | Client redownloads full state on reconnect, reapplies local changes     |
 
 ### Scale Metrics (2024)
 
@@ -433,16 +433,16 @@ The proof that this approach works is in its longevity. The 2016 conflict resolu
 
 ### Terminology
 
-| Term | Definition |
-|------|-----------|
-| **OT (Operational Transformation)** | A conflict resolution approach where concurrent operations are transformed against each other to maintain consistency. Popularized by Google Docs. |
-| **CRDT (Conflict-free Replicated Data Type)** | A data structure that can be replicated across multiple nodes and merged without coordination, guaranteeing eventual consistency. |
-| **Last-Writer-Wins (LWW)** | A conflict resolution strategy where the most recent write to a value takes precedence. Figma applies this at the property level. |
-| **Fractional Indexing** | A technique for ordering elements where each element's position is a fraction between 0 and 1, enabling insertions without reindexing siblings. |
-| **WAL (Write-Ahead Log)** | A persistence pattern where changes are written to a sequential log before being applied to the main data store, enabling crash recovery. |
-| **LiveGraph** | Figma's real-time data subscription system for non-document data (files, teams, comments), backed by PostgreSQL. |
-| **Kiwi** | Figma's custom schema-based binary serialization format, inspired by Protocol Buffers, used for the .fig file format. |
-| **Eg-walker** | Event Graph Walker — an algorithm by Gentle and Kleppmann that merges concurrent text edits using a temporary CRDT structure. Adopted by Figma for code layers in 2025. |
+| Term                                          | Definition                                                                                                                                                              |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **OT (Operational Transformation)**           | A conflict resolution approach where concurrent operations are transformed against each other to maintain consistency. Popularized by Google Docs.                      |
+| **CRDT (Conflict-free Replicated Data Type)** | A data structure that can be replicated across multiple nodes and merged without coordination, guaranteeing eventual consistency.                                       |
+| **Last-Writer-Wins (LWW)**                    | A conflict resolution strategy where the most recent write to a value takes precedence. Figma applies this at the property level.                                       |
+| **Fractional Indexing**                       | A technique for ordering elements where each element's position is a fraction between 0 and 1, enabling insertions without reindexing siblings.                         |
+| **WAL (Write-Ahead Log)**                     | A persistence pattern where changes are written to a sequential log before being applied to the main data store, enabling crash recovery.                               |
+| **LiveGraph**                                 | Figma's real-time data subscription system for non-document data (files, teams, comments), backed by PostgreSQL.                                                        |
+| **Kiwi**                                      | Figma's custom schema-based binary serialization format, inspired by Protocol Buffers, used for the .fig file format.                                                   |
+| **Eg-walker**                                 | Event Graph Walker — an algorithm by Gentle and Kleppmann that merges concurrent text edits using a temporary CRDT structure. Adopted by Figma for code layers in 2025. |
 
 ### Summary
 

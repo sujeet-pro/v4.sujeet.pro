@@ -58,14 +58,14 @@ A rate limiter maps request identifiers (user ID, API key, IP) to counters and e
 
 **Core architectural decisions:**
 
-| Decision | Choice | Rationale |
-| --- | --- | --- |
-| Algorithm | Sliding window counter | Best accuracy-to-memory ratio; Cloudflare measured 0.003% error across 400M requests |
-| Counting store | Redis Cluster with Lua scripts | Atomic operations, sub-ms latency, horizontal scaling via hash slots |
-| Rule storage | YAML config with hot reload | Declarative, version-controlled, no database dependency for rule evaluation |
-| Multi-tenancy | Hierarchical quotas (global → tenant → endpoint) | Prevents noisy neighbors while allowing per-tier customization |
-| Failure mode | Fail-open with circuit breaker | Availability over strictness—a rate limiter outage must not become an API outage |
-| Client communication | RFC 9110 `Retry-After` + IETF `RateLimit`/`RateLimit-Policy` headers | Standards-based; clients can implement backoff without guessing |
+| Decision             | Choice                                                               | Rationale                                                                            |
+| -------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Algorithm            | Sliding window counter                                               | Best accuracy-to-memory ratio; Cloudflare measured 0.003% error across 400M requests |
+| Counting store       | Redis Cluster with Lua scripts                                       | Atomic operations, sub-ms latency, horizontal scaling via hash slots                 |
+| Rule storage         | YAML config with hot reload                                          | Declarative, version-controlled, no database dependency for rule evaluation          |
+| Multi-tenancy        | Hierarchical quotas (global → tenant → endpoint)                     | Prevents noisy neighbors while allowing per-tier customization                       |
+| Failure mode         | Fail-open with circuit breaker                                       | Availability over strictness—a rate limiter outage must not become an API outage     |
+| Client communication | RFC 9110 `Retry-After` + IETF `RateLimit`/`RateLimit-Policy` headers | Standards-based; clients can implement backoff without guessing                      |
 
 **Key trade-offs accepted:**
 
@@ -85,29 +85,29 @@ A rate limiter maps request identifiers (user ID, API key, IP) to counters and e
 
 ### Functional Requirements
 
-| Requirement | Priority | Notes |
-| --- | --- | --- |
-| Per-user rate limiting | Core | Enforce request quotas per authenticated user or API key |
-| Per-IP rate limiting | Core | Protect against unauthenticated abuse |
-| Per-endpoint rate limiting | Core | Different limits for different API operations (e.g., writes vs. reads) |
-| Multi-tier quotas | Core | Free, Pro, Enterprise tiers with different limits |
-| Rate limit headers | Core | Communicate remaining quota and reset time to clients |
-| Burst allowance | Core | Allow short bursts above steady-state rate |
-| Global rate limiting | Extended | Protect backend services from total aggregate overload |
-| Concurrent request limiting | Extended | Cap in-flight requests (Stripe-style) |
-| Quota management API | Extended | CRUD operations for tenant quotas |
-| Rate limit dashboard | Extended | Real-time visibility into rate limit decisions |
+| Requirement                 | Priority | Notes                                                                  |
+| --------------------------- | -------- | ---------------------------------------------------------------------- |
+| Per-user rate limiting      | Core     | Enforce request quotas per authenticated user or API key               |
+| Per-IP rate limiting        | Core     | Protect against unauthenticated abuse                                  |
+| Per-endpoint rate limiting  | Core     | Different limits for different API operations (e.g., writes vs. reads) |
+| Multi-tier quotas           | Core     | Free, Pro, Enterprise tiers with different limits                      |
+| Rate limit headers          | Core     | Communicate remaining quota and reset time to clients                  |
+| Burst allowance             | Core     | Allow short bursts above steady-state rate                             |
+| Global rate limiting        | Extended | Protect backend services from total aggregate overload                 |
+| Concurrent request limiting | Extended | Cap in-flight requests (Stripe-style)                                  |
+| Quota management API        | Extended | CRUD operations for tenant quotas                                      |
+| Rate limit dashboard        | Extended | Real-time visibility into rate limit decisions                         |
 
 ### Non-Functional Requirements
 
-| Requirement | Target | Rationale |
-| --- | --- | --- |
-| Decision latency | p99 < 1ms (local cache hit), p99 < 5ms (Redis) | Rate check is on the critical path of every API request |
-| Availability | 99.99% (4 nines) | Rate limiter failure should not cause API failure (fail-open) |
-| Throughput | 500K decisions/second per cluster | Based on scale estimation below |
-| Accuracy | < 1% false positive rate | Wrongly blocking legitimate users is worse than letting some excess through |
-| Consistency | Approximate (eventual) | Exact global consistency is too expensive; small overcounting is acceptable |
-| Rule propagation | < 10 seconds | New or updated rules take effect within seconds |
+| Requirement      | Target                                         | Rationale                                                                   |
+| ---------------- | ---------------------------------------------- | --------------------------------------------------------------------------- |
+| Decision latency | p99 < 1ms (local cache hit), p99 < 5ms (Redis) | Rate check is on the critical path of every API request                     |
+| Availability     | 99.99% (4 nines)                               | Rate limiter failure should not cause API failure (fail-open)               |
+| Throughput       | 500K decisions/second per cluster              | Based on scale estimation below                                             |
+| Accuracy         | < 1% false positive rate                       | Wrongly blocking legitimate users is worse than letting some excess through |
+| Consistency      | Approximate (eventual)                         | Exact global consistency is too expensive; small overcounting is acceptable |
+| Rule propagation | < 10 seconds                                   | New or updated rules take effect within seconds                             |
 
 ### Scale Estimation
 
@@ -246,15 +246,15 @@ flowchart LR
 
 ### Path Comparison
 
-| Factor | Local (A) | Centralized (B) | Hybrid (C) |
-| --- | --- | --- | --- |
-| Decision latency | < 100μs | 1-5ms | < 100μs |
-| Global accuracy | Poor (per-node) | Exact | Approximate |
-| Redis dependency | None | Hard dependency | Soft dependency |
-| Operational complexity | Low | Medium | High |
-| Multi-tenant quotas | No | Yes | Partial |
-| Failure mode | Always works | Fail-open needed | Degrades gracefully |
-| Best for | Internal services | Public API platforms | High-scale edge |
+| Factor                 | Local (A)         | Centralized (B)      | Hybrid (C)          |
+| ---------------------- | ----------------- | -------------------- | ------------------- |
+| Decision latency       | < 100μs           | 1-5ms                | < 100μs             |
+| Global accuracy        | Poor (per-node)   | Exact                | Approximate         |
+| Redis dependency       | None              | Hard dependency      | Soft dependency     |
+| Operational complexity | Low               | Medium               | High                |
+| Multi-tenant quotas    | No                | Yes                  | Partial             |
+| Failure mode           | Always works      | Fail-open needed     | Degrades gracefully |
+| Best for               | Internal services | Public API platforms | High-scale edge     |
 
 ### This Article's Focus
 
@@ -280,12 +280,12 @@ Before diving into the system design, a deep understanding of the available algo
 - `bucket_size` (b): Maximum burst size. A bucket of 100 allows 100 requests in a burst.
 - `refill_rate` (r): Steady-state rate. A rate of 10/s means 10 tokens added per second.
 
-| Aspect | Value |
-| --- | --- |
-| Time complexity | O(1) per request |
+| Aspect           | Value                                              |
+| ---------------- | -------------------------------------------------- |
+| Time complexity  | O(1) per request                                   |
 | Space complexity | O(1) per key (token count + last_refill_timestamp) |
-| Accuracy | Exact for single-key decisions |
-| Burst behavior | Allows bursts up to bucket size |
+| Accuracy         | Exact for single-key decisions                     |
+| Burst behavior   | Allows bursts up to bucket size                    |
 
 **Who uses it:** AWS API Gateway (token bucket for throttling), Stripe (token bucket via Redis for request rate limiting), Amazon (internally for many services).
 
@@ -295,12 +295,12 @@ Before diving into the system design, a deep understanding of the available algo
 
 **Key distinction from token bucket:** The leaky bucket smooths output to a constant rate—it shapes traffic. The token bucket permits bursts up to bucket capacity—it polices traffic. In practice, many implementations conflate the two; the GCRA variant is mathematically equivalent to an inverted token bucket.
 
-| Aspect | Value |
-| --- | --- |
-| Time complexity | O(1) per request |
+| Aspect           | Value                                            |
+| ---------------- | ------------------------------------------------ |
+| Time complexity  | O(1) per request                                 |
 | Space complexity | O(1) per key (queue depth + last_leak_timestamp) |
-| Accuracy | Exact |
-| Burst behavior | No bursts—output is constant rate |
+| Accuracy         | Exact                                            |
+| Burst behavior   | No bursts—output is constant rate                |
 
 **Who uses it:** NGINX (`limit_req` module uses leaky bucket), HAProxy.
 
@@ -310,12 +310,12 @@ Before diving into the system design, a deep understanding of the available algo
 
 **The boundary burst problem:** A user can send the full limit at the end of window N and again at the start of window N+1, effectively doubling their rate in a short period. For a 100 req/min limit, a user could send 200 requests in a 2-second span straddling the window boundary.
 
-| Aspect | Value |
-| --- | --- |
-| Time complexity | O(1) per request |
+| Aspect           | Value                         |
+| ---------------- | ----------------------------- |
+| Time complexity  | O(1) per request              |
 | Space complexity | O(1) per key (single counter) |
-| Accuracy | Inexact at window boundaries |
-| Burst behavior | Up to 2x limit at boundary |
+| Accuracy         | Inexact at window boundaries  |
+| Burst behavior   | Up to 2x limit at boundary    |
 
 **Implementation advantage:** Trivially implemented with Redis `INCR` + `EXPIRE`—both operations are atomic, no Lua scripting needed.
 
@@ -325,12 +325,12 @@ Before diving into the system design, a deep understanding of the available algo
 
 **The memory problem:** At 500 requests/day per user across 10K users, this stores 5M timestamps in Redis. Figma estimated ~20 MB for this scenario alone, making it impractical at scale.
 
-| Aspect | Value |
-| --- | --- |
-| Time complexity | O(n) worst case (removing expired entries), amortized O(log n) |
-| Space complexity | O(n) per key (one entry per request within window) |
-| Accuracy | Exact—no boundary artifacts |
-| Burst behavior | Exact enforcement, no boundary issues |
+| Aspect           | Value                                                          |
+| ---------------- | -------------------------------------------------------------- |
+| Time complexity  | O(n) worst case (removing expired entries), amortized O(log n) |
+| Space complexity | O(n) per key (one entry per request within window)             |
+| Accuracy         | Exact—no boundary artifacts                                    |
+| Burst behavior   | Exact enforcement, no boundary issues                          |
 
 ### Sliding Window Counter (Chosen)
 
@@ -344,24 +344,24 @@ This approximation smooths the boundary burst problem while maintaining O(1) mem
 
 **Figma's variant (2017):** Instead of two large windows, use many small sub-windows (1/60th of the rate limit window). For an hourly limit, increment per-minute counters and sum the last 60. This reduces approximation error further.
 
-| Aspect | Value |
-| --- | --- |
-| Time complexity | O(1) per request |
-| Space complexity | O(1) per key (two counters) or O(k) for k sub-windows |
-| Accuracy | ~0.003% error (Cloudflare measurement across 400M requests) |
-| Burst behavior | Smoothed—no boundary doubling |
+| Aspect           | Value                                                       |
+| ---------------- | ----------------------------------------------------------- |
+| Time complexity  | O(1) per request                                            |
+| Space complexity | O(1) per key (two counters) or O(k) for k sub-windows       |
+| Accuracy         | ~0.003% error (Cloudflare measurement across 400M requests) |
+| Burst behavior   | Smoothed—no boundary doubling                               |
 
 **Why this algorithm:** The sliding window counter is the best trade-off for a distributed rate limiter. It eliminates the boundary burst problem of fixed windows, uses constant memory (unlike sliding window log), and Cloudflare's production measurement of 0.003% error across 400M requests validates its accuracy at scale.
 
 ### Algorithm Comparison
 
-| Algorithm | Memory per key | Accuracy | Burst handling | Distributed complexity | Best for |
-| --- | --- | --- | --- | --- | --- |
-| Token bucket | O(1) — 2 values | Exact (single node) | Configurable burst | Lua script needed | Burst-tolerant APIs |
-| Leaky bucket | O(1) — 2 values | Exact | No bursts (smooth) | Lua script needed | Traffic shaping |
-| Fixed window | O(1) — 1 counter | Boundary artifacts | 2x at boundary | Atomic INCR | Simple, high-scale |
-| Sliding window log | O(n) — all timestamps | Exact | Exact | Sorted set ops | Low-volume, exact billing |
-| **Sliding window counter** | **O(1) — 2 counters** | **~99.997%** | **Smoothed** | **Atomic INCR** | **General-purpose** |
+| Algorithm                  | Memory per key        | Accuracy            | Burst handling     | Distributed complexity | Best for                  |
+| -------------------------- | --------------------- | ------------------- | ------------------ | ---------------------- | ------------------------- |
+| Token bucket               | O(1) — 2 values       | Exact (single node) | Configurable burst | Lua script needed      | Burst-tolerant APIs       |
+| Leaky bucket               | O(1) — 2 values       | Exact               | No bursts (smooth) | Lua script needed      | Traffic shaping           |
+| Fixed window               | O(1) — 1 counter      | Boundary artifacts  | 2x at boundary     | Atomic INCR            | Simple, high-scale        |
+| Sliding window log         | O(n) — all timestamps | Exact               | Exact              | Sorted set ops         | Low-volume, exact billing |
+| **Sliding window counter** | **O(1) — 2 counters** | **~99.997%**        | **Smoothed**       | **Atomic INCR**        | **General-purpose**       |
 
 ## High-Level Design
 
@@ -471,12 +471,12 @@ The core component. Stateless—all state lives in Redis and configuration.
 
 **Design decisions:**
 
-| Decision | Choice | Rationale |
-| --- | --- | --- |
-| Protocol | gRPC (Envoy `rls.proto`) | Low overhead, schema-enforced, streaming support, ecosystem compatibility |
-| Statefulness | Stateless (counters in Redis, rules in config) | Horizontal scaling without coordination between instances |
+| Decision        | Choice                                              | Rationale                                                                 |
+| --------------- | --------------------------------------------------- | ------------------------------------------------------------------------- |
+| Protocol        | gRPC (Envoy `rls.proto`)                            | Low overhead, schema-enforced, streaming support, ecosystem compatibility |
+| Statefulness    | Stateless (counters in Redis, rules in config)      | Horizontal scaling without coordination between instances                 |
 | Rule evaluation | All matching rules evaluated, most restrictive wins | Prevents circumventing a per-endpoint limit via a generous per-user limit |
-| Failure mode | Fail-open (return ALLOW on any error) | Stripe's approach: catch exceptions at all levels so errors fail open |
+| Failure mode    | Fail-open (return ALLOW on any error)               | Stripe's approach: catch exceptions at all levels so errors fail open     |
 
 ### Rule Configuration
 
@@ -492,14 +492,14 @@ descriptors:
   - key: api_key
     rate_limit:
       unit: minute
-      requests_per_unit: 100  # Default (free tier)
+      requests_per_unit: 100 # Default (free tier)
     descriptors:
       # Per-endpoint within API key
       - key: endpoint
         value: "POST /api/v1/orders"
         rate_limit:
           unit: minute
-          requests_per_unit: 20  # Write-heavy endpoint, lower limit
+          requests_per_unit: 20 # Write-heavy endpoint, lower limit
 
   # Per-IP rate limit (unauthenticated)
   - key: remote_address
@@ -533,14 +533,12 @@ descriptors:
   "descriptors": [
     {
       "entries": [
-        {"key": "api_key", "value": "abc123"},
-        {"key": "endpoint", "value": "POST /api/v1/orders"}
+        { "key": "api_key", "value": "abc123" },
+        { "key": "endpoint", "value": "POST /api/v1/orders" }
       ]
     },
     {
-      "entries": [
-        {"key": "remote_address", "value": "192.168.1.100"}
-      ]
+      "entries": [{ "key": "remote_address", "value": "192.168.1.100" }]
     }
   ],
   "hits_addend": 1
@@ -596,6 +594,7 @@ Retry-After: 42
 ```
 
 The IETF `RateLimit` header uses Structured Fields (RFC 8941) with parameters:
+
 - `q`: quota allocated (requests per window)
 - `w`: window size in seconds
 - `r`: remaining requests
@@ -650,7 +649,7 @@ RateLimit: "writes";r=0;t=42
   "api_key": "abc123",
   "tier": "enterprise",
   "quotas": {
-    "default": {"requests_per_unit": 5000, "unit": "minute"},
+    "default": { "requests_per_unit": 5000, "unit": "minute" },
     "overrides": [
       {
         "descriptor": "endpoint:POST /api/v1/orders",
@@ -675,8 +674,8 @@ RateLimit: "writes";r=0;t=42
     "end": "2025-01-15T10:31:00Z"
   },
   "usage": {
-    "default": {"used": 53, "limit": 5000, "remaining": 4947},
-    "endpoint:POST /api/v1/orders": {"used": 18, "limit": 500, "remaining": 482}
+    "default": { "used": 53, "limit": 5000, "remaining": 4947 },
+    "endpoint:POST /api/v1/orders": { "used": 18, "limit": 500, "remaining": 482 }
   }
 }
 ```
@@ -746,14 +745,14 @@ CREATE INDEX idx_quota_tier ON quota_overrides(tier);
 
 ### Data Store Selection
 
-| Data Type | Store | Rationale |
-| --- | --- | --- |
-| Rate limit counters | Redis Cluster | Atomic increments, sub-ms latency, TTL-based expiration |
-| Rule configuration | YAML files (mounted volume) | Version-controlled, no DB dependency, hot-reloadable |
-| Quota overrides | PostgreSQL | ACID for billing-critical quota changes, admin queries |
-| Quota cache | In-memory (rate limit service) | Avoids DB lookup per request; refresh every 30s |
-| Metrics | Prometheus TSDB | Time-series optimized, Grafana integration |
-| Audit log | Append-only log (Kafka → S3) | Compliance, debugging quota disputes |
+| Data Type           | Store                          | Rationale                                               |
+| ------------------- | ------------------------------ | ------------------------------------------------------- |
+| Rate limit counters | Redis Cluster                  | Atomic increments, sub-ms latency, TTL-based expiration |
+| Rule configuration  | YAML files (mounted volume)    | Version-controlled, no DB dependency, hot-reloadable    |
+| Quota overrides     | PostgreSQL                     | ACID for billing-critical quota changes, admin queries  |
+| Quota cache         | In-memory (rate limit service) | Avoids DB lookup per request; refresh every 30s         |
+| Metrics             | Prometheus TSDB                | Time-series optimized, Grafana integration              |
+| Audit log           | Append-only log (Kafka → S3)   | Compliance, debugging quota disputes                    |
 
 ## Low-Level Design
 
@@ -967,13 +966,13 @@ stateDiagram-v2
 
 **Key dashboard panels:**
 
-| Panel | Data Source | Purpose |
-| --- | --- | --- |
-| Decisions/sec (allow vs deny) | `ratelimit_decisions_total` | Traffic health |
-| Top 10 rate-limited keys | `ratelimit_denied_total` by key | Identify abusers |
-| Quota utilization by tier | `ratelimit_remaining` | Capacity planning |
-| p99 decision latency | `ratelimit_check_duration_seconds` | SLA monitoring |
-| Circuit breaker state | `ratelimit_circuit_state` | Failure detection |
+| Panel                         | Data Source                        | Purpose           |
+| ----------------------------- | ---------------------------------- | ----------------- |
+| Decisions/sec (allow vs deny) | `ratelimit_decisions_total`        | Traffic health    |
+| Top 10 rate-limited keys      | `ratelimit_denied_total` by key    | Identify abusers  |
+| Quota utilization by tier     | `ratelimit_remaining`              | Capacity planning |
+| p99 decision latency          | `ratelimit_check_duration_seconds` | SLA monitoring    |
+| Circuit breaker state         | `ratelimit_circuit_state`          | Failure detection |
 
 ### Client-Side Rate Limit Handling
 
@@ -997,9 +996,7 @@ function parseRateLimitHeaders(headers: Headers): RateLimitInfo {
     limit: parseInt(headers.get("X-RateLimit-Limit") ?? "0"),
     remaining: parseInt(headers.get("X-RateLimit-Remaining") ?? "0"),
     resetAt: new Date(parseInt(headers.get("X-RateLimit-Reset") ?? "0") * 1000),
-    retryAfter: headers.has("Retry-After")
-      ? parseInt(headers.get("Retry-After")!)
-      : null,
+    retryAfter: headers.has("Retry-After") ? parseInt(headers.get("Retry-After")!) : null,
   }
 }
 
@@ -1008,12 +1005,10 @@ async function fetchWithRateLimit(url: string, options?: RequestInit): Promise<R
 
   if (response.status === 429) {
     const info = parseRateLimitHeaders(response.headers)
-    const delay = info.retryAfter
-      ? info.retryAfter * 1000
-      : Math.min(60000, 1000 * Math.pow(2, retryCount))
+    const delay = info.retryAfter ? info.retryAfter * 1000 : Math.min(60000, 1000 * Math.pow(2, retryCount))
 
     await sleep(delay)
-    return fetchWithRateLimit(url, options)  // Retry
+    return fetchWithRateLimit(url, options) // Retry
   }
 
   return response
@@ -1069,31 +1064,31 @@ async function fetchWithRateLimit(url: string, options?: RequestInit): Promise<R
 
 #### Compute
 
-| Component | Service | Configuration |
-| --- | --- | --- |
-| Rate limit service | ECS Fargate | Auto-scaling 3-20 tasks, 1 vCPU / 2 GB each |
-| API Gateway nodes | ECS Fargate / EKS | Co-located with application services |
-| Quota management API | ECS Fargate | 2-4 tasks (low traffic admin API) |
-| Config sync | Lambda (scheduled) | Pull config from S3, validate, deploy |
+| Component            | Service            | Configuration                               |
+| -------------------- | ------------------ | ------------------------------------------- |
+| Rate limit service   | ECS Fargate        | Auto-scaling 3-20 tasks, 1 vCPU / 2 GB each |
+| API Gateway nodes    | ECS Fargate / EKS  | Co-located with application services        |
+| Quota management API | ECS Fargate        | 2-4 tasks (low traffic admin API)           |
+| Config sync          | Lambda (scheduled) | Pull config from S3, validate, deploy       |
 
 #### Data Stores
 
-| Data | Service | Rationale |
-| --- | --- | --- |
-| Rate limit counters | ElastiCache Redis Cluster | Sub-ms latency, cluster mode, Multi-AZ |
-| Quota overrides | RDS PostgreSQL (Multi-AZ) | ACID, managed backups, admin queries |
-| Rule configuration | S3 + EFS mount | Version-controlled, mounted into service containers |
-| Metrics | Amazon Managed Prometheus | Managed TSDB, Grafana integration |
-| Audit logs | Kinesis → S3 | Streaming ingest, long-term archival |
+| Data                | Service                   | Rationale                                           |
+| ------------------- | ------------------------- | --------------------------------------------------- |
+| Rate limit counters | ElastiCache Redis Cluster | Sub-ms latency, cluster mode, Multi-AZ              |
+| Quota overrides     | RDS PostgreSQL (Multi-AZ) | ACID, managed backups, admin queries                |
+| Rule configuration  | S3 + EFS mount            | Version-controlled, mounted into service containers |
+| Metrics             | Amazon Managed Prometheus | Managed TSDB, Grafana integration                   |
+| Audit logs          | Kinesis → S3              | Streaming ingest, long-term archival                |
 
 #### Self-Hosted Alternatives
 
-| Managed Service | Self-Hosted Option | When to self-host |
-| --- | --- | --- |
-| ElastiCache Redis | Redis Cluster on EC2 | Cost at scale, specific modules (redis-cell) |
-| RDS PostgreSQL | PostgreSQL on EC2 | Specific extensions, cost optimization |
-| ECS Fargate | Kubernetes (EKS/k3s) | Existing K8s infrastructure, multi-cloud |
-| Managed Prometheus | Victoria Metrics | Cost at high cardinality, long retention |
+| Managed Service    | Self-Hosted Option   | When to self-host                            |
+| ------------------ | -------------------- | -------------------------------------------- |
+| ElastiCache Redis  | Redis Cluster on EC2 | Cost at scale, specific modules (redis-cell) |
+| RDS PostgreSQL     | PostgreSQL on EC2    | Specific extensions, cost optimization       |
+| ECS Fargate        | Kubernetes (EKS/k3s) | Existing K8s infrastructure, multi-cloud     |
+| Managed Prometheus | Victoria Metrics     | Cost at high cardinality, long retention     |
 
 ### Production Deployment
 
@@ -1199,18 +1194,18 @@ The rate limiter design centers on three decisions that cascade through the arch
 
 ### Terminology
 
-| Term | Definition |
-| --- | --- |
-| Token bucket | Rate limiting algorithm where tokens are added at a fixed rate and consumed per request; allows bursts up to bucket capacity |
-| Leaky bucket | Traffic shaping algorithm that processes requests at a constant output rate, smoothing bursts |
-| GCRA | Generic Cell Rate Algorithm—mathematically equivalent to token bucket, tracks a single Theoretical Arrival Time (TAT) value |
+| Term                   | Definition                                                                                                                   |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Token bucket           | Rate limiting algorithm where tokens are added at a fixed rate and consumed per request; allows bursts up to bucket capacity |
+| Leaky bucket           | Traffic shaping algorithm that processes requests at a constant output rate, smoothing bursts                                |
+| GCRA                   | Generic Cell Rate Algorithm—mathematically equivalent to token bucket, tracks a single Theoretical Arrival Time (TAT) value  |
 | Sliding window counter | Approximation algorithm using weighted interpolation between two fixed window counters to eliminate boundary burst artifacts |
-| Fail-open | Failure mode where the rate limiter allows all traffic when its backing store is unavailable |
-| Circuit breaker | Pattern that detects failures and temporarily bypasses a failing dependency, with automatic recovery probes |
-| Descriptor | Key-value pair identifying a rate limit dimension (e.g., `api_key=abc123`, `endpoint=POST /orders`) |
-| Shadow mode | Deployment mode where rate limit rules execute (update counters, emit metrics) but always return ALLOW |
-| PoP | Point of Presence—a geographic location where edge servers process traffic |
-| TAT | Theoretical Arrival Time—the core tracking value in GCRA; represents the earliest acceptable time for the next request |
+| Fail-open              | Failure mode where the rate limiter allows all traffic when its backing store is unavailable                                 |
+| Circuit breaker        | Pattern that detects failures and temporarily bypasses a failing dependency, with automatic recovery probes                  |
+| Descriptor             | Key-value pair identifying a rate limit dimension (e.g., `api_key=abc123`, `endpoint=POST /orders`)                          |
+| Shadow mode            | Deployment mode where rate limit rules execute (update counters, emit metrics) but always return ALLOW                       |
+| PoP                    | Point of Presence—a geographic location where edge servers process traffic                                                   |
+| TAT                    | Theoretical Arrival Time—the core tracking value in GCRA; represents the earliest acceptable time for the next request       |
 
 ### Summary
 

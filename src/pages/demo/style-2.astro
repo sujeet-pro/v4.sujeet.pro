@@ -25,7 +25,6 @@ const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
 
 <Layout title="Sujeet Jaiswal — Principal Software Engineer" description={profile.bio} crumbs={null} pageType="default">
   <div class="ix-page">
-
     <!-- Header block -->
     <header class="ix-header">
       <div class="ix-identity">
@@ -50,63 +49,72 @@ const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
     <section class="ix-section">
       <div class="ix-section-head">
         <h2 class="ix-section-title">Knowledge Hub</h2>
-        <span class="ix-section-count">{totalArticles}+ articles · {categories.length} categories · {totalTopics} topics</span>
+        <span class="ix-section-count"
+          >{totalArticles}+ articles · {categories.length} categories · {totalTopics} topics</span
+        >
       </div>
-      <p class="ix-section-desc">
-        Deep-dive articles for engineers who want to understand how things actually work.
-      </p>
+      <p class="ix-section-desc">Deep-dive articles for engineers who want to understand how things actually work.</p>
 
       <div class="ix-directory">
-        {categories.map((category, index) => (
-          <div class="ix-row" style={`animation-delay: ${index * 60}ms`}>
-            <div class="ix-row-line"></div>
-            <div class="ix-row-content">
-              <div class="ix-row-header">
-                <h3 class="ix-row-name">
-                  <Link href={category.href} class="ix-row-link">{category.name}</Link>
-                </h3>
-                <span class="ix-row-count">{category.articleCount}</span>
+        {
+          categories.map((category, index) => (
+            <div class="ix-row" style={`animation-delay: ${index * 60}ms`}>
+              <div class="ix-row-line" />
+              <div class="ix-row-content">
+                <div class="ix-row-header">
+                  <h3 class="ix-row-name">
+                    <Link href={category.href} class="ix-row-link">
+                      {category.name}
+                    </Link>
+                  </h3>
+                  <span class="ix-row-count">{category.articleCount}</span>
+                </div>
+                <p class="ix-row-topics">
+                  {category.topics.map((topic, i) => (
+                    <>
+                      <Link href={topic.href} class="ix-topic-link">
+                        {topic.name}
+                      </Link>
+                      {i < category.topics.length - 1 && ", "}
+                    </>
+                  ))}
+                </p>
               </div>
-              <p class="ix-row-topics">
-                {category.topics.map((topic, i) => (
-                  <>
-                    <Link href={topic.href} class="ix-topic-link">{topic.name}</Link>
-                    {i < category.topics.length - 1 && ", "}
-                  </>
-                ))}
-              </p>
             </div>
-          </div>
-        ))}
+          ))
+        }
       </div>
     </section>
 
     <div class="ix-divider ix-divider--double"></div>
 
     <!-- Featured Reads -->
-    {featuredArticles.length > 0 && (
-      <section class="ix-section">
-        <div class="ix-section-head">
-          <h2 class="ix-section-title">Featured Reads</h2>
-        </div>
+    {
+      featuredArticles.length > 0 && (
+        <section class="ix-section">
+          <div class="ix-section-head">
+            <h2 class="ix-section-title">Featured Reads</h2>
+          </div>
 
-        <ul class="ix-reads">
-          {featuredArticles.map((article, index) => (
-            <li class="ix-read" style={`animation-delay: ${index * 50}ms`}>
-              <span class="ix-read-arrow">&rarr;</span>
-              <div class="ix-read-content">
-                <Link href={article.href} class="ix-read-title">{article.title}</Link>
-                <span class="ix-read-meta">
-                  {article.topic.name}
-                  {article.minutesRead && <> · {article.minutesRead}</>}
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </section>
-    )}
-
+          <ul class="ix-reads">
+            {featuredArticles.map((article, index) => (
+              <li class="ix-read" style={`animation-delay: ${index * 50}ms`}>
+                <span class="ix-read-arrow">&rarr;</span>
+                <div class="ix-read-content">
+                  <Link href={article.href} class="ix-read-title">
+                    {article.title}
+                  </Link>
+                  <span class="ix-read-meta">
+                    {article.topic.name}
+                    {article.minutesRead && <> · {article.minutesRead}</>}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
   </div>
 </Layout>
 

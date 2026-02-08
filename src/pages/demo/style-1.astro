@@ -26,7 +26,6 @@ const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
 
 <Layout title="Sujeet Jaiswal — Principal Software Engineer" description={profile.bio} crumbs={null} pageType="default">
   <div class="ed-page">
-
     <!-- Masthead -->
     <header class="ed-masthead">
       <p class="ed-dateline">sujeet.pro</p>
@@ -39,9 +38,8 @@ const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
     <!-- Intro -->
     <section class="ed-intro">
       <p class="ed-intro-text">
-        I build frontend architecture, design systems, and end-to-end systems at scale.
-        This site is where I publish deep-dive articles on the things I care about
-        most — performance, reliability, and elegant systems.
+        I build frontend architecture, design systems, and end-to-end systems at scale. This site is where I publish
+        deep-dive articles on the things I care about most — performance, reliability, and elegant systems.
       </p>
       <div class="ed-intro-actions">
         <Link href={social.linkedin.url} class="ed-action-link">LinkedIn</Link>
@@ -66,54 +64,65 @@ const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
       </p>
 
       <div class="ed-categories">
-        {categories.map((category) => (
-          <article class="ed-category">
-            <h3 class="ed-category-name">
-              <Link href={category.href} class="ed-category-link">{category.name}</Link>
-            </h3>
-            <p class="ed-category-count">{formatCount(category.articleCount, "article")}</p>
-            <p class="ed-category-topics">
-              {category.topics.map((topic, i) => (
-                <>
-                  <Link href={topic.href} class="ed-topic-link">{topic.name}</Link>
-                  {i < category.topics.length - 1 && <span class="ed-topic-sep"> · </span>}
-                </>
-              ))}
-            </p>
-          </article>
-        ))}
+        {
+          categories.map((category) => (
+            <article class="ed-category">
+              <h3 class="ed-category-name">
+                <Link href={category.href} class="ed-category-link">
+                  {category.name}
+                </Link>
+              </h3>
+              <p class="ed-category-count">{formatCount(category.articleCount, "article")}</p>
+              <p class="ed-category-topics">
+                {category.topics.map((topic, i) => (
+                  <>
+                    <Link href={topic.href} class="ed-topic-link">
+                      {topic.name}
+                    </Link>
+                    {i < category.topics.length - 1 && <span class="ed-topic-sep"> · </span>}
+                  </>
+                ))}
+              </p>
+            </article>
+          ))
+        }
       </div>
     </section>
 
     <hr class="ed-rule" />
 
     <!-- Featured Articles -->
-    {featuredArticles.length > 0 && (
-      <section class="ed-section">
-        <div class="ed-section-label">
-          <span class="ed-label-text">Featured Articles</span>
-        </div>
-        <div class="ed-section-header">
-          <p class="ed-section-subtitle">Hand-picked reads</p>
-          <Link href="/articles" class="ed-more-link">All articles &rarr;</Link>
-        </div>
+    {
+      featuredArticles.length > 0 && (
+        <section class="ed-section">
+          <div class="ed-section-label">
+            <span class="ed-label-text">Featured Articles</span>
+          </div>
+          <div class="ed-section-header">
+            <p class="ed-section-subtitle">Hand-picked reads</p>
+            <Link href="/articles" class="ed-more-link">
+              All articles &rarr;
+            </Link>
+          </div>
 
-        <ul class="ed-articles">
-          {featuredArticles.map((article, index) => (
-            <li class="ed-article" style={`animation-delay: ${index * 80}ms`}>
-              <h3 class="ed-article-title">
-                <Link href={article.href} class="ed-article-link">{article.title}</Link>
-              </h3>
-              <span class="ed-article-meta">
-                {article.category.name} · {article.topic.name}
-                {article.minutesRead && <> · {article.minutesRead}</>}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
-    )}
-
+          <ul class="ed-articles">
+            {featuredArticles.map((article, index) => (
+              <li class="ed-article" style={`animation-delay: ${index * 80}ms`}>
+                <h3 class="ed-article-title">
+                  <Link href={article.href} class="ed-article-link">
+                    {article.title}
+                  </Link>
+                </h3>
+                <span class="ed-article-meta">
+                  {article.category.name} · {article.topic.name}
+                  {article.minutesRead && <> · {article.minutesRead}</>}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
   </div>
 </Layout>
 

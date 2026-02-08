@@ -5,15 +5,17 @@ export type Props = {
   title: string
   description: string
   image?: string | undefined
-  pageType: "default" | "article"
+  pageType?: "default" | "article" | "blog" | "project" | "listing" | "browse"
+  category?: string | undefined
+  topic?: string | undefined
 }
 
 const siteConfig = await getSiteConfig()
 const defaultDescription = "Sujeet's personal website - Blog and Portfolio"
-const { description, image, pageType = "default" } = Astro.props
+const { description, image, pageType = "default", category, topic } = Astro.props
 const title = Astro.props.title ? `${Astro.props.title} - ${siteConfig.name}` : siteConfig.name
 const canonicalURL = siteConfig.origin + Astro.url.pathname
-const seoPageType = pageType === "default" ? "website" : "article"
+const seoPageType = pageType === "article" || pageType === "blog" || pageType === "project" ? "article" : "website"
 ---
 
 <!-- Canonical URL -->
@@ -33,3 +35,7 @@ const seoPageType = pageType === "default" ? "website" : "article"
 <!-- Twitter / X -->
 <meta name="twitter:site" content={siteConfig.social.twitter.handle} />
 <meta name="twitter:card" content="summary_large_image" />
+
+<!-- DocSearch facets -->
+{category && <meta name="docsearch:category" content={category} />}
+{topic && <meta name="docsearch:topic" content={topic} />}

@@ -11,7 +11,6 @@ import Layout from "@/layout/layout.astro"
 import Link from "@/components/ui/link.astro"
 import { getCategoryHierarchy, getFeaturedArticlesCards } from "@/utils/content"
 import { getSocialLinks } from "@/utils/site.utils"
-import { formatCount } from "@/utils/format.utils"
 
 const homeEntry = await getEntry("home", "home")
 if (!homeEntry) throw new Error("Home page content not found.")
@@ -37,14 +36,13 @@ const categoryTaglines: Record<string, string> = {
 
 <Layout title="Sujeet Jaiswal — Principal Software Engineer" description={profile.bio} crumbs={null} pageType="default">
   <div class="db-page">
-
     <!-- Header -->
     <header class="db-header">
       <h1 class="db-name">{profile.name}</h1>
       <p class="db-subtitle">{profile.title}</p>
       <p class="db-desc">
-        Deep-dive technical articles on system design, browser internals,
-        frontend architecture, and everything in between.
+        Deep-dive technical articles on system design, browser internals, frontend architecture, and everything in
+        between.
       </p>
       <nav class="db-nav">
         <Link href={social.linkedin.url} class="db-nav-item">LinkedIn</Link>
@@ -79,50 +77,54 @@ const categoryTaglines: Record<string, string> = {
       </div>
 
       <div class="db-grid">
-        {categories.map((category, index) => (
-          <a href={category.href} class="db-card" style={`animation-delay: ${index * 70}ms`}>
-            <div class="db-card-head">
-              <h3 class="db-card-name">{category.name}</h3>
-              <span class="db-card-counts">
-                {category.topics.length} {category.topics.length === 1 ? "topic" : "topics"} · {category.articleCount} articles
-              </span>
-            </div>
-            <p class="db-card-desc">
-              {categoryTaglines[category.id] || category.description}
-            </p>
-            <span class="db-card-arrow">&rarr;</span>
-          </a>
-        ))}
+        {
+          categories.map((category, index) => (
+            <a href={category.href} class="db-card" style={`animation-delay: ${index * 70}ms`}>
+              <div class="db-card-head">
+                <h3 class="db-card-name">{category.name}</h3>
+                <span class="db-card-counts">
+                  {category.topics.length} {category.topics.length === 1 ? "topic" : "topics"} · {category.articleCount}{" "}
+                  articles
+                </span>
+              </div>
+              <p class="db-card-desc">{categoryTaglines[category.id] || category.description}</p>
+              <span class="db-card-arrow">&rarr;</span>
+            </a>
+          ))
+        }
       </div>
     </section>
 
     <!-- Featured Articles -->
-    {featuredArticles.length > 0 && (
-      <section class="db-section">
-        <div class="db-section-head">
-          <h2 class="db-section-title">Featured Articles</h2>
-          <Link href="/articles" class="db-section-link">All articles &rarr;</Link>
-        </div>
+    {
+      featuredArticles.length > 0 && (
+        <section class="db-section">
+          <div class="db-section-head">
+            <h2 class="db-section-title">Featured Articles</h2>
+            <Link href="/articles" class="db-section-link">
+              All articles &rarr;
+            </Link>
+          </div>
 
-        <ul class="db-articles">
-          {featuredArticles.map((article, index) => (
-            <li class="db-article" style={`animation-delay: ${index * 60}ms`}>
-              <h3 class="db-article-title">
-                <Link href={article.href} class="db-article-link">{article.title}</Link>
-              </h3>
-              <span class="db-article-meta">
-                {article.category.name} · {article.topic.name}
-                {article.minutesRead && <> · {article.minutesRead}</>}
-              </span>
-              {article.description && (
-                <p class="db-article-excerpt">{article.description}</p>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
-    )}
-
+          <ul class="db-articles">
+            {featuredArticles.map((article, index) => (
+              <li class="db-article" style={`animation-delay: ${index * 60}ms`}>
+                <h3 class="db-article-title">
+                  <Link href={article.href} class="db-article-link">
+                    {article.title}
+                  </Link>
+                </h3>
+                <span class="db-article-meta">
+                  {article.category.name} · {article.topic.name}
+                  {article.minutesRead && <> · {article.minutesRead}</>}
+                </span>
+                {article.description && <p class="db-article-excerpt">{article.description}</p>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
   </div>
 </Layout>
 
@@ -320,7 +322,7 @@ const categoryTaglines: Record<string, string> = {
   }
 
   .db-card-arrow {
-    @apply absolute right-4 top-5;
+    @apply absolute top-5 right-4;
     font-family: var(--font-mono);
     font-size: 16px;
     color: var(--color-text);

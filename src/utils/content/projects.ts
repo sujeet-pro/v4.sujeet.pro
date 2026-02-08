@@ -6,8 +6,8 @@
  */
 
 import { getCollection, render } from "astro:content"
-import { parseFrontmatter } from "./helpers"
 import { filterDrafts } from "./drafts"
+import { parseFrontmatter } from "./helpers"
 import { getOrdering } from "./ordering"
 import { sortByOrdering } from "./sorting"
 import type { ProjectCardInfo, ProjectItem, ProjectItemWithoutContent } from "./types"

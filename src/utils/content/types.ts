@@ -208,8 +208,8 @@ export interface BlogItem {
   description: string
   minutesRead: string
   isDraft: boolean
-  publishedOn?: string
-  lastUpdatedOn?: string
+  publishedOn?: string | undefined
+  lastUpdatedOn?: string | undefined
   archived: boolean
   tags: string[]
   href: string
@@ -224,8 +224,8 @@ export interface BlogCardInfo {
   description: string
   href: string
   minutesRead: string
-  publishedOn?: string
-  lastUpdatedOn?: string
+  publishedOn?: string | undefined
+  lastUpdatedOn?: string | undefined
   tags: string[]
   isDraft: boolean
 }
@@ -240,8 +240,8 @@ export interface ProjectItem {
   description: string
   minutesRead: string
   isDraft: boolean
-  gitRepo?: string
-  demoUrl?: string
+  gitRepo?: string | undefined
+  demoUrl?: string | undefined
   tags: string[]
   href: string
   Content: RenderResult["Content"]
@@ -255,8 +255,8 @@ export interface ProjectCardInfo {
   description: string
   href: string
   minutesRead: string
-  gitRepo?: string
-  demoUrl?: string
+  gitRepo?: string | undefined
+  demoUrl?: string | undefined
   tags: string[]
   isDraft: boolean
 }

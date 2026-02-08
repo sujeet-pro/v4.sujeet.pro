@@ -63,8 +63,8 @@
 /* Focus: Accessibility focus styles, sr-only, skip link */
 @import "./focus.css";
 
-/* Search: Search page component styles (from global) */
-@import "./search-page.css";
+/* DocSearch: Algolia DocSearch theme integration */
+@import "./docsearch.css";
 
 /* Floating: Floating action buttons */
 @import "./floating.css";

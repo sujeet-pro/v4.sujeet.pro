@@ -2,14 +2,10 @@ export function initScrollSpy() {
   const main = document.getElementById("main")
   if (!main) return
 
-  const headings = Array.from(
-    main.querySelectorAll<HTMLElement>("h2[id], h3[id]")
-  )
+  const headings = Array.from(main.querySelectorAll<HTMLElement>("h2[id], h3[id]"))
   if (headings.length === 0) return
 
-  const tocLinks = document.querySelectorAll<HTMLAnchorElement>(
-    "#right-sidebar .sidebar-toc-item"
-  )
+  const tocLinks = document.querySelectorAll<HTMLAnchorElement>("#right-sidebar .sidebar-toc-item")
   if (tocLinks.length === 0) return
 
   // Build a map from heading id to TOC link
@@ -60,7 +56,7 @@ export function initScrollSpy() {
     },
     {
       rootMargin: "-80px 0px -75% 0px",
-    }
+    },
   )
 
   headings.forEach((h) => observer.observe(h))
@@ -71,6 +67,6 @@ export function initScrollSpy() {
     () => {
       observer.disconnect()
     },
-    { once: true }
+    { once: true },
   )
 }

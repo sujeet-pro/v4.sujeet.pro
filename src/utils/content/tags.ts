@@ -5,10 +5,9 @@
  * Provides tag listing and content-by-tag lookups.
  */
 
-import { getAllArticleCards } from "./cards"
 import { getAllBlogCards } from "./blogs"
 import { getAllProjectCards } from "./projects"
-import type { ArticleCardInfo, BlogCardInfo, ProjectCardInfo, TagInfo } from "./types"
+import type { TagInfo } from "./types"
 
 // =============================================================================
 // Tag Normalization
@@ -54,10 +53,7 @@ async function buildTagMap(): Promise<Map<string, TagInfo>> {
     return info
   }
 
-  // Collect article tags
-  const articles = await getAllArticleCards()
-  // Articles don't have tags field on ArticleCardInfo yet, but we'll handle
-  // them via the tag field if present. For now articles use category/topic.
+  // Articles don't have tags field on ArticleCardInfo yet.
   // Tags will be populated when articles actually have tags set.
 
   // Collect blog tags

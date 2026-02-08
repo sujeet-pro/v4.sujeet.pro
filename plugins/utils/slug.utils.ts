@@ -12,8 +12,6 @@ import path from "node:path"
  *   Topic: content/articles/<category>/<topic>/README.md → <category>/<topic>
  */
 export function getSlug(filePath: string): string {
-  const contentFolder = path.resolve("./content")
-
   // All files should be README.md
   if (!filePath.endsWith("README.md")) {
     throw new Error(`Expected README.md file: ${filePath}`)

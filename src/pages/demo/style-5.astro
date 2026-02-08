@@ -23,13 +23,13 @@ const social = await getSocialLinks()
 const categories = await getCategoryHierarchy()
 const featuredArticles = await getFeaturedArticlesCards()
 const featuredTopics = await getFeaturedTopics()
+const featuredTopic = featuredTopics[0]
 const totalArticles = categories.reduce((sum, cat) => sum + cat.articleCount, 0)
 const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
 ---
 
 <Layout title="Sujeet Jaiswal — Principal Software Engineer" description={profile.bio} crumbs={null} pageType="default">
   <div class="bs-page">
-
     <!-- Compact Profile -->
     <header class="bs-header">
       <div class="bs-profile">
@@ -38,8 +38,8 @@ const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
           <h1 class="bs-name">{profile.name}</h1>
           <p class="bs-role">{profile.title}</p>
           <p class="bs-bio">
-            Frontend architecture, design systems, and end-to-end system design.
-            Emphasis on scale, reliability, and performance.
+            Frontend architecture, design systems, and end-to-end system design. Emphasis on scale, reliability, and
+            performance.
           </p>
           <nav class="bs-links">
             <Link href={social.linkedin.url} class="bs-link">LinkedIn</Link>
@@ -57,39 +57,52 @@ const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
       <div class="bs-hub-rule"></div>
       <div class="bs-hub-header">
         <h2 class="bs-hub-title">Knowledge Hub</h2>
-        <span class="bs-hub-stats">{totalArticles}+ articles · {totalTopics} topics · {categories.length} categories</span>
+        <span class="bs-hub-stats"
+          >{totalArticles}+ articles · {totalTopics} topics · {categories.length} categories</span
+        >
       </div>
       <p class="bs-hub-desc">
-        In-depth technical articles organized by domain. Each category is a structured
-        learning path — from fundamentals to real-world case studies.
+        In-depth technical articles organized by domain. Each category is a structured learning path — from fundamentals
+        to real-world case studies.
       </p>
     </div>
 
     <!-- Two-Column Layout -->
     <div class="bs-columns">
-
       <!-- Left Column: Categories + Topics -->
       <div class="bs-col-left">
         <h3 class="bs-col-title">Categories</h3>
         <ul class="bs-cat-list">
-          {categories.map((category) => (
-            <li class="bs-cat-item">
-              <Link href={category.href} class="bs-cat-link">{category.name}</Link>
-              <span class="bs-cat-count">{category.articleCount}</span>
-            </li>
-          ))}
+          {
+            categories.map((category) => (
+              <li class="bs-cat-item">
+                <Link href={category.href} class="bs-cat-link">
+                  {category.name}
+                </Link>
+                <span class="bs-cat-count">{category.articleCount}</span>
+              </li>
+            ))
+          }
         </ul>
 
         <div class="bs-col-divider"></div>
 
         <h3 class="bs-col-title">Popular Topics</h3>
         <ul class="bs-topic-list">
-          {categories.flatMap(cat => cat.topics).sort((a, b) => b.articles.length - a.articles.length).slice(0, 8).map((topic) => (
-            <li class="bs-topic-item">
-              <Link href={topic.href} class="bs-topic-link">{topic.name}</Link>
-              <span class="bs-topic-count">{formatCount(topic.articles.length, "article")}</span>
-            </li>
-          ))}
+          {
+            categories
+              .flatMap((cat) => cat.topics)
+              .sort((a, b) => b.articles.length - a.articles.length)
+              .slice(0, 8)
+              .map((topic) => (
+                <li class="bs-topic-item">
+                  <Link href={topic.href} class="bs-topic-link">
+                    {topic.name}
+                  </Link>
+                  <span class="bs-topic-count">{formatCount(topic.articles.length, "article")}</span>
+                </li>
+              ))
+          }
         </ul>
       </div>
 
@@ -98,52 +111,60 @@ const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
 
       <!-- Right Column: Featured Topic + Featured Articles -->
       <div class="bs-col-right">
-        {featuredTopics.length > 0 && (
-          <div class="bs-featured-topic">
-            <h3 class="bs-col-title">Featured Topic</h3>
-            <div class="bs-ft-card">
-              <h4 class="bs-ft-name">
-                <Link href={featuredTopics[0].href} class="bs-ft-link">{featuredTopics[0].name}</Link>
-              </h4>
-              <span class="bs-ft-meta">
-                {featuredTopics[0].category.name} · {formatCount(featuredTopics[0].articleCount, "article")}
-              </span>
-              <ul class="bs-ft-articles">
-                {featuredTopics[0].articles.slice(0, 8).map((article) => (
-                  <li class="bs-ft-article">
-                    <Link href={article.href} class="bs-ft-article-link">{article.title}</Link>
-                  </li>
-                ))}
-                {featuredTopics[0].articles.length > 8 && (
-                  <li class="bs-ft-more">
-                    <Link href={featuredTopics[0].href} class="bs-ft-more-link">
-                      ...and {featuredTopics[0].articles.length - 8} more
-                    </Link>
-                  </li>
-                )}
-              </ul>
+        {
+          featuredTopic && (
+            <div class="bs-featured-topic">
+              <h3 class="bs-col-title">Featured Topic</h3>
+              <div class="bs-ft-card">
+                <h4 class="bs-ft-name">
+                  <Link href={featuredTopic.href} class="bs-ft-link">
+                    {featuredTopic.name}
+                  </Link>
+                </h4>
+                <span class="bs-ft-meta">
+                  {featuredTopic.category.name} · {formatCount(featuredTopic.articleCount, "article")}
+                </span>
+                <ul class="bs-ft-articles">
+                  {featuredTopic.articles.slice(0, 8).map((article) => (
+                    <li class="bs-ft-article">
+                      <Link href={article.href} class="bs-ft-article-link">
+                        {article.title}
+                      </Link>
+                    </li>
+                  ))}
+                  {featuredTopic.articles.length > 8 && (
+                    <li class="bs-ft-more">
+                      <Link href={featuredTopic.href} class="bs-ft-more-link">
+                        ...and {featuredTopic.articles.length - 8} more
+                      </Link>
+                    </li>
+                  )}
+                </ul>
+              </div>
             </div>
-          </div>
-        )}
+          )
+        }
 
         <div class="bs-col-divider"></div>
 
         <h3 class="bs-col-title">Featured Articles</h3>
         <ul class="bs-fa-list">
-          {featuredArticles.map((article) => (
-            <li class="bs-fa-item">
-              <Link href={article.href} class="bs-fa-link">{article.title}</Link>
-              <span class="bs-fa-meta">
-                {article.category.name}
-                {article.minutesRead && <> · {article.minutesRead}</>}
-              </span>
-            </li>
-          ))}
+          {
+            featuredArticles.map((article) => (
+              <li class="bs-fa-item">
+                <Link href={article.href} class="bs-fa-link">
+                  {article.title}
+                </Link>
+                <span class="bs-fa-meta">
+                  {article.category.name}
+                  {article.minutesRead && <> · {article.minutesRead}</>}
+                </span>
+              </li>
+            ))
+          }
         </ul>
       </div>
-
     </div>
-
   </div>
 </Layout>
 

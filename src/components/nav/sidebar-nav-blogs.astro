@@ -21,10 +21,7 @@ const blogs = await getAllBlogCards()
       <ul class="sidebar-nav-list">
         {blogs.map((blog) => (
           <li>
-            <Link
-              href={blog.href}
-              class:list={["sidebar-nav-item", { "is-active": currentBlogId === blog.id }]}
-            >
+            <Link href={blog.href} class:list={["sidebar-nav-item", { "is-active": currentBlogId === blog.id }]}>
               {blog.title}
             </Link>
           </li>

@@ -23,28 +23,13 @@ const categories = await getCategoryHierarchy()
   {
     categories.map((cat) => (
       <div class="article-nav-category">
-        <span
-          class:list={[
-            "article-nav-category-name",
-            { "is-current": categoryId === cat.id },
-          ]}
-        >
-          {cat.name}
-        </span>
+        <span class:list={["article-nav-category-name", { "is-current": categoryId === cat.id }]}>{cat.name}</span>
         <div class="article-nav-topics">
           {cat.topics.map((topic) => {
             const isCurrentTopic = topicId === topic.id
             return (
-              <details
-                class="article-nav-topic"
-                open={isCurrentTopic}
-              >
-                <summary
-                  class:list={[
-                    "article-nav-topic-toggle",
-                    { "is-active": isCurrentTopic },
-                  ]}
-                >
+              <details class="article-nav-topic" open={isCurrentTopic}>
+                <summary class:list={["article-nav-topic-toggle", { "is-active": isCurrentTopic }]}>
                   <span class="article-nav-topic-name">{topic.name}</span>
                   <span class="article-nav-topic-count">({topic.articles.length})</span>
                   <svg
@@ -65,10 +50,7 @@ const categories = await getCategoryHierarchy()
                   {topic.articles.map((article) => (
                     <Link
                       href={article.href}
-                      class:list={[
-                        "article-nav-article-link",
-                        { "is-active": currentArticleId === article.postId },
-                      ]}
+                      class:list={["article-nav-article-link", { "is-active": currentArticleId === article.postId }]}
                     >
                       {article.title}
                     </Link>
@@ -85,9 +67,7 @@ const categories = await getCategoryHierarchy()
 
 <script>
   function initArticleNav() {
-    const activeItem = document.querySelector<HTMLElement>(
-      "#left-sidebar .article-nav-article-link.is-active"
-    )
+    const activeItem = document.querySelector<HTMLElement>("#left-sidebar .article-nav-article-link.is-active")
     activeItem?.scrollIntoView({ block: "nearest", behavior: "instant" })
   }
 
@@ -104,7 +84,7 @@ const categories = await getCategoryHierarchy()
   }
 
   .article-nav-category + .article-nav-category {
-    @apply pt-2 border-t;
+    @apply border-t pt-2;
     border-color: var(--color-border);
   }
 

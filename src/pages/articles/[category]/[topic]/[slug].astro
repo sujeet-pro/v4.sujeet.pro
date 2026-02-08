@@ -42,13 +42,10 @@ const hasToc = toc.length > 0
   noIndex={isDraft}
   hasLeftSidebar={true}
   hasRightSidebar={hasToc}
+  category={articleCategory.name}
+  topic={articleTopic.name}
 >
-  <SidebarNavArticles
-    slot="sidebar-left"
-    categoryId={category}
-    topicId={topic}
-    currentArticleId={slug}
-  />
+  <SidebarNavArticles slot="sidebar-left" categoryId={category} topicId={topic} currentArticleId={slug} />
   {hasToc && <SidebarToc slot="sidebar-right" headings={toc} />}
 
   <!-- Reading Progress Bar -->
@@ -58,7 +55,7 @@ const hasToc = toc.length > 0
   <Frontmatter {minutesRead} {isDraft} class="article-frontmatter" />
 
   <!-- Main Article Content -->
-  <article id="article-content" class="article-prose-content">
+  <article id="article-content" class="article-prose-content DocSearch-content">
     <Content />
   </article>
 

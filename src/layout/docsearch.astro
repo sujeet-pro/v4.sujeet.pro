@@ -1,0 +1,40 @@
+---
+/**
+ * DocSearch Script Component
+ *
+ * Mounts Algolia DocSearch on #docsearch-container in the header.
+ * The container markup lives in header.astro; this component wires up the JS.
+ */
+---
+
+<script>
+  import "@docsearch/css"
+
+  function initDocSearch() {
+    const container = document.getElementById("docsearch-container")
+    if (!container) return
+    if (container.dataset.docsearchInit) return
+    container.dataset.docsearchInit = "true"
+
+    // Clear any previous content (View Transitions may preserve it)
+    container.innerHTML = ""
+
+    const appId = import.meta.env.PUBLIC_SUJEET_PRO_ALGOLIA_APP_ID
+    const apiKey = import.meta.env.PUBLIC_SUJEET_PRO_ALGOLIA_API_KEY
+    const indexName = import.meta.env.PUBLIC_SUJEET_PRO_ALGOLIA_INDEX_NAME
+
+    if (!appId || !apiKey || !indexName) return
+
+    import("@docsearch/js").then(({ default: docsearch }) => {
+      docsearch({
+        appId,
+        apiKey,
+        indexName,
+        container: "#docsearch-container",
+      })
+    })
+  }
+
+  initDocSearch()
+  document.addEventListener("astro:page-load", initDocSearch)
+</script>

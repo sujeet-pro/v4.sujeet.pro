@@ -4,7 +4,7 @@
  */
 
 import { getCollection } from "astro:content"
-import { getAllArticles, getAllCategories, getAllBlogCards, getAllProjectCards } from "./content"
+import { getAllArticles, getAllBlogCards, getAllCategories, getAllProjectCards } from "./content"
 import { getSiteOrigin } from "./site.utils"
 
 interface ContentWithBody {
@@ -171,7 +171,9 @@ export async function generateLlmsFullTxt(): Promise<string> {
   lines.push("")
   lines.push(`Source: ${siteOrigin}`)
   lines.push(`Generated: ${new Date().toISOString()}`)
-  lines.push(`Total content: ${allContent.length} (${articleContent.length} articles, ${blogContent.length} blogs, ${projectContent.length} projects)`)
+  lines.push(
+    `Total content: ${allContent.length} (${articleContent.length} articles, ${blogContent.length} blogs, ${projectContent.length} projects)`,
+  )
   lines.push("")
   lines.push("---")
   lines.push("")

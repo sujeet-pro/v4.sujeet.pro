@@ -81,14 +81,14 @@ flowchart LR
 
 ### Choosing the Right API
 
-| Criteria | localStorage | sessionStorage | IndexedDB | Cache API | OPFS |
-| --- | --- | --- | --- | --- | --- |
-| **Data model** | String KV | String KV | Structured objects | Request/Response | Raw bytes |
-| **Capacity** | ~5 MiB | ~5 MiB | Origin quota (GBs) | Origin quota (GBs) | Origin quota (GBs) |
-| **Threading** | Sync, blocks main thread | Sync, blocks main thread | Async (event/promise) | Async (promise) | Sync in workers only |
-| **Persistence** | Cross-session | Tab lifetime | Cross-session | Cross-session | Cross-session |
-| **Indexing** | Key only | Key only | Multi-column indexes | URL matching | None |
-| **Use case** | User prefs, tokens | Wizard state, form drafts | App data, offline DB | HTTP response cache | SQLite, Wasm state |
+| Criteria        | localStorage             | sessionStorage            | IndexedDB             | Cache API           | OPFS                 |
+| --------------- | ------------------------ | ------------------------- | --------------------- | ------------------- | -------------------- |
+| **Data model**  | String KV                | String KV                 | Structured objects    | Request/Response    | Raw bytes            |
+| **Capacity**    | ~5 MiB                   | ~5 MiB                    | Origin quota (GBs)    | Origin quota (GBs)  | Origin quota (GBs)   |
+| **Threading**   | Sync, blocks main thread | Sync, blocks main thread  | Async (event/promise) | Async (promise)     | Sync in workers only |
+| **Persistence** | Cross-session            | Tab lifetime              | Cross-session         | Cross-session       | Cross-session        |
+| **Indexing**    | Key only                 | Key only                  | Multi-column indexes  | URL matching        | None                 |
+| **Use case**    | User prefs, tokens       | Wizard state, form drafts | App data, offline DB  | HTTP response cache | SQLite, Wasm state   |
 
 **Design insight**: The split between synchronous and asynchronous APIs reflects a fundamental tension. Web Storage (localStorage/sessionStorage) was designed in 2009 for simple needs—synchronous access made the API trivial to use. But synchronous storage on the main thread doesn't scale. IndexedDB (first spec 2011, current version 3.0) was designed as the scalable replacement, trading simplicity for async transactions, structured data, and indexing.
 
@@ -113,16 +113,16 @@ Both APIs expose the same `Storage` interface:
 
 ```typescript
 // All values are coerced to DOMString
-localStorage.setItem("count", "42")         // Store
-localStorage.getItem("count")               // "42" (always a string)
-localStorage.removeItem("count")            // Delete single key
-localStorage.clear()                        // Delete all keys for this origin
-localStorage.key(0)                         // Get key name by index
-localStorage.length                         // Number of stored pairs
+localStorage.setItem("count", "42") // Store
+localStorage.getItem("count") // "42" (always a string)
+localStorage.removeItem("count") // Delete single key
+localStorage.clear() // Delete all keys for this origin
+localStorage.key(0) // Get key name by index
+localStorage.length // Number of stored pairs
 
 // Property-style access also works (but setItem/getItem is preferred)
-localStorage.username = "alice"             // Same as setItem("username", "alice")
-delete localStorage.username                // Same as removeItem("username")
+localStorage.username = "alice" // Same as setItem("username", "alice")
+delete localStorage.username // Same as removeItem("username")
 ```
 
 **Serialization trap**: Every value is coerced to a string via `toString()`. Objects become `"[object Object]"` unless explicitly serialized:
@@ -134,7 +134,7 @@ localStorage.getItem("user") // "[object Object]"
 
 // ✅ Explicit serialization
 localStorage.setItem("user", JSON.stringify({ name: "Alice" }))
-JSON.parse(localStorage.getItem("user")!)   // { name: "Alice" }
+JSON.parse(localStorage.getItem("user")!) // { name: "Alice" }
 
 // ⚠️ JSON.parse(null) returns null, but JSON.parse("undefined") throws
 const value = localStorage.getItem("missing") // null
@@ -143,13 +143,13 @@ JSON.parse(value) // null (safe)
 
 ### localStorage vs sessionStorage
 
-| Behavior | localStorage | sessionStorage |
-| --- | --- | --- |
-| **Lifetime** | Persists until explicitly deleted or evicted | Deleted when tab/window closes |
-| **Scope** | Shared across all same-origin tabs/windows | Isolated per tab (including duplicated tabs) |
-| **Cross-tab visibility** | Yes (via storage events) | No |
-| **Restored on tab restore** | N/A (always available) | Yes—browser restores sessionStorage on tab restore |
-| **Capacity** | ~5 MiB per origin | ~5 MiB per origin |
+| Behavior                    | localStorage                                 | sessionStorage                                     |
+| --------------------------- | -------------------------------------------- | -------------------------------------------------- |
+| **Lifetime**                | Persists until explicitly deleted or evicted | Deleted when tab/window closes                     |
+| **Scope**                   | Shared across all same-origin tabs/windows   | Isolated per tab (including duplicated tabs)       |
+| **Cross-tab visibility**    | Yes (via storage events)                     | No                                                 |
+| **Restored on tab restore** | N/A (always available)                       | Yes—browser restores sessionStorage on tab restore |
+| **Capacity**                | ~5 MiB per origin                            | ~5 MiB per origin                                  |
 
 **Design reasoning**: sessionStorage exists because localStorage's cross-tab sharing creates problems for multi-step workflows. A shopping cart checkout in two tabs would share state via localStorage, causing race conditions. sessionStorage provides tab-isolated state. The WHATWG spec notes sessionStorage is "intended to allow separate instances of the same web application to run in different windows without interfering with each other."
 
@@ -194,10 +194,7 @@ window.addEventListener("storage", (event) => {
 
 // Cross-tab messaging pattern: broadcast via localStorage
 function broadcast(channel: string, data: unknown) {
-  localStorage.setItem(
-    `__msg_${channel}`,
-    JSON.stringify({ data, timestamp: Date.now() })
-  )
+  localStorage.setItem(`__msg_${channel}`, JSON.stringify({ data, timestamp: Date.now() }))
   // Clean up to avoid filling storage
   localStorage.removeItem(`__msg_${channel}`)
 }
@@ -285,7 +282,6 @@ IndexedDB uses an integer version scheme. Schema changes (creating/deleting obje
 // Helper for promisifying (collapsed)
 function openDB(name: string, version: number): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-
     const request = indexedDB.open("myapp", 3)
 
     request.onupgradeneeded = (event) => {
@@ -350,11 +346,11 @@ request.onblocked = () => {
 
 IndexedDB provides three transaction modes:
 
-| Mode | Concurrent Access | Object Store Access | Use Case |
-| --- | --- | --- | --- |
-| `readonly` | Multiple concurrent | Read only | Queries, reporting |
-| `readwrite` | Exclusive per store | Read + write | Mutations |
-| `versionchange` | Exclusive (entire DB) | Schema changes + R/W | Upgrades only |
+| Mode            | Concurrent Access     | Object Store Access  | Use Case           |
+| --------------- | --------------------- | -------------------- | ------------------ |
+| `readonly`      | Multiple concurrent   | Read only            | Queries, reporting |
+| `readwrite`     | Exclusive per store   | Read + write         | Mutations          |
+| `versionchange` | Exclusive (entire DB) | Schema changes + R/W | Upgrades only      |
 
 ```typescript collapse={1-3}
 // Assume db is already opened (collapsed)
@@ -387,8 +383,8 @@ store.put({ id: "2", name: "Bob" })
 
 // ❌ Breaks: fetch yields to the event loop, transaction becomes inactive
 store.put({ id: "1", name: "Alice" })
-const data = await fetch("/api/user/2")   // Transaction dies here
-store.put(await data.json())               // TransactionInactiveError
+const data = await fetch("/api/user/2") // Transaction dies here
+store.put(await data.json()) // TransactionInactiveError
 ```
 
 **The spec says**: A transaction is active when it's first created, becomes inactive when "control returns to the event loop", and reactivates when a success/error event fires for one of its requests. Once all requests complete and control returns to the event loop with no pending requests, the transaction auto-commits.
@@ -449,13 +445,17 @@ IndexedDB serializes values using the [structured clone algorithm](https://html.
 // ✅ Rich objects survive structured clone
 store.put({
   id: "1",
-  created: new Date(),           // Date preserved (JSON would stringify)
-  tags: new Set(["a", "b"]),     // Set preserved (JSON would lose it)
-  binary: new Uint8Array([1, 2]) // Binary preserved (JSON can't do this)
+  created: new Date(), // Date preserved (JSON would stringify)
+  tags: new Set(["a", "b"]), // Set preserved (JSON would lose it)
+  binary: new Uint8Array([1, 2]), // Binary preserved (JSON can't do this)
 })
 
 // ❌ Class instances lose their prototype
-class User { greet() { return "hi" } }
+class User {
+  greet() {
+    return "hi"
+  }
+}
 store.put({ id: "1", user: new User() })
 // Retrieved object has no greet() method—it's a plain object
 ```
@@ -479,16 +479,14 @@ const index = tx.objectStore("products").index("by-price")
 const request = index.get(29.99)
 
 // Range queries with IDBKeyRange
-index.getAll(IDBKeyRange.bound(10, 50))              // 10 ≤ price ≤ 50
-index.getAll(IDBKeyRange.bound(10, 50, true, false))  // 10 < price ≤ 50
-index.getAll(IDBKeyRange.lowerBound(100))             // price ≥ 100
-index.getAll(IDBKeyRange.upperBound(20))              // price ≤ 20
+index.getAll(IDBKeyRange.bound(10, 50)) // 10 ≤ price ≤ 50
+index.getAll(IDBKeyRange.bound(10, 50, true, false)) // 10 < price ≤ 50
+index.getAll(IDBKeyRange.lowerBound(100)) // price ≥ 100
+index.getAll(IDBKeyRange.upperBound(20)) // price ≤ 20
 
 // Compound index query: category="electronics" AND price 50-200
 const compoundIndex = tx.objectStore("products").index("by-cat-price")
-compoundIndex.getAll(
-  IDBKeyRange.bound(["electronics", 50], ["electronics", 200])
-)
+compoundIndex.getAll(IDBKeyRange.bound(["electronics", 50], ["electronics", 200]))
 ```
 
 **Cursor-based iteration** for large result sets:
@@ -573,7 +571,7 @@ const root = await navigator.storage.getDirectory()
 const fileHandle = await root.getFileHandle("data.bin", { create: true })
 
 // Async read/write via File and WritableStream
-const file = await fileHandle.getFile()              // Returns a File (Blob subclass)
+const file = await fileHandle.getFile() // Returns a File (Blob subclass)
 const writable = await fileHandle.createWritable()
 await writable.write(new Uint8Array([1, 2, 3]))
 await writable.close()
@@ -588,10 +586,10 @@ const syncHandle = await fileHandle.createSyncAccessHandle()
 
 // Direct byte operations—no promises, no structured clone
 const buffer = new ArrayBuffer(1024)
-syncHandle.read(buffer, { at: 0 })    // Read 1024 bytes from offset 0
+syncHandle.read(buffer, { at: 0 }) // Read 1024 bytes from offset 0
 syncHandle.write(new Uint8Array([1, 2, 3]), { at: 0 })
-syncHandle.flush()                     // Ensure data is written to disk
-syncHandle.close()                     // Release the lock
+syncHandle.flush() // Ensure data is written to disk
+syncHandle.close() // Release the lock
 ```
 
 **Design reasoning**: `createSyncAccessHandle()` is restricted to workers because synchronous I/O on the main thread would block user interaction—the same problem that makes large localStorage operations problematic. By limiting sync access to workers, the spec provides the performance of synchronous I/O without the main-thread penalty.
@@ -606,11 +604,11 @@ The [WHATWG Storage Standard](https://storage.spec.whatwg.org/) defines a unifie
 
 ### Quota by Browser
 
-| Browser | Origin Quota | Eviction Trigger | Notes |
-| --- | --- | --- | --- |
-| **Chrome** | ~60% of total disk | Storage pressure | Calculated as 80% disk × 75% per origin. Static—doesn't consider free space (anti-fingerprinting) |
-| **Firefox** | Up to 2 GiB per eTLD+1 group | Global limit: 50% of free disk | Group limit is min(20% of global, 2 GiB). Minimum 10 MiB per group |
-| **Safari** | 1 GiB initially | Prompts user for more on desktop | Safari 17+: up to 80% in browser apps, 20% in WKWebView |
+| Browser     | Origin Quota                 | Eviction Trigger                 | Notes                                                                                             |
+| ----------- | ---------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Chrome**  | ~60% of total disk           | Storage pressure                 | Calculated as 80% disk × 75% per origin. Static—doesn't consider free space (anti-fingerprinting) |
+| **Firefox** | Up to 2 GiB per eTLD+1 group | Global limit: 50% of free disk   | Group limit is min(20% of global, 2 GiB). Minimum 10 MiB per group                                |
+| **Safari**  | 1 GiB initially              | Prompts user for more on desktop | Safari 17+: up to 80% in browser apps, 20% in WKWebView                                           |
 
 ### The StorageManager API
 

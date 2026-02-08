@@ -6,6 +6,7 @@
   @apply max-w-full overflow-auto;
 }
 
-th, td {
+th,
+td {
   @apply max-w-[60ch] min-w-[20ch];
 }

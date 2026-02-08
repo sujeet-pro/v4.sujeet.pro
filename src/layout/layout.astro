@@ -16,6 +16,7 @@ import SidebarToggle from "./sidebar-toggle.astro"
 import ScrollSpy from "./scroll-spy.astro"
 import ThemeScript from "./theme-script.astro"
 import ThemeToggle from "./theme-toggle.astro"
+import DocSearch from "./docsearch.astro"
 
 interface Props extends SeoProps {
   noIndex?: boolean | undefined | null
@@ -43,8 +44,6 @@ const {
 // Font paths with base path support
 const openSansFontPath = getFilePath("fonts/open-sans-latin-wght-normal.woff2")
 const jetBrainsMonoFontPath = getFilePath("fonts/jetbrains-mono-latin-400-normal.woff2")
-const searchIndexPath = getFilePath("search/index.json")
-
 // Container class based on width prop (used when no sidebars)
 const containerClass = containerWidth === "wide" ? "content-container-wide" : "content-container"
 ---
@@ -84,9 +83,8 @@ const containerClass = containerWidth === "wide" ? "content-container-wide" : "c
     <!-- Preload local fonts -->
     <link rel="preload" as="font" type="font/woff2" href={openSansFontPath} crossorigin="anonymous" />
     <link rel="preload" as="font" type="font/woff2" href={jetBrainsMonoFontPath} crossorigin="anonymous" />
-    <!-- Prefetch search index in background -->
-    <link rel="prefetch" href={searchIndexPath} />
     <Favicons />
+    <meta name="docsearch:language" content="en" />
     <Seo {...seoProps} />
     <link rel="alternate" type="application/rss+xml" href={getFilePath("rss.xml")} />
     <link rel="sitemap" href={getFilePath("sitemap-index.xml")} />
@@ -146,5 +144,6 @@ const containerClass = containerWidth === "wide" ? "content-container-wide" : "c
     {(hasLeftSidebar || hasRightSidebar) && <SidebarToggle />}
     {hasRightSidebar && <ScrollSpy />}
     <ThemeToggle />
+    <DocSearch />
   </body>
 </html>

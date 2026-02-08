@@ -44,7 +44,7 @@ export function initThemeToggle() {
   btn.addEventListener("click", () => {
     const current = getCurrentTheme()
     const idx = THEMES.indexOf(current)
-    const next = THEMES[(idx + 1) % THEMES.length]
+    const next = THEMES[(idx + 1) % THEMES.length]!
     window.applySiteTheme(next)
     updateButton(btn, next)
   })

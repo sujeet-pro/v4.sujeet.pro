@@ -141,7 +141,7 @@ Convention for `.astro` files:
 Components in `src/components/` are organized by role:
 
 - `cards/` — Presentational card components (article-card, blog-card, category-card, topic-card, project-card)
-- `nav/` — Navigation & sidebar components (sidebar-nav-*, sidebar-toc, category-nav)
+- `nav/` — Navigation & sidebar components (sidebar-nav-\*, sidebar-toc, category-nav)
 - `ui/` — Generic UI components (link, tag-pill, frontmatter, toc, accordion-script, topic-accordion)
 
 Import paths use the `@/components/<category>/` prefix:

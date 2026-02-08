@@ -7,10 +7,10 @@
 import type { MarkdownHeading } from "astro"
 import { getCollection, render } from "astro:content"
 
+import { getProcessedContent } from "./core"
 import { filterDrafts } from "./drafts"
 import { getDerivedOrdering, getOrdering } from "./ordering"
 import { sortByOrdering } from "./sorting"
-import { getProcessedContent } from "./core"
 import type {
   ArticleCardCache,
   ArticleCardInfo,
