@@ -1,0 +1,1464 @@
+---
+// Design 4: "Modern Dashboard"
+// Card-based UI, floating panels, glass morphism, modern SaaS feel
+// Plus Jakarta Sans (body, headings) + Space Mono (code, accents)
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Design 4: Modern Dashboard | sujeet.pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="dash-body">
+    <!-- Skip link -->
+    <a href="#main-content" class="dash-skip-link">Skip to content</a>
+
+    <!-- ================================================================
+         HEADER - Gradient border bottom, modern dashboard feel
+         ================================================================ -->
+    <header class="dash-header">
+      <div class="dash-header-inner">
+        <button
+          type="button"
+          class="dash-header-btn dash-toggle-left"
+          aria-label="Toggle navigation"
+          aria-expanded="false"
+          aria-controls="dash-sidebar-left"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="15" y2="12"></line>
+            <line x1="3" y1="18" x2="18" y2="18"></line>
+          </svg>
+        </button>
+
+        <a href="/" class="dash-logo">
+          <span class="dash-logo-icon">S</span>
+          <span class="dash-logo-text">sujeet<span class="dash-logo-dot">.</span>pro</span>
+        </a>
+
+        <div class="dash-header-actions">
+          <a href="/search" class="dash-header-btn" aria-label="Search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </a>
+          <button
+            type="button"
+            class="dash-header-btn dash-toggle-right"
+            aria-label="Toggle table of contents"
+            aria-expanded="false"
+            aria-controls="dash-sidebar-right"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <circle cx="3" cy="6" r="1" fill="currentColor" stroke="none"></circle>
+              <circle cx="3" cy="12" r="1" fill="currentColor" stroke="none"></circle>
+              <circle cx="3" cy="18" r="1" fill="currentColor" stroke="none"></circle>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="dash-header-gradient-border" aria-hidden="true"></div>
+    </header>
+
+    <!-- Backdrop overlay for sidebars -->
+    <div class="dash-backdrop" id="dash-sidebar-backdrop" aria-hidden="true"></div>
+
+    <!-- ================================================================
+         LEFT SIDEBAR - Browse Navigation (Floating Glass Panel)
+         ================================================================ -->
+    <aside class="dash-sidebar dash-sidebar-left" id="dash-sidebar-left" aria-label="Site navigation">
+      <div class="dash-sidebar-header">
+        <span class="dash-sidebar-title">Navigation</span>
+        <button type="button" class="dash-sidebar-close" aria-label="Close navigation">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <nav class="dash-sidebar-body">
+        <!-- Nav links -->
+        <div class="dash-nav-section">
+          <a href="/" class="dash-nav-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Home
+          </a>
+          <a href="/browse" class="dash-nav-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Browse
+          </a>
+          <a href="/articles" class="dash-nav-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            All Articles
+          </a>
+          <a href="/search" class="dash-nav-link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Search
+          </a>
+        </div>
+        <div class="dash-nav-divider"></div>
+        <!-- Browse: Categories > Topics > Articles -->
+        <div class="dash-browse">
+          <span class="dash-browse-label">Categories</span>
+          <!-- Category 1: System Design -->
+          <details class="dash-cat" open>
+            <summary class="dash-cat-summary">
+              <span class="dash-cat-indicator" style="--dash-cat-color: #6366F1;" aria-hidden="true"></span>
+              <span class="dash-cat-name">System Design</span>
+              <svg class="dash-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </summary>
+            <div class="dash-cat-body">
+              <details class="dash-topic">
+                <summary class="dash-topic-summary">Fundamentals <span class="dash-count">19</span></summary>
+                <ul class="dash-article-list">
+                  <li><a href="#" class="dash-article-link dash-article-link--active">Distributed Consensus</a></li>
+                  <li><a href="#" class="dash-article-link">CAP Theorem</a></li>
+                  <li><a href="#" class="dash-article-link">Time and Ordering</a></li>
+                  <li><a href="#" class="dash-article-link">Load Balancers</a></li>
+                  <li><a href="#" class="dash-article-link">Caching Strategies</a></li>
+                </ul>
+              </details>
+              <details class="dash-topic">
+                <summary class="dash-topic-summary">Design Problems <span class="dash-count">24</span></summary>
+                <ul class="dash-article-list">
+                  <li><a href="#" class="dash-article-link">Design YouTube</a></li>
+                  <li><a href="#" class="dash-article-link">Design Uber</a></li>
+                  <li><a href="#" class="dash-article-link">Design Chat System</a></li>
+                </ul>
+              </details>
+            </div>
+          </details>
+          <!-- Category 2: Frontend Engineering -->
+          <details class="dash-cat">
+            <summary class="dash-cat-summary">
+              <span class="dash-cat-indicator" style="--dash-cat-color: #2DD4BF;" aria-hidden="true"></span>
+              <span class="dash-cat-name">Frontend Engineering</span>
+              <svg class="dash-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </summary>
+            <div class="dash-cat-body">
+              <details class="dash-topic">
+                <summary class="dash-topic-summary">React Patterns <span class="dash-count">8</span></summary>
+                <ul class="dash-article-list">
+                  <li><a href="#" class="dash-article-link">Component Composition</a></li>
+                  <li><a href="#" class="dash-article-link">State Management</a></li>
+                  <li><a href="#" class="dash-article-link">Performance Hooks</a></li>
+                </ul>
+              </details>
+              <details class="dash-topic">
+                <summary class="dash-topic-summary">Performance <span class="dash-count">6</span></summary>
+                <ul class="dash-article-list">
+                  <li><a href="#" class="dash-article-link">Web Vitals</a></li>
+                  <li><a href="#" class="dash-article-link">Bundle Optimization</a></li>
+                </ul>
+              </details>
+            </div>
+          </details>
+          <!-- Category 3: Programming Patterns -->
+          <details class="dash-cat">
+            <summary class="dash-cat-summary">
+              <span class="dash-cat-indicator" style="--dash-cat-color: #FB7185;" aria-hidden="true"></span>
+              <span class="dash-cat-name">Programming Patterns</span>
+              <svg class="dash-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </summary>
+            <div class="dash-cat-body">
+              <details class="dash-topic">
+                <summary class="dash-topic-summary">Algorithms <span class="dash-count">12</span></summary>
+                <ul class="dash-article-list">
+                  <li><a href="#" class="dash-article-link">Sorting Algorithms</a></li>
+                  <li><a href="#" class="dash-article-link">Graph Traversal</a></li>
+                  <li><a href="#" class="dash-article-link">Dynamic Programming</a></li>
+                </ul>
+              </details>
+            </div>
+          </details>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- ================================================================
+         RIGHT SIDEBAR - Table of Contents (Floating Glass Panel)
+         ================================================================ -->
+    <aside class="dash-sidebar dash-sidebar-right" id="dash-sidebar-right" aria-label="Table of contents">
+      <div class="dash-sidebar-header">
+        <span class="dash-sidebar-title">On This Page</span>
+        <button type="button" class="dash-sidebar-close" aria-label="Close table of contents">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <nav class="dash-sidebar-body dash-toc-nav">
+        <ol class="dash-toc-list">
+          <li>
+            <a href="#overview" class="dash-toc-link dash-toc-h2">
+              <span class="dash-toc-dot" aria-hidden="true"></span>
+              Overview
+            </a>
+          </li>
+          <li>
+            <a href="#the-consensus-problem" class="dash-toc-link dash-toc-h2">
+              <span class="dash-toc-dot" aria-hidden="true"></span>
+              The Consensus Problem
+            </a>
+            <ol class="dash-toc-sublist">
+              <li><a href="#why-consensus-matters" class="dash-toc-link dash-toc-h3">Why Consensus Matters</a></li>
+              <li><a href="#flp-impossibility" class="dash-toc-link dash-toc-h3">FLP Impossibility</a></li>
+            </ol>
+          </li>
+          <li>
+            <a href="#paxos-algorithm" class="dash-toc-link dash-toc-h2">
+              <span class="dash-toc-dot" aria-hidden="true"></span>
+              Paxos Algorithm
+            </a>
+            <ol class="dash-toc-sublist">
+              <li><a href="#paxos-phases" class="dash-toc-link dash-toc-h3">Phases of Paxos</a></li>
+              <li><a href="#multi-paxos" class="dash-toc-link dash-toc-h3">Multi-Paxos</a></li>
+            </ol>
+          </li>
+          <li>
+            <a href="#raft-consensus" class="dash-toc-link dash-toc-h2">
+              <span class="dash-toc-dot" aria-hidden="true"></span>
+              Raft Consensus
+            </a>
+            <ol class="dash-toc-sublist">
+              <li><a href="#leader-election" class="dash-toc-link dash-toc-h3">Leader Election</a></li>
+              <li><a href="#log-replication" class="dash-toc-link dash-toc-h3">Log Replication</a></li>
+            </ol>
+          </li>
+          <li>
+            <a href="#comparison" class="dash-toc-link dash-toc-h2">
+              <span class="dash-toc-dot" aria-hidden="true"></span>
+              Comparison
+            </a>
+          </li>
+          <li>
+            <a href="#appendix" class="dash-toc-link dash-toc-h2">
+              <span class="dash-toc-dot" aria-hidden="true"></span>
+              Appendix
+            </a>
+          </li>
+        </ol>
+      </nav>
+    </aside>
+
+    <!-- ================================================================
+         MAIN CONTENT
+         ================================================================ -->
+    <main id="main-content" class="dash-main">
+      <article class="dash-article">
+        <!-- Breadcrumb -->
+        <nav class="dash-breadcrumb" aria-label="Breadcrumb">
+          <a href="/articles">Articles</a>
+          <span class="dash-breadcrumb-sep" aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </span>
+          <a href="#">System Design</a>
+          <span class="dash-breadcrumb-sep" aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </span>
+          <a href="#">Fundamentals</a>
+        </nav>
+
+        <!-- Article Header Card -->
+        <header class="dash-article-header">
+          <div class="dash-article-meta-top">
+            <span class="dash-badge-category">System Design</span>
+            <span class="dash-badge-reading-time">18 min read</span>
+          </div>
+          <h1 class="dash-article-title">Understanding Distributed Consensus Algorithms</h1>
+          <p class="dash-article-subtitle">
+            How systems like Paxos and Raft enable multiple nodes to agree on a single value, even in the presence of failures.
+          </p>
+          <div class="dash-article-meta-bottom">
+            <time datetime="2024-11-15" class="dash-meta-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              November 15, 2024
+            </time>
+            <span class="dash-meta-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+              Fundamentals
+            </span>
+          </div>
+        </header>
+
+        <!-- Article Body -->
+        <div class="dash-prose">
+          <!-- Section Card: Overview -->
+          <section class="dash-section-card" id="overview">
+            <h2 class="dash-section-heading">Overview</h2>
+            <p>
+              Distributed consensus is the cornerstone of reliable distributed systems. When multiple computers
+              need to work together, they must agree on shared state despite network partitions, message delays,
+              and node failures. This article explores the fundamental algorithms that make this possible.
+            </p>
+            <p>
+              The challenge of achieving consensus has been studied extensively since the 1980s. From Leslie
+              Lamport's pioneering work on Paxos to Diego Ongaro's more approachable Raft algorithm, the field
+              has evolved to provide practical solutions for real-world systems like etcd, ZooKeeper, and CockroachDB.
+            </p>
+
+            <blockquote class="dash-blockquote">
+              <p>"A distributed system is one in which the failure of a computer you didn't even know existed can render your own computer unusable."</p>
+              <cite>&mdash; Leslie Lamport</cite>
+            </blockquote>
+          </section>
+
+          <!-- Section Card: The Consensus Problem -->
+          <section class="dash-section-card" id="the-consensus-problem">
+            <h2 class="dash-section-heading">The Consensus Problem</h2>
+            <p>
+              At its core, the consensus problem requires a group of processes to agree on a single value.
+              This sounds simple, but becomes remarkably difficult when processes can fail and messages can
+              be lost or delayed.
+            </p>
+
+            <h3 id="why-consensus-matters">Why Consensus Matters</h3>
+            <p>
+              Consensus is essential for many distributed systems primitives including leader election,
+              atomic broadcast, state machine replication, and distributed locking.
+            </p>
+            <ul>
+              <li><strong>Leader Election</strong> &mdash; Selecting a single coordinator among replicas</li>
+              <li><strong>State Machine Replication</strong> &mdash; Keeping multiple copies of data consistent</li>
+              <li><strong>Distributed Transactions</strong> &mdash; Ensuring atomicity across partitions</li>
+              <li><strong>Configuration Management</strong> &mdash; Agreeing on cluster membership</li>
+            </ul>
+
+            <h3 id="flp-impossibility">FLP Impossibility</h3>
+            <p>
+              The Fischer, Lynch, and Paterson impossibility result (1985) proves that no deterministic
+              algorithm can guarantee consensus in an asynchronous system where even one process may crash.
+              This foundational result shapes how all practical consensus algorithms are designed.
+            </p>
+
+            <div class="dash-table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Property</th>
+                    <th>Description</th>
+                    <th>Implication</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="dash-table-highlight">Agreement</span></td>
+                    <td>All correct processes decide the same value</td>
+                    <td>No split-brain scenarios</td>
+                  </tr>
+                  <tr>
+                    <td><span class="dash-table-highlight">Validity</span></td>
+                    <td>The decided value was proposed by some process</td>
+                    <td>No fabricated values</td>
+                  </tr>
+                  <tr>
+                    <td><span class="dash-table-highlight">Termination</span></td>
+                    <td>Every correct process eventually decides</td>
+                    <td>No infinite waiting</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Section Card: Paxos Algorithm -->
+          <section class="dash-section-card" id="paxos-algorithm">
+            <h2 class="dash-section-heading">Paxos Algorithm</h2>
+            <p>
+              Paxos, introduced by Leslie Lamport in 1989, was the first practical consensus algorithm.
+              Despite its reputation for difficulty, the core idea is elegant: a proposer must convince
+              a majority of acceptors before a value is chosen.
+            </p>
+
+            <h3 id="paxos-phases">Phases of Paxos</h3>
+            <p>The basic Paxos protocol operates in two phases:</p>
+            <ol>
+              <li><strong>Prepare Phase</strong> &mdash; A proposer sends a prepare request with a unique proposal number to a majority of acceptors.</li>
+              <li><strong>Accept Phase</strong> &mdash; If a majority responds, the proposer sends an accept request with the value.</li>
+            </ol>
+
+            <div class="dash-code-block">
+              <div class="dash-code-header">
+                <span class="dash-code-lang">TypeScript</span>
+                <span class="dash-code-file">consensus/paxos.ts</span>
+              </div>
+              <pre><code>// Simplified Paxos proposer logic
+async function propose(value: string, acceptors: Acceptor[]) {'{'}
+  const proposalId = generateUniqueId();
+  const majority = Math.floor(acceptors.length / 2) + 1;
+
+  // Phase 1: Prepare
+  const promises = await Promise.all(
+    acceptors.map(a =&gt; a.prepare(proposalId))
+  );
+  const accepted = promises.filter(p =&gt; p.ok);
+
+  if (accepted.length {'<'} majority) {'{'}
+    throw new Error('Failed to get majority in prepare phase');
+  {'}'}
+
+  // Phase 2: Accept
+  const finalValue = getHighestAcceptedValue(accepted) || value;
+  const acks = await Promise.all(
+    acceptors.map(a =&gt; a.accept(proposalId, finalValue))
+  );
+
+  return acks.filter(a =&gt; a.ok).length &gt;= majority;
+{'}'}</code></pre>
+            </div>
+
+            <h3 id="multi-paxos">Multi-Paxos</h3>
+            <p>
+              Basic Paxos requires two round-trips for each consensus decision. Multi-Paxos optimizes this
+              by electing a stable leader that can skip the prepare phase for subsequent proposals, reducing
+              latency to a single round-trip in the common case.
+            </p>
+          </section>
+
+          <!-- Section Card: Raft Consensus -->
+          <section class="dash-section-card" id="raft-consensus">
+            <h2 class="dash-section-heading">Raft Consensus</h2>
+            <p>
+              Raft was designed by Diego Ongaro and John Ousterhout in 2014 as a more understandable
+              alternative to Paxos. It decomposes consensus into three sub-problems: leader election,
+              log replication, and safety.
+            </p>
+
+            <h3 id="leader-election">Leader Election</h3>
+            <p>
+              Raft uses randomized timeouts to trigger elections. When a follower doesn't hear from a leader
+              within its timeout period, it becomes a candidate and requests votes from other nodes.
+            </p>
+
+            <h3 id="log-replication">Log Replication</h3>
+            <p>
+              Once elected, the leader accepts client requests and replicates log entries to followers.
+              An entry is considered committed when a majority of nodes have acknowledged it.
+            </p>
+
+            <figure class="dash-diagram">
+              <div class="dash-diagram-inner" role="img" aria-label="Raft log replication diagram">
+                <span class="dash-diagram-title">Raft Log Replication Flow</span>
+                <div class="dash-diagram-nodes">
+                  <div class="dash-diagram-node dash-diagram-leader">
+                    <span class="dash-node-label">Leader</span>
+                    <span class="dash-node-status dash-node-status--active">Active</span>
+                  </div>
+                  <div class="dash-diagram-arrows" aria-hidden="true">
+                    <svg width="60" height="24" viewBox="0 0 60 24"><path d="M0 12 L50 12" stroke="#6366F1" stroke-width="2" fill="none"/><polygon points="50,6 60,12 50,18" fill="#6366F1"/></svg>
+                  </div>
+                  <div class="dash-diagram-followers">
+                    <div class="dash-diagram-node dash-diagram-follower">
+                      <span class="dash-node-label">Follower 1</span>
+                      <span class="dash-node-status">Synced</span>
+                    </div>
+                    <div class="dash-diagram-node dash-diagram-follower">
+                      <span class="dash-node-label">Follower 2</span>
+                      <span class="dash-node-status">Synced</span>
+                    </div>
+                    <div class="dash-diagram-node dash-diagram-follower">
+                      <span class="dash-node-label">Follower 3</span>
+                      <span class="dash-node-status">Synced</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <figcaption class="dash-figcaption">Figure 1: Leader replicates log entries to all followers. Entry is committed after majority acknowledgment.</figcaption>
+            </figure>
+          </section>
+
+          <!-- Section Card: Comparison -->
+          <section class="dash-section-card" id="comparison">
+            <h2 class="dash-section-heading">Comparison</h2>
+            <p>
+              While both Paxos and Raft solve the same fundamental problem, they differ significantly
+              in their approach to understandability, implementation complexity, and operational behavior.
+            </p>
+
+            <div class="dash-table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Aspect</th>
+                    <th>Paxos</th>
+                    <th>Raft</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="dash-table-highlight">Understandability</span></td>
+                    <td>Complex, academic</td>
+                    <td>Designed for clarity</td>
+                  </tr>
+                  <tr>
+                    <td><span class="dash-table-highlight">Leader requirement</span></td>
+                    <td>Optional (Multi-Paxos)</td>
+                    <td>Required (strong leader)</td>
+                  </tr>
+                  <tr>
+                    <td><span class="dash-table-highlight">Log ordering</span></td>
+                    <td>Allows gaps</td>
+                    <td>Strict sequential</td>
+                  </tr>
+                  <tr>
+                    <td><span class="dash-table-highlight">Used in</span></td>
+                    <td>Chubby, Spanner</td>
+                    <td>etcd, CockroachDB</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Section Card: Appendix -->
+          <section class="dash-section-card" id="appendix">
+            <h2 class="dash-section-heading">Appendix</h2>
+            <h3>Prerequisites</h3>
+            <ul>
+              <li>Understanding of distributed systems fundamentals</li>
+              <li>Familiarity with client-server architecture</li>
+              <li>Basic knowledge of fault tolerance concepts</li>
+            </ul>
+            <h3>Summary</h3>
+            <p>
+              Distributed consensus enables reliable systems by allowing multiple nodes to agree on shared state.
+              Paxos pioneered the field but is complex to understand. Raft provides equivalent guarantees with
+              a clearer structure. Modern systems like etcd and CockroachDB rely on Raft for their consensus layer.
+            </p>
+            <h3>References</h3>
+            <ul>
+              <li>Lamport, L. "The Part-Time Parliament" (1998)</li>
+              <li>Ongaro, D. & Ousterhout, J. "In Search of an Understandable Consensus Algorithm" (2014)</li>
+              <li>Fischer, M., Lynch, N., Paterson, M. "Impossibility of Distributed Consensus with One Faulty Process" (1985)</li>
+            </ul>
+          </section>
+        </div>
+
+        <!-- Article Navigation -->
+        <nav class="dash-article-nav" aria-label="Article navigation">
+          <a href="#" class="dash-nav-prev">
+            <span class="dash-nav-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              Previous
+            </span>
+            <span class="dash-nav-title">CAP Theorem and Consistency Models</span>
+          </a>
+          <a href="#" class="dash-nav-next">
+            <span class="dash-nav-label">
+              Next
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </span>
+            <span class="dash-nav-title">Time and Ordering in Distributed Systems</span>
+          </a>
+        </nav>
+      </article>
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  /* ================================================================
+     DESIGN 4: MODERN DASHBOARD
+     Dark blue bg, glassmorphism, card-based UI, SaaS feel
+     ================================================================ */
+
+  /* --- Reset --- */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* --- Design Tokens --- */
+  :root {
+    --dash-bg: #0F172A;
+    --dash-bg-surface: #1E293B;
+    --dash-bg-card: rgba(30, 41, 59, 0.7);
+    --dash-bg-glass: rgba(255, 255, 255, 0.05);
+    --dash-bg-glass-hover: rgba(255, 255, 255, 0.08);
+    --dash-bg-elevated: rgba(255, 255, 255, 0.03);
+    --dash-text: #F1F5F9;
+    --dash-text-secondary: #CBD5E1;
+    --dash-text-muted: #64748B;
+    --dash-accent: #6366F1;
+    --dash-accent-light: #818CF8;
+    --dash-accent-dark: #4F46E5;
+    --dash-accent-glow: rgba(99, 102, 241, 0.3);
+    --dash-teal: #2DD4BF;
+    --dash-rose: #FB7185;
+    --dash-amber: #FBBF24;
+    --dash-border: rgba(255, 255, 255, 0.08);
+    --dash-border-hover: rgba(255, 255, 255, 0.15);
+    --dash-code-bg: rgba(15, 23, 42, 0.8);
+
+    --dash-font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --dash-font-mono: 'Space Mono', 'JetBrains Mono', monospace;
+
+    --dash-content-width: 760px;
+    --dash-sidebar-width: 290px;
+    --dash-header-height: 60px;
+    --dash-radius: 12px;
+    --dash-radius-sm: 8px;
+    --dash-radius-pill: 99px;
+    --dash-transition: 280ms cubic-bezier(0.4, 0, 0.2, 1);
+    --dash-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* --- Base --- */
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--dash-header-height) + 2rem);
+  }
+  .dash-body {
+    font-family: var(--dash-font-body);
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--dash-text-secondary);
+    background: var(--dash-bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* --- Gradient Mesh Background --- */
+  .dash-body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 80% 60% at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 10%, rgba(45, 212, 191, 0.05) 0%, transparent 50%),
+      radial-gradient(ellipse 70% 60% at 50% 90%, rgba(251, 113, 133, 0.04) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 40% at 90% 70%, rgba(99, 102, 241, 0.06) 0%, transparent 40%);
+  }
+
+  /* --- Skip Link --- */
+  .dash-skip-link {
+    position: absolute; top: 0; left: 0; z-index: 200;
+    padding: 10px 20px;
+    background: var(--dash-accent); color: white;
+    font-family: var(--dash-font-body); font-size: 14px; font-weight: 600;
+    text-decoration: none; border-radius: 0 0 var(--dash-radius-sm) 0;
+    transform: translateY(-100%);
+    transition: transform var(--dash-transition-fast);
+  }
+  .dash-skip-link:focus { transform: translateY(0); }
+
+  /* ================================================================
+     HEADER
+     ================================================================ */
+  .dash-header {
+    position: sticky; top: 0; z-index: 50;
+    height: var(--dash-header-height);
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .dash-header-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    max-width: 1400px; margin: 0 auto;
+    padding: 0 20px; height: 100%;
+    position: relative; z-index: 1;
+  }
+  .dash-header-gradient-border {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      var(--dash-accent) 20%,
+      var(--dash-teal) 50%,
+      var(--dash-rose) 80%,
+      transparent 100%
+    );
+    opacity: 0.4;
+  }
+
+  /* Logo */
+  .dash-logo {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none;
+  }
+  .dash-logo-icon {
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-light));
+    color: white;
+    font-family: var(--dash-font-body); font-size: 16px; font-weight: 800;
+    border-radius: var(--dash-radius-sm);
+  }
+  .dash-logo-text {
+    font-family: var(--dash-font-body);
+    font-size: 18px; font-weight: 700;
+    color: var(--dash-text);
+    letter-spacing: -0.02em;
+  }
+  .dash-logo-dot { color: var(--dash-accent-light); }
+
+  /* Header buttons */
+  .dash-header-actions { display: flex; align-items: center; gap: 4px; }
+  .dash-header-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 44px; height: 44px;
+    background: none; border: 1px solid transparent; cursor: pointer;
+    color: var(--dash-text-muted); border-radius: var(--dash-radius-sm);
+    transition: all var(--dash-transition-fast);
+  }
+  .dash-header-btn:hover {
+    background: var(--dash-bg-glass-hover);
+    color: var(--dash-text);
+    border-color: var(--dash-border);
+  }
+  .dash-header-btn[aria-expanded="true"] {
+    color: var(--dash-accent-light);
+    background: rgba(99, 102, 241, 0.12);
+    border-color: rgba(99, 102, 241, 0.25);
+    box-shadow: 0 0 12px var(--dash-accent-glow);
+  }
+
+  /* ================================================================
+     BACKDROP
+     ================================================================ */
+  .dash-backdrop {
+    position: fixed; inset: 0; z-index: 59;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0; pointer-events: none;
+    transition: opacity var(--dash-transition);
+  }
+  .dash-backdrop.is-visible { opacity: 1; pointer-events: auto; }
+
+  /* ================================================================
+     SIDEBARS (shared) - Floating Glass Panels
+     ================================================================ */
+  .dash-sidebar {
+    position: fixed; top: calc(var(--dash-header-height) + 12px); z-index: 60;
+    width: var(--dash-sidebar-width);
+    height: calc(100vh - var(--dash-header-height) - 24px);
+    height: calc(100dvh - var(--dash-header-height) - 24px);
+    background: var(--dash-bg-glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--dash-border);
+    border-radius: var(--dash-radius);
+    display: flex; flex-direction: column;
+    transition: transform var(--dash-transition), opacity var(--dash-transition);
+    overflow: hidden;
+    box-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.25),
+      0 0 40px rgba(99, 102, 241, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  .dash-sidebar-left {
+    left: 12px;
+    transform: translateX(calc(-100% - 24px));
+    opacity: 0;
+  }
+  .dash-sidebar-left.is-open {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  .dash-sidebar-right {
+    right: 12px;
+    transform: translateX(calc(100% + 24px));
+    opacity: 0;
+  }
+  .dash-sidebar-right.is-open {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  /* Sidebar header */
+  .dash-sidebar-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--dash-border);
+    flex-shrink: 0;
+  }
+  .dash-sidebar-title {
+    font-family: var(--dash-font-mono);
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--dash-text-muted);
+  }
+  .dash-sidebar-close {
+    display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px;
+    background: none; border: 1px solid transparent; cursor: pointer;
+    color: var(--dash-text-muted); border-radius: var(--dash-radius-sm);
+    transition: all var(--dash-transition-fast);
+  }
+  .dash-sidebar-close:hover {
+    background: var(--dash-bg-glass-hover);
+    color: var(--dash-text);
+    border-color: var(--dash-border);
+  }
+  .dash-sidebar-body {
+    flex: 1; overflow-y: auto; padding: 12px 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--dash-border) transparent;
+  }
+  .dash-sidebar-body::-webkit-scrollbar { width: 4px; }
+  .dash-sidebar-body::-webkit-scrollbar-track { background: transparent; }
+  .dash-sidebar-body::-webkit-scrollbar-thumb { background: var(--dash-border); border-radius: 4px; }
+
+  /* --- Nav Section --- */
+  .dash-nav-section { padding: 4px 12px 8px; }
+  .dash-nav-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    font-family: var(--dash-font-body);
+    font-size: 13px; font-weight: 500;
+    color: var(--dash-text-secondary); text-decoration: none;
+    border-radius: var(--dash-radius-sm);
+    transition: all var(--dash-transition-fast);
+  }
+  .dash-nav-link svg { color: var(--dash-text-muted); flex-shrink: 0; transition: color var(--dash-transition-fast); }
+  .dash-nav-link:hover {
+    background: var(--dash-bg-glass-hover);
+    color: var(--dash-text);
+    transform: translateX(2px);
+  }
+  .dash-nav-link:hover svg { color: var(--dash-accent-light); }
+  .dash-nav-divider {
+    height: 1px; margin: 8px 20px;
+    background: var(--dash-border);
+  }
+
+  /* --- Browse Section --- */
+  .dash-browse { padding: 0 12px; }
+  .dash-browse-label {
+    display: block; padding: 8px 12px 4px;
+    font-family: var(--dash-font-mono);
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--dash-text-muted);
+  }
+
+  /* Category accordion */
+  .dash-cat { border: none; }
+  .dash-cat-summary {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; cursor: pointer;
+    list-style: none; border-radius: var(--dash-radius-sm);
+    transition: all var(--dash-transition-fast);
+  }
+  .dash-cat-summary::-webkit-details-marker { display: none; }
+  .dash-cat-summary:hover { background: var(--dash-bg-glass-hover); }
+  .dash-cat-indicator {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--dash-cat-color, var(--dash-accent));
+    flex-shrink: 0;
+    box-shadow: 0 0 6px var(--dash-cat-color, var(--dash-accent));
+  }
+  .dash-cat-name {
+    font-family: var(--dash-font-body);
+    font-size: 13px; font-weight: 600;
+    color: var(--dash-text);
+    flex: 1;
+  }
+  .dash-chevron {
+    color: var(--dash-text-muted);
+    transition: transform var(--dash-transition);
+    flex-shrink: 0;
+  }
+  .dash-cat[open] > .dash-cat-summary .dash-chevron { transform: rotate(180deg); }
+  .dash-cat-body { padding: 0 0 4px 8px; }
+
+  /* Topic accordion */
+  .dash-topic { border: none; }
+  .dash-topic-summary {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px; cursor: pointer;
+    list-style: none; border-radius: var(--dash-radius-sm);
+    font-family: var(--dash-font-body);
+    font-size: 12px; font-weight: 500;
+    color: var(--dash-text-secondary);
+    transition: all var(--dash-transition-fast);
+  }
+  .dash-topic-summary::-webkit-details-marker { display: none; }
+  .dash-topic-summary:hover { background: var(--dash-bg-glass-hover); color: var(--dash-text); }
+  .dash-count {
+    font-family: var(--dash-font-mono);
+    font-size: 10px; color: var(--dash-text-muted);
+    background: var(--dash-bg-glass);
+    padding: 2px 8px;
+    border-radius: var(--dash-radius-pill);
+    border: 1px solid var(--dash-border);
+  }
+
+  /* Article links in sidebar */
+  .dash-article-list { list-style: none; padding: 2px 0 2px 16px; }
+  .dash-article-link {
+    display: block; padding: 6px 12px;
+    font-family: var(--dash-font-body);
+    font-size: 12px; color: var(--dash-text-muted);
+    text-decoration: none; border-radius: var(--dash-radius-sm);
+    transition: all var(--dash-transition-fast);
+    border-left: 2px solid transparent;
+    margin-left: -2px;
+  }
+  .dash-article-link:hover {
+    color: var(--dash-text);
+    background: var(--dash-bg-glass-hover);
+    border-left-color: var(--dash-border-hover);
+  }
+  .dash-article-link--active {
+    color: var(--dash-accent-light) !important;
+    border-left-color: var(--dash-accent) !important;
+    background: rgba(99, 102, 241, 0.1);
+    font-weight: 600;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.1);
+  }
+
+  /* --- TOC in right sidebar --- */
+  .dash-toc-nav { padding: 8px 12px; }
+  .dash-toc-list, .dash-toc-sublist { list-style: none; padding: 0; }
+  .dash-toc-sublist {
+    padding: 2px 0 6px 24px;
+    border-left: 1px solid var(--dash-border);
+    margin-left: 7px;
+  }
+  .dash-toc-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px;
+    font-family: var(--dash-font-body);
+    text-decoration: none; border-radius: var(--dash-radius-sm);
+    transition: all var(--dash-transition-fast);
+  }
+  .dash-toc-h2 { font-size: 13px; font-weight: 600; color: var(--dash-text-secondary); }
+  .dash-toc-h3 { font-size: 12px; color: var(--dash-text-muted); }
+  .dash-toc-link:hover {
+    background: var(--dash-bg-glass-hover);
+    color: var(--dash-accent-light);
+  }
+
+  /* Progress dots */
+  .dash-toc-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    border: 1.5px solid var(--dash-text-muted);
+    flex-shrink: 0;
+    transition: all var(--dash-transition-fast);
+  }
+  .dash-toc-link:hover .dash-toc-dot {
+    border-color: var(--dash-accent-light);
+    background: var(--dash-accent-light);
+    box-shadow: 0 0 8px var(--dash-accent-glow);
+  }
+  .dash-toc-link.is-active .dash-toc-dot {
+    border-color: var(--dash-accent);
+    background: var(--dash-accent);
+    box-shadow: 0 0 10px var(--dash-accent-glow);
+  }
+  .dash-toc-link.is-active {
+    color: var(--dash-accent-light);
+    background: rgba(99, 102, 241, 0.08);
+  }
+
+  /* ================================================================
+     MAIN CONTENT - Always Centered
+     ================================================================ */
+  .dash-main {
+    position: relative; z-index: 1;
+    max-width: var(--dash-content-width);
+    margin: 0 auto;
+    padding: 0 24px calc(var(--dash-header-height) + 80px);
+  }
+
+  /* --- Breadcrumb --- */
+  .dash-breadcrumb {
+    display: flex; align-items: center; gap: 6px;
+    padding: 24px 0 16px;
+    font-family: var(--dash-font-body);
+    font-size: 12px;
+  }
+  .dash-breadcrumb a {
+    color: var(--dash-text-muted); text-decoration: none;
+    transition: color var(--dash-transition-fast);
+    padding: 4px 0;
+  }
+  .dash-breadcrumb a:hover { color: var(--dash-accent-light); }
+  .dash-breadcrumb-sep { color: var(--dash-text-muted); opacity: 0.5; display: flex; align-items: center; }
+
+  /* --- Article Header Card --- */
+  .dash-article-header {
+    padding: 40px 0 32px;
+  }
+  .dash-article-meta-top {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .dash-badge-category {
+    font-family: var(--dash-font-mono);
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--dash-accent-light);
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    padding: 4px 14px;
+    border-radius: var(--dash-radius-pill);
+  }
+  .dash-badge-reading-time {
+    font-family: var(--dash-font-mono);
+    font-size: 11px; font-weight: 400;
+    color: var(--dash-teal);
+    background: rgba(45, 212, 191, 0.1);
+    border: 1px solid rgba(45, 212, 191, 0.2);
+    padding: 4px 14px;
+    border-radius: var(--dash-radius-pill);
+  }
+  .dash-article-title {
+    font-family: var(--dash-font-body);
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 800; line-height: 1.15;
+    letter-spacing: -0.03em;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, var(--dash-accent-light), #A78BFA, var(--dash-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .dash-article-subtitle {
+    font-size: 18px; line-height: 1.6;
+    color: var(--dash-text-muted);
+    max-width: 600px;
+    margin-bottom: 20px;
+  }
+  .dash-article-meta-bottom {
+    display: flex; align-items: center; gap: 20px;
+    flex-wrap: wrap;
+  }
+  .dash-meta-item {
+    display: flex; align-items: center; gap: 6px;
+    font-family: var(--dash-font-body);
+    font-size: 13px; color: var(--dash-text-muted);
+  }
+  .dash-meta-item svg { color: var(--dash-text-muted); opacity: 0.7; }
+
+  /* ================================================================
+     PROSE CONTENT - Section Cards
+     ================================================================ */
+  .dash-prose { padding: 8px 0 48px; }
+
+  /* Section Card */
+  .dash-section-card {
+    background: var(--dash-bg-card);
+    border: 1px solid var(--dash-border);
+    border-radius: var(--dash-radius);
+    padding: 32px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: border-color var(--dash-transition);
+  }
+  .dash-section-card:hover {
+    border-color: var(--dash-border-hover);
+  }
+
+  /* Section Heading */
+  .dash-section-heading {
+    font-family: var(--dash-font-body);
+    font-size: clamp(22px, 3vw, 28px);
+    font-weight: 700; line-height: 1.3;
+    color: var(--dash-text);
+    margin-bottom: 20px;
+    letter-spacing: -0.02em;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--dash-border);
+    position: relative;
+  }
+  .dash-section-heading::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 0;
+    width: 60px; height: 2px;
+    background: linear-gradient(90deg, var(--dash-accent), var(--dash-accent-light));
+    border-radius: 2px;
+  }
+
+  .dash-prose h3 {
+    font-family: var(--dash-font-body);
+    font-size: clamp(16px, 2.5vw, 20px);
+    font-weight: 600; line-height: 1.4;
+    color: var(--dash-text);
+    margin: 32px 0 12px;
+    letter-spacing: -0.01em;
+  }
+
+  .dash-prose p { margin-bottom: 20px; }
+
+  /* Blockquote */
+  .dash-blockquote {
+    margin: 28px 0;
+    padding: 24px 28px;
+    background: var(--dash-bg-glass);
+    border-left: 3px solid var(--dash-accent);
+    border-radius: 0 var(--dash-radius-sm) var(--dash-radius-sm) 0;
+    position: relative;
+  }
+  .dash-blockquote::before {
+    content: '\201C';
+    position: absolute; top: 8px; left: 16px;
+    font-family: var(--dash-font-body);
+    font-size: 48px; line-height: 1;
+    color: var(--dash-accent);
+    opacity: 0.3;
+  }
+  .dash-blockquote p {
+    margin-bottom: 8px; color: var(--dash-text);
+    font-size: 17px; line-height: 1.7;
+    font-style: italic;
+    padding-left: 24px;
+  }
+  .dash-blockquote cite {
+    display: block;
+    font-size: 13px; color: var(--dash-text-muted);
+    font-style: normal;
+    font-family: var(--dash-font-mono);
+    padding-left: 24px;
+  }
+
+  /* Lists */
+  .dash-prose ul, .dash-prose ol { margin: 16px 0; padding-left: 24px; }
+  .dash-prose li {
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+  .dash-prose li strong { color: var(--dash-text); }
+  .dash-prose li::marker { color: var(--dash-accent-light); }
+
+  /* Tables */
+  .dash-table-wrapper {
+    overflow-x: auto; margin: 24px 0;
+    border-radius: var(--dash-radius-sm);
+    border: 1px solid var(--dash-border);
+  }
+  .dash-prose table {
+    width: 100%; border-collapse: collapse; font-size: 14px;
+  }
+  .dash-prose th {
+    font-family: var(--dash-font-mono);
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--dash-text-muted);
+    text-align: left; padding: 12px 16px;
+    background: var(--dash-bg-glass);
+    border-bottom: 1px solid var(--dash-border);
+  }
+  .dash-prose td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--dash-border);
+    color: var(--dash-text-secondary);
+  }
+  .dash-prose tr:last-child td { border-bottom: none; }
+  .dash-prose tr:hover td { background: var(--dash-bg-elevated); }
+  .dash-table-highlight {
+    font-weight: 600; color: var(--dash-text);
+    font-family: var(--dash-font-mono); font-size: 13px;
+  }
+
+  /* Code blocks */
+  .dash-code-block {
+    margin: 24px 0;
+    border-radius: var(--dash-radius-sm);
+    border: 1px solid var(--dash-border);
+    overflow: hidden;
+  }
+  .dash-code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--dash-bg-glass);
+    border-bottom: 1px solid var(--dash-border);
+  }
+  .dash-code-lang {
+    font-family: var(--dash-font-mono);
+    font-size: 11px; font-weight: 700;
+    color: var(--dash-accent-light);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .dash-code-file {
+    font-family: var(--dash-font-mono);
+    font-size: 11px; color: var(--dash-text-muted);
+  }
+  .dash-prose pre {
+    margin: 0; padding: 20px;
+    background: var(--dash-code-bg);
+    overflow-x: auto; font-size: 13px; line-height: 1.8;
+  }
+  .dash-prose pre code {
+    font-family: var(--dash-font-mono);
+    color: var(--dash-text-secondary);
+    background: none; padding: 0; font-size: inherit;
+  }
+  .dash-prose code {
+    font-family: var(--dash-font-mono);
+    font-size: 13px;
+    background: var(--dash-bg-glass);
+    border: 1px solid var(--dash-border);
+    padding: 2px 8px;
+    border-radius: 4px;
+    color: var(--dash-accent-light);
+  }
+
+  /* Diagram */
+  .dash-diagram { margin: 28px 0; }
+  .dash-diagram-inner {
+    padding: 32px;
+    background: var(--dash-bg-glass);
+    border: 1px solid var(--dash-border);
+    border-radius: var(--dash-radius-sm);
+    text-align: center;
+  }
+  .dash-diagram-title {
+    display: block;
+    font-family: var(--dash-font-mono);
+    font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--dash-text-muted);
+    margin-bottom: 24px;
+  }
+  .dash-diagram-nodes {
+    display: flex; align-items: center; justify-content: center;
+    gap: 20px; flex-wrap: wrap;
+  }
+  .dash-diagram-node {
+    padding: 12px 20px;
+    background: var(--dash-bg-card);
+    border: 1px solid var(--dash-border);
+    border-radius: var(--dash-radius-sm);
+    text-align: center;
+  }
+  .dash-node-label {
+    display: block;
+    font-family: var(--dash-font-body);
+    font-size: 13px; font-weight: 600;
+    color: var(--dash-text);
+    margin-bottom: 4px;
+  }
+  .dash-node-status {
+    display: inline-block;
+    font-family: var(--dash-font-mono);
+    font-size: 10px;
+    color: var(--dash-text-muted);
+    padding: 2px 10px;
+    border-radius: var(--dash-radius-pill);
+    background: var(--dash-bg-glass);
+    border: 1px solid var(--dash-border);
+  }
+  .dash-node-status--active {
+    color: var(--dash-teal);
+    background: rgba(45, 212, 191, 0.1);
+    border-color: rgba(45, 212, 191, 0.2);
+  }
+  .dash-diagram-leader {
+    border-color: rgba(99, 102, 241, 0.3);
+    background: rgba(99, 102, 241, 0.1);
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+  }
+  .dash-diagram-followers {
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .dash-diagram-arrows {
+    display: flex; align-items: center;
+    flex-shrink: 0;
+  }
+  .dash-figcaption {
+    text-align: center; font-size: 13px;
+    color: var(--dash-text-muted); margin-top: 12px;
+    font-family: var(--dash-font-body);
+  }
+
+  /* --- Article Navigation --- */
+  .dash-article-nav {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    padding: 16px 0 48px;
+  }
+  .dash-nav-prev, .dash-nav-next {
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 20px;
+    background: var(--dash-bg-card);
+    border: 1px solid var(--dash-border);
+    border-radius: var(--dash-radius);
+    text-decoration: none;
+    transition: all var(--dash-transition);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .dash-nav-prev:hover, .dash-nav-next:hover {
+    border-color: var(--dash-accent);
+    box-shadow: 0 0 20px var(--dash-accent-glow);
+    transform: translateY(-2px);
+  }
+  .dash-nav-next { text-align: right; }
+  .dash-nav-label {
+    display: flex; align-items: center; gap: 4px;
+    font-family: var(--dash-font-mono);
+    font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--dash-accent-light);
+  }
+  .dash-nav-next .dash-nav-label { justify-content: flex-end; }
+  .dash-nav-title {
+    font-family: var(--dash-font-body);
+    font-size: 14px; font-weight: 600;
+    color: var(--dash-text); line-height: 1.4;
+  }
+
+  /* ================================================================
+     RESPONSIVE
+     ================================================================ */
+  @media (max-width: 640px) {
+    .dash-sidebar {
+      width: min(88vw, 340px);
+      top: 0;
+      height: 100vh; height: 100dvh;
+      border-radius: 0;
+    }
+    .dash-sidebar-left { left: 0; }
+    .dash-sidebar-right { right: 0; }
+    .dash-main { padding: 0 16px 80px; }
+    .dash-section-card { padding: 24px 20px; }
+    .dash-article-nav { grid-template-columns: 1fr; }
+    .dash-diagram-nodes { flex-direction: column; }
+    .dash-diagram-arrows { transform: rotate(90deg); }
+    .dash-diagram-followers { flex-direction: column; }
+    .dash-article-title { font-size: clamp(24px, 6vw, 36px); }
+  }
+
+  /* ================================================================
+     FOCUS STYLES
+     ================================================================ */
+  :focus-visible {
+    outline: 2px solid var(--dash-accent-light);
+    outline-offset: 2px;
+  }
+  .dash-sidebar :focus-visible {
+    outline-offset: -2px;
+  }
+
+  /* ================================================================
+     SCROLLBAR STYLES (main)
+     ================================================================ */
+  .dash-body::-webkit-scrollbar { width: 8px; }
+  .dash-body::-webkit-scrollbar-track { background: var(--dash-bg); }
+  .dash-body::-webkit-scrollbar-thumb {
+    background: var(--dash-border);
+    border-radius: 4px;
+  }
+  .dash-body::-webkit-scrollbar-thumb:hover { background: var(--dash-border-hover); }
+</style>
+
+<script>
+  function initDashboardLayout() {
+    const toggleLeft = document.querySelector('.dash-toggle-left') as HTMLButtonElement | null;
+    const toggleRight = document.querySelector('.dash-toggle-right') as HTMLButtonElement | null;
+    const sidebarLeft = document.getElementById('dash-sidebar-left');
+    const sidebarRight = document.getElementById('dash-sidebar-right');
+    const backdrop = document.getElementById('dash-sidebar-backdrop');
+
+    const STORAGE_KEY_LEFT = 'dash-sidebar-left';
+    const STORAGE_KEY_RIGHT = 'dash-sidebar-right';
+
+    function closeSidebars() {
+      sidebarLeft?.classList.remove('is-open');
+      sidebarRight?.classList.remove('is-open');
+      backdrop?.classList.remove('is-visible');
+      toggleLeft?.setAttribute('aria-expanded', 'false');
+      toggleRight?.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+
+    function openSidebar(sidebar: HTMLElement | null, toggle: HTMLButtonElement | null) {
+      if (!sidebar || !toggle) return;
+      sidebar.classList.add('is-open');
+      backdrop?.classList.add('is-visible');
+      toggle.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function toggleSidebar(sidebar: HTMLElement | null, toggle: HTMLButtonElement | null, storageKey: string) {
+      if (!sidebar || !toggle) return;
+      const isOpen = sidebar.classList.contains('is-open');
+      closeSidebars();
+      if (!isOpen) {
+        openSidebar(sidebar, toggle);
+      }
+      // Save state
+      if (window.matchMedia('(min-width: 1024px)').matches) {
+        localStorage.setItem(storageKey, isOpen ? 'closed' : 'open');
+      }
+    }
+
+    toggleLeft?.addEventListener('click', () => toggleSidebar(sidebarLeft, toggleLeft, STORAGE_KEY_LEFT));
+    toggleRight?.addEventListener('click', () => toggleSidebar(sidebarRight, toggleRight, STORAGE_KEY_RIGHT));
+    backdrop?.addEventListener('click', closeSidebars);
+
+    // Close buttons inside sidebars
+    document.querySelectorAll('.dash-sidebar-close').forEach(btn => {
+      btn.addEventListener('click', closeSidebars);
+    });
+
+    // Escape key closes sidebars
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeSidebars();
+    });
+
+    // Restore sidebar state on desktop via localStorage
+    const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+    if (isDesktop) {
+      const savedLeft = localStorage.getItem(STORAGE_KEY_LEFT);
+      const savedRight = localStorage.getItem(STORAGE_KEY_RIGHT);
+      if (savedLeft === 'open') {
+        openSidebar(sidebarLeft, toggleLeft);
+      }
+      if (savedRight === 'open') {
+        openSidebar(sidebarRight, toggleRight);
+      }
+    }
+
+    // ----------------------------------------------------------------
+    // TOC active state tracking (decorative progress dots)
+    // ----------------------------------------------------------------
+    const tocLinks = document.querySelectorAll('.dash-toc-link.dash-toc-h2');
+    const sectionCards = document.querySelectorAll('.dash-section-card[id]');
+
+    if (sectionCards.length > 0 && tocLinks.length > 0) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const id = entry.target.getAttribute('id');
+              tocLinks.forEach((link) => {
+                const href = link.getAttribute('href');
+                if (href === `#${id}`) {
+                  link.classList.add('is-active');
+                } else {
+                  link.classList.remove('is-active');
+                }
+              });
+            }
+          });
+        },
+        {
+          rootMargin: '-80px 0px -60% 0px',
+          threshold: 0,
+        }
+      );
+      sectionCards.forEach((section) => observer.observe(section));
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', initDashboardLayout);
+</script>

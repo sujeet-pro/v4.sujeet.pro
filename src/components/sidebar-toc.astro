@@ -1,0 +1,42 @@
+---
+/**
+ * Sidebar TOC (Table of Contents)
+ * For article/blog/project detail pages: inline TOC from headings
+ */
+import type { MarkdownHeading } from "astro"
+
+interface Props {
+  headings: MarkdownHeading[]
+}
+
+const { headings } = Astro.props
+const tocItems = headings.filter((h) => h.depth === 2 || h.depth === 3)
+---
+
+{
+  tocItems.length > 0 && (
+    <nav aria-label="Table of contents">
+      <h2 class="sidebar-nav-title">On this page</h2>
+      <ul class="sidebar-toc-list">
+        {tocItems.map((heading) => (
+          <li>
+            <a
+              href={`#${heading.slug}`}
+              class:list={["sidebar-toc-item", { "sidebar-toc-item--h3": heading.depth === 3 }]}
+            >
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<style is:global>
+  @reference "tailwindcss";
+
+  .sidebar-toc-list {
+    @apply flex flex-col gap-0.5;
+  }
+</style>

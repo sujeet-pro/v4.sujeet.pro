@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layout/layout.astro"
+import SidebarNavSite from "@/components/sidebar-nav-site.astro"
 import { getSearchFacets } from "@/utils/search.utils"
 import { SEARCH_SCHEMA } from "@/utils/search.types"
 import { Icon } from "astro-icon/components"
@@ -13,7 +14,8 @@ const searchSchemaJson = JSON.stringify(SEARCH_SCHEMA)
 const searchIndexPath = getFilePath("search/index.json")
 ---
 
-<Layout title="Search" description="Search for articles on Sujeet's blog" crumbs={null} pageType="default">
+<Layout title="Search" description="Search for articles on Sujeet's blog" crumbs={null} pageType="default" hasLeftSidebar={true}>
+  <SidebarNavSite slot="sidebar-left" />
   <div class="search-page">
     <!-- Hero Section with Search -->
     <header class="search-hero">

@@ -23,6 +23,10 @@ export interface OrderingJsonc {
   categories: CategoryOrderEntry[]
   featuredArticles: string[]
   featuredTopics: string[]
+  projects?: string[]
+  pinnedArticles?: string[]
+  pinnedBlogs?: string[]
+  pinnedProjects?: string[]
 }
 
 interface OrderingIssue {

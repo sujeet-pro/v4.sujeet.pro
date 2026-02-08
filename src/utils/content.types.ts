@@ -199,6 +199,82 @@ export interface ArticleDetailedInfo {
 }
 
 // =============================================================================
+// Blog Types
+// =============================================================================
+
+export interface BlogItem {
+  id: string
+  title: string
+  description: string
+  minutesRead: string
+  isDraft: boolean
+  publishedOn?: string
+  lastUpdatedOn?: string
+  archived: boolean
+  tags: string[]
+  href: string
+  Content: RenderResult["Content"]
+}
+
+export type BlogItemWithoutContent = Omit<BlogItem, "Content">
+
+export interface BlogCardInfo {
+  id: string
+  title: string
+  description: string
+  href: string
+  minutesRead: string
+  publishedOn?: string
+  lastUpdatedOn?: string
+  tags: string[]
+  isDraft: boolean
+}
+
+// =============================================================================
+// Project Types
+// =============================================================================
+
+export interface ProjectItem {
+  id: string
+  title: string
+  description: string
+  minutesRead: string
+  isDraft: boolean
+  gitRepo?: string
+  demoUrl?: string
+  tags: string[]
+  href: string
+  Content: RenderResult["Content"]
+}
+
+export type ProjectItemWithoutContent = Omit<ProjectItem, "Content">
+
+export interface ProjectCardInfo {
+  id: string
+  title: string
+  description: string
+  href: string
+  minutesRead: string
+  gitRepo?: string
+  demoUrl?: string
+  tags: string[]
+  isDraft: boolean
+}
+
+// =============================================================================
+// Tag Types
+// =============================================================================
+
+export interface TagInfo {
+  tag: string
+  slug: string
+  count: number
+  articles: ArticleCardInfo[]
+  blogs: BlogCardInfo[]
+  projects: ProjectCardInfo[]
+}
+
+// =============================================================================
 // Series Types
 // =============================================================================
 
@@ -256,6 +332,14 @@ export interface OrderingConfig {
   // Featured subsets (for homepage)
   featuredArticles: string[] // Article slugs
   featuredTopics: string[] // Topic IDs
+
+  // Project ordering
+  projects: string[]
+
+  // Pinned content (shown first on listing pages)
+  pinnedArticles: string[]
+  pinnedBlogs: string[]
+  pinnedProjects: string[]
 }
 
 /**

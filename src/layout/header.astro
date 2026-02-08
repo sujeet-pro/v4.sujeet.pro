@@ -4,18 +4,38 @@ import Link from "@/components/link.astro"
 import { getNavItems } from "@/utils/site.utils"
 import { Icon } from "astro-icon/components"
 
+interface Props {
+  hasLeftSidebar?: boolean
+  hasRightSidebar?: boolean
+}
+
+const { hasLeftSidebar = false, hasRightSidebar = false } = Astro.props
 const navItems = await getNavItems()
 ---
 
 <header class="site-header">
   <div class="header-container">
     <nav class="header-nav">
-      <!-- Logo - left on mobile, in grid on desktop -->
-      <Link href="/" class="header-logo">
-        <span class="header-logo-name">sujeet.pro</span>
-      </Link>
+      <!-- Left side: sidebar toggle + logo -->
+      <div class="header-left">
+        {
+          hasLeftSidebar && (
+            <button
+              id="left-sidebar-toggle"
+              class="sidebar-toggle-btn"
+              aria-label="Toggle navigation sidebar"
+              aria-expanded="true"
+            >
+              <Icon name="carbon:side-panel-open" class="icon-md" />
+            </button>
+          )
+        }
+        <Link href="/" class="header-logo">
+          <span class="header-logo-name">sujeet.pro</span>
+        </Link>
+      </div>
 
-      <!-- Nav links - hidden on mobile -->
+      <!-- Center: Nav links - hidden on mobile -->
       <div class="header-nav-links">
         {
           navItems.map((item) => (
@@ -26,7 +46,7 @@ const navItems = await getNavItems()
         }
       </div>
 
-      <!-- Search and hamburger -->
+      <!-- Right side: search + sidebar toggle + hamburger -->
       <div class="header-actions">
         <!-- Search Icon - visible on sm only -->
         <Link href="/search" class="nav-search-icon" aria-label="Search">
@@ -37,6 +57,19 @@ const navItems = await getNavItems()
         <div class="nav-search-input">
           <Search />
         </div>
+
+        {
+          hasRightSidebar && (
+            <button
+              id="right-sidebar-toggle"
+              class="sidebar-toggle-btn"
+              aria-label="Toggle table of contents"
+              aria-expanded="true"
+            >
+              <Icon name="carbon:side-panel-close" class="icon-md" />
+            </button>
+          )
+        }
 
         <!-- Hamburger Menu - visible on mobile only -->
         <button
@@ -104,14 +137,12 @@ const navItems = await getNavItems()
     closeBtn?.addEventListener("click", closeMenu)
     overlay?.addEventListener("click", closeMenu)
 
-    // Close menu on escape key
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && menu?.classList.contains("is-open")) {
         closeMenu()
       }
     })
 
-    // Close menu when clicking a link
     menu?.querySelectorAll("a").forEach((link) => {
       link.addEventListener("click", closeMenu)
     })
@@ -124,40 +155,45 @@ const navItems = await getNavItems()
 <style is:global>
   @reference "tailwindcss";
 
-  /* Header container */
   .header-container {
     @apply mx-auto w-full px-5 md:px-8;
     max-width: var(--header-width);
   }
 
-  /* Header nav - flexbox layout */
   .header-nav {
-    @apply flex items-center justify-between gap-6 py-4;
+    @apply flex items-center justify-between gap-6;
+    height: var(--header-height);
   }
 
-  /* Logo */
+  .header-left {
+    @apply flex items-center gap-2;
+  }
+
   .header-logo {
     @apply no-underline;
   }
 
   .header-logo-name {
-    @apply text-xl font-semibold;
+    @apply font-mono text-sm lowercase;
     color: var(--color-text);
-    letter-spacing: -0.02em;
+    letter-spacing: 0.02em;
     transition: color var(--transition-fast);
   }
 
   .header-logo:hover .header-logo-name {
-    color: var(--color-accent);
+    color: var(--color-text-muted);
   }
 
-  /* Nav links - center, hidden on mobile */
   .header-nav-links {
     @apply hidden items-center gap-8 md:flex;
   }
 
-  /* Header actions - right side */
   .header-actions {
     @apply flex items-center gap-2;
+  }
+
+  /* Sidebar toggles - visible on all screen sizes */
+  .sidebar-toggle-btn {
+    @apply flex;
   }
 </style>

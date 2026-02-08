@@ -42,6 +42,9 @@ import {
   getFeaturedArticlesCards,
   getFeaturedTopics,
 } from "./content.cards"
+import { getAllBlogCards, getAllBlogPaths, getBlogPage } from "./content.blogs"
+import { getAllProjectCards, getAllProjectPaths, getProjectPage } from "./content.projects"
+import { getAllTags, getAllTagSlugs, getTagContent } from "./content.tags"
 import {
   filterDrafts,
   getArticlesForTopicFromConfig,
@@ -58,6 +61,8 @@ import type {
   ArticleCardInfo,
   ArticleDetailedInfo,
   ArticlePageData,
+  BlogCardInfo,
+  BlogItem,
   CardLinkInfo,
   CategoryCardInfo,
   CategoryIndex,
@@ -67,7 +72,10 @@ import type {
   ContentItem,
   ContentItemWithoutContent,
   IndexItem,
+  ProjectCardInfo,
+  ProjectItem,
   ResolvedTopic,
+  TagInfo,
   TopicCardInfo,
   TopicIndex,
   TopicPageData,
@@ -80,6 +88,8 @@ export type {
   ArticleCardInfo,
   ArticleDetailedInfo,
   ArticlePageData,
+  BlogCardInfo,
+  BlogItem,
   CardLinkInfo,
   CategoryCardInfo,
   CategoryIndex,
@@ -89,7 +99,10 @@ export type {
   ContentItem,
   ContentItemWithoutContent,
   IndexItem,
+  ProjectCardInfo,
+  ProjectItem,
   ResolvedTopic,
+  TagInfo,
   TopicCardInfo,
   TopicIndex,
   TopicPageData,
@@ -104,6 +117,18 @@ export {
   getBrowseContent,
   getFeaturedArticlesCards,
   getFeaturedTopics,
+  // Blog exports
+  getAllBlogCards,
+  getAllBlogPaths,
+  getBlogPage,
+  // Project exports
+  getAllProjectCards,
+  getAllProjectPaths,
+  getProjectPage,
+  // Tag exports
+  getAllTags,
+  getAllTagSlugs,
+  getTagContent,
 }
 
 // =============================================================================

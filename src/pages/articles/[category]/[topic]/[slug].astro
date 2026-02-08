@@ -1,8 +1,8 @@
 ---
-import { Icon } from "astro-icon/components"
 import ArticleCard from "@/components/article-card.astro"
-import TOC from "@/components/toc.astro"
 import Frontmatter from "@/components/frontmatter.astro"
+import SidebarNavArticles from "@/components/sidebar-nav-articles.astro"
+import SidebarToc from "@/components/sidebar-toc.astro"
 import Layout from "@/layout/layout.astro"
 import ReadingProgress from "@/layout/reading-progress.astro"
 import { getAllArticlePaths, getAllArticlesDetailed } from "@/utils/content"
@@ -15,7 +15,7 @@ export async function getStaticPaths() {
   }))
 }
 
-const { slug } = Astro.params
+const { category, topic, slug } = Astro.params
 const allArticles = await getAllArticlesDetailed()
 const articleDetail = allArticles.find((entry) => entry.card.id === slug)
 
@@ -23,69 +23,42 @@ if (!articleDetail) {
   return Astro.redirect("/404")
 }
 
-const { article, topic: topicCard, next: nextArticle, prev: prevArticle } = articleDetail
-
-// Map topic articles for inline navigation
-const topicArticles = topicCard.articles.map((a) => ({
-  id: a.id,
-  title: a.title,
-  href: a.href,
-}))
-const { description, title, minutesRead, Content, isDraft, category, topic: articleTopic } = article
+const { article, toc, next: nextArticle, prev: prevArticle } = articleDetail
+const { description, title, minutesRead, Content, isDraft, category: articleCategory, topic: articleTopic } = article
 
 const crumbs = [
-  { name: category.name, href: category.href },
+  { name: articleCategory.name, href: articleCategory.href },
   { name: articleTopic.name, href: articleTopic.href, title: articleTopic.title },
 ]
 
-// Show topic articles when there are other articles in the same topic
-const showTopicArticles = topicArticles.length > 1
+const hasToc = toc.length > 0
 ---
 
-<Layout {title} {description} {crumbs} pageType="article" noIndex={isDraft}>
+<Layout
+  {title}
+  {description}
+  {crumbs}
+  pageType="article"
+  noIndex={isDraft}
+  hasLeftSidebar={true}
+  hasRightSidebar={hasToc}
+>
+  <SidebarNavArticles
+    slot="sidebar-left"
+    categoryId={category}
+    topicId={topic}
+    currentArticleId={slug}
+  />
+  {hasToc && <SidebarToc slot="sidebar-right" headings={toc} />}
+
   <!-- Reading Progress Bar -->
   <ReadingProgress />
-
-  <!-- Topic Articles Dropdown (always on top, like mobile view) -->
-  {
-    showTopicArticles && (
-      <details class="topic-articles-dropdown" id="topic-articles-dropdown">
-        <summary class="topic-articles-summary">
-          <span class="topic-articles-label">
-            <Icon name="carbon:list" class="icon-sm" />
-            <span>{topicCard.title}</span>
-            <span class="topic-articles-count">({topicArticles.length} articles)</span>
-          </span>
-          <Icon name="carbon:chevron-down" class="topic-articles-chevron" />
-        </summary>
-        <nav class="topic-articles-content" aria-label={`${topicCard.title} articles`}>
-          <ul class="topic-articles-list">
-            {topicArticles.map((item) => {
-              const isCurrent = item.id === article.id
-              return (
-                <li>
-                  <a
-                    href={item.href}
-                    class:list={["topic-articles-link", { "topic-articles-link-active": isCurrent }]}
-                    aria-current={isCurrent ? "page" : undefined}
-                  >
-                    {isCurrent && <Icon name="carbon:chevron-right" class="topic-articles-indicator" />}
-                    {item.title}
-                  </a>
-                </li>
-              )
-            })}
-          </ul>
-        </nav>
-      </details>
-    )
-  }
 
   <!-- Article Metadata -->
   <Frontmatter {minutesRead} {isDraft} class="article-frontmatter" />
 
   <!-- Main Article Content -->
-  <article class="article-prose-content">
+  <article id="article-content" class="article-prose-content">
     <Content />
   </article>
 
@@ -103,102 +76,15 @@ const showTopicArticles = topicArticles.length > 1
       </section>
     )
   }
-
-  <!-- Floating TOC Button (always accessible) -->
-  <TOC />
 </Layout>
 
 <style is:global>
   @reference "tailwindcss";
 
-  /* Article frontmatter spacing */
   .article-frontmatter {
     @apply mb-8;
   }
 
-  /* Topic Articles Dropdown - Always on top */
-  .topic-articles-dropdown {
-    @apply mb-8 rounded-xl border;
-    background: var(--color-bg-elevated);
-    border-color: var(--color-border);
-    box-shadow: var(--shadow-sm);
-    animation: fadeInUp var(--transition-slow) forwards;
-  }
-
-  .topic-articles-dropdown[open] {
-    box-shadow: var(--shadow-md);
-  }
-
-  .topic-articles-summary {
-    @apply flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4;
-    transition: background-color var(--transition-fast);
-  }
-
-  .topic-articles-summary:hover {
-    background: var(--color-accent-subtle);
-    border-radius: 11px;
-  }
-
-  .topic-articles-summary::-webkit-details-marker {
-    @apply hidden;
-  }
-
-  .topic-articles-label {
-    @apply flex items-center gap-2 text-sm font-medium;
-    color: var(--color-text);
-  }
-
-  .topic-articles-count {
-    color: var(--color-text-muted);
-    font-weight: normal;
-  }
-
-  .topic-articles-chevron {
-    @apply h-5 w-5;
-    color: var(--color-text-muted);
-    transition: transform var(--transition-normal);
-  }
-
-  .topic-articles-dropdown[open] .topic-articles-chevron {
-    transform: rotate(180deg);
-  }
-
-  .topic-articles-content {
-    @apply max-h-80 overflow-y-auto;
-    border-top: 1px solid var(--color-border-subtle);
-  }
-
-  .topic-articles-list {
-    @apply p-3;
-  }
-
-  .topic-articles-list li {
-    @apply m-0;
-  }
-
-  .topic-articles-link {
-    @apply flex items-center gap-2 rounded-lg px-4 py-3 text-sm no-underline;
-    color: var(--color-text-muted);
-    transition: all var(--transition-fast);
-  }
-
-  .topic-articles-link:hover {
-    background: var(--color-accent-subtle);
-    color: var(--color-text);
-  }
-
-  .topic-articles-link-active {
-    @apply font-medium;
-    background: var(--color-accent-subtle);
-    color: var(--color-accent) !important;
-  }
-
-  .topic-articles-indicator {
-    @apply h-4 w-4;
-    color: var(--color-accent);
-  }
-
-  /* Article Navigation section */
   .article-navigation {
     @apply mt-16;
   }

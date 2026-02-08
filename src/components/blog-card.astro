@@ -1,0 +1,35 @@
+---
+import type { BlogCardInfo } from "@/utils/content.types"
+import Link from "@/components/link.astro"
+import { Icon } from "astro-icon/components"
+
+interface Props {
+  blog: BlogCardInfo
+}
+
+const { blog } = Astro.props
+---
+
+<li class="blog-card">
+  <h3 class="blog-card-title">
+    <Link href={blog.href} class="blog-card-link">{blog.title}</Link>
+  </h3>
+  <div class="blog-card-meta">
+    {blog.publishedOn && <span>{blog.publishedOn}</span>}
+    <span class="frontmatter-separator">&middot;</span>
+    <span>{blog.minutesRead}</span>
+    {blog.isDraft && <span class="badge-accent">Draft</span>}
+  </div>
+  {blog.description && <p class="blog-card-excerpt">{blog.description}</p>}
+  {
+    blog.tags.length > 0 && (
+      <div class="blog-card-tags">
+        {blog.tags.map((tag) => (
+          <Link href={`/tags/${tag.toLowerCase().replace(/\s+/g, "-")}`} class="tag">
+            {tag}
+          </Link>
+        ))}
+      </div>
+    )
+  }
+</li>

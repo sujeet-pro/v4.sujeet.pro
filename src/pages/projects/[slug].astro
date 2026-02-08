@@ -1,0 +1,73 @@
+---
+import Layout from "@/layout/layout.astro"
+import ReadingProgress from "@/layout/reading-progress.astro"
+import SidebarNavProjects from "@/components/sidebar-nav-projects.astro"
+import SidebarToc from "@/components/sidebar-toc.astro"
+import Link from "@/components/link.astro"
+import { Icon } from "astro-icon/components"
+import { getAllProjectPaths, getProjectPage } from "@/utils/content"
+import { render, getCollection } from "astro:content"
+
+export async function getStaticPaths() {
+  const paths = await getAllProjectPaths()
+  return paths.map((slug) => ({ params: { slug } }))
+}
+
+const { slug } = Astro.params
+const project = await getProjectPage(slug)
+if (!project) return Astro.redirect("/404")
+
+// Get headings for TOC
+const projectEntries = await getCollection("project")
+const entry = projectEntries.find((e) => e.id === slug)
+const headings = entry ? (await render(entry)).headings : []
+
+const crumbs = [{ label: "Projects", href: "/projects" }]
+---
+
+<Layout
+  title={project.title}
+  description={project.description}
+  crumbs={crumbs}
+  noIndex={project.isDraft}
+  hasLeftSidebar={true}
+  hasRightSidebar={headings.length > 0}
+  pageType="project"
+>
+  <SidebarNavProjects slot="sidebar-left" currentProjectId={slug} />
+  {headings.length > 0 && <SidebarToc slot="sidebar-right" headings={headings} />}
+
+  <ReadingProgress />
+
+  <article class="article">
+    <header class="article-header">
+      <h1 class="article-title">{project.title}</h1>
+      <div class="article-meta">
+        <span class="article-meta-item">{project.minutesRead}</span>
+        {project.isDraft && <span class="badge-accent">Draft</span>}
+      </div>
+      {
+        (project.gitRepo || project.demoUrl) && (
+          <div class="project-card-links" style="margin-top: 1rem;">
+            {project.gitRepo && (
+              <Link href={project.gitRepo} class="project-card-link-item" target="_blank" rel="noopener noreferrer">
+                <Icon name="carbon:logo-github" class="icon-sm" />
+                <span>Source Code</span>
+              </Link>
+            )}
+            {project.demoUrl && (
+              <Link href={project.demoUrl} class="project-card-link-item" target="_blank" rel="noopener noreferrer">
+                <Icon name="carbon:launch" class="icon-sm" />
+                <span>Live Demo</span>
+              </Link>
+            )}
+          </div>
+        )
+      }
+    </header>
+
+    <div id="article-content" class="article-prose-content">
+      <project.Content />
+    </div>
+  </article>
+</Layout>

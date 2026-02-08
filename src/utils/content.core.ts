@@ -87,6 +87,10 @@ export async function getOrdering(): Promise<OrderingConfig> {
       categories: orderingData.data.categories,
       featuredArticles: orderingData.data.featuredArticles,
       featuredTopics: orderingData.data.featuredTopics,
+      projects: orderingData.data.projects ?? [],
+      pinnedArticles: orderingData.data.pinnedArticles ?? [],
+      pinnedBlogs: orderingData.data.pinnedBlogs ?? [],
+      pinnedProjects: orderingData.data.pinnedProjects ?? [],
     }
   }
   return cachedOrdering

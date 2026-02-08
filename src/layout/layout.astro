@@ -12,22 +12,37 @@ import Breadcrumb from "./breadcrumb.astro"
 import type { Crumb } from "./breadcrumb.astro"
 import ImageModal from "./image-modal.astro"
 import GoogleAnalytics from "./google-analytics.astro"
+import SidebarToggle from "./sidebar-toggle.astro"
 
 interface Props extends SeoProps {
   noIndex?: boolean | undefined | null
   crumbs: Crumb[] | null
-  /** Container width: "default" (720px) or "wide" (900px) */
+  /** Container width: "default" (680px) or "wide" (900px) */
   containerWidth?: "default" | "wide"
+  /** Page type for sidebar behavior */
+  pageType?: "default" | "article" | "blog" | "project" | "listing" | "browse"
+  /** Whether to show left sidebar */
+  hasLeftSidebar?: boolean
+  /** Whether to show right sidebar */
+  hasRightSidebar?: boolean
 }
 
-const { noIndex, crumbs, containerWidth = "default", ...seoProps } = Astro.props
+const {
+  noIndex,
+  crumbs,
+  containerWidth = "default",
+  pageType = "default",
+  hasLeftSidebar = false,
+  hasRightSidebar = false,
+  ...seoProps
+} = Astro.props
 
 // Font paths with base path support
 const openSansFontPath = getFilePath("fonts/open-sans-latin-wght-normal.woff2")
 const jetBrainsMonoFontPath = getFilePath("fonts/jetbrains-mono-latin-400-normal.woff2")
 const searchIndexPath = getFilePath("search/index.json")
 
-// Container class based on width prop
+// Container class based on width prop (used when no sidebars)
 const containerClass = containerWidth === "wide" ? "content-container-wide" : "content-container"
 ---
 
@@ -77,16 +92,52 @@ const containerClass = containerWidth === "wide" ? "content-container-wide" : "c
   </head>
   <body>
     <a href="#main" class="skip-link">Skip to main content</a>
-    <Header />
-    <main id="main" class="flex-1">
-      <div class:list={[containerClass, "page-content"]}>
-        {crumbs && <Breadcrumb {crumbs} />}
-        <slot />
-      </div>
-    </main>
+    <Header hasLeftSidebar={hasLeftSidebar} hasRightSidebar={hasRightSidebar} />
+
+    {
+      hasLeftSidebar || hasRightSidebar ? (
+        /* 3-column layout with sidebars */
+        <div class="zen-layout">
+          {hasLeftSidebar && (
+            <aside id="left-sidebar" class="zen-sidebar zen-sidebar-left" aria-label="Navigation sidebar">
+              <div class="zen-sidebar-content">
+                <slot name="sidebar-left" />
+              </div>
+            </aside>
+          )}
+          <main id="main" class="zen-main">
+            <div class="page-content">
+              {crumbs && <Breadcrumb {crumbs} />}
+              <slot />
+            </div>
+          </main>
+          {hasRightSidebar && (
+            <aside id="right-sidebar" class="zen-sidebar zen-sidebar-right" aria-label="Table of contents">
+              <div class="zen-sidebar-content">
+                <slot name="sidebar-right" />
+              </div>
+            </aside>
+          )}
+        </div>
+      ) : (
+        /* Single column layout (no sidebars) */
+        <main id="main" class="flex-1">
+          <div class:list={[containerClass, "page-content"]}>
+            {crumbs && <Breadcrumb {crumbs} />}
+            <slot />
+          </div>
+        </main>
+      )
+    }
+
+    {/* Sidebar backdrop for mobile */}
+    {(hasLeftSidebar || hasRightSidebar) && <div id="sidebar-backdrop" class="zen-sidebar-backdrop" />}
+
     <Footer />
     <ImageModal />
     <KatexCSS />
     <GoogleAnalytics />
+
+    {(hasLeftSidebar || hasRightSidebar) && <SidebarToggle />}
   </body>
 </html>

@@ -3078,7 +3078,7 @@
     "https://dl.acm.org/doi/10.1145/2488388.2488433": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-08T05:51:41.454Z",
+      "lastChecked": "2026-02-08T08:38:16.352Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -4332,7 +4332,7 @@
     "https://etcd.io/docs/v3.5/dev-guide/api_concurrency_ref/": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-08T05:51:39.921Z",
+      "lastChecked": "2026-02-08T08:38:15.890Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -4440,10 +4440,34 @@
       "lastChecked": "2026-02-03T08:47:47.662Z",
       "hint": "fetch-node"
     },
+    "https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&display=swap": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T08:38:16.002Z",
+      "hint": "fetch-node"
+    },
+    "https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T08:38:18.973Z",
+      "hint": "fetch-node"
+    },
     "https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Fraunces:wght@400;500;600;700;800;900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-05T17:54:22.285Z",
+      "hint": "fetch-node"
+    },
+    "https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inconsolata:wght@400;500;600&display=swap": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T08:38:17.971Z",
+      "hint": "fetch-node"
+    },
+    "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T08:38:14.956Z",
       "hint": "fetch-node"
     },
     "https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Archivo+Black&display=swap": {
@@ -4452,10 +4476,22 @@
       "lastChecked": "2026-02-05T17:54:20.269Z",
       "hint": "fetch-node"
     },
+    "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T08:38:14.862Z",
+      "hint": "fetch-node"
+    },
     "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cormorant+Garamond:wght@300;400;500;600&family=Josefin+Sans:wght@300;400;500&display=swap": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-05T17:54:21.285Z",
+      "hint": "fetch-node"
+    },
+    "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Mono:wght@400;700&display=swap": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T08:38:17.053Z",
       "hint": "fetch-node"
     },
     "https://fonts.googleapis.com/css2?family=VT323&family=Fira+Code:wght@400;500;600&family=Share+Tech+Mono&display=swap": {
@@ -5025,7 +5061,7 @@
     "https://github.com/nicholasgross/nicholasgross.github.io": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-08T05:51:43.402Z",
+      "lastChecked": "2026-02-08T08:38:17.328Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -7734,7 +7770,7 @@
     "https://serialized.io/blog/apache-kafka-is-not-for-event-sourcing/": {
       "status": null,
       "ok": true,
-      "lastChecked": "2026-02-08T05:51:39.422Z",
+      "lastChecked": "2026-02-08T08:38:15.232Z",
       "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://serialized.io/blog/apache-kafka-is-not-for-event-sourcing/\nCall log:\n\u001b[2m  - navigating to \"https://serialized.io/blog/apache-kafka-is-not-for-event-sourcing/\", waiting until \"domcontentloaded\"\u001b[22m\n",
       "hint": "manual",
       "manual": "auto"
@@ -8756,7 +8792,7 @@
     "https://web.dev/articles/long-animation-frames": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-08T05:51:41.411Z",
+      "lastChecked": "2026-02-08T08:38:16.922Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -9698,7 +9734,7 @@
     "https://www.figma.com/blog/section/engineering/": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-08T05:51:41.049Z",
+      "lastChecked": "2026-02-08T08:38:15.973Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"

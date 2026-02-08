@@ -393,4 +393,12 @@
   ],
 
   featuredTopics: ["system-design-problems", "critical-rendering-path"],
+
+  // Project ordering (by array position)
+  projects: [],
+
+  // Pinned content (shown first on listing pages)
+  pinnedArticles: [],
+  pinnedBlogs: [],
+  pinnedProjects: [],
 }

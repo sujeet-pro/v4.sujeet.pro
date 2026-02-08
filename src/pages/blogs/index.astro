@@ -1,0 +1,34 @@
+---
+import Layout from "@/layout/layout.astro"
+import BlogCard from "@/components/blog-card.astro"
+import SidebarNavBlogs from "@/components/sidebar-nav-blogs.astro"
+import { getAllBlogCards } from "@/utils/content"
+
+const blogs = await getAllBlogCards()
+const count = blogs.length
+const countText = count === 1 ? "1 blog post" : `${count} blog posts`
+---
+
+<Layout title="Blog" description="Personal blog posts and thoughts" crumbs={null} hasLeftSidebar={true}>
+  <SidebarNavBlogs slot="sidebar-left" />
+
+  <h1 class="page-title">Blog</h1>
+  <p class="page-description">Personal thoughts, reflections, and shorter-form writing.</p>
+
+  {
+    blogs.length > 0 ? (
+      <>
+        <p class="meta-text mb-8">{countText}</p>
+        <ul class="article-list">
+          {blogs.map((blog) => (
+            <BlogCard blog={blog} />
+          ))}
+        </ul>
+      </>
+    ) : (
+      <div class="search-placeholder">
+        <p class="text-muted">No blog posts yet. Check back soon.</p>
+      </div>
+    )
+  }
+</Layout>

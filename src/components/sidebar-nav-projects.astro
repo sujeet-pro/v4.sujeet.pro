@@ -1,0 +1,37 @@
+---
+/**
+ * Sidebar Nav - Projects
+ * For project pages: ordered flat list, current highlighted
+ */
+import Link from "@/components/link.astro"
+import { getAllProjectCards } from "@/utils/content"
+
+interface Props {
+  currentProjectId?: string
+}
+
+const { currentProjectId } = Astro.props
+const projects = await getAllProjectCards()
+---
+
+<nav aria-label="Project navigation">
+  <h2 class="sidebar-nav-title">Projects</h2>
+  {
+    projects.length > 0 ? (
+      <ul class="sidebar-nav-list">
+        {projects.map((project) => (
+          <li>
+            <Link
+              href={project.href}
+              class:list={["sidebar-nav-item", { "is-active": currentProjectId === project.id }]}
+            >
+              {project.title}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    ) : (
+      <p class="sidebar-nav-empty">No projects yet.</p>
+    )
+  }
+</nav>

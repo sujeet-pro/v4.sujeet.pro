@@ -1,5 +1,6 @@
 ---
 import ArticleCard from "@/components/article-card.astro"
+import SidebarNavBrowse from "@/components/sidebar-nav-browse.astro"
 import Layout from "@/layout/layout.astro"
 import { getAllArticleCards } from "@/utils/content"
 import { formatCount } from "@/utils/format.utils"
@@ -7,7 +8,8 @@ import { formatCount } from "@/utils/format.utils"
 const allArticles = await getAllArticleCards()
 ---
 
-<Layout title="All Articles" description="Browse all articles" crumbs={null} pageType="default">
+<Layout title="All Articles" description="Browse all articles" crumbs={null} pageType="listing" hasLeftSidebar={true}>
+  <SidebarNavBrowse slot="sidebar-left" />
   <h1 class="page-title" transition:animate="fade">All Articles</h1>
   <p class="page-description">
     {formatCount(allArticles.length, "article")} on programming, system design, web platform, and more.

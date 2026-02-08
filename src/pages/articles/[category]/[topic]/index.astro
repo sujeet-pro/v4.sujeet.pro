@@ -1,5 +1,6 @@
 ---
 import ArticleCard from "@/components/article-card.astro"
+import SidebarNavBrowse from "@/components/sidebar-nav-browse.astro"
 import Layout from "@/layout/layout.astro"
 import { getAllTopicPaths, getTopicPage } from "@/utils/content"
 import { formatCount } from "@/utils/format.utils"
@@ -28,9 +29,11 @@ const { Content } = topicIndex
   title={topicIndex.title}
   description={topicIndex.description}
   {crumbs}
-  pageType="default"
+  pageType="listing"
   noIndex={topicIndex.isDraft}
+  hasLeftSidebar={true}
 >
+  <SidebarNavBrowse slot="sidebar-left" currentCategoryId={categoryId} currentTopicId={topicId} />
   <!-- Render the topic's markdown content -->
   <article class="topic-content prose">
     <Content />

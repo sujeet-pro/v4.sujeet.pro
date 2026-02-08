@@ -1,0 +1,72 @@
+---
+/**
+ * Sidebar Nav - Browse
+ * For category/topic/browse pages: full category hierarchy with current highlighted
+ */
+import Link from "@/components/link.astro"
+import { getCategoryHierarchy } from "@/utils/content"
+
+interface Props {
+  currentCategoryId?: string
+  currentTopicId?: string
+}
+
+const { currentCategoryId, currentTopicId } = Astro.props
+const categories = await getCategoryHierarchy()
+---
+
+<nav aria-label="Browse categories">
+  <h2 class="sidebar-nav-title">Categories</h2>
+  {
+    categories.map((category) => (
+      <div class="sidebar-nav-section">
+        <Link
+          href={category.href}
+          class:list={["sidebar-nav-item", "sidebar-nav-category", { "is-active": currentCategoryId === category.id }]}
+        >
+          {category.name}
+          <span class="sidebar-nav-count">{category.articleCount}</span>
+        </Link>
+        <ul class="sidebar-nav-list sidebar-nav-topics">
+          {category.topics.map((topic) => (
+            <li>
+              <Link
+                href={topic.href}
+                class:list={[
+                  "sidebar-nav-item",
+                  "sidebar-nav-topic-item",
+                  { "is-active": currentTopicId === topic.id },
+                ]}
+              >
+                {topic.name}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+</nav>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  .sidebar-nav-category {
+    @apply font-medium;
+    font-size: 13px;
+  }
+
+  .sidebar-nav-count {
+    @apply ml-auto font-mono text-xs;
+    color: var(--color-text-muted);
+  }
+
+  .sidebar-nav-topics {
+    @apply ml-2 border-l pl-2;
+    border-color: var(--color-border);
+  }
+
+  .sidebar-nav-topic-item {
+    font-size: 13px;
+  }
+</style>

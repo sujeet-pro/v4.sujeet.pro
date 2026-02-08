@@ -9,47 +9,62 @@ import { getSlug } from "./utils/slug.utils"
 /**
  * Extract category, topic, and postId from file path
  *
- * New structure: content/articles/<category>/<topic>/<post-slug>/README.md
- * Old structure for README.md: content/articles/<category>/README.md or content/articles/<category>/<topic>/README.md
- *
- * Examples:
- * - content/articles/programming/algo/sorting-algorithms/README.md → category: "programming", topic: "algo", postId: "sorting-algorithms"
- * - content/articles/programming/README.md → category: "programming", topic: undefined, postId: undefined
- * - content/articles/programming/algo/README.md → category: "programming", topic: "algo", postId: undefined
+ * Articles: content/articles/<category>/<topic>/<post-slug>/README.md
+ * Blogs: content/blogs/<blog-slug>/README.md
+ * Projects: content/projects/<project-slug>/README.md
  */
 function getCategoryTopicAndPostFromPath(filePath: string): {
   category: string | undefined
   topic: string | undefined
   postId: string | undefined
+  contentType: string | undefined
 } {
+  if (!filePath.endsWith("README.md")) {
+    return { category: undefined, topic: undefined, postId: undefined, contentType: undefined }
+  }
+
+  // Check blogs
+  const blogsDir = path.resolve("./content/blogs")
+  if (filePath.startsWith(blogsDir)) {
+    const relativePath = path.relative(blogsDir, filePath)
+    const parts = relativePath.split(path.sep)
+    if (parts.length === 2) {
+      return { category: undefined, topic: undefined, postId: parts[0], contentType: "blog" }
+    }
+    return { category: undefined, topic: undefined, postId: undefined, contentType: "blog" }
+  }
+
+  // Check projects
+  const projectsDir = path.resolve("./content/projects")
+  if (filePath.startsWith(projectsDir)) {
+    const relativePath = path.relative(projectsDir, filePath)
+    const parts = relativePath.split(path.sep)
+    if (parts.length === 2) {
+      return { category: undefined, topic: undefined, postId: parts[0], contentType: "project" }
+    }
+    return { category: undefined, topic: undefined, postId: undefined, contentType: "project" }
+  }
+
+  // Check articles (original behavior)
   const articlesDir = path.resolve("./content/articles")
   if (!filePath.startsWith(articlesDir)) {
-    return { category: undefined, topic: undefined, postId: undefined }
+    return { category: undefined, topic: undefined, postId: undefined, contentType: undefined }
   }
 
   const relativePath = path.relative(articlesDir, filePath)
   const parts = relativePath.split(path.sep)
 
-  // All files should be README.md now
-  if (!filePath.endsWith("README.md")) {
-    return { category: undefined, topic: undefined, postId: undefined }
-  }
-
-  // parts structure: [category, README.md] or [category, topic, README.md] or [category, topic, post-slug, README.md]
   if (parts.length === 2) {
-    // Category README.md: programming/README.md
-    return { category: parts[0], topic: undefined, postId: undefined }
+    return { category: parts[0], topic: undefined, postId: undefined, contentType: "article" }
   }
   if (parts.length === 3) {
-    // Topic README.md: programming/algo/README.md
-    return { category: parts[0], topic: parts[1], postId: undefined }
+    return { category: parts[0], topic: parts[1], postId: undefined, contentType: "article" }
   }
   if (parts.length === 4) {
-    // Article README.md: programming/algo/sorting-algorithms/README.md
-    return { category: parts[0], topic: parts[1], postId: parts[2] }
+    return { category: parts[0], topic: parts[1], postId: parts[2], contentType: "article" }
   }
 
-  return { category: undefined, topic: undefined, postId: undefined }
+  return { category: undefined, topic: undefined, postId: undefined, contentType: "article" }
 }
 
 export const remarkFrontmatterPlugin: RemarkPlugin = (options: { defaultLayout: string }) => {
@@ -69,11 +84,12 @@ export const remarkFrontmatterPlugin: RemarkPlugin = (options: { defaultLayout: 
 
     file.data.astro.frontmatter.pageSlug ??= getSlug(file.path)
 
-    // Inject category, topic, and postId from path structure
-    const { category, topic, postId } = getCategoryTopicAndPostFromPath(file.path)
+    // Inject category, topic, postId, and contentType from path structure
+    const { category, topic, postId, contentType } = getCategoryTopicAndPostFromPath(file.path)
     file.data.astro.frontmatter.category ??= category
     file.data.astro.frontmatter.topic ??= topic
     file.data.astro.frontmatter.postId ??= postId
+    file.data.astro.frontmatter.contentType ??= contentType
   }
 }
 

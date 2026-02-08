@@ -2,6 +2,7 @@
 import AccordionScript from "@/components/accordion-script.astro"
 import Link from "@/components/link.astro"
 import TopicAccordion from "@/components/topic-accordion.astro"
+import SidebarNavBrowse from "@/components/sidebar-nav-browse.astro"
 import Layout from "@/layout/layout.astro"
 import { getBrowseContent } from "@/utils/content"
 import { formatCount } from "@/utils/format.utils"
@@ -17,7 +18,15 @@ const totalArticles = categoryData.reduce((sum, cat) => sum + cat.articleCount, 
 const crumbs: { name: string; href: string }[] = []
 ---
 
-<Layout title="Browse" description="Browse all content by category and topic" {crumbs} pageType="default">
+<Layout
+  title="Browse"
+  description="Browse all content by category and topic"
+  {crumbs}
+  pageType="browse"
+  hasLeftSidebar={true}
+>
+  <SidebarNavBrowse slot="sidebar-left" />
+
   <h1 class="page-title">Browse</h1>
   <p class="page-description">Explore all content organized by category and topic.</p>
 
@@ -60,7 +69,6 @@ const crumbs: { name: string; href: string }[] = []
 <style is:global>
   @reference "tailwindcss";
 
-  /* Browse page stats */
   .browse-stats {
     @apply mb-10 text-sm;
     color: var(--color-text-muted);
@@ -68,7 +76,6 @@ const crumbs: { name: string; href: string }[] = []
     opacity: 0;
   }
 
-  /* Category sections */
   .browse-categories {
     @apply flex flex-col gap-12;
   }
@@ -79,10 +86,9 @@ const crumbs: { name: string; href: string }[] = []
     opacity: 0;
   }
 
-  /* Sticky category header - positioned below site header */
   .browse-category-header {
     @apply sticky py-4;
-    top: 4rem;
+    top: var(--header-height);
     z-index: 20;
     background: linear-gradient(to bottom, var(--color-bg) 80%, transparent);
   }
@@ -99,7 +105,7 @@ const crumbs: { name: string; href: string }[] = []
   }
 
   .browse-category-title a:hover {
-    color: var(--color-accent);
+    color: var(--color-text-muted);
   }
 
   .browse-category-header .browse-category-meta {
@@ -107,7 +113,6 @@ const crumbs: { name: string; href: string }[] = []
     color: var(--color-text-muted);
   }
 
-  /* Topic sections */
   .browse-topics {
     @apply flex flex-col;
   }

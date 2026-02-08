@@ -1,0 +1,37 @@
+---
+/**
+ * Sidebar Nav - Site
+ * For homepage/generic pages: site navigation links
+ */
+import Link from "@/components/link.astro"
+
+const navLinks = [
+  { href: "/", label: "Home" },
+  { href: "/articles", label: "Articles" },
+  { href: "/blogs", label: "Blogs" },
+  { href: "/projects", label: "Projects" },
+  { href: "/browse", label: "Browse" },
+  { href: "/tags", label: "Tags" },
+  { href: "/search", label: "Search" },
+]
+
+const currentPath = Astro.url.pathname
+---
+
+<nav aria-label="Site navigation">
+  <h2 class="sidebar-nav-title">Navigation</h2>
+  <ul class="sidebar-nav-list">
+    {
+      navLinks.map((link) => {
+        const isActive = currentPath === link.href || (link.href !== "/" && currentPath.startsWith(link.href))
+        return (
+          <li>
+            <Link href={link.href} class:list={["sidebar-nav-item", { "is-active": isActive }]}>
+              {link.label}
+            </Link>
+          </li>
+        )
+      })
+    }
+  </ul>
+</nav>

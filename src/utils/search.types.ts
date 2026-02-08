@@ -7,7 +7,7 @@ export const SEARCH_SCHEMA = {
   id: "string",
   title: "string",
   description: "string",
-  type: "string",
+  contentType: "string",
   category: "string",
   categoryName: "string",
   topic: "string",
@@ -23,7 +23,7 @@ export interface SearchDocument {
   id: string
   title: string
   description: string
-  type: string // "article"
+  contentType: string // "article" | "blog" | "project"
   category: string
   categoryName: string
   topic: string

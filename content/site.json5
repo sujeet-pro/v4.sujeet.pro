@@ -15,6 +15,8 @@
   // Header Navigation
   navItems: [
     { path: "/articles", label: "Articles" },
+    { path: "/blogs", label: "Blogs" },
+    { path: "/projects", label: "Projects" },
     { path: "/browse", label: "Browse" },
   ],
 
@@ -22,6 +24,7 @@
   footerLinks: [
     { path: "/cv", label: "Resume" },
     { path: "/browse", label: "Browse" },
+    { path: "/tags", label: "Tags" },
     { path: "/articles/drafts", label: "Drafts" },
   ],
 

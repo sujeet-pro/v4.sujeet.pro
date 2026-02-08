@@ -1,0 +1,78 @@
+---
+import Layout from "@/layout/layout.astro"
+import SidebarNavSite from "@/components/sidebar-nav-site.astro"
+import ArticleCard from "@/components/article-card.astro"
+import BlogCard from "@/components/blog-card.astro"
+import ProjectCard from "@/components/project-card.astro"
+import { getAllTagSlugs, getTagContent } from "@/utils/content"
+
+export async function getStaticPaths() {
+  const slugs = await getAllTagSlugs()
+  return slugs.map((tag) => ({ params: { tag } }))
+}
+
+const { tag } = Astro.params
+const tagData = await getTagContent(tag)
+if (!tagData) return Astro.redirect("/404")
+
+const crumbs = [{ label: "Tags", href: "/tags" }]
+---
+
+<Layout
+  title={`Tag: ${tagData.tag}`}
+  description={`Content tagged with "${tagData.tag}"`}
+  crumbs={crumbs}
+  hasLeftSidebar={true}
+>
+  <SidebarNavSite slot="sidebar-left" />
+
+  <h1 class="page-title">{tagData.tag}</h1>
+  <p class="page-description">{tagData.count} {tagData.count === 1 ? "item" : "items"} tagged</p>
+
+  {
+    tagData.articles.length > 0 && (
+      <section class="content-section">
+        <h2 class="section-title">Articles</h2>
+        <ul class="article-list">
+          {tagData.articles.map((article) => (
+            <ArticleCard article={article} />
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {
+    tagData.blogs.length > 0 && (
+      <section class="content-section">
+        <h2 class="section-title">Blog Posts</h2>
+        <ul class="article-list">
+          {tagData.blogs.map((blog) => (
+            <BlogCard blog={blog} />
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {
+    tagData.projects.length > 0 && (
+      <section class="content-section">
+        <h2 class="section-title">Projects</h2>
+        <ul class="article-list">
+          {tagData.projects.map((project) => (
+            <ProjectCard project={project} />
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</Layout>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  .content-section {
+    @apply mb-16;
+  }
+</style>

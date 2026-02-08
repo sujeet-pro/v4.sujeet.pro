@@ -4,7 +4,7 @@
  */
 
 import { create, insert, save } from "@orama/orama"
-import { getAllArticles } from "./content"
+import { getAllArticles, getAllBlogCards, getAllProjectCards } from "./content"
 import { SEARCH_SCHEMA, type FacetItem, type SearchDocument, type SearchFacets } from "./search.types"
 
 /**
@@ -16,19 +16,57 @@ export async function buildSearchIndex(): Promise<string> {
     schema: SEARCH_SCHEMA,
   })
 
-  const allContent = await getAllArticles()
+  const allArticles = await getAllArticles()
+  const allBlogs = await getAllBlogCards()
+  const allProjects = await getAllProjectCards()
 
-  // Index each content item
-  for (const item of allContent) {
+  // Index articles
+  for (const item of allArticles) {
     const doc: SearchDocument = {
       id: item.id,
       title: item.title,
       description: item.description,
-      type: "article",
+      contentType: "article",
       category: item.category.id,
       categoryName: item.category.name,
       topic: item.topic.id,
       topicName: item.topic.name,
+      href: item.href,
+      minutesRead: item.minutesRead,
+    }
+
+    await insert(db, doc)
+  }
+
+  // Index blogs
+  for (const item of allBlogs) {
+    const doc: SearchDocument = {
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      contentType: "blog",
+      category: "",
+      categoryName: "",
+      topic: "",
+      topicName: "",
+      href: item.href,
+      minutesRead: item.minutesRead,
+    }
+
+    await insert(db, doc)
+  }
+
+  // Index projects
+  for (const item of allProjects) {
+    const doc: SearchDocument = {
+      id: item.id,
+      title: item.title,
+      description: item.description,
+      contentType: "project",
+      category: "",
+      categoryName: "",
+      topic: "",
+      topicName: "",
       href: item.href,
       minutesRead: item.minutesRead,
     }

@@ -1,0 +1,1295 @@
+---
+// Design 3: "Minimalist Zen"
+// Ultra-clean, massive whitespace, typography-only design, content-first
+// DM Sans (body) + DM Mono (code/accents)
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Design 3: Minimalist Zen | sujeet.pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="zen-body">
+    <!-- Reading progress bar -->
+    <div class="zen-progress" id="zen-progress" aria-hidden="true"></div>
+
+    <!-- Skip link -->
+    <a href="#main-content" class="zen-skip-link">Skip to content</a>
+
+    <!-- ================================================================
+         HEADER
+         ================================================================ -->
+    <header class="zen-header">
+      <div class="zen-header-inner">
+        <button
+          type="button"
+          class="zen-header-btn zen-toggle-left"
+          aria-label="Toggle navigation"
+          aria-expanded="false"
+          aria-controls="sidebar-left"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <line x1="4" y1="7" x2="20" y2="7"></line>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="17" x2="20" y2="17"></line>
+          </svg>
+        </button>
+
+        <a href="/" class="zen-logo">sujeet.pro</a>
+
+        <div class="zen-header-actions">
+          <a href="/search" class="zen-header-btn" aria-label="Search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </a>
+          <button
+            type="button"
+            class="zen-header-btn zen-toggle-right"
+            aria-label="Toggle table of contents"
+            aria-expanded="false"
+            aria-controls="sidebar-right"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <line x1="9" y1="6" x2="20" y2="6"></line>
+              <line x1="9" y1="12" x2="20" y2="12"></line>
+              <line x1="9" y1="18" x2="20" y2="18"></line>
+              <line x1="4" y1="6" x2="4.01" y2="6"></line>
+              <line x1="4" y1="12" x2="4.01" y2="12"></line>
+              <line x1="4" y1="18" x2="4.01" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Backdrop overlay for sidebars -->
+    <div class="zen-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
+
+    <!-- ================================================================
+         LEFT SIDEBAR - Browse Navigation
+         ================================================================ -->
+    <aside class="zen-sidebar zen-sidebar-left" id="sidebar-left" aria-label="Site navigation">
+      <div class="zen-sidebar-header">
+        <span class="zen-sidebar-title">Navigate</span>
+        <button type="button" class="zen-sidebar-close" aria-label="Close navigation">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <nav class="zen-sidebar-body">
+        <div class="zen-nav-section">
+          <a href="/" class="zen-nav-link">Home</a>
+          <a href="/browse" class="zen-nav-link">Browse</a>
+          <a href="/articles" class="zen-nav-link">All Articles</a>
+          <a href="/search" class="zen-nav-link">Search</a>
+        </div>
+        <div class="zen-nav-divider"></div>
+        <div class="zen-browse">
+          <span class="zen-browse-label">Categories</span>
+          <!-- Category 1: System Design -->
+          <details class="zen-cat" open>
+            <summary class="zen-cat-summary">
+              <span class="zen-cat-name">System Design</span>
+            </summary>
+            <div class="zen-cat-body">
+              <details class="zen-topic" open>
+                <summary class="zen-topic-summary">Fundamentals <span class="zen-count">19</span></summary>
+                <ul class="zen-article-list">
+                  <li><a href="#" class="zen-article-link zen-article-link--active">Distributed Consensus</a></li>
+                  <li><a href="#" class="zen-article-link">CAP Theorem</a></li>
+                  <li><a href="#" class="zen-article-link">Time and Ordering</a></li>
+                  <li><a href="#" class="zen-article-link">Load Balancers</a></li>
+                  <li><a href="#" class="zen-article-link">Caching Strategies</a></li>
+                </ul>
+              </details>
+              <details class="zen-topic">
+                <summary class="zen-topic-summary">Design Problems <span class="zen-count">24</span></summary>
+                <ul class="zen-article-list">
+                  <li><a href="#" class="zen-article-link">Design YouTube</a></li>
+                  <li><a href="#" class="zen-article-link">Design Uber</a></li>
+                  <li><a href="#" class="zen-article-link">Design Chat System</a></li>
+                </ul>
+              </details>
+            </div>
+          </details>
+          <!-- Category 2: Frontend Engineering -->
+          <details class="zen-cat">
+            <summary class="zen-cat-summary">
+              <span class="zen-cat-name">Frontend Engineering</span>
+            </summary>
+            <div class="zen-cat-body">
+              <details class="zen-topic">
+                <summary class="zen-topic-summary">React Patterns <span class="zen-count">8</span></summary>
+                <ul class="zen-article-list">
+                  <li><a href="#" class="zen-article-link">Component Composition</a></li>
+                  <li><a href="#" class="zen-article-link">State Management</a></li>
+                  <li><a href="#" class="zen-article-link">Performance Hooks</a></li>
+                </ul>
+              </details>
+              <details class="zen-topic">
+                <summary class="zen-topic-summary">Performance <span class="zen-count">6</span></summary>
+                <ul class="zen-article-list">
+                  <li><a href="#" class="zen-article-link">Web Vitals</a></li>
+                  <li><a href="#" class="zen-article-link">Bundle Optimization</a></li>
+                </ul>
+              </details>
+            </div>
+          </details>
+          <!-- Category 3: Programming Patterns -->
+          <details class="zen-cat">
+            <summary class="zen-cat-summary">
+              <span class="zen-cat-name">Programming Patterns</span>
+            </summary>
+            <div class="zen-cat-body">
+              <details class="zen-topic">
+                <summary class="zen-topic-summary">Algorithms <span class="zen-count">12</span></summary>
+                <ul class="zen-article-list">
+                  <li><a href="#" class="zen-article-link">Sorting Algorithms</a></li>
+                  <li><a href="#" class="zen-article-link">Graph Traversal</a></li>
+                  <li><a href="#" class="zen-article-link">Dynamic Programming</a></li>
+                </ul>
+              </details>
+            </div>
+          </details>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- ================================================================
+         RIGHT SIDEBAR - Table of Contents
+         ================================================================ -->
+    <aside class="zen-sidebar zen-sidebar-right" id="sidebar-right" aria-label="Table of contents">
+      <div class="zen-sidebar-header">
+        <span class="zen-sidebar-title">On this page</span>
+        <button type="button" class="zen-sidebar-close" aria-label="Close table of contents">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <nav class="zen-sidebar-body zen-toc-nav">
+        <ol class="zen-toc-list">
+          <li><a href="#overview" class="zen-toc-link zen-toc-h2">Overview</a></li>
+          <li>
+            <a href="#the-consensus-problem" class="zen-toc-link zen-toc-h2">The Consensus Problem</a>
+            <ol class="zen-toc-sublist">
+              <li><a href="#why-consensus-matters" class="zen-toc-link zen-toc-h3">Why Consensus Matters</a></li>
+              <li><a href="#flp-impossibility" class="zen-toc-link zen-toc-h3">FLP Impossibility</a></li>
+            </ol>
+          </li>
+          <li>
+            <a href="#paxos-algorithm" class="zen-toc-link zen-toc-h2">Paxos Algorithm</a>
+            <ol class="zen-toc-sublist">
+              <li><a href="#paxos-phases" class="zen-toc-link zen-toc-h3">Phases of Paxos</a></li>
+              <li><a href="#multi-paxos" class="zen-toc-link zen-toc-h3">Multi-Paxos</a></li>
+            </ol>
+          </li>
+          <li>
+            <a href="#raft-consensus" class="zen-toc-link zen-toc-h2">Raft Consensus</a>
+            <ol class="zen-toc-sublist">
+              <li><a href="#leader-election" class="zen-toc-link zen-toc-h3">Leader Election</a></li>
+              <li><a href="#log-replication" class="zen-toc-link zen-toc-h3">Log Replication</a></li>
+            </ol>
+          </li>
+          <li><a href="#comparison" class="zen-toc-link zen-toc-h2">Comparison</a></li>
+          <li><a href="#appendix" class="zen-toc-link zen-toc-h2">Appendix</a></li>
+        </ol>
+      </nav>
+    </aside>
+
+    <!-- ================================================================
+         MAIN CONTENT
+         ================================================================ -->
+    <main id="main-content" class="zen-main">
+      <article class="zen-article">
+        <!-- Breadcrumb -->
+        <nav class="zen-breadcrumb" aria-label="Breadcrumb">
+          <a href="/articles">Articles</a>
+          <span class="zen-breadcrumb-sep">/</span>
+          <a href="#">System Design</a>
+          <span class="zen-breadcrumb-sep">/</span>
+          <a href="#">Fundamentals</a>
+        </nav>
+
+        <!-- Article Header -->
+        <header class="zen-article-header zen-fade-in">
+          <div class="zen-article-meta-top">
+            <time datetime="2024-11-15">November 15, 2024</time>
+            <span class="zen-meta-dot">&middot;</span>
+            <span>18 min read</span>
+          </div>
+          <h1 class="zen-article-title">Understanding Distributed Consensus Algorithms</h1>
+          <p class="zen-article-subtitle">
+            How systems like Paxos and Raft enable multiple nodes to agree on a single value, even in the presence of failures.
+          </p>
+        </header>
+
+        <!-- Article Body -->
+        <div class="zen-prose">
+          <section class="zen-fade-in" style="--zen-delay: 0.1s;">
+            <h2 id="overview">Overview</h2>
+            <p>
+              Distributed consensus is the cornerstone of reliable distributed systems. When multiple computers
+              need to work together, they must agree on shared state despite network partitions, message delays,
+              and node failures. This article explores the fundamental algorithms that make this possible.
+            </p>
+            <p>
+              The challenge of achieving consensus has been studied extensively since the 1980s. From Leslie
+              Lamport's pioneering work on Paxos to Diego Ongaro's more approachable Raft algorithm, the field
+              has evolved to provide practical solutions for real-world systems like etcd, ZooKeeper, and CockroachDB.
+            </p>
+
+            <blockquote>
+              <p>A distributed system is one in which the failure of a computer you didn't even know existed can render your own computer unusable.</p>
+              <cite>&mdash; Leslie Lamport</cite>
+            </blockquote>
+          </section>
+
+          <section class="zen-fade-in" style="--zen-delay: 0.2s;">
+            <h2 id="the-consensus-problem">The Consensus Problem</h2>
+            <p>
+              At its core, the consensus problem requires a group of processes to agree on a single value.
+              This sounds simple, but becomes remarkably difficult when processes can fail and messages can
+              be lost or delayed.
+            </p>
+
+            <h3 id="why-consensus-matters">Why Consensus Matters</h3>
+            <p>
+              Consensus is essential for many distributed systems primitives including leader election,
+              atomic broadcast, state machine replication, and distributed locking.
+            </p>
+            <ul>
+              <li><strong>Leader Election</strong> &mdash; Selecting a single coordinator among replicas</li>
+              <li><strong>State Machine Replication</strong> &mdash; Keeping multiple copies of data consistent</li>
+              <li><strong>Distributed Transactions</strong> &mdash; Ensuring atomicity across partitions</li>
+              <li><strong>Configuration Management</strong> &mdash; Agreeing on cluster membership</li>
+            </ul>
+
+            <h3 id="flp-impossibility">FLP Impossibility</h3>
+            <p>
+              The Fischer, Lynch, and Paterson impossibility result (1985) proves that no deterministic
+              algorithm can guarantee consensus in an asynchronous system where even one process may crash.
+              This foundational result shapes how all practical consensus algorithms are designed.
+            </p>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Property</th>
+                  <th>Description</th>
+                  <th>Implication</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Agreement</td>
+                  <td>All correct processes decide the same value</td>
+                  <td>No split-brain scenarios</td>
+                </tr>
+                <tr>
+                  <td>Validity</td>
+                  <td>The decided value was proposed by some process</td>
+                  <td>No fabricated values</td>
+                </tr>
+                <tr>
+                  <td>Termination</td>
+                  <td>Every correct process eventually decides</td>
+                  <td>No infinite waiting</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="zen-fade-in" style="--zen-delay: 0.3s;">
+            <h2 id="paxos-algorithm">Paxos Algorithm</h2>
+            <p>
+              Paxos, introduced by Leslie Lamport in 1989, was the first practical consensus algorithm.
+              Despite its reputation for difficulty, the core idea is elegant: a proposer must convince
+              a majority of acceptors before a value is chosen.
+            </p>
+
+            <h3 id="paxos-phases">Phases of Paxos</h3>
+            <p>The basic Paxos protocol operates in two phases:</p>
+            <ol>
+              <li><strong>Prepare Phase</strong> &mdash; A proposer sends a prepare request with a unique proposal number to a majority of acceptors.</li>
+              <li><strong>Accept Phase</strong> &mdash; If a majority responds, the proposer sends an accept request with the value.</li>
+            </ol>
+
+            <pre><code>// Simplified Paxos proposer logic
+async function propose(value: string, acceptors: Acceptor[]) {'{'}
+  const proposalId = generateUniqueId();
+  const majority = Math.floor(acceptors.length / 2) + 1;
+
+  // Phase 1: Prepare
+  const promises = await Promise.all(
+    acceptors.map(a => a.prepare(proposalId))
+  );
+  const accepted = promises.filter(p => p.ok);
+
+  if (accepted.length {'<'} majority) {'{'}
+    throw new Error('Failed to get majority in prepare phase');
+  {'}'}
+
+  // Phase 2: Accept
+  const finalValue = getHighestAcceptedValue(accepted) || value;
+  const acks = await Promise.all(
+    acceptors.map(a => a.accept(proposalId, finalValue))
+  );
+
+  return acks.filter(a => a.ok).length >= majority;
+{'}'}</code></pre>
+
+            <h3 id="multi-paxos">Multi-Paxos</h3>
+            <p>
+              Basic Paxos requires two round-trips for each consensus decision. Multi-Paxos optimizes this
+              by electing a stable leader that can skip the prepare phase for subsequent proposals, reducing
+              latency to a single round-trip in the common case.
+            </p>
+          </section>
+
+          <section class="zen-fade-in" style="--zen-delay: 0.4s;">
+            <h2 id="raft-consensus">Raft Consensus</h2>
+            <p>
+              Raft was designed by Diego Ongaro and John Ousterhout in 2014 as a more understandable
+              alternative to Paxos. It decomposes consensus into three sub-problems: leader election,
+              log replication, and safety.
+            </p>
+
+            <h3 id="leader-election">Leader Election</h3>
+            <p>
+              Raft uses randomized timeouts to trigger elections. When a follower doesn't hear from a leader
+              within its timeout period, it becomes a candidate and requests votes from other nodes.
+            </p>
+
+            <h3 id="log-replication">Log Replication</h3>
+            <p>
+              Once elected, the leader accepts client requests and replicates log entries to followers.
+              An entry is considered committed when a majority of nodes have acknowledged it.
+            </p>
+
+            <figure>
+              <div class="zen-placeholder-diagram" role="img" aria-label="Raft log replication diagram">
+                <span>Raft Log Replication Flow</span>
+                <div class="zen-diagram-nodes">
+                  <div class="zen-diagram-node zen-diagram-leader">Leader</div>
+                  <div class="zen-diagram-arrows">
+                    <span>&rarr;</span><span>&rarr;</span><span>&rarr;</span>
+                  </div>
+                  <div class="zen-diagram-node">Follower 1</div>
+                  <div class="zen-diagram-node">Follower 2</div>
+                  <div class="zen-diagram-node">Follower 3</div>
+                </div>
+              </div>
+              <figcaption>Figure 1: Leader replicates log entries to all followers. Entry is committed after majority acknowledgment.</figcaption>
+            </figure>
+          </section>
+
+          <section class="zen-fade-in" style="--zen-delay: 0.5s;">
+            <h2 id="comparison">Comparison</h2>
+            <p>
+              While both Paxos and Raft solve the same fundamental problem, they differ significantly
+              in their approach to understandability, implementation complexity, and operational behavior.
+            </p>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Aspect</th>
+                  <th>Paxos</th>
+                  <th>Raft</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Understandability</td>
+                  <td>Complex, academic</td>
+                  <td>Designed for clarity</td>
+                </tr>
+                <tr>
+                  <td>Leader requirement</td>
+                  <td>Optional (Multi-Paxos)</td>
+                  <td>Required (strong leader)</td>
+                </tr>
+                <tr>
+                  <td>Log ordering</td>
+                  <td>Allows gaps</td>
+                  <td>Strict sequential</td>
+                </tr>
+                <tr>
+                  <td>Used in</td>
+                  <td>Chubby, Spanner</td>
+                  <td>etcd, CockroachDB</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <section class="zen-fade-in" style="--zen-delay: 0.6s;">
+            <h2 id="appendix">Appendix</h2>
+            <h3>Prerequisites</h3>
+            <ul>
+              <li>Understanding of distributed systems fundamentals</li>
+              <li>Familiarity with client-server architecture</li>
+              <li>Basic knowledge of fault tolerance concepts</li>
+            </ul>
+            <h3>Summary</h3>
+            <p>
+              Distributed consensus enables reliable systems by allowing multiple nodes to agree on shared state.
+              Paxos pioneered the field but is complex to understand. Raft provides equivalent guarantees with
+              a clearer structure. Modern systems like etcd and CockroachDB rely on Raft for their consensus layer.
+            </p>
+            <h3>References</h3>
+            <ul>
+              <li>Lamport, L. "The Part-Time Parliament" (1998)</li>
+              <li>Ongaro, D. & Ousterhout, J. "In Search of an Understandable Consensus Algorithm" (2014)</li>
+              <li>Fischer, M., Lynch, N., Paterson, M. "Impossibility of Distributed Consensus with One Faulty Process" (1985)</li>
+            </ul>
+          </section>
+        </div>
+
+        <!-- Article Navigation -->
+        <nav class="zen-article-nav zen-fade-in" style="--zen-delay: 0.7s;" aria-label="Article navigation">
+          <a href="#" class="zen-nav-prev">
+            <span class="zen-nav-label">Previous</span>
+            <span class="zen-nav-title">CAP Theorem and Consistency Models</span>
+          </a>
+          <a href="#" class="zen-nav-next">
+            <span class="zen-nav-label">Next</span>
+            <span class="zen-nav-title">Time and Ordering in Distributed Systems</span>
+          </a>
+        </nav>
+      </article>
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  /* ================================================================
+     DESIGN 3: MINIMALIST ZEN
+     Pure white, massive whitespace, typography-only, book-like feel
+     ================================================================ */
+
+  /* --- Reset --- */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* --- Design Tokens --- */
+  :root {
+    --zen-bg: #FFFFFF;
+    --zen-bg-alt: #FAFAFA;
+    --zen-bg-code: #F8F8F8;
+    --zen-text: #111111;
+    --zen-text-secondary: #333333;
+    --zen-text-muted: #999999;
+    --zen-accent: #000000;
+    --zen-accent-soft: #1a1a1a;
+    --zen-border: #F0F0F0;
+    --zen-border-hover: #E0E0E0;
+
+    --zen-font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+    --zen-font-mono: 'DM Mono', 'Menlo', monospace;
+
+    --zen-content-width: 680px;
+    --zen-sidebar-width: 300px;
+    --zen-header-height: 60px;
+    --zen-transition: 400ms ease;
+    --zen-transition-fast: 250ms ease;
+  }
+
+  /* --- Reading Progress --- */
+  .zen-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    width: 0%;
+    background: var(--zen-accent);
+    z-index: 100;
+    transition: width 80ms linear;
+  }
+
+  /* --- Base --- */
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--zen-header-height) + 3rem);
+  }
+  .zen-body {
+    font-family: var(--zen-font-body);
+    font-size: 17px;
+    line-height: 2.0;
+    color: var(--zen-text-secondary);
+    background: var(--zen-bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  /* --- Skip Link --- */
+  .zen-skip-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 200;
+    padding: 10px 20px;
+    background: var(--zen-accent);
+    color: var(--zen-bg);
+    font-family: var(--zen-font-body);
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transform: translateY(-100%);
+    transition: transform var(--zen-transition-fast);
+  }
+  .zen-skip-link:focus {
+    transform: translateY(0);
+  }
+
+  /* --- Fade-in Animation --- */
+  .zen-fade-in {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: zenFadeIn 600ms ease forwards;
+    animation-delay: var(--zen-delay, 0s);
+  }
+
+  @keyframes zenFadeIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ================================================================
+     HEADER
+     ================================================================ */
+  .zen-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--zen-header-height);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--zen-border);
+  }
+  .zen-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 100%;
+  }
+  .zen-logo {
+    font-family: var(--zen-font-mono);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--zen-text);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+    transition: color var(--zen-transition);
+  }
+  .zen-logo:hover {
+    color: var(--zen-text-muted);
+  }
+  .zen-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .zen-header-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--zen-text-muted);
+    border-radius: 0;
+    transition: color var(--zen-transition);
+  }
+  .zen-header-btn:hover {
+    color: var(--zen-text);
+  }
+  .zen-header-btn[aria-expanded="true"] {
+    color: var(--zen-accent);
+  }
+
+  /* ================================================================
+     BACKDROP
+     ================================================================ */
+  .zen-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 59;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--zen-transition);
+  }
+  .zen-backdrop.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ================================================================
+     SIDEBARS (shared)
+     ================================================================ */
+  .zen-sidebar {
+    position: fixed;
+    top: 0;
+    z-index: 60;
+    width: var(--zen-sidebar-width);
+    height: 100vh;
+    height: 100dvh;
+    background: var(--zen-bg);
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--zen-transition);
+    overflow: hidden;
+  }
+  .zen-sidebar-left {
+    left: 0;
+    border-right: 1px solid var(--zen-border);
+    transform: translateX(-100%);
+  }
+  .zen-sidebar-left.is-open {
+    transform: translateX(0);
+  }
+  .zen-sidebar-right {
+    right: 0;
+    border-left: 1px solid var(--zen-border);
+    transform: translateX(100%);
+  }
+  .zen-sidebar-right.is-open {
+    transform: translateX(0);
+  }
+  .zen-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    flex-shrink: 0;
+  }
+  .zen-sidebar-title {
+    font-family: var(--zen-font-mono);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: var(--zen-text-muted);
+    text-transform: lowercase;
+  }
+  .zen-sidebar-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--zen-text-muted);
+    transition: color var(--zen-transition);
+  }
+  .zen-sidebar-close:hover {
+    color: var(--zen-text);
+  }
+  .zen-sidebar-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 0 24px;
+  }
+
+  /* --- Nav Section --- */
+  .zen-nav-section {
+    padding: 0 24px 16px;
+  }
+  .zen-nav-link {
+    display: block;
+    padding: 8px 0;
+    font-family: var(--zen-font-body);
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--zen-text-muted);
+    text-decoration: none;
+    transition: color var(--zen-transition);
+  }
+  .zen-nav-link:hover {
+    color: var(--zen-text);
+  }
+  .zen-nav-divider {
+    height: 1px;
+    margin: 8px 24px 16px;
+    background: var(--zen-border);
+  }
+
+  /* --- Browse Section --- */
+  .zen-browse {
+    padding: 0 24px;
+  }
+  .zen-browse-label {
+    display: block;
+    padding: 0 0 12px;
+    font-family: var(--zen-font-mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: var(--zen-text-muted);
+    text-transform: lowercase;
+  }
+
+  /* Category accordion - typography only, no borders */
+  .zen-cat {
+    border: none;
+    margin-bottom: 4px;
+  }
+  .zen-cat-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    cursor: pointer;
+    list-style: none;
+    transition: color var(--zen-transition);
+  }
+  .zen-cat-summary::-webkit-details-marker { display: none; }
+  .zen-cat-summary::marker { display: none; content: ''; }
+  .zen-cat-name {
+    font-family: var(--zen-font-body);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--zen-text);
+    transition: color var(--zen-transition);
+  }
+  .zen-cat-summary:hover .zen-cat-name {
+    color: var(--zen-text-muted);
+  }
+  .zen-cat-body {
+    padding: 4px 0 8px 16px;
+  }
+
+  /* Topic accordion */
+  .zen-topic {
+    border: none;
+    margin-bottom: 2px;
+  }
+  .zen-topic-summary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--zen-font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--zen-text-secondary);
+    transition: color var(--zen-transition);
+  }
+  .zen-topic-summary::-webkit-details-marker { display: none; }
+  .zen-topic-summary::marker { display: none; content: ''; }
+  .zen-topic-summary:hover {
+    color: var(--zen-text);
+  }
+  .zen-count {
+    font-family: var(--zen-font-mono);
+    font-size: 11px;
+    color: var(--zen-text-muted);
+  }
+
+  /* Article links in sidebar - typography only */
+  .zen-article-list {
+    list-style: none;
+    padding: 4px 0 4px 12px;
+  }
+  .zen-article-link {
+    display: block;
+    padding: 4px 0;
+    font-family: var(--zen-font-body);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--zen-text-muted);
+    text-decoration: none;
+    transition: color var(--zen-transition);
+  }
+  .zen-article-link:hover {
+    color: var(--zen-text);
+  }
+  .zen-article-link--active {
+    color: var(--zen-text) !important;
+    font-weight: 600;
+  }
+
+  /* --- TOC in right sidebar - indentation and weight only --- */
+  .zen-toc-nav {
+    padding: 4px 24px;
+  }
+  .zen-toc-list,
+  .zen-toc-sublist {
+    list-style: none;
+    padding: 0;
+  }
+  .zen-toc-sublist {
+    padding: 2px 0 6px 20px;
+  }
+  .zen-toc-link {
+    display: block;
+    padding: 5px 0;
+    font-family: var(--zen-font-body);
+    text-decoration: none;
+    transition: color var(--zen-transition);
+  }
+  .zen-toc-h2 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--zen-text-secondary);
+  }
+  .zen-toc-h3 {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--zen-text-muted);
+  }
+  .zen-toc-link:hover {
+    color: var(--zen-text);
+  }
+
+  /* ================================================================
+     MAIN CONTENT - Always Centered
+     ================================================================ */
+  .zen-main {
+    max-width: var(--zen-content-width);
+    margin: 0 auto;
+    padding: 0 24px 120px;
+  }
+
+  /* --- Breadcrumb --- */
+  .zen-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 32px 0 16px;
+    font-family: var(--zen-font-mono);
+    font-size: 12px;
+  }
+  .zen-breadcrumb a {
+    color: var(--zen-text-muted);
+    text-decoration: none;
+    transition: color var(--zen-transition);
+  }
+  .zen-breadcrumb a:hover {
+    color: var(--zen-text);
+  }
+  .zen-breadcrumb-sep {
+    color: var(--zen-border-hover);
+  }
+
+  /* --- Article Header --- */
+  .zen-article-header {
+    padding: 48px 0 56px;
+  }
+  .zen-article-meta-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--zen-font-mono);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--zen-text-muted);
+    margin-bottom: 32px;
+  }
+  .zen-meta-dot {
+    color: var(--zen-border-hover);
+  }
+  .zen-article-title {
+    font-family: var(--zen-font-body);
+    font-size: clamp(40px, 6vw, 64px);
+    font-weight: 700;
+    line-height: 1.08;
+    color: var(--zen-text);
+    letter-spacing: -0.035em;
+    margin-bottom: 32px;
+  }
+  .zen-article-subtitle {
+    font-family: var(--zen-font-body);
+    font-size: 19px;
+    line-height: 1.8;
+    color: var(--zen-text-muted);
+    font-weight: 300;
+    max-width: 560px;
+  }
+
+  /* --- Prose Content --- */
+  .zen-prose {
+    padding: 0 0 64px;
+  }
+  .zen-prose h2 {
+    font-family: var(--zen-font-body);
+    font-size: clamp(26px, 3.5vw, 34px);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--zen-text);
+    letter-spacing: -0.025em;
+    margin: 80px 0 28px;
+  }
+  .zen-prose h3 {
+    font-family: var(--zen-font-body);
+    font-size: clamp(18px, 2.5vw, 22px);
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--zen-text);
+    letter-spacing: -0.01em;
+    margin: 56px 0 20px;
+  }
+  .zen-prose p {
+    margin-bottom: 32px;
+  }
+  .zen-prose a {
+    color: var(--zen-text);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+    transition: color var(--zen-transition);
+  }
+  .zen-prose a:hover {
+    color: var(--zen-text-muted);
+  }
+
+  /* Blockquote - larger font, lighter weight, no border */
+  .zen-prose blockquote {
+    margin: 56px 0;
+    padding: 0;
+    border: none;
+    background: none;
+  }
+  .zen-prose blockquote p {
+    font-size: 22px;
+    line-height: 1.8;
+    font-weight: 300;
+    color: var(--zen-text);
+    margin-bottom: 12px;
+    font-style: italic;
+  }
+  .zen-prose blockquote cite {
+    font-family: var(--zen-font-mono);
+    font-size: 13px;
+    color: var(--zen-text-muted);
+    font-style: normal;
+  }
+
+  /* Lists */
+  .zen-prose ul,
+  .zen-prose ol {
+    margin: 24px 0 32px;
+    padding-left: 24px;
+  }
+  .zen-prose li {
+    margin-bottom: 12px;
+    padding-left: 4px;
+  }
+  .zen-prose li strong {
+    color: var(--zen-text);
+    font-weight: 600;
+  }
+
+  /* Table - no visible borders, alternating backgrounds */
+  .zen-prose table {
+    width: 100%;
+    margin: 40px 0;
+    border-collapse: collapse;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .zen-prose th {
+    font-family: var(--zen-font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--zen-text-muted);
+    text-align: left;
+    padding: 12px 20px;
+    text-transform: lowercase;
+  }
+  .zen-prose td {
+    padding: 12px 20px;
+    color: var(--zen-text-secondary);
+  }
+  .zen-prose tbody tr:nth-child(odd) {
+    background: var(--zen-bg-alt);
+  }
+  .zen-prose tbody tr:nth-child(even) {
+    background: var(--zen-bg);
+  }
+
+  /* Code - minimal styling */
+  .zen-prose code {
+    font-family: var(--zen-font-mono);
+    font-size: 14px;
+    background: var(--zen-bg-alt);
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+  .zen-prose pre {
+    margin: 40px 0;
+    padding: 28px 24px;
+    background: var(--zen-bg-code);
+    border-radius: 0;
+    overflow-x: auto;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .zen-prose pre code {
+    background: none;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  /* Figure/Diagram placeholder */
+  .zen-placeholder-diagram {
+    margin: 48px 0;
+    padding: 48px;
+    background: var(--zen-bg-alt);
+    text-align: center;
+    font-family: var(--zen-font-body);
+    color: var(--zen-text-muted);
+  }
+  .zen-placeholder-diagram > span {
+    font-weight: 500;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 20px;
+    color: var(--zen-text-secondary);
+  }
+  .zen-diagram-nodes {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .zen-diagram-node {
+    padding: 10px 20px;
+    background: var(--zen-bg);
+    font-family: var(--zen-font-mono);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--zen-text-secondary);
+  }
+  .zen-diagram-leader {
+    background: var(--zen-accent);
+    color: var(--zen-bg);
+  }
+  .zen-diagram-arrows {
+    color: var(--zen-text-muted);
+    font-size: 18px;
+    display: flex;
+    gap: 4px;
+  }
+  .zen-prose figcaption {
+    text-align: center;
+    font-family: var(--zen-font-mono);
+    font-size: 12px;
+    color: var(--zen-text-muted);
+    margin-top: 16px;
+    font-style: normal;
+  }
+
+  /* --- Article Navigation --- */
+  .zen-article-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding: 64px 0 80px;
+    border-top: 1px solid var(--zen-border);
+  }
+  .zen-nav-prev,
+  .zen-nav-next {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 24px 0;
+    text-decoration: none;
+    transition: opacity var(--zen-transition);
+  }
+  .zen-nav-prev:hover,
+  .zen-nav-next:hover {
+    opacity: 0.6;
+  }
+  .zen-nav-next {
+    text-align: right;
+  }
+  .zen-nav-label {
+    font-family: var(--zen-font-mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    color: var(--zen-text-muted);
+    text-transform: lowercase;
+  }
+  .zen-nav-title {
+    font-family: var(--zen-font-body);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--zen-text);
+    line-height: 1.4;
+  }
+
+  /* ================================================================
+     RESPONSIVE
+     ================================================================ */
+  @media (max-width: 640px) {
+    .zen-sidebar {
+      width: min(88vw, 340px);
+    }
+    .zen-article-header {
+      padding: 32px 0 40px;
+    }
+    .zen-article-title {
+      font-size: clamp(32px, 8vw, 48px);
+    }
+    .zen-article-nav {
+      grid-template-columns: 1fr;
+    }
+    .zen-main {
+      padding: 0 20px 80px;
+    }
+    .zen-prose h2 {
+      margin: 56px 0 20px;
+    }
+    .zen-prose h3 {
+      margin: 40px 0 16px;
+    }
+    .zen-prose blockquote p {
+      font-size: 19px;
+    }
+  }
+
+  /* ================================================================
+     FOCUS STYLES
+     ================================================================ */
+  :focus-visible {
+    outline: 2px solid var(--zen-accent);
+    outline-offset: 3px;
+  }
+
+  /* ================================================================
+     SCROLLBAR - minimal styling
+     ================================================================ */
+  .zen-sidebar-body::-webkit-scrollbar {
+    width: 4px;
+  }
+  .zen-sidebar-body::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .zen-sidebar-body::-webkit-scrollbar-thumb {
+    background: var(--zen-border-hover);
+    border-radius: 2px;
+  }
+</style>
+
+<script>
+  function initZenLayout() {
+    const toggleLeft = document.querySelector('.zen-toggle-left') as HTMLButtonElement | null;
+    const toggleRight = document.querySelector('.zen-toggle-right') as HTMLButtonElement | null;
+    const sidebarLeft = document.getElementById('sidebar-left');
+    const sidebarRight = document.getElementById('sidebar-right');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    const progressBar = document.getElementById('zen-progress');
+
+    // --- Sidebar Logic ---
+    function closeSidebars() {
+      sidebarLeft?.classList.remove('is-open');
+      sidebarRight?.classList.remove('is-open');
+      backdrop?.classList.remove('is-visible');
+      toggleLeft?.setAttribute('aria-expanded', 'false');
+      toggleRight?.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+
+    function toggleSidebar(sidebar: HTMLElement | null, toggle: HTMLButtonElement | null) {
+      if (!sidebar || !toggle) return;
+      const isOpen = sidebar.classList.contains('is-open');
+      closeSidebars();
+      if (!isOpen) {
+        sidebar.classList.add('is-open');
+        backdrop?.classList.add('is-visible');
+        toggle.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    toggleLeft?.addEventListener('click', () => toggleSidebar(sidebarLeft, toggleLeft));
+    toggleRight?.addEventListener('click', () => toggleSidebar(sidebarRight, toggleRight));
+    backdrop?.addEventListener('click', closeSidebars);
+
+    // Close buttons inside sidebars
+    document.querySelectorAll('.zen-sidebar-close').forEach(btn => {
+      btn.addEventListener('click', closeSidebars);
+    });
+
+    // Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeSidebars();
+    });
+
+    // --- localStorage for sidebar state ---
+    const STORAGE_KEY_LEFT = 'zen-sidebar-left';
+    const STORAGE_KEY_RIGHT = 'zen-sidebar-right';
+
+    // Restore state on desktop
+    const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
+    if (isDesktop) {
+      const savedLeft = localStorage.getItem(STORAGE_KEY_LEFT);
+      const savedRight = localStorage.getItem(STORAGE_KEY_RIGHT);
+      if (savedLeft === 'open') {
+        sidebarLeft?.classList.add('is-open');
+        toggleLeft?.setAttribute('aria-expanded', 'true');
+      }
+      if (savedRight === 'open') {
+        sidebarRight?.classList.add('is-open');
+        toggleRight?.setAttribute('aria-expanded', 'true');
+      }
+    }
+
+    // Save state on toggle (desktop only)
+    toggleLeft?.addEventListener('click', () => {
+      if (window.matchMedia('(min-width: 1024px)').matches) {
+        const isOpen = sidebarLeft?.classList.contains('is-open');
+        localStorage.setItem(STORAGE_KEY_LEFT, isOpen ? 'open' : 'closed');
+      }
+    });
+    toggleRight?.addEventListener('click', () => {
+      if (window.matchMedia('(min-width: 1024px)').matches) {
+        const isOpen = sidebarRight?.classList.contains('is-open');
+        localStorage.setItem(STORAGE_KEY_RIGHT, isOpen ? 'open' : 'closed');
+      }
+    });
+
+    // --- Reading Progress Bar ---
+    function updateProgress() {
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (docHeight <= 0) return;
+      const scrolled = window.scrollY;
+      const progress = Math.min((scrolled / docHeight) * 100, 100);
+      if (progressBar) {
+        progressBar.style.width = progress + '%';
+      }
+    }
+
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+  }
+
+  document.addEventListener('DOMContentLoaded', initZenLayout);
+</script>

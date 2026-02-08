@@ -129,6 +129,12 @@ const ordering = defineCollection({
     // Featured subsets (for homepage)
     featuredArticles: z.array(z.string()), // IDs from 'article' collection
     featuredTopics: z.array(z.string()), // IDs from 'topic' collection
+    // Project ordering
+    projects: z.array(z.string()).optional().default([]),
+    // Pinned content (shown first on listing pages)
+    pinnedArticles: z.array(z.string()).optional().default([]),
+    pinnedBlogs: z.array(z.string()).optional().default([]),
+    pinnedProjects: z.array(z.string()).optional().default([]),
   }),
 })
 
@@ -187,6 +193,44 @@ const article = defineCollection({
     // Category and topic are derived from folder structure
     category: z.string().optional(),
     topic: z.string().optional(),
+    tags: z.array(z.string()).optional().default([]),
+  }),
+})
+
+// Blog collection - standalone blog posts (not in category/topic hierarchy)
+// Structure: content/blogs/<blog-slug>/README.md
+const blog = defineCollection({
+  loader: glob({
+    pattern: "*/README.md",
+    base: "./content/blogs",
+    generateId: ({ entry }) => {
+      // entry is like "my-blog-post/README.md" -> extract "my-blog-post"
+      return entry.split("/")[0] ?? entry
+    },
+  }),
+  schema: z.object({
+    publishedOn: z.string().optional(),
+    lastUpdatedOn: z.string().optional(),
+    archived: z.boolean().optional().default(false),
+    tags: z.array(z.string()).optional().default([]),
+  }),
+})
+
+// Project collection - project showcase pages
+// Structure: content/projects/<project-slug>/README.md
+const project = defineCollection({
+  loader: glob({
+    pattern: "*/README.md",
+    base: "./content/projects",
+    generateId: ({ entry }) => {
+      // entry is like "my-project/README.md" -> extract "my-project"
+      return entry.split("/")[0] ?? entry
+    },
+  }),
+  schema: z.object({
+    gitRepo: z.string().optional(),
+    demoUrl: z.string().optional(),
+    tags: z.array(z.string()).optional().default([]),
   }),
 })
 
@@ -198,6 +242,8 @@ export const collections = {
   category,
   topic,
   article,
+  blog,
+  project,
   vanity,
   home,
   site,

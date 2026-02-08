@@ -1,0 +1,29 @@
+---
+import Layout from "@/layout/layout.astro"
+import SidebarNavSite from "@/components/sidebar-nav-site.astro"
+import TagPill from "@/components/tag-pill.astro"
+import { getAllTags } from "@/utils/content"
+
+const tags = await getAllTags()
+---
+
+<Layout title="Tags" description="Browse content by tag" crumbs={null} hasLeftSidebar={true}>
+  <SidebarNavSite slot="sidebar-left" />
+
+  <h1 class="page-title">Tags</h1>
+  <p class="page-description">Browse content by tag.</p>
+
+  {
+    tags.length > 0 ? (
+      <div class="tag-list">
+        {tags.map((tagInfo) => (
+          <TagPill tag={tagInfo.tag} slug={tagInfo.slug} count={tagInfo.count} />
+        ))}
+      </div>
+    ) : (
+      <div class="search-placeholder">
+        <p class="text-muted">No tags yet. Tags will appear when content is tagged.</p>
+      </div>
+    )
+  }
+</Layout>

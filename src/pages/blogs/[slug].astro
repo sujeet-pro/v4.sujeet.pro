@@ -1,0 +1,54 @@
+---
+import Layout from "@/layout/layout.astro"
+import ReadingProgress from "@/layout/reading-progress.astro"
+import SidebarNavBlogs from "@/components/sidebar-nav-blogs.astro"
+import SidebarToc from "@/components/sidebar-toc.astro"
+import { getAllBlogPaths, getBlogPage } from "@/utils/content"
+import { render, getCollection } from "astro:content"
+
+export async function getStaticPaths() {
+  const paths = await getAllBlogPaths()
+  return paths.map((slug) => ({ params: { slug } }))
+}
+
+const { slug } = Astro.params
+const blog = await getBlogPage(slug)
+if (!blog) return Astro.redirect("/404")
+
+// Get headings for TOC
+const blogEntries = await getCollection("blog")
+const entry = blogEntries.find((e) => e.id === slug)
+const headings = entry ? (await render(entry)).headings : []
+
+const crumbs = [{ label: "Blogs", href: "/blogs" }]
+---
+
+<Layout
+  title={blog.title}
+  description={blog.description}
+  crumbs={crumbs}
+  noIndex={blog.isDraft}
+  hasLeftSidebar={true}
+  hasRightSidebar={headings.length > 0}
+  pageType="blog"
+>
+  <SidebarNavBlogs slot="sidebar-left" currentBlogId={slug} />
+  {headings.length > 0 && <SidebarToc slot="sidebar-right" headings={headings} />}
+
+  <ReadingProgress />
+
+  <article class="article">
+    <header class="article-header">
+      <h1 class="article-title">{blog.title}</h1>
+      <div class="article-meta">
+        {blog.publishedOn && <span class="article-meta-item">{blog.publishedOn}</span>}
+        <span class="article-meta-item">{blog.minutesRead}</span>
+        {blog.isDraft && <span class="badge-accent">Draft</span>}
+      </div>
+    </header>
+
+    <div id="article-content" class="article-prose-content">
+      <blog.Content />
+    </div>
+  </article>
+</Layout>
