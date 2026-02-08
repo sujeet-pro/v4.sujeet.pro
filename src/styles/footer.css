@@ -1,0 +1,44 @@
+/* ==========================================================================
+   FOOTER - Zen Minimal
+   ========================================================================== */
+
+.site-footer {
+  @apply mt-auto py-12;
+  border-top: 1px solid var(--color-border);
+}
+
+.site-footer-inner {
+  @apply flex flex-col gap-8;
+}
+
+.site-footer-categories {
+  @apply flex flex-wrap gap-x-8 gap-y-3 text-sm;
+}
+
+.site-footer-categories a {
+  @apply transition-colors;
+  color: var(--color-text-muted);
+}
+
+.site-footer-categories a:hover {
+  color: var(--color-text);
+}
+
+.site-footer-bar {
+  @apply flex flex-col items-center justify-between gap-5 py-8 sm:flex-row;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.site-footer-links {
+  @apply flex items-center gap-5;
+}
+
+.site-footer-social {
+  @apply flex items-center gap-5;
+}
+
+.site-footer-copyright {
+  @apply text-center text-sm;
+  color: var(--color-text-muted);
+}

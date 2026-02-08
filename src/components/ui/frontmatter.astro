@@ -1,0 +1,50 @@
+---
+import { Icon } from "astro-icon/components"
+import type { CardLinkInfo, CategoryRef, TopicRef } from "@/utils/content"
+import Link from "@/components/ui/link.astro"
+
+type CategoryLike = CategoryRef | CardLinkInfo
+type TopicLike = TopicRef | CardLinkInfo
+
+interface Props {
+  minutesRead?: string
+  isDraft?: boolean
+  class?: string
+  category?: CategoryLike
+  topic?: TopicLike
+}
+
+const { minutesRead, isDraft, class: className, category, topic } = Astro.props as Props
+---
+
+<div class:list={["frontmatter", className]}>
+  {isDraft && <span class="badge">Draft</span>}
+
+  {/* Category and Topic as breadcrumb-style */}
+  {
+    category && (
+      <span class="frontmatter-item">
+        <Link href={category.href} class="frontmatter-link" title={`Category - ${category.title ?? category.name}`}>
+          {category.name}
+        </Link>
+        {topic && (
+          <>
+            <span class="text-muted">/</span>
+            <Link href={topic.href} class="frontmatter-link" title={`Topic - ${topic.title ?? topic.name}`}>
+              {topic.name}
+            </Link>
+          </>
+        )}
+      </span>
+    )
+  }
+
+  {
+    minutesRead && (
+      <span class="frontmatter-item">
+        <Icon name="carbon:time" class="icon-sm" />
+        {minutesRead}
+      </span>
+    )
+  }
+</div>

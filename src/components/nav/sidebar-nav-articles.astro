@@ -1,0 +1,217 @@
+---
+/**
+ * Sidebar Nav - Articles
+ * Full category > topic > articles accordion hierarchy.
+ * Uses <details>/<summary> for native, accessible accordion behavior.
+ * Only article links navigate; topics toggle open/close.
+ * The current article's topic is expanded by default.
+ */
+import Link from "@/components/ui/link.astro"
+import { getCategoryHierarchy } from "@/utils/content"
+
+interface Props {
+  categoryId: string
+  topicId: string
+  currentArticleId: string
+}
+
+const { categoryId, topicId, currentArticleId } = Astro.props
+const categories = await getCategoryHierarchy()
+---
+
+<nav aria-label="Article navigation" class="article-nav">
+  {
+    categories.map((cat) => (
+      <div class="article-nav-category">
+        <span
+          class:list={[
+            "article-nav-category-name",
+            { "is-current": categoryId === cat.id },
+          ]}
+        >
+          {cat.name}
+        </span>
+        <div class="article-nav-topics">
+          {cat.topics.map((topic) => {
+            const isCurrentTopic = topicId === topic.id
+            return (
+              <details
+                class="article-nav-topic"
+                open={isCurrentTopic}
+              >
+                <summary
+                  class:list={[
+                    "article-nav-topic-toggle",
+                    { "is-active": isCurrentTopic },
+                  ]}
+                >
+                  <span class="article-nav-topic-name">{topic.name}</span>
+                  <span class="article-nav-topic-count">({topic.articles.length})</span>
+                  <svg
+                    class="article-nav-chevron"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </summary>
+                <div class="article-nav-articles">
+                  {topic.articles.map((article) => (
+                    <Link
+                      href={article.href}
+                      class:list={[
+                        "article-nav-article-link",
+                        { "is-active": currentArticleId === article.postId },
+                      ]}
+                    >
+                      {article.title}
+                    </Link>
+                  ))}
+                </div>
+              </details>
+            )
+          })}
+        </div>
+      </div>
+    ))
+  }
+</nav>
+
+<script>
+  function initArticleNav() {
+    const activeItem = document.querySelector<HTMLElement>(
+      "#left-sidebar .article-nav-article-link.is-active"
+    )
+    activeItem?.scrollIntoView({ block: "nearest", behavior: "instant" })
+  }
+
+  initArticleNav()
+  document.addEventListener("astro:page-load", initArticleNav)
+</script>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  /* Category section */
+  .article-nav-category {
+    @apply mb-5;
+  }
+
+  .article-nav-category + .article-nav-category {
+    @apply pt-2 border-t;
+    border-color: var(--color-border);
+  }
+
+  .article-nav-category-name {
+    @apply mb-1.5 block px-1 font-mono font-semibold uppercase;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--color-text-muted);
+  }
+
+  .article-nav-category-name.is-current {
+    color: var(--color-text);
+  }
+
+  /* Topic list */
+  .article-nav-topics {
+    @apply flex flex-col;
+  }
+
+  /* Topic <details> — remove default marker */
+  .article-nav-topic {
+    list-style: none;
+  }
+
+  /* Topic <summary> toggle */
+  .article-nav-topic-toggle {
+    @apply flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-1.5;
+    font-size: 13px;
+    list-style: none;
+    color: var(--color-text-muted);
+    transition: all var(--transition-fast);
+  }
+
+  /* Hide default disclosure triangle (Safari + Chrome) */
+  .article-nav-topic-toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  .article-nav-topic-toggle::marker {
+    display: none;
+    content: "";
+  }
+
+  .article-nav-topic-toggle:hover {
+    color: var(--color-text);
+    background: var(--color-bg-alt);
+  }
+
+  .article-nav-topic-toggle.is-active {
+    color: var(--color-text);
+    font-weight: 500;
+  }
+
+  /* Topic name — takes remaining space, pushes chevron right */
+  .article-nav-topic-name {
+    @apply min-w-0 flex-1;
+  }
+
+  /* Article count — muted, next to chevron */
+  .article-nav-topic-count {
+    @apply shrink-0 tabular-nums;
+    font-size: 11px;
+    color: var(--color-text-muted);
+    opacity: 0.6;
+  }
+
+  /* Chevron — fixed size, right-aligned */
+  .article-nav-chevron {
+    @apply shrink-0;
+    width: 12px;
+    height: 12px;
+    margin-left: 0.5rem;
+    opacity: 0.4;
+    transition: transform var(--transition-fast);
+  }
+
+  .article-nav-topic-toggle:hover .article-nav-chevron {
+    opacity: 0.7;
+  }
+
+  details[open] > .article-nav-topic-toggle .article-nav-chevron {
+    transform: rotate(90deg);
+  }
+
+  /* Articles list (accordion content) */
+  .article-nav-articles {
+    @apply ml-3 border-l pl-2;
+    border-color: var(--color-border);
+  }
+
+  /* Article link */
+  .article-nav-article-link {
+    @apply block rounded-md px-2 py-1 no-underline;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--color-text-muted);
+    transition: all var(--transition-fast);
+  }
+
+  .article-nav-article-link:hover {
+    color: var(--color-text);
+    background: var(--color-bg-alt);
+  }
+
+  .article-nav-article-link.is-active {
+    color: var(--color-text);
+    background: var(--color-bg-alt);
+    font-weight: 500;
+  }
+</style>

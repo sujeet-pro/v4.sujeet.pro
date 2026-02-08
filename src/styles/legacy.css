@@ -1,0 +1,35 @@
+/* ==========================================================================
+   LEGACY COMPATIBILITY CLASSES
+   ========================================================================== */
+
+.sp-border-muted {
+  border-color: var(--color-border);
+}
+
+.sp-accordion {
+  background: var(--color-bg-alt);
+}
+
+.text-muted-foreground {
+  color: var(--color-text-muted);
+}
+
+.text-accent {
+  color: var(--color-text);
+}
+
+.bg-accent {
+  background: var(--color-text);
+}
+
+/* ==========================================================================
+   RESPONSIVE UTILITIES
+   ========================================================================== */
+
+.desktop-only {
+  @apply hidden md:block;
+}
+
+.mobile-only {
+  @apply block md:hidden;
+}

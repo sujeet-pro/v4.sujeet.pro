@@ -1,0 +1,41 @@
+/* ==========================================================================
+   FLOATING ELEMENTS
+   ========================================================================== */
+
+.floating-btn {
+  @apply fixed right-5 z-40 hidden cursor-pointer rounded-full border-none p-3.5 shadow-lg;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  min-width: var(--min-touch-target);
+  min-height: var(--min-touch-target);
+  transition: all var(--transition-normal);
+}
+
+.floating-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+}
+
+.floating-btn:focus {
+  @apply outline-2 outline-offset-2;
+  outline-color: var(--color-text);
+}
+
+.floating-btn.is-visible {
+  @apply flex items-center justify-center;
+}
+
+.filter-mobile-btn {
+  bottom: 5rem;
+}
+
+.filter-badge {
+  @apply absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-medium;
+  background: var(--color-text);
+  color: var(--color-text-inverse);
+}
+
+.filter-badge.is-hidden {
+  @apply hidden;
+}

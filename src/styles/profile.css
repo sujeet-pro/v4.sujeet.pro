@@ -1,0 +1,62 @@
+/* ==========================================================================
+   PROFILE COMPONENT
+   ========================================================================== */
+
+.profile {
+  @apply mt-0 mb-20;
+}
+
+.profile-container {
+  @apply mx-auto max-w-4xl text-center;
+}
+
+.profile-image-wrapper {
+  @apply mb-8;
+}
+
+.profile-image {
+  @apply mx-auto rounded-full object-cover;
+  @apply h-48 w-48 md:h-64 md:w-64;
+  border: 3px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+}
+
+.profile-header {
+  @apply mb-6;
+}
+
+.profile-name {
+  @apply mb-4 font-sans font-normal;
+  font-size: clamp(32px, 5vw, 48px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.profile-title {
+  @apply mb-2 font-sans text-2xl leading-snug font-light md:text-3xl;
+}
+
+.profile-bio {
+  @apply mb-10;
+}
+
+.profile-bio-text {
+  @apply mx-auto max-w-3xl text-lg leading-relaxed md:text-xl;
+}
+
+.profile-actions {
+  @apply flex flex-wrap items-center justify-center gap-4;
+}
+
+.profile-expertise {
+  @apply mt-12 pt-10;
+  border-top: 1px solid var(--color-border);
+}
+
+.profile-expertise-title {
+  @apply mb-4 font-sans text-xl font-normal md:text-2xl;
+}
+
+.profile-tags {
+  @apply flex flex-wrap justify-center gap-3;
+}

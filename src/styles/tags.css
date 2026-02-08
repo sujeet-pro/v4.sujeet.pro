@@ -1,0 +1,55 @@
+/* ==========================================================================
+   TAGS & BADGES
+   ========================================================================== */
+
+.tag {
+  @apply inline-block rounded-full px-3.5 py-1 text-xs font-medium no-underline;
+  background: var(--color-bg-alt);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-fast);
+  position: relative;
+  z-index: 1;
+}
+
+.tag:hover {
+  color: var(--color-text);
+  border-color: var(--color-border-hover);
+}
+
+.tag-link {
+  @apply relative inline-block px-3 py-1 text-sm no-underline;
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
+
+.tag-link::after {
+  content: "";
+  @apply absolute left-0 w-0;
+  bottom: 4px;
+  height: 1px;
+  background: var(--color-text);
+  transition: width var(--transition-normal);
+}
+
+.tag-link:hover {
+  color: var(--color-text);
+}
+
+.tag-link:hover::after {
+  width: 100%;
+}
+
+.badge {
+  @apply inline-block rounded-md px-2.5 py-1 text-xs font-medium no-underline;
+  background: var(--color-bg-alt);
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
+
+.badge-accent {
+  @apply inline-block rounded-md px-2.5 py-1 text-xs font-medium no-underline;
+  background: var(--color-text);
+  color: var(--color-text-inverse);
+  transition: color var(--transition-fast);
+}

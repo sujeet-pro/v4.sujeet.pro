@@ -1,0 +1,14 @@
+---
+/**
+ * Scroll Spy for TOC
+ *
+ * Uses IntersectionObserver to track h2/h3 headings in #main
+ * and highlight the corresponding .sidebar-toc-item in the right sidebar.
+ */
+---
+
+<script>
+  import { initScrollSpy } from "@/scripts/scroll-spy"
+  initScrollSpy()
+  document.addEventListener("astro:page-load", initScrollSpy)
+</script>

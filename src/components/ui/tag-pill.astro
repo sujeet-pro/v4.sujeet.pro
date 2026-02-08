@@ -1,0 +1,20 @@
+---
+/**
+ * Tag Pill Component
+ * Links to /tags/<tag>, monochrome style
+ */
+import Link from "@/components/ui/link.astro"
+
+interface Props {
+  tag: string
+  slug: string
+  count?: number
+}
+
+const { tag, slug, count } = Astro.props
+---
+
+<Link href={`/tags/${slug}`} class="tag-pill">
+  {tag}
+  {count !== undefined && <span class="tag-pill-count">{count}</span>}
+</Link>

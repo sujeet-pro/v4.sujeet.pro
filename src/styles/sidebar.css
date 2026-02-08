@@ -1,0 +1,157 @@
+/* ==========================================================================
+   SIDEBAR STYLES
+   ========================================================================== */
+
+/* Sidebar base: default is mobile (fixed overlay modal) */
+.zen-sidebar {
+  @apply fixed top-0 z-50;
+  width: var(--sidebar-content-width);
+  height: 100vh;
+  height: 100dvh;
+  background: var(--color-bg);
+  transition: transform var(--transition-normal);
+  overflow: hidden;
+}
+
+.zen-sidebar-left {
+  @apply left-0;
+  transform: translateX(-100%);
+}
+
+.zen-sidebar-right {
+  @apply right-0;
+  transform: translateX(100%);
+}
+
+.zen-sidebar-left.is-open {
+  transform: translateX(0);
+}
+
+.zen-sidebar-right.is-open {
+  transform: translateX(0);
+}
+
+/* Desktop (>=1440px): sidebars are sticky grid columns */
+@media (min-width: 1440px) {
+  .zen-sidebar {
+    @apply sticky relative z-auto;
+    position: sticky;
+    top: var(--header-height);
+    width: auto;
+    height: calc(100vh - var(--header-height));
+    transform: none;
+  }
+
+  .zen-sidebar-left {
+    grid-column: 1;
+    border-right: 1px solid var(--color-border);
+  }
+
+  .zen-sidebar-right {
+    grid-column: 3;
+    border-left: 1px solid var(--color-border);
+  }
+
+  /* Align left sidebar content toward the center column */
+  .zen-sidebar-left .zen-sidebar-content {
+    margin-left: auto;
+  }
+
+  /* Collapsed: hide content but keep grid cell for stable centering */
+  .zen-sidebar.is-collapsed .zen-sidebar-content {
+    display: none;
+  }
+
+  .zen-sidebar-left.is-collapsed {
+    border-right-color: transparent;
+  }
+
+  .zen-sidebar-right.is-collapsed {
+    border-left-color: transparent;
+  }
+}
+
+/* Sidebar inner content */
+.zen-sidebar-content {
+  @apply p-5;
+  max-width: var(--sidebar-content-width);
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Sidebar backdrop (mobile only) */
+.zen-sidebar-backdrop {
+  @apply fixed inset-0 z-40 hidden;
+  background: var(--color-overlay-bg);
+  backdrop-filter: blur(4px);
+}
+
+.zen-sidebar-backdrop.is-visible {
+  @apply block;
+  animation: fadeIn var(--transition-fast) forwards;
+}
+
+/* Sidebar navigation items */
+.sidebar-nav-title {
+  @apply mb-4 font-mono text-xs font-medium uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+}
+
+.sidebar-nav-list {
+  @apply flex flex-col gap-0.5;
+}
+
+.sidebar-nav-item {
+  @apply block rounded-md px-3 py-2 text-sm no-underline;
+  color: var(--color-text-muted);
+  transition: all var(--transition-fast);
+}
+
+.sidebar-nav-item:hover {
+  color: var(--color-text);
+  background: var(--color-bg-alt);
+}
+
+.sidebar-nav-item.is-active {
+  color: var(--color-text);
+  background: var(--color-bg-alt);
+  font-weight: 500;
+}
+
+.sidebar-nav-section {
+  @apply mb-4;
+}
+
+.sidebar-nav-section-title {
+  @apply mb-1 px-3 text-xs font-medium;
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+}
+
+.sidebar-nav-empty {
+  @apply px-3 text-sm;
+  color: var(--color-text-muted);
+}
+
+/* Sidebar TOC specific styles */
+.sidebar-toc-item {
+  @apply block rounded-md px-3 py-1.5 text-sm no-underline;
+  color: var(--color-text-muted);
+  transition: all var(--transition-fast);
+}
+
+.sidebar-toc-item:hover {
+  color: var(--color-text);
+}
+
+.sidebar-toc-item.is-active {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.sidebar-toc-item--h3 {
+  @apply pl-6;
+  font-size: 13px;
+}

@@ -1,0 +1,312 @@
+/* ==========================================================================
+   ARTICLE & CATEGORY CARDS
+   ========================================================================== */
+
+.article-list {
+  @apply flex flex-col;
+}
+
+.article-card {
+  @apply relative py-7;
+  border-bottom: 1px solid var(--color-border);
+  transition: all var(--transition-normal);
+}
+
+.article-card:hover {
+  padding-left: 1rem;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding-right: 1rem;
+}
+
+.article-card:last-child {
+  border-bottom: none;
+}
+
+.article-card-label {
+  @apply mb-2;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.article-card-badges {
+  @apply mb-2 flex flex-wrap items-center gap-2;
+}
+
+.article-card-title {
+  @apply mb-2 font-sans text-lg font-medium;
+  line-height: 1.4;
+}
+
+.article-card-title a {
+  @apply no-underline;
+  color: var(--color-text);
+  transition: color var(--transition-fast);
+}
+
+.article-card:hover .article-card-title a {
+  color: var(--color-text);
+}
+
+.article-card-link::after {
+  content: "";
+  @apply absolute top-0 left-0 h-full w-full;
+}
+
+.article-card-meta {
+  @apply mb-2 text-xs;
+  color: var(--color-text-muted);
+}
+
+.article-card-frontmatter {
+  @apply mb-2;
+}
+
+.article-card-excerpt {
+  @apply line-clamp-2 text-sm leading-relaxed;
+  color: var(--color-text-muted);
+}
+
+.article-card-tags {
+  @apply mt-3 flex flex-wrap gap-2;
+}
+
+/* Category cards */
+.category-list {
+  @apply flex flex-col;
+}
+
+.category-card {
+  @apply relative block py-8 no-underline;
+  border-bottom: 1px solid var(--color-border);
+  transition: all var(--transition-normal);
+}
+
+.category-card:last-child {
+  border-bottom: none;
+}
+
+.category-card:hover {
+  padding-left: 1rem;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding-right: 1rem;
+}
+
+.category-card:hover .category-card-title {
+  color: var(--color-text);
+}
+
+.category-card:hover .category-card-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.category-card-title {
+  @apply mb-2 font-sans text-2xl font-normal;
+  color: var(--color-text);
+  transition: color var(--transition-fast);
+}
+
+.category-card-arrow {
+  @apply ml-2 inline-block;
+  opacity: 0;
+  transform: translateX(-0.5rem);
+  transition: all var(--transition-fast);
+  color: var(--color-text);
+}
+
+.category-card-meta {
+  @apply mb-2 flex items-center gap-2 text-sm;
+  color: var(--color-text-muted);
+}
+
+.category-card-abbr {
+  @apply font-medium;
+}
+
+.category-card-separator {
+  color: var(--color-border-hover);
+}
+
+.category-card-count { }
+
+.category-card-description {
+  @apply line-clamp-2 leading-relaxed;
+  color: var(--color-text-muted);
+}
+
+/* Topic cards */
+.topic-list {
+  @apply flex flex-col;
+}
+
+.topic-card {
+  @apply relative block py-8 no-underline;
+  border-bottom: 1px solid var(--color-border);
+  transition: all var(--transition-normal);
+}
+
+.topic-card:last-child {
+  border-bottom: none;
+}
+
+.topic-card:hover {
+  padding-left: 1rem;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding-right: 1rem;
+}
+
+.topic-card:hover .topic-card-title {
+  color: var(--color-text);
+}
+
+.topic-card:hover .topic-card-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.topic-card-title {
+  @apply mb-2 font-sans text-2xl font-normal;
+  color: var(--color-text);
+  transition: color var(--transition-fast);
+}
+
+.topic-card-arrow {
+  @apply ml-2 inline-block;
+  opacity: 0;
+  transform: translateX(-0.5rem);
+  transition: all var(--transition-fast);
+  color: var(--color-text);
+}
+
+.topic-card-meta {
+  @apply mb-2 flex items-center gap-2 text-sm;
+  color: var(--color-text-muted);
+}
+
+.topic-card-category {
+  @apply font-medium;
+}
+
+.topic-card-separator {
+  color: var(--color-border-hover);
+}
+
+.topic-card-count { }
+
+.topic-card-description {
+  @apply line-clamp-2 leading-relaxed;
+  color: var(--color-text-muted);
+}
+
+/* ==========================================================================
+   BLOG & PROJECT CARDS
+   ========================================================================== */
+
+.blog-card {
+  @apply relative py-7;
+  border-bottom: 1px solid var(--color-border);
+  transition: all var(--transition-normal);
+}
+
+.blog-card:hover {
+  padding-left: 1rem;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding-right: 1rem;
+}
+
+.blog-card:last-child {
+  border-bottom: none;
+}
+
+.blog-card-title {
+  @apply mb-2 font-sans text-lg font-medium;
+  line-height: 1.4;
+}
+
+.blog-card-title a {
+  @apply no-underline;
+  color: var(--color-text);
+  transition: color var(--transition-fast);
+}
+
+.blog-card-meta {
+  @apply mb-2 flex flex-wrap items-center gap-3 text-xs;
+  color: var(--color-text-muted);
+}
+
+.blog-card-excerpt {
+  @apply line-clamp-2 text-sm leading-relaxed;
+  color: var(--color-text-muted);
+}
+
+.blog-card-tags {
+  @apply mt-3 flex flex-wrap gap-2;
+}
+
+.blog-card-link::after {
+  content: "";
+  @apply absolute top-0 left-0 h-full w-full;
+}
+
+.project-card {
+  @apply relative py-7;
+  border-bottom: 1px solid var(--color-border);
+  transition: all var(--transition-normal);
+}
+
+.project-card:hover {
+  padding-left: 1rem;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  padding-right: 1rem;
+}
+
+.project-card:last-child {
+  border-bottom: none;
+}
+
+.project-card-title {
+  @apply mb-2 font-sans text-lg font-medium;
+  line-height: 1.4;
+}
+
+.project-card-title a {
+  @apply no-underline;
+  color: var(--color-text);
+  transition: color var(--transition-fast);
+}
+
+.project-card-meta {
+  @apply mb-2 flex flex-wrap items-center gap-3 text-xs;
+  color: var(--color-text-muted);
+}
+
+.project-card-links {
+  @apply mt-3 flex flex-wrap items-center gap-4;
+}
+
+.project-card-link-item {
+  @apply inline-flex items-center gap-1.5 text-sm no-underline;
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
+
+.project-card-link-item:hover {
+  color: var(--color-text);
+}
+
+.project-card-excerpt {
+  @apply line-clamp-2 text-sm leading-relaxed;
+  color: var(--color-text-muted);
+}
+
+.project-card-tags {
+  @apply mt-3 flex flex-wrap gap-2;
+}

@@ -1,0 +1,14 @@
+---
+/**
+ * Theme Toggle Script Component
+ *
+ * Initializes the theme cycle button (#theme-toggle-btn in header).
+ * The button markup lives in header.astro; this component just wires up the JS.
+ */
+---
+
+<script>
+  import { initThemeToggle } from "@/scripts/theme-toggle"
+  initThemeToggle()
+  document.addEventListener("astro:page-load", initThemeToggle)
+</script>

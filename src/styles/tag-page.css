@@ -1,0 +1,25 @@
+/* ==========================================================================
+   TAG PAGE STYLES
+   ========================================================================== */
+
+.tag-list {
+  @apply flex flex-wrap gap-3;
+}
+
+.tag-pill {
+  @apply inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm no-underline;
+  background: var(--color-bg-alt);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-fast);
+}
+
+.tag-pill:hover {
+  color: var(--color-text);
+  border-color: var(--color-border-hover);
+}
+
+.tag-pill-count {
+  @apply font-mono text-xs;
+  color: var(--color-text-muted);
+}

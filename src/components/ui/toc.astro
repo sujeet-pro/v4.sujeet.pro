@@ -1,0 +1,270 @@
+---
+import { Icon } from "astro-icon/components"
+
+interface Props {
+  class?: string
+}
+
+const { class: className } = Astro.props
+---
+
+<!-- Floating TOC Button (aligned with header container) -->
+<button
+  type="button"
+  id="toc-floating-btn"
+  class:list={["toc-floating-btn", className]}
+  aria-label="Open table of contents"
+  aria-haspopup="dialog"
+>
+  <Icon name="carbon:list" class="icon-md" />
+  <span class="sr-only">Table of Contents</span>
+</button>
+
+<!-- TOC Dialog (native dialog element for scroll trapping) -->
+<dialog id="toc-dialog" class="toc-dialog">
+  <div class="toc-dialog-content">
+    <div class="toc-dialog-header">
+      <h2 class="toc-dialog-title">On this page</h2>
+      <button type="button" id="toc-dialog-close" class="toc-dialog-close" aria-label="Close table of contents">
+        <Icon name="carbon:close" class="icon-md" />
+      </button>
+    </div>
+    <nav class="toc-dialog-nav" aria-label="Table of contents">
+      <!-- TOC content generated via JS -->
+    </nav>
+  </div>
+</dialog>
+
+<script>
+  import { initTocDialog } from "@/scripts/toc-dialog"
+  document.addEventListener("DOMContentLoaded", initTocDialog)
+  document.addEventListener("astro:page-load", initTocDialog)
+</script>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  /* ==========================================================================
+     FLOATING TOC BUTTON - Aligned with header container
+     ========================================================================== */
+
+  .toc-floating-btn {
+    @apply fixed bottom-6 z-40 hidden cursor-pointer rounded-full p-4;
+    /* Align with header container - calc from right edge */
+    right: max(1.5rem, calc((100vw - var(--header-width)) / 2 + 1.5rem));
+    background-color: var(--color-bg-elevated);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-lg);
+    min-width: var(--min-touch-target);
+    min-height: var(--min-touch-target);
+    transition: all var(--transition-normal);
+  }
+
+  .toc-floating-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+    background-color: var(--color-accent-subtle);
+  }
+
+  .toc-floating-btn:focus {
+    @apply outline-2 outline-offset-2;
+    outline-color: var(--color-accent);
+  }
+
+  .toc-floating-btn.is-visible {
+    @apply flex items-center justify-center;
+  }
+
+  /* ==========================================================================
+     TOC DIALOG - Native dialog element
+     ========================================================================== */
+
+  .toc-dialog {
+    @apply fixed m-0 p-0;
+    border: none;
+    background: transparent;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: visible;
+  }
+
+  /* Backdrop styling */
+  .toc-dialog::backdrop {
+    background-color: var(--color-overlay-bg);
+    backdrop-filter: blur(4px);
+    animation: fadeIn var(--transition-fast) forwards;
+  }
+
+  /* Mobile: Bottom sheet */
+  @media (max-width: 767px) {
+    .toc-dialog {
+      @apply inset-auto right-0 bottom-0 left-0;
+      width: 100%;
+    }
+
+    .toc-dialog[open] {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    .toc-dialog-content {
+      @apply mx-4 mb-4 flex w-full max-w-md flex-col rounded-2xl;
+      max-height: 75vh;
+      background-color: var(--color-bg-elevated);
+      box-shadow: var(--shadow-xl);
+      animation: slideUp var(--transition-normal) forwards;
+    }
+  }
+
+  /* Desktop: Right panel */
+  @media (min-width: 768px) {
+    .toc-dialog {
+      @apply inset-auto top-0 right-0 bottom-0;
+      height: 100vh;
+      height: 100dvh;
+    }
+
+    .toc-dialog[open] {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .toc-dialog-content {
+      @apply flex h-full w-full max-w-sm flex-col;
+      background-color: var(--color-bg-elevated);
+      box-shadow: var(--shadow-xl);
+      animation: slideInFromRight var(--transition-normal) forwards;
+    }
+  }
+
+  @keyframes slideInFromRight {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .toc-dialog-header {
+    @apply flex shrink-0 items-center justify-between px-6 py-5;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .toc-dialog-title {
+    @apply text-lg font-semibold;
+    color: var(--color-text);
+  }
+
+  .toc-dialog-close {
+    @apply flex cursor-pointer items-center justify-center rounded-lg border-none bg-transparent p-2;
+    color: var(--color-text-muted);
+    min-width: var(--min-touch-target);
+    min-height: var(--min-touch-target);
+    transition: all var(--transition-fast);
+  }
+
+  .toc-dialog-close:hover {
+    color: var(--color-text);
+    background: var(--color-accent-subtle);
+  }
+
+  .toc-dialog-close:focus {
+    @apply outline-2 outline-offset-2;
+    outline-color: var(--color-accent);
+  }
+
+  .toc-dialog-nav {
+    @apply flex-1 overflow-y-auto px-4 py-4;
+    /* Scroll is trapped within dialog by native dialog behavior */
+  }
+
+  /* ==========================================================================
+     TOC LIST STYLES
+     ========================================================================== */
+
+  .toc-list {
+    @apply space-y-1;
+  }
+
+  .toc-section {
+    @apply mb-1;
+  }
+
+  .toc-details {
+    @apply border-none;
+  }
+
+  .toc-details summary {
+    @apply list-none;
+  }
+
+  .toc-details summary::-webkit-details-marker {
+    @apply hidden;
+  }
+
+  .toc-summary {
+    @apply flex cursor-pointer items-center justify-between gap-2 rounded-lg px-3 py-2;
+    transition: background-color var(--transition-fast);
+  }
+
+  .toc-summary:hover {
+    background: var(--color-accent-subtle);
+  }
+
+  .toc-link {
+    @apply text-sm no-underline;
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast);
+  }
+
+  .toc-link:hover {
+    color: var(--color-text);
+  }
+
+  .toc-link-h2 {
+    @apply flex-1 font-medium;
+  }
+
+  .toc-link-h3 {
+    @apply block rounded-lg px-3 py-2;
+  }
+
+  .toc-link-h3:hover {
+    background: var(--color-accent-subtle);
+  }
+
+  /* Chevron icon */
+  .toc-chevron {
+    @apply h-4 w-4 shrink-0;
+    color: var(--color-text-muted);
+    transition: transform var(--transition-normal);
+  }
+
+  .toc-details[open] .toc-chevron {
+    transform: rotate(180deg);
+  }
+
+  /* Nested h3 list */
+  .toc-sublist {
+    @apply mt-1 ml-3 list-none pl-3;
+    border-left: 1px solid var(--color-border-subtle);
+  }
+
+  .toc-sublist li {
+    @apply m-0;
+  }
+
+  /* Standalone h2 link (no children) */
+  .toc-section > .toc-link-h2 {
+    @apply block rounded-lg px-3 py-2;
+  }
+
+  .toc-section > .toc-link-h2:hover {
+    background: var(--color-accent-subtle);
+  }
+</style>

@@ -1,7 +1,7 @@
 ---
 import Layout from "@/layout/layout.astro"
-import BlogCard from "@/components/blog-card.astro"
-import SidebarNavBlogs from "@/components/sidebar-nav-blogs.astro"
+import BlogCard from "@/components/cards/blog-card.astro"
+import SidebarNavBlogs from "@/components/nav/sidebar-nav-blogs.astro"
 import { getAllBlogCards } from "@/utils/content"
 
 const blogs = await getAllBlogCards()

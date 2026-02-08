@@ -73,10 +73,15 @@ These tools don't have dedicated llms.txt files yet. Use their standard document
 src/
 ├── content.config.ts    # Content collections configuration
 ├── pages/               # Astro pages and routes
-├── layout/              # Layout components
-├── components/          # Reusable UI components
-├── styles/              # Global CSS (Tailwind)
+├── layout/              # Layout components (header, footer, sidebar-toggle, etc.)
+├── components/          # Reusable UI components (organized by taxonomy)
+│   ├── cards/           # Presentational card components (article, blog, category, topic, project)
+│   ├── nav/             # Navigation & sidebar components (sidebar-nav-*, sidebar-toc)
+│   └── ui/              # Generic UI components (link, tag-pill, frontmatter, toc)
+├── scripts/             # Client-side TypeScript (one file per behavior)
+├── styles/              # Domain-specific CSS files (imported by global.css orchestrator)
 └── utils/               # Utility functions
+    └── content/         # Content utilities (facade pattern via index.ts)
 
 content/
 ├── articles/            # Category/Topic/Article hierarchy
@@ -352,7 +357,7 @@ Use semantic, BEM-inspired naming:
 
 ### Component Style Location
 
-- **Global/shared styles** → `src/styles/global.css`
+- **Domain styles** → Individual files in `src/styles/` (imported by `global.css`)
 - **Component-specific styles** → `<style is:global>` in component file (scoped by parent selector)
 - **Dynamic JS-generated content** → Must use `<style is:global>` with parent ID/class selector
 
@@ -369,19 +374,22 @@ Use semantic, BEM-inspired naming:
 </style>
 ```
 
-### Style Organization in global.css
+### Style Organization
 
-Styles are organized in sections:
+`src/styles/global.css` is an import orchestrator. Each domain has its own file in `src/styles/`:
 
-1. **DESIGN TOKENS** - CSS custom properties in `@theme`
-2. **BASE RESETS** - Element defaults (html, body, headings)
-3. **TYPOGRAPHY CLASSES** - .heading-1, .body-text, .text-muted
-4. **LAYOUT CLASSES** - .content-container, .layout-3col-\*
-5. **INTERACTIVE ELEMENTS** - .link, .btn, .nav-link
-6. **ARTICLE & CATEGORY CARDS** - .article-card, .category-card
-7. **TAGS & BADGES** - .tag, .badge
-8. **PROSE CUSTOMIZATION** - Typography plugin overrides
-9. **UTILITY CLASSES** - .sp-border-muted, etc.
+- `tokens.css` — Tailwind import, plugin, `@theme` design tokens
+- `base.css` — Element resets (html, body, headings)
+- `typography.css` — Heading/text classes
+- `layout.css` — Zen 3-column layout, content containers
+- `sidebar.css` — Sidebar nav, toggle states
+- `header.css` — Site header, mobile menu, sidebar toggle buttons
+- `interactive.css` — Links, buttons, nav links
+- `cards.css` — Article, category, topic, blog, project cards
+- `prose.css` — Typography plugin overrides, heading deep links
+- Plus: `animations.css`, `footer.css`, `article.css`, `profile.css`, `tags.css`, `frontmatter.css`, `breadcrumb.css`, `media.css`, `tables.css`, `focus.css`, `search-page.css`, `floating.css`, `modal.css`, `reading-progress.css`, `tag-page.css`, `legacy.css`
+
+Keep small component-level `<style is:global>` blocks (<100 lines) co-located in the `.astro` file.
 
 ### Examples
 

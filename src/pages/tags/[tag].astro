@@ -1,9 +1,9 @@
 ---
 import Layout from "@/layout/layout.astro"
-import SidebarNavSite from "@/components/sidebar-nav-site.astro"
-import ArticleCard from "@/components/article-card.astro"
-import BlogCard from "@/components/blog-card.astro"
-import ProjectCard from "@/components/project-card.astro"
+import SidebarNavSite from "@/components/nav/sidebar-nav-site.astro"
+import ArticleCard from "@/components/cards/article-card.astro"
+import BlogCard from "@/components/cards/blog-card.astro"
+import ProjectCard from "@/components/cards/project-card.astro"
 import { getAllTagSlugs, getTagContent } from "@/utils/content"
 
 export async function getStaticPaths() {

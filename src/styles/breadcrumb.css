@@ -1,0 +1,17 @@
+/* ==========================================================================
+   BREADCRUMB
+   ========================================================================== */
+
+.breadcrumb {
+  @apply mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 py-4 text-sm;
+  color: var(--color-text-muted);
+  animation: fadeIn var(--transition-normal) forwards;
+}
+
+.breadcrumb-separator {
+  @apply mx-1;
+}
+
+.breadcrumb-current {
+  color: var(--color-text);
+}

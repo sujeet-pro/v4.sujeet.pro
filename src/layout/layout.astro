@@ -13,6 +13,9 @@ import type { Crumb } from "./breadcrumb.astro"
 import ImageModal from "./image-modal.astro"
 import GoogleAnalytics from "./google-analytics.astro"
 import SidebarToggle from "./sidebar-toggle.astro"
+import ScrollSpy from "./scroll-spy.astro"
+import ThemeScript from "./theme-script.astro"
+import ThemeToggle from "./theme-toggle.astro"
 
 interface Props extends SeoProps {
   noIndex?: boolean | undefined | null
@@ -53,6 +56,7 @@ const containerClass = containerWidth === "wide" ? "content-container-wide" : "c
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light" />
+    <ThemeScript />
     {noIndex ? <meta name="robots" content="noindex" /> : null}
     <!-- Inline font-face declarations with base path -->
     <style
@@ -110,6 +114,7 @@ const containerClass = containerWidth === "wide" ? "content-container-wide" : "c
               {crumbs && <Breadcrumb {crumbs} />}
               <slot />
             </div>
+            <Footer />
           </main>
           {hasRightSidebar && (
             <aside id="right-sidebar" class="zen-sidebar zen-sidebar-right" aria-label="Table of contents">
@@ -133,11 +138,13 @@ const containerClass = containerWidth === "wide" ? "content-container-wide" : "c
     {/* Sidebar backdrop for mobile */}
     {(hasLeftSidebar || hasRightSidebar) && <div id="sidebar-backdrop" class="zen-sidebar-backdrop" />}
 
-    <Footer />
+    {!(hasLeftSidebar || hasRightSidebar) && <Footer />}
     <ImageModal />
     <KatexCSS />
     <GoogleAnalytics />
 
     {(hasLeftSidebar || hasRightSidebar) && <SidebarToggle />}
+    {hasRightSidebar && <ScrollSpy />}
+    <ThemeToggle />
   </body>
 </html>

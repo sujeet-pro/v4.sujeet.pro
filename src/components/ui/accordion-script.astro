@@ -1,0 +1,14 @@
+---
+/**
+ * Accordion Script Component
+ *
+ * Include this component once per page that uses accordions.
+ * Handles click events for .topic-accordion-trigger buttons.
+ */
+---
+
+<script>
+  import { initAccordions } from "@/scripts/accordion"
+  initAccordions()
+  document.addEventListener("astro:after-swap", initAccordions)
+</script>

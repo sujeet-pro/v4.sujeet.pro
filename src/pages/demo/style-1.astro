@@ -1,0 +1,346 @@
+---
+/**
+ * Style 1: "The Editorial" — Newspaper-inspired typography layout
+ *
+ * Large typographic masthead, horizontal rules, uppercase mono labels,
+ * 2-column category grid, featured articles list. No profile photo.
+ * Vibe: authoritative broadsheet.
+ */
+import { getEntry } from "astro:content"
+import Layout from "@/layout/layout.astro"
+import Link from "@/components/ui/link.astro"
+import { getCategoryHierarchy, getFeaturedArticlesCards } from "@/utils/content"
+import { getSocialLinks } from "@/utils/site.utils"
+import { formatCount } from "@/utils/format.utils"
+
+const homeEntry = await getEntry("home", "home")
+if (!homeEntry) throw new Error("Home page content not found.")
+const { profile } = homeEntry.data
+
+const social = await getSocialLinks()
+const categories = await getCategoryHierarchy()
+const featuredArticles = await getFeaturedArticlesCards()
+const totalArticles = categories.reduce((sum, cat) => sum + cat.articleCount, 0)
+const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
+---
+
+<Layout title="Sujeet Jaiswal — Principal Software Engineer" description={profile.bio} crumbs={null} pageType="default">
+  <div class="ed-page">
+
+    <!-- Masthead -->
+    <header class="ed-masthead">
+      <p class="ed-dateline">sujeet.pro</p>
+      <h1 class="ed-name">{profile.name}</h1>
+      <p class="ed-role">{profile.title}</p>
+    </header>
+
+    <hr class="ed-rule ed-rule--heavy" />
+
+    <!-- Intro -->
+    <section class="ed-intro">
+      <p class="ed-intro-text">
+        I build frontend architecture, design systems, and end-to-end systems at scale.
+        This site is where I publish deep-dive articles on the things I care about
+        most — performance, reliability, and elegant systems.
+      </p>
+      <div class="ed-intro-actions">
+        <Link href={social.linkedin.url} class="ed-action-link">LinkedIn</Link>
+        <span class="ed-action-sep">/</span>
+        <Link href="/cv" class="ed-action-link" isVanity={true}>CV</Link>
+        <span class="ed-action-sep">/</span>
+        <Link href="/articles" class="ed-action-link">All Articles</Link>
+        <span class="ed-action-sep">/</span>
+        <Link href="/random" class="ed-action-link">I'm Feeling Lucky</Link>
+      </div>
+    </section>
+
+    <hr class="ed-rule" />
+
+    <!-- Knowledge Hub -->
+    <section class="ed-section">
+      <div class="ed-section-label">
+        <span class="ed-label-text">The Knowledge Hub</span>
+      </div>
+      <p class="ed-section-subtitle">
+        {totalArticles}+ articles across {categories.length} categories and {totalTopics} topics
+      </p>
+
+      <div class="ed-categories">
+        {categories.map((category) => (
+          <article class="ed-category">
+            <h3 class="ed-category-name">
+              <Link href={category.href} class="ed-category-link">{category.name}</Link>
+            </h3>
+            <p class="ed-category-count">{formatCount(category.articleCount, "article")}</p>
+            <p class="ed-category-topics">
+              {category.topics.map((topic, i) => (
+                <>
+                  <Link href={topic.href} class="ed-topic-link">{topic.name}</Link>
+                  {i < category.topics.length - 1 && <span class="ed-topic-sep"> · </span>}
+                </>
+              ))}
+            </p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <hr class="ed-rule" />
+
+    <!-- Featured Articles -->
+    {featuredArticles.length > 0 && (
+      <section class="ed-section">
+        <div class="ed-section-label">
+          <span class="ed-label-text">Featured Articles</span>
+        </div>
+        <div class="ed-section-header">
+          <p class="ed-section-subtitle">Hand-picked reads</p>
+          <Link href="/articles" class="ed-more-link">All articles &rarr;</Link>
+        </div>
+
+        <ul class="ed-articles">
+          {featuredArticles.map((article, index) => (
+            <li class="ed-article" style={`animation-delay: ${index * 80}ms`}>
+              <h3 class="ed-article-title">
+                <Link href={article.href} class="ed-article-link">{article.title}</Link>
+              </h3>
+              <span class="ed-article-meta">
+                {article.category.name} · {article.topic.name}
+                {article.minutesRead && <> · {article.minutesRead}</>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+  </div>
+</Layout>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  .ed-page {
+    @apply mx-auto;
+    max-width: var(--content-max-width);
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+  }
+
+  /* ── Masthead ── */
+  .ed-masthead {
+    @apply mb-6 text-center;
+    animation: fadeInUp var(--transition-slow) forwards;
+  }
+
+  .ed-dateline {
+    @apply mb-6;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .ed-name {
+    @apply font-sans font-light;
+    font-size: clamp(40px, 7vw, 64px);
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    color: var(--color-text);
+  }
+
+  .ed-role {
+    @apply mt-3 font-sans font-light;
+    font-size: clamp(16px, 2.5vw, 22px);
+    letter-spacing: 0.01em;
+    color: var(--color-text-muted);
+  }
+
+  /* ── Rules ── */
+  .ed-rule {
+    @apply my-10 border-0;
+    height: 1px;
+    background: var(--color-border);
+  }
+
+  .ed-rule--heavy {
+    height: 2px;
+    background: var(--color-text);
+  }
+
+  /* ── Intro ── */
+  .ed-intro {
+    animation: fadeInUp var(--transition-slow) 100ms forwards;
+    opacity: 0;
+  }
+
+  .ed-intro-text {
+    @apply text-lg leading-relaxed;
+    color: var(--color-text-secondary);
+    max-width: 60ch;
+  }
+
+  .ed-intro-actions {
+    @apply mt-6 flex flex-wrap items-center gap-2;
+  }
+
+  .ed-action-link {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    color: var(--color-text);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--transition-fast);
+  }
+
+  .ed-action-link:hover {
+    border-bottom-color: var(--color-text);
+  }
+
+  .ed-action-sep {
+    color: var(--color-text-muted);
+    font-size: 13px;
+  }
+
+  /* ── Section ── */
+  .ed-section {
+    animation: fadeInUp var(--transition-slow) 200ms forwards;
+    opacity: 0;
+  }
+
+  .ed-section-label {
+    @apply mb-4 flex items-center;
+  }
+
+  .ed-label-text {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .ed-section-header {
+    @apply mb-8 flex flex-wrap items-baseline justify-between gap-4;
+  }
+
+  .ed-section-subtitle {
+    @apply text-sm;
+    color: var(--color-text-muted);
+  }
+
+  .ed-more-link {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .ed-more-link:hover {
+    color: var(--color-text);
+  }
+
+  /* ── Category Grid ── */
+  .ed-categories {
+    @apply mt-8 grid gap-10;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 640px) {
+    .ed-categories {
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem 3rem;
+    }
+  }
+
+  .ed-category {
+    @apply pb-6;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .ed-category-name {
+    @apply mb-1 font-sans text-lg font-medium;
+    line-height: 1.3;
+  }
+
+  .ed-category-link {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .ed-category-link:hover {
+    color: var(--color-text-muted);
+  }
+
+  .ed-category-count {
+    @apply mb-3;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .ed-category-topics {
+    @apply text-sm leading-relaxed;
+    color: var(--color-text-secondary);
+  }
+
+  .ed-topic-link {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--transition-fast);
+  }
+
+  .ed-topic-link:hover {
+    border-bottom-color: var(--color-text-secondary);
+  }
+
+  .ed-topic-sep {
+    color: var(--color-text-muted);
+  }
+
+  /* ── Featured Articles ── */
+  .ed-articles {
+    @apply list-none p-0;
+  }
+
+  .ed-article {
+    @apply py-5;
+    border-bottom: 1px solid var(--color-border);
+    animation: fadeInUp var(--transition-slow) forwards;
+    opacity: 0;
+  }
+
+  .ed-article:first-child {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .ed-article-title {
+    @apply mb-1 font-sans text-lg font-normal;
+    line-height: 1.4;
+  }
+
+  .ed-article-link {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .ed-article-link:hover {
+    color: var(--color-text-muted);
+  }
+
+  .ed-article-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+</style>

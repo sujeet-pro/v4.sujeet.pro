@@ -1,0 +1,56 @@
+/* ==========================================================================
+   LAYOUT CLASSES - Zen 3-Column Layout
+   ========================================================================== */
+
+.page-wrapper {
+  @apply flex min-h-screen flex-col;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* Zen 3-column layout container
+   Mobile/tablet (<1440px): block layout, sidebars are fixed overlays.
+   Desktop (>=1440px): CSS Grid — content gets priority (up to 100ch),
+   remaining space splits equally to sidebars via 1fr. */
+.zen-layout {
+  @apply w-full flex-1;
+}
+
+@media (min-width: 1440px) {
+  .zen-layout {
+    display: grid;
+    grid-template-columns: 1fr minmax(0, 100ch) 1fr;
+    gap: 0 var(--layout-gap);
+  }
+}
+
+/* Main content area - always centered, fixed max-width */
+.zen-main {
+  @apply min-w-0 px-5 md:px-8;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+}
+
+@media (min-width: 1440px) {
+  .zen-main {
+    grid-column: 2;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Content containers for pages that don't use sidebar layout */
+.content-container {
+  @apply mx-auto w-full px-5 md:px-8;
+  max-width: var(--content-max-width);
+}
+
+.content-container-wide {
+  @apply mx-auto w-full px-5 md:px-8;
+  max-width: var(--content-width-wide);
+}
+
+.page-content {
+  @apply pt-10 pb-16;
+}

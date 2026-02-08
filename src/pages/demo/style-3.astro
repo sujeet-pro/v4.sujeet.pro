@@ -1,0 +1,357 @@
+---
+/**
+ * Style 3: "The Manifesto" — Long-form personal introduction
+ *
+ * Extended bio, narrative category descriptions, curated "Start Here"
+ * reading paths. Warm, personal, opinionated.
+ */
+import { getEntry } from "astro:content"
+import Layout from "@/layout/layout.astro"
+import Link from "@/components/ui/link.astro"
+import { getCategoryHierarchy, getFeaturedArticlesCards } from "@/utils/content"
+import { getSocialLinks } from "@/utils/site.utils"
+import sujeetImage from "@/assets/sujeet.jpg"
+
+const homeEntry = await getEntry("home", "home")
+if (!homeEntry) throw new Error("Home page content not found.")
+const { profile } = homeEntry.data
+
+const social = await getSocialLinks()
+const categories = await getCategoryHierarchy()
+const featuredArticles = await getFeaturedArticlesCards()
+const totalArticles = categories.reduce((sum, cat) => sum + cat.articleCount, 0)
+
+// Category narrative descriptions
+const categoryDescriptions: Record<string, string> = {
+  "system-design": "How large-scale systems handle consistency, failure, and growth. From the CAP theorem to designing Uber — covering fundamentals, building blocks, real-world problems, and case studies from companies like Netflix, Stripe, and Discord.",
+  "browser-runtime-internals": "What actually happens between your code and pixels on screen. The complete rendering pipeline from DOM construction through compositing, V8's multi-tiered compilation architecture, and the event loop in depth.",
+  "platform-engineering": "Media systems, observability, deployment strategies, and the infrastructure that supports product teams. From video transcoding pipelines to CI/CD architecture and experimentation platforms.",
+  "frontend-engineering": "Architecture patterns, performance optimization, design systems, and React internals — the craft of building interfaces that scale to hundreds of engineers and millions of users.",
+  "web-foundations": "The protocols, security models, and browser APIs that underpin everything we build on the web. From TLS handshakes to OAuth flows, from DNS resolution to service workers.",
+  "programming-patterns": "Data structures, algorithms, and JavaScript patterns — the building blocks of clean, efficient code. Practical implementations and pattern analysis for everyday engineering.",
+  "developer-experience": "Tooling, workflows, and environment setup for productive engineering. The things that make the difference between a good day and a great day of coding.",
+}
+---
+
+<Layout title="Sujeet Jaiswal — Principal Software Engineer" description={profile.bio} crumbs={null} pageType="default">
+  <div class="mn-page">
+
+    <!-- Profile -->
+    <header class="mn-header">
+      <div class="mn-profile">
+        <img src={sujeetImage.src} alt={profile.imageAlt} class="mn-avatar" />
+        <div class="mn-profile-text">
+          <h1 class="mn-name">{profile.name}</h1>
+          <p class="mn-role">{profile.title}</p>
+        </div>
+      </div>
+
+      <div class="mn-story">
+        <p class="mn-story-p">
+          I'm a principal engineer focused on frontend systems that operate at scale.
+          Over the past decade, I've built design systems used by hundreds of engineers,
+          architected rendering pipelines that serve millions of page views, and led
+          platform migrations across organizations.
+        </p>
+        <p class="mn-story-p">
+          I believe that great frontend engineering requires deep understanding of the
+          full stack — from DNS resolution to pixel composition. This site is my attempt
+          to document that understanding, one deep-dive at a time. {totalArticles}+ articles
+          and counting.
+        </p>
+      </div>
+
+      <nav class="mn-actions">
+        <Link href={social.linkedin.url} class="mn-action">LinkedIn</Link>
+        <Link href="/cv" class="mn-action" isVanity={true}>Resume</Link>
+        <Link href="/articles" class="mn-action mn-action--primary">Explore Articles</Link>
+      </nav>
+    </header>
+
+    <!-- What I Write About -->
+    <section class="mn-section">
+      <div class="mn-section-rule"></div>
+      <h2 class="mn-section-title">What I Write About</h2>
+
+      <div class="mn-topics">
+        {categories.map((category, index) => (
+          <article class="mn-topic" style={`animation-delay: ${index * 80}ms`}>
+            <h3 class="mn-topic-name">
+              <Link href={category.href} class="mn-topic-link">{category.name}</Link>
+              <span class="mn-topic-count">{category.articleCount}</span>
+            </h3>
+            <p class="mn-topic-desc">
+              {categoryDescriptions[category.id] || category.description}
+            </p>
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <!-- Start Here -->
+    <section class="mn-section">
+      <div class="mn-section-rule"></div>
+      <h2 class="mn-section-title">Start Here</h2>
+      <p class="mn-section-intro">
+        Not sure where to begin? Here are some curated paths based on what you're curious about.
+      </p>
+
+      <div class="mn-paths">
+        <div class="mn-path">
+          <h3 class="mn-path-question">New to system design?</h3>
+          <ul class="mn-path-links">
+            {featuredArticles.filter(a => a.category.id === "system-design").slice(0, 2).map(article => (
+              <li class="mn-path-item">
+                <Link href={article.href} class="mn-path-link">{article.title}</Link>
+                <span class="mn-path-meta">{article.minutesRead}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div class="mn-path">
+          <h3 class="mn-path-question">Curious about browser internals?</h3>
+          <ul class="mn-path-links">
+            {featuredArticles.filter(a => a.category.id === "browser-runtime-internals").slice(0, 2).map(article => (
+              <li class="mn-path-item">
+                <Link href={article.href} class="mn-path-link">{article.title}</Link>
+                <span class="mn-path-meta">{article.minutesRead}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div class="mn-path">
+          <h3 class="mn-path-question">Frontend architecture at scale?</h3>
+          <ul class="mn-path-links">
+            {featuredArticles.filter(a => a.category.id === "frontend-engineering").slice(0, 2).map(article => (
+              <li class="mn-path-item">
+                <Link href={article.href} class="mn-path-link">{article.title}</Link>
+                <span class="mn-path-meta">{article.minutesRead}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div class="mn-cta">
+        <Link href="/random" class="mn-action">I'm Feeling Lucky</Link>
+        <Link href="/articles" class="mn-action mn-action--primary">Browse All Articles</Link>
+      </div>
+    </section>
+
+  </div>
+</Layout>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  .mn-page {
+    @apply mx-auto;
+    max-width: 65ch;
+    padding-top: 3rem;
+    padding-bottom: 4rem;
+  }
+
+  /* ── Header & Profile ── */
+  .mn-header {
+    @apply mb-16;
+    animation: fadeInUp var(--transition-slow) forwards;
+  }
+
+  .mn-profile {
+    @apply mb-8 flex items-center gap-5;
+  }
+
+  .mn-avatar {
+    @apply shrink-0 rounded-full object-cover;
+    width: 88px;
+    height: 88px;
+    border: 2px solid var(--color-border);
+  }
+
+  .mn-profile-text {
+    @apply flex flex-col;
+  }
+
+  .mn-name {
+    @apply font-sans font-normal;
+    font-size: clamp(24px, 4vw, 32px);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+  }
+
+  .mn-role {
+    @apply mt-1;
+    font-size: 15px;
+    color: var(--color-text-muted);
+  }
+
+  .mn-story {
+    @apply mb-8;
+  }
+
+  .mn-story-p {
+    @apply mb-5 text-base leading-loose;
+    color: var(--color-text-secondary);
+  }
+
+  .mn-story-p:last-child {
+    @apply mb-0;
+  }
+
+  .mn-actions {
+    @apply flex flex-wrap items-center gap-3;
+  }
+
+  .mn-action {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    transition: all var(--transition-fast);
+  }
+
+  .mn-action:hover {
+    color: var(--color-text);
+    border-color: var(--color-text);
+  }
+
+  .mn-action--primary {
+    color: #fff;
+    background: var(--color-text);
+    border-color: var(--color-text);
+  }
+
+  .mn-action--primary:hover {
+    background: var(--color-accent-hover);
+    color: #fff;
+  }
+
+  /* ── Sections ── */
+  .mn-section {
+    @apply mb-16;
+    animation: fadeInUp var(--transition-slow) 150ms forwards;
+    opacity: 0;
+  }
+
+  .mn-section-rule {
+    @apply mb-8;
+    height: 1px;
+    background: var(--color-border);
+  }
+
+  .mn-section-title {
+    @apply mb-6 font-sans font-normal;
+    font-size: clamp(22px, 3vw, 28px);
+    letter-spacing: -0.02em;
+    color: var(--color-text);
+  }
+
+  .mn-section-intro {
+    @apply mb-8 text-base leading-relaxed;
+    color: var(--color-text-muted);
+  }
+
+  /* ── Category Topics ── */
+  .mn-topics {
+    @apply flex flex-col gap-8;
+  }
+
+  .mn-topic {
+    @apply pb-8;
+    border-bottom: 1px solid var(--color-border);
+    animation: fadeInUp var(--transition-slow) forwards;
+    opacity: 0;
+  }
+
+  .mn-topic:last-child {
+    border-bottom: none;
+    @apply pb-0;
+  }
+
+  .mn-topic-name {
+    @apply mb-3 flex items-baseline gap-3 font-sans text-lg font-medium;
+    line-height: 1.3;
+  }
+
+  .mn-topic-link {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+
+  .mn-topic-link:hover {
+    color: var(--color-text-muted);
+  }
+
+  .mn-topic-count {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-text-muted);
+  }
+
+  .mn-topic-desc {
+    @apply text-base leading-relaxed;
+    color: var(--color-text-secondary);
+  }
+
+  /* ── Start Here Paths ── */
+  .mn-paths {
+    @apply flex flex-col gap-8;
+  }
+
+  .mn-path {
+    @apply pb-6;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .mn-path:last-child {
+    border-bottom: none;
+  }
+
+  .mn-path-question {
+    @apply mb-3 font-sans text-base;
+    font-style: italic;
+    color: var(--color-text-muted);
+    font-weight: 400;
+  }
+
+  .mn-path-links {
+    @apply list-none p-0;
+  }
+
+  .mn-path-item {
+    @apply flex items-baseline justify-between gap-4 py-2;
+  }
+
+  .mn-path-link {
+    @apply font-sans font-normal;
+    font-size: 16px;
+    color: var(--color-text);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-border);
+    transition: border-color var(--transition-fast);
+    line-height: 1.4;
+  }
+
+  .mn-path-link:hover {
+    border-bottom-color: var(--color-text);
+  }
+
+  .mn-path-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  .mn-cta {
+    @apply mt-10 flex flex-wrap items-center gap-3;
+  }
+</style>

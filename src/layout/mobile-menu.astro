@@ -1,0 +1,42 @@
+---
+/**
+ * Mobile Menu Component
+ *
+ * Slide-out navigation sidebar for mobile viewports.
+ * Includes overlay backdrop, close button, nav links, and search link.
+ */
+import Link from "@/components/ui/link.astro"
+import { getNavItems } from "@/utils/site.utils"
+import { Icon } from "astro-icon/components"
+
+const navItems = await getNavItems()
+---
+
+<div id="mobile-menu-overlay" class="mobile-menu-overlay is-hidden"></div>
+<aside id="mobile-menu" class="mobile-menu" aria-hidden="true">
+  <div class="mobile-menu-header">
+    <Link href="/" class="nav-link nav-logo"> sujeet.pro </Link>
+    <button id="mobile-menu-close" class="mobile-menu-close" aria-label="Close menu">
+      <Icon name="carbon:close" class="icon-lg" />
+    </button>
+  </div>
+  <nav class="mobile-menu-nav">
+    {
+      navItems.map((item) => (
+        <Link href={item.path} class="mobile-menu-link">
+          {item.label}
+        </Link>
+      ))
+    }
+    <Link href="/search" class="mobile-menu-link mobile-menu-link--search">
+      <Icon name="carbon:search" class="icon-md" />
+      <span>Search</span>
+    </Link>
+  </nav>
+</aside>
+
+<script>
+  import { initMobileMenu } from "@/scripts/mobile-menu"
+  document.addEventListener("DOMContentLoaded", initMobileMenu)
+  document.addEventListener("astro:page-load", initMobileMenu)
+</script>

@@ -1,0 +1,32 @@
+/* ==========================================================================
+   FRONTMATTER / META
+   ========================================================================== */
+
+.frontmatter {
+  @apply flex flex-wrap items-center gap-x-4 gap-y-1 text-xs;
+  color: var(--color-text-muted);
+}
+
+.frontmatter-item {
+  @apply inline-flex items-center gap-1.5;
+  position: relative;
+  z-index: 1;
+}
+
+.frontmatter-link {
+  @apply no-underline;
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
+
+.frontmatter-link:hover {
+  color: var(--color-text);
+}
+
+.frontmatter-icon {
+  @apply h-3.5 w-3.5 shrink-0;
+}
+
+.frontmatter-separator {
+  color: var(--color-text-muted);
+}

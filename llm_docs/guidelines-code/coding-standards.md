@@ -117,6 +117,56 @@ When using `@apply` inside component `<style is:global>`, add:
 @reference "tailwindcss";
 ```
 
+## Client-Side Scripts
+
+All client-side JavaScript lives in `src/scripts/*.ts`. Each file exports an `init<Name>()` function.
+
+Convention for `.astro` files:
+
+```astro
+<script>
+  import { initFeature } from "@/scripts/feature"
+  document.addEventListener("DOMContentLoaded", initFeature)
+  document.addEventListener("astro:page-load", initFeature)
+</script>
+```
+
+- Use `DOMContentLoaded` + `astro:page-load` for most features
+- Use `astro:after-swap` instead of `astro:page-load` when re-init must happen before the new page renders (e.g., accordions)
+- Call `init()` directly at module level (no event) for features that must run immediately (e.g., sidebar-toggle)
+- Prevent double-initialization with DOM `data-*` attribute guards
+
+## Component Taxonomy
+
+Components in `src/components/` are organized by role:
+
+- `cards/` — Presentational card components (article-card, blog-card, category-card, topic-card, project-card)
+- `nav/` — Navigation & sidebar components (sidebar-nav-*, sidebar-toc, category-nav)
+- `ui/` — Generic UI components (link, tag-pill, frontmatter, toc, accordion-script, topic-accordion)
+
+Import paths use the `@/components/<category>/` prefix:
+
+```ts
+import ArticleCard from "@/components/cards/article-card.astro"
+import SidebarToc from "@/components/nav/sidebar-toc.astro"
+import Link from "@/components/ui/link.astro"
+```
+
+## Content Utilities
+
+Content utilities use a facade pattern in `src/utils/content/`:
+
+- `index.ts` — Public API (re-exports from sub-modules)
+- `core.ts` — `processAllContent`, `getProcessedContent`
+- `ordering.ts` — Ordering config lookups
+- `sorting.ts` — Sort functions
+- `validation.ts` — Content structure validation
+- `cards.ts` — Card cache building
+- `navigation.ts` — Prev/next maps, article detail lists
+- Plus: `types.ts`, `helpers.ts`, `drafts.ts`, `headings.ts`, `blogs.ts`, `projects.ts`, `tags.ts`
+
+Pages import from the facade: `import { getAllArticleCards } from "@/utils/content"`
+
 ## Accessibility
 
 - Semantic HTML elements (`<main>`, `<article>`, `<nav>`).

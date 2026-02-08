@@ -1,0 +1,28 @@
+/* ==========================================================================
+   MEDIA ELEMENTS
+   ========================================================================== */
+
+img,
+video,
+iframe,
+svg:not([data-icon]) {
+  @apply mx-auto max-w-full;
+}
+
+svg[data-icon] {
+  @apply h-4 w-4;
+}
+
+.icon-sm { @apply h-4 w-4; }
+.icon-md { @apply h-5 w-5; }
+.icon-lg { @apply h-6 w-6; }
+
+figure {
+  img {
+    @apply mb-0 rounded-lg;
+  }
+  figcaption {
+    @apply mt-3 text-center;
+    color: var(--color-text-muted);
+  }
+}

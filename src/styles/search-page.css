@@ -1,0 +1,87 @@
+/* ==========================================================================
+   SEARCH PAGE COMPONENTS
+   ========================================================================== */
+
+.search-page {
+  @apply py-8;
+}
+
+.search-input-wrapper {
+  @apply mb-8;
+}
+
+.search-input {
+  @apply w-full rounded-lg border-2 px-5 py-4 text-lg;
+  border-color: var(--color-border);
+  background: var(--color-bg);
+  transition: all var(--transition-fast);
+}
+
+.search-input:focus {
+  @apply outline-none;
+  border-color: var(--color-text);
+}
+
+.search-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.search-hint {
+  @apply mt-3 text-sm;
+  color: var(--color-text-muted);
+}
+
+.search-filters-inline {
+  @apply mb-8 flex flex-col gap-4;
+}
+
+.filter-section {
+  @apply flex flex-wrap items-center gap-3;
+}
+
+.filter-section-label {
+  @apply text-sm font-medium;
+  color: var(--color-text-muted);
+  min-width: 80px;
+}
+
+.filter-chips {
+  @apply flex flex-wrap gap-2;
+}
+
+.filter-chip {
+  @apply cursor-pointer;
+}
+
+.filter-chip-input {
+  @apply sr-only;
+}
+
+.result-count {
+  @apply mb-6 text-sm;
+  color: var(--color-text-muted);
+}
+
+.result-count.is-hidden {
+  @apply hidden;
+}
+
+.clear-filters-btn {
+  @apply cursor-pointer rounded-lg px-4 py-2 text-sm font-medium;
+  background: var(--color-bg-alt);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  transition: all var(--transition-fast);
+}
+
+.clear-filters-btn:hover {
+  color: var(--color-text);
+}
+
+.clear-filters-btn.is-hidden {
+  @apply hidden;
+}
+
+.search-placeholder {
+  @apply py-12 text-center;
+}

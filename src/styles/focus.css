@@ -1,0 +1,36 @@
+/* ==========================================================================
+   FOCUS STYLES (Accessibility)
+   ========================================================================== */
+
+:focus-visible {
+  outline-width: var(--focus-ring-width);
+  outline-offset: var(--focus-ring-offset);
+  outline-style: solid;
+  outline-color: var(--color-text);
+}
+
+.sr-only {
+  @apply absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.skip-link {
+  @apply absolute top-0 left-0 z-50;
+  @apply px-4 py-2 font-medium;
+  background: var(--color-text);
+  color: var(--color-text-inverse);
+  border-radius: 0 0 8px 0;
+  transform: translateY(-100%);
+  transition: transform var(--transition-fast);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}

@@ -1,0 +1,86 @@
+---
+/**
+ * Sidebar Nav - Browse
+ * For category/topic/articles listing pages: full category hierarchy with counts
+ */
+import Link from "@/components/ui/link.astro"
+import { getCategoryHierarchy } from "@/utils/content"
+
+interface Props {
+  currentCategoryId?: string
+  currentTopicId?: string
+}
+
+const { currentCategoryId, currentTopicId } = Astro.props
+const categories = await getCategoryHierarchy()
+---
+
+<nav aria-label="Browse categories">
+  <h2 class="sidebar-nav-title">Categories</h2>
+  {
+    categories.map((category) => (
+      <div class="sidebar-nav-section">
+        <Link
+          href={category.href}
+          class:list={["sidebar-nav-item", "sidebar-browse-link", { "is-active": currentCategoryId === category.id }]}
+        >
+          <span class="sidebar-browse-label">{category.name}</span>
+          <span class="sidebar-browse-count">({category.articleCount})</span>
+        </Link>
+        <ul class="sidebar-nav-list sidebar-browse-topics">
+          {category.topics.map((topic) => (
+            <li>
+              <Link
+                href={topic.href}
+                class:list={[
+                  "sidebar-nav-item",
+                  "sidebar-browse-link",
+                  "sidebar-browse-topic",
+                  { "is-active": currentTopicId === topic.id },
+                ]}
+              >
+                <span class="sidebar-browse-label">{topic.name}</span>
+                <span class="sidebar-browse-count">({topic.articles.length})</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+</nav>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  /* Browse nav links — flex layout for right-aligned counts */
+  .sidebar-browse-link {
+    @apply flex items-center justify-between;
+    font-size: 13px;
+  }
+
+  .sidebar-browse-link.sidebar-nav-item {
+    @apply font-medium;
+  }
+
+  .sidebar-browse-topic {
+    @apply font-normal;
+  }
+
+  .sidebar-browse-label {
+    @apply min-w-0 flex-1;
+  }
+
+  .sidebar-browse-count {
+    @apply shrink-0 tabular-nums;
+    font-size: 11px;
+    margin-left: 0.5rem;
+    color: var(--color-text-muted);
+    opacity: 0.6;
+  }
+
+  .sidebar-browse-topics {
+    @apply ml-2 border-l pl-2;
+    border-color: var(--color-border);
+  }
+</style>

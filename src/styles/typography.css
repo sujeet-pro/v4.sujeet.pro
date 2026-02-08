@@ -1,0 +1,198 @@
+/* ==========================================================================
+   TYPOGRAPHY CLASSES
+   ========================================================================== */
+
+.heading-1 {
+  @apply font-sans font-normal;
+  font-size: clamp(32px, 5vw, 48px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+}
+
+.heading-2 {
+  @apply mt-16 mb-6 font-sans font-semibold;
+  font-size: clamp(24px, 3vw, 32px);
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+}
+
+.heading-3 {
+  @apply mt-12 mb-4 font-sans font-medium;
+  font-size: clamp(18px, 2vw, 24px);
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+.page-title {
+  @apply mb-3 font-sans font-normal;
+  font-size: clamp(32px, 5vw, 48px);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--color-text);
+  animation: fadeInUp var(--transition-slow) forwards;
+}
+
+.page-description {
+  @apply mb-10;
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--color-text-muted);
+  animation: fadeInUp var(--transition-slow) 100ms forwards;
+  opacity: 0;
+}
+
+.section-title {
+  @apply mb-4 font-mono text-xs font-medium uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+}
+
+.section-subtitle {
+  @apply -mt-2 mb-4 text-sm;
+  color: var(--color-text-muted);
+}
+
+.body-text {
+  @apply font-sans font-normal;
+  font-size: 17px;
+  line-height: 2;
+  color: var(--color-text-secondary);
+}
+
+.prose-body {
+  @apply font-sans font-normal;
+  font-size: 17px;
+  line-height: 2;
+  color: var(--color-text-secondary);
+}
+
+.prose-lead {
+  @apply font-sans font-normal;
+  font-size: 20px;
+  line-height: 1.8;
+  color: var(--color-text);
+}
+
+.meta-text {
+  @apply font-mono uppercase;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+}
+
+.caption {
+  @apply italic;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.article-subtitle {
+  @apply italic;
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+/* Links */
+.prose-link {
+  @apply relative;
+  color: var(--color-text);
+  text-decoration: none;
+  background-image: linear-gradient(var(--color-text), var(--color-text));
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size var(--transition-normal);
+}
+
+.prose-link:hover {
+  background-size: 100% 1px;
+}
+
+/* Blockquotes */
+.prose-blockquote {
+  @apply my-10 px-8 py-6 italic;
+  background: var(--color-blockquote-bg);
+  border-left: 2px solid var(--color-border-hover);
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--color-text);
+}
+
+/* Code */
+.code-inline {
+  @apply rounded font-mono;
+  font-size: 14px;
+  background: var(--color-code-bg);
+  color: var(--color-code-text);
+  padding: 3px 7px;
+}
+
+.code-block {
+  @apply my-8 overflow-x-auto rounded-lg font-mono;
+  font-size: 14px;
+  line-height: 1.75;
+  background: var(--color-bg-alt);
+  color: var(--color-text-secondary);
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+}
+
+/* Lists */
+.prose-list {
+  @apply my-6 space-y-3 pl-6;
+}
+
+.prose-list li {
+  font-size: 17px;
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+
+/* Section divider */
+.section-divider {
+  @apply my-12 flex items-center gap-6;
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: "";
+  @apply flex-1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.section-divider-text {
+  @apply shrink-0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* Drop cap */
+.dropcap::first-letter {
+  @apply float-left font-light;
+  font-size: 4rem;
+  line-height: 1;
+  margin-right: 1rem;
+  margin-top: 0.15rem;
+  color: var(--color-text);
+}
+
+/* Eyebrow */
+.eyebrow {
+  @apply inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}

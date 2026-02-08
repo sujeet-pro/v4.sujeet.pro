@@ -1,0 +1,78 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* ==========================================================================
+   FONT FACES - Defined inline in layout.astro with base path support
+   ========================================================================== */
+
+/* ==========================================================================
+   DESIGN TOKENS - "Minimalist Zen" Design System
+   Grayscale, typography-focused, distraction-free reading
+   ========================================================================== */
+
+@theme {
+  /* Typography - Open Sans for body/headings, JetBrains Mono for code */
+  --font-sans: "Open Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* Zen grayscale colors */
+  --color-bg: #ffffff;
+  --color-bg-alt: #fafafa;
+  --color-bg-elevated: #ffffff;
+  --color-bg-code: #f8f8f8;
+  --color-text: #111111;
+  --color-text-secondary: #333333;
+  --color-text-muted: #999999;
+  --color-border: #f0f0f0;
+  --color-border-subtle: #f0f0f0;
+  --color-border-hover: #e0e0e0;
+  --color-accent: #000000;
+  --color-accent-hover: #1a1a1a;
+  --color-accent-subtle: rgba(0, 0, 0, 0.04);
+
+  /* Theme-aware colors (replaced from hardcoded values) */
+  --color-overlay-bg: rgba(0, 0, 0, 0.3);
+  --color-header-bg: rgba(255, 255, 255, 0.85);
+  --color-text-inverse: #ffffff;
+  --color-surface-glass: rgba(255, 255, 255, 0.1);
+
+  /* Code colors */
+  --color-code-bg: #f8f8f8;
+  --color-code-text: #333333;
+
+  /* Blockquote colors */
+  --color-blockquote-border: #e0e0e0;
+  --color-blockquote-bg: #fafafa;
+
+  /* Layout dimensions (ch-based for optimal reading width) */
+  --content-max-width: 80ch;
+  --content-width-wide: 900px;
+  --sidebar-min-width: 32ch;
+  --sidebar-max-width: 54ch;
+  --sidebar-content-width: 340px;
+  --layout-gap: 1.5rem;
+  --header-width: 1280px;
+  --header-height: 60px;
+  /* Desktop breakpoint: 100ch content + ~60ch sidebars + gaps ≈ 1440px */
+  --sidebar-breakpoint: 1440px;
+
+  /* Accessibility - touch targets and focus */
+  --min-touch-target: 44px;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Shadows - Minimal */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.08);
+
+  /* Spacing */
+  --space-content: 80ch;
+  --space-narrow: 640px;
+}
