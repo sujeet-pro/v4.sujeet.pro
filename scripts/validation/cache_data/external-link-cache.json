@@ -154,7 +154,7 @@
     "https://ai.meta.com/blog/powered-by-ai-instagrams-explore-recommender-system/": {
       "status": 500,
       "ok": true,
-      "lastChecked": "2026-02-07T23:40:26.274Z",
+      "lastChecked": "2026-02-08T05:51:42.099Z",
       "error": "HTTP 500",
       "hint": "manual",
       "manual": "auto"
@@ -181,6 +181,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:46:37.949Z",
+      "hint": "fetch-node"
+    },
+    "https://andrewkchan.dev/posts/figma2.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:26:17.115Z",
       "hint": "fetch-node"
     },
     "https://andydavies.me/blog/2013/10/22/how-the-browser-pre-loader-makes-pages-load-faster/": {
@@ -417,6 +423,12 @@
       "lastChecked": "2026-02-03T08:46:50.317Z",
       "hint": "fetch-node"
     },
+    "https://aws.amazon.com/builders-library/fairness-in-multi-tenant-systems/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:25.367Z",
+      "hint": "fetch-node"
+    },
     "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/": {
       "status": 200,
       "ok": true,
@@ -439,6 +451,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:46:55.796Z",
+      "hint": "fetch-node"
+    },
+    "https://aws.amazon.com/s3/storage-classes/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:26.320Z",
       "hint": "fetch-node"
     },
     "https://aws.amazon.com/solutions/case-studies/innovators/netflix/": {
@@ -799,6 +817,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-07T23:06:17.816Z",
+      "hint": "fetch-node"
+    },
+    "https://brandur.org/rate-limiting": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:25.205Z",
       "hint": "fetch-node"
     },
     "https://bravenewgeek.com/you-cannot-have-exactly-once-delivery/": {
@@ -1677,6 +1701,12 @@
       "lastChecked": "2026-02-03T20:26:37.929Z",
       "hint": "fetch-node"
     },
+    "https://datatracker.ietf.org/doc/html/rfc6585": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:25.265Z",
+      "hint": "fetch-node"
+    },
     "https://datatracker.ietf.org/doc/html/rfc6716": {
       "status": 200,
       "ok": true,
@@ -1807,6 +1837,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:48:57.488Z",
+      "hint": "fetch-node"
+    },
+    "https://datatracker.ietf.org/doc/html/rfc8878": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:25.952Z",
       "hint": "fetch-node"
     },
     "https://datatracker.ietf.org/doc/html/rfc8914": {
@@ -2115,6 +2151,12 @@
       "lastChecked": "2026-02-03T08:46:53.731Z",
       "hint": "fetch-node"
     },
+    "https://developer.chrome.com/blog/indexeddb-durability-mode-now-defaults-to-relaxed": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:43.502Z",
+      "hint": "fetch-node"
+    },
     "https://developer.chrome.com/blog/inside-browser-part3/": {
       "status": 200,
       "ok": true,
@@ -2349,6 +2391,12 @@
       "lastChecked": "2026-02-03T19:00:50.499Z",
       "hint": "fetch-node"
     },
+    "https://developer.mozilla.org/en-US/docs/Web/API/File_System_API/Origin_private_file_system": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:43.131Z",
+      "hint": "fetch-node"
+    },
     "https://developer.mozilla.org/en-US/docs/Web/API/HTMLCollection": {
       "status": 200,
       "ok": true,
@@ -2529,6 +2577,12 @@
       "lastChecked": "2026-02-03T08:47:41.328Z",
       "hint": "fetch-node"
     },
+    "https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:41.248Z",
+      "hint": "fetch-node"
+    },
     "https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_streams": {
       "status": 200,
       "ok": true,
@@ -2553,10 +2607,22 @@
       "lastChecked": "2026-02-03T08:47:42.328Z",
       "hint": "fetch-node"
     },
+    "https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:42.132Z",
+      "hint": "fetch-node"
+    },
     "https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:45:41.831Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:44.421Z",
       "hint": "fetch-node"
     },
     "https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Transferable_objects": {
@@ -2805,6 +2871,12 @@
       "lastChecked": "2026-02-03T08:45:43.804Z",
       "hint": "fetch-node"
     },
+    "https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/State_Partitioning": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:45.442Z",
+      "hint": "fetch-node"
+    },
     "https://developer.salesforce.com/docs/platform/lwc/guide/create-components-css-custom-properties.html": {
       "status": 200,
       "ok": true,
@@ -2883,6 +2955,12 @@
       "lastChecked": "2026-02-03T08:49:23.423Z",
       "hint": "fetch-node"
     },
+    "https://developers.google.com/privacy-sandbox/cookies/storage-partitioning": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:43.469Z",
+      "hint": "fetch-node"
+    },
     "https://developers.google.com/search/docs/appearance/ranking-systems-guide": {
       "status": 200,
       "ok": true,
@@ -2929,6 +3007,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T19:00:50.669Z",
+      "hint": "fetch-node"
+    },
+    "https://dexie.org/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:42.274Z",
       "hint": "fetch-node"
     },
     "https://discord.com/blog/how-discord-indexes-trillions-of-messages": {
@@ -2994,7 +3078,7 @@
     "https://dl.acm.org/doi/10.1145/2488388.2488433": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-07T23:40:25.719Z",
+      "lastChecked": "2026-02-08T05:51:41.454Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -3391,6 +3475,12 @@
       "lastChecked": "2026-02-03T08:47:36.600Z",
       "hint": "fetch-node"
     },
+    "https://docs.dpaste.org": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:25.868Z",
+      "hint": "fetch-node"
+    },
     "https://docs.fastly.com/en/guides/purging-with-surrogate-keys": {
       "status": 200,
       "ok": true,
@@ -3401,6 +3491,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:46:48.271Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.github.com/en/get-started/writing-on-github/editing-and-sharing-content-with-gists": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:27.472Z",
+      "hint": "fetch-node"
+    },
+    "https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:25.288Z",
       "hint": "fetch-node"
     },
     "https://docs.google.com/document/d/1pazXBfzuL9O1wCjPdKb7IS-7nXz_ZzI7EvNL1r_KKRc/edit?usp=sharing": {
@@ -3979,6 +4081,12 @@
       "lastChecked": "2026-02-03T08:47:07.586Z",
       "hint": "fetch-node"
     },
+    "https://en.wikipedia.org/wiki/Token_bucket": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:25.449Z",
+      "hint": "fetch-node"
+    },
     "https://en.wikipedia.org/wiki/Trie": {
       "status": 200,
       "ok": true,
@@ -4180,7 +4288,7 @@
     "https://engineeringblog.yelp.com/2021/03/personalizing-yelp-home-with-contextual-bandit.html": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-07T23:40:27.216Z",
+      "lastChecked": "2026-02-08T05:51:42.626Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -4224,7 +4332,7 @@
     "https://etcd.io/docs/v3.5/dev-guide/api_concurrency_ref/": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-07T23:40:25.356Z",
+      "lastChecked": "2026-02-08T05:51:39.921Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -4276,6 +4384,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:46:33.423Z",
+      "hint": "fetch-node"
+    },
+    "https://expertofobsolescence.substack.com/p/the-hard-things-about-sync": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:26:17.675Z",
       "hint": "fetch-node"
     },
     "https://eza.rocks/": {
@@ -4372,6 +4486,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:04.352Z",
+      "hint": "fetch-node"
+    },
+    "https://fs.spec.whatwg.org/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:41.149Z",
       "hint": "fetch-node"
     },
     "https://fsharpforfunandprofit.com/rop/": {
@@ -4572,6 +4692,12 @@
       "lastChecked": "2026-02-03T08:46:57.348Z",
       "hint": "fetch-node"
     },
+    "https://github.com/PrivateBin/PrivateBin": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:26.279Z",
+      "hint": "fetch-node"
+    },
     "https://github.com/Project-OSRM/osrm-backend": {
       "status": 200,
       "ok": true,
@@ -4606,6 +4732,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-07T23:06:16.648Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/SparkUniverse/haste-server": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:27.560Z",
       "hint": "fetch-node"
     },
     "https://github.com/WICG/scheduling-apis/blob/main/explainers/yield-and-continuation.md": {
@@ -4704,10 +4836,22 @@
       "lastChecked": "2026-02-03T08:47:28.953Z",
       "hint": "fetch-node"
     },
+    "https://github.com/donnemartin/system-design-primer/blob/master/solutions/system_design/pastebin/README.md": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:29.089Z",
+      "hint": "fetch-node"
+    },
     "https://github.com/dop251/goja": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:46:42.840Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/envoyproxy/ratelimit": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:25.577Z",
       "hint": "fetch-node"
     },
     "https://github.com/etcd-io/dbtester": {
@@ -4877,6 +5021,14 @@
       "ok": true,
       "lastChecked": "2026-02-03T08:48:16.931Z",
       "hint": "fetch-node"
+    },
+    "https://github.com/nicholasgross/nicholasgross.github.io": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:43.402Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
     },
     "https://github.com/nodejs/node/issues/52156": {
       "status": 200,
@@ -5074,6 +5226,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:20.162Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/twitter-archive/snowflake": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:28.327Z",
       "hint": "fetch-node"
     },
     "https://github.com/twitter/the-algorithm": {
@@ -5443,6 +5601,12 @@
       "lastChecked": "2026-02-03T08:45:29.701Z",
       "hint": "fetch-node"
     },
+    "https://html.spec.whatwg.org/multipage/webstorage.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:39.873Z",
+      "hint": "fetch-node"
+    },
     "https://html.spec.whatwg.org/multipage/workers.html": {
       "status": 200,
       "ok": true,
@@ -5483,6 +5647,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-07T23:06:20.368Z",
+      "hint": "fetch-node"
+    },
+    "https://ietf-wg-httpapi.github.io/ratelimit-headers/draft-ietf-httpapi-ratelimit-headers.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:25.003Z",
       "hint": "fetch-node"
     },
     "https://infra.spec.whatwg.org/": {
@@ -5945,6 +6115,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:46:08.200Z",
+      "hint": "fetch-node"
+    },
+    "https://madebyevan.com/figma/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:26:18.455Z",
       "hint": "fetch-node"
     },
     "https://marijnhaverbeke.nl/blog/collaborative-editing.html": {
@@ -6847,6 +7023,12 @@
       "lastChecked": "2026-02-05T20:12:36.407Z",
       "hint": "fetch-node"
     },
+    "https://pastebin.com": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:25.655Z",
+      "hint": "fetch-node"
+    },
     "https://patents.google.com/patent/US20060069876A1/en": {
       "status": 200,
       "ok": true,
@@ -7552,7 +7734,7 @@
     "https://serialized.io/blog/apache-kafka-is-not-for-event-sourcing/": {
       "status": null,
       "ok": true,
-      "lastChecked": "2026-02-07T23:40:25.002Z",
+      "lastChecked": "2026-02-08T05:51:39.422Z",
       "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://serialized.io/blog/apache-kafka-is-not-for-event-sourcing/\nCall log:\n\u001b[2m  - navigating to \"https://serialized.io/blog/apache-kafka-is-not-for-event-sourcing/\", waiting until \"domcontentloaded\"\u001b[22m\n",
       "hint": "manual",
       "manual": "auto"
@@ -7771,6 +7953,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:10.661Z",
+      "hint": "fetch-node"
+    },
+    "https://sqlite.org/wasm": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:42.587Z",
       "hint": "fetch-node"
     },
     "https://squoosh.app/": {
@@ -8568,7 +8756,7 @@
     "https://web.dev/articles/long-animation-frames": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-07T23:40:26.612Z",
+      "lastChecked": "2026-02-08T05:51:41.411Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -8693,6 +8881,12 @@
       "lastChecked": "2026-02-03T08:45:25.775Z",
       "hint": "fetch-node"
     },
+    "https://web.dev/articles/storage-for-the-web": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:43.159Z",
+      "hint": "fetch-node"
+    },
     "https://web.dev/articles/streams": {
       "status": 200,
       "ok": true,
@@ -8777,6 +8971,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:40.945Z",
+      "hint": "fetch-node"
+    },
+    "https://webkit.org/blog/14403/updates-to-storage-policy/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:43.305Z",
       "hint": "fetch-node"
     },
     "https://webpack.js.org/concepts/module-federation/": {
@@ -9172,7 +9372,7 @@
     "https://www.cs.princeton.edu/courses/archive/spring13/cos598C/Lectures/SimHash.pdf": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-07T23:40:27.341Z",
+      "lastChecked": "2026-02-08T05:51:42.874Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -9411,6 +9611,24 @@
       "lastChecked": "2026-02-06T04:34:02.491Z",
       "hint": "fetch-node"
     },
+    "https://www.figma.com/blog/an-alternative-approach-to-rate-limiting/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:25.068Z",
+      "hint": "fetch-node"
+    },
+    "https://www.figma.com/blog/building-figmas-code-layers/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:26:23.252Z",
+      "hint": "fetch-node"
+    },
+    "https://www.figma.com/blog/how-figma-scaled-to-multiple-databases/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:26:20.723Z",
+      "hint": "fetch-node"
+    },
     "https://www.figma.com/blog/how-figmas-databases-team-lived-to-tell-the-scale/": {
       "status": 200,
       "ok": true,
@@ -9441,10 +9659,28 @@
       "lastChecked": "2026-02-03T08:47:42.516Z",
       "hint": "fetch-node"
     },
+    "https://www.figma.com/blog/livegraph-real-time-data-at-scale/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:26:19.342Z",
+      "hint": "fetch-node"
+    },
+    "https://www.figma.com/blog/livegraph-real-time-data-fetching-at-figma/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:26:18.215Z",
+      "hint": "fetch-node"
+    },
     "https://www.figma.com/blog/making-multiplayer-more-reliable/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:41.168Z",
+      "hint": "fetch-node"
+    },
+    "https://www.figma.com/blog/multiplayer-editing-in-figma/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:26:15.837Z",
       "hint": "fetch-node"
     },
     "https://www.figma.com/blog/realtime-editing-of-ordered-sequences/": {
@@ -9453,13 +9689,37 @@
       "lastChecked": "2026-02-03T08:48:25.907Z",
       "hint": "fetch-node"
     },
+    "https://www.figma.com/blog/rust-in-production-at-figma/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:26:16.216Z",
+      "hint": "fetch-node"
+    },
     "https://www.figma.com/blog/section/engineering/": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-07T23:40:25.517Z",
+      "lastChecked": "2026-02-08T05:51:41.049Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
+    },
+    "https://www.figma.com/blog/supporting-faster-file-load-times-with-memory-optimizations-in-rust/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:26:17.301Z",
+      "hint": "fetch-node"
+    },
+    "https://www.figma.com/blog/under-the-hood-of-figmas-infrastructure/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:26:21.213Z",
+      "hint": "fetch-node"
+    },
+    "https://www.figma.com/blog/webassembly-cut-figmas-load-time-by-3x/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:26:22.627Z",
+      "hint": "fetch-node"
     },
     "https://www.freecodecamp.org/news/dom-manipulation-htmlcollection-vs-nodelist/": {
       "status": 200,
@@ -9705,6 +9965,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:46:56.464Z",
+      "hint": "fetch-node"
+    },
+    "https://www.itu.int/rec/T-REC-I.371": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:40:25.281Z",
       "hint": "fetch-node"
     },
     "https://www.knapsack.cloud/reports/roi-report": {
@@ -10232,7 +10498,7 @@
     "https://www.semanticscholar.org/paper/UbiCrawler:-a-scalable-fully-distributed-Web-Boldi-Codenotti/ba8269289ea5ca6bd8f3b43c0153409e6286b38e": {
       "status": 202,
       "ok": true,
-      "lastChecked": "2026-02-07T23:40:26.835Z",
+      "lastChecked": "2026-02-08T05:51:42.045Z",
       "error": "HTTP 202",
       "hint": "manual",
       "manual": "auto"
@@ -10649,6 +10915,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T19:00:50.106Z",
+      "hint": "fetch-node"
+    },
+    "https://www.w3.org/TR/IndexedDB-3/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-08T05:51:40.190Z",
       "hint": "fetch-node"
     },
     "https://www.w3.org/TR/IndexedDB/": {
