@@ -85,7 +85,21 @@ export default defineConfig({
       }),
     },
   },
-  integrations: [icon(), expressiveCode(), sitemap({ filter: sitemapFilter })],
+  integrations: [
+    icon(),
+    expressiveCode({
+      shiki: {
+        langAlias: {
+          redis: "bash",
+          vcl: "nginx",
+          promql: "plaintext",
+          logql: "plaintext",
+          bind: "nginx",
+        },
+      },
+    }),
+    sitemap({ filter: sitemapFilter }),
+  ],
   vite: {
     plugins: [tailwindcss() as any],
   },
@@ -101,7 +115,12 @@ export default defineConfig({
     ],
     rehypePlugins: [
       rehypeInternalLinks,
-      rehypeKatex,
+      [
+        rehypeKatex,
+        {
+          strict: (errorCode: string) => (errorCode === "commentAtEnd" ? "ignore" : "warn"),
+        },
+      ],
       [rehypeAccessibleEmojis as RehypePlugin, { ignore: ["title", "script", "style", "svg", "math", "pre", "code"] }],
       rehypeHeadingIds,
       [

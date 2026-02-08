@@ -88,6 +88,10 @@ jobs:
           ${{ steps.detect-package-manager.outputs.runner }} astro build \
             --site "${{ steps.pages.outputs.origin }}"
         working-directory: ${{ env.BUILD_PATH }}
+        env:
+          PUBLIC_SUJEET_PRO_ALGOLIA_APP_ID: ${{ vars.PUBLIC_SUJEET_PRO_ALGOLIA_APP_ID }}
+          PUBLIC_SUJEET_PRO_ALGOLIA_API_KEY: ${{ vars.PUBLIC_SUJEET_PRO_ALGOLIA_API_KEY }}
+          PUBLIC_SUJEET_PRO_ALGOLIA_INDEX_NAME: ${{ vars.PUBLIC_SUJEET_PRO_ALGOLIA_INDEX_NAME }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
