@@ -74,20 +74,14 @@ export default defineConfig({
       PUBLIC_SUJEET_PRO_ALGOLIA_APP_ID: envField.string({
         context: "client",
         access: "public",
-        optional: true,
-        default: "",
       }),
       PUBLIC_SUJEET_PRO_ALGOLIA_API_KEY: envField.string({
         context: "client",
         access: "public",
-        optional: true,
-        default: "",
       }),
       PUBLIC_SUJEET_PRO_ALGOLIA_INDEX_NAME: envField.string({
         context: "client",
         access: "public",
-        optional: true,
-        default: "",
       }),
     },
   },
