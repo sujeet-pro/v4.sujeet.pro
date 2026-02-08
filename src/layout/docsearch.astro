@@ -9,6 +9,17 @@
 
 <script>
   import "@docsearch/css"
+  import {
+    PUBLIC_SUJEET_PRO_ALGOLIA_APP_ID,
+    PUBLIC_SUJEET_PRO_ALGOLIA_API_KEY,
+    PUBLIC_SUJEET_PRO_ALGOLIA_INDEX_NAME,
+  } from "astro:env/client"
+
+  // Expose public env vars for debugging (e.g. console: window.__env)
+  ;(window as any).__env = {
+    PUBLIC_SUJEET_PRO_ALGOLIA_APP_ID,
+    PUBLIC_SUJEET_PRO_ALGOLIA_INDEX_NAME,
+  }
 
   function initDocSearch() {
     const container = document.getElementById("docsearch-container")
@@ -19,17 +30,11 @@
     // Clear any previous content (View Transitions may preserve it)
     container.innerHTML = ""
 
-    const appId = import.meta.env.PUBLIC_SUJEET_PRO_ALGOLIA_APP_ID
-    const apiKey = import.meta.env.PUBLIC_SUJEET_PRO_ALGOLIA_API_KEY
-    const indexName = import.meta.env.PUBLIC_SUJEET_PRO_ALGOLIA_INDEX_NAME
-
-    if (!appId || !apiKey || !indexName) return
-
     import("@docsearch/js").then(({ default: docsearch }) => {
       docsearch({
-        appId,
-        apiKey,
-        indexName,
+        appId: PUBLIC_SUJEET_PRO_ALGOLIA_APP_ID,
+        apiKey: PUBLIC_SUJEET_PRO_ALGOLIA_API_KEY,
+        indexName: PUBLIC_SUJEET_PRO_ALGOLIA_INDEX_NAME,
         container: "#docsearch-container",
       })
     })
