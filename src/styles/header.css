@@ -20,9 +20,9 @@
   @apply ml-auto hidden items-center gap-4 sm:flex;
 }
 
-/* Mobile menu button - below sm */
+/* Mobile menu button - below md (nav links appear at md) */
 .mobile-menu-btn {
-  @apply ml-auto flex items-center justify-center p-2 sm:hidden;
+  @apply ml-auto flex items-center justify-center p-2 md:hidden;
   min-width: var(--min-touch-target);
   min-height: var(--min-touch-target);
   border-radius: 8px;
@@ -35,7 +35,7 @@
 
 /* Mobile menu overlay */
 .mobile-menu-overlay {
-  @apply fixed inset-0 z-100 sm:hidden;
+  @apply fixed inset-0 z-100 md:hidden;
   background: var(--color-overlay-bg);
   backdrop-filter: blur(4px);
   animation: fadeIn var(--transition-fast) forwards;
@@ -47,7 +47,7 @@
 
 /* Mobile menu sidebar */
 .mobile-menu {
-  @apply fixed top-0 right-0 z-101 flex flex-col sm:hidden;
+  @apply fixed top-0 right-0 z-101 flex flex-col md:hidden;
   width: 300px;
   max-width: 85vw;
   height: 100vh;

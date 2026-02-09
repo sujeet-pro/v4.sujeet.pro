@@ -3,6 +3,7 @@ import { getAllCategories } from "@/utils/content"
 import { getCopyright, getFooterLinks, getSocialLinks } from "@/utils/site.utils"
 import { getVanityUrlMap } from "@/utils/content-vanity.utils"
 import Link from "@/components/ui/link.astro"
+import { Icon } from "astro-icon/components"
 
 // Get all categories
 const categories = await getAllCategories()
@@ -20,7 +21,7 @@ const yearDisplay = copyright.startYear === currentYear ? `${currentYear}` : `${
 
 <footer class="site-footer">
   <div class="content-container site-footer-inner">
-    {/* Categories Grid */}
+    {/* Categories */}
     <nav class="site-footer-categories">
       {
         categories.map((cat) => (
@@ -31,7 +32,7 @@ const yearDisplay = copyright.startYear === currentYear ? `${currentYear}` : `${
       }
     </nav>
 
-    {/* Horizontal Bar: Footer Links + Social */}
+    {/* Bottom bar: Links + Theme + Social */}
     <div class="site-footer-bar">
       <div class="site-footer-links">
         {
@@ -46,41 +47,58 @@ const yearDisplay = copyright.startYear === currentYear ? `${currentYear}` : `${
           })
         }
       </div>
-      <div class="site-footer-social">
-        <Link
-          href={social.github.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="GitHub"
-          title="GitHub"
-          icon="devicon:github"
-          class="nav-link"
-        />
-        <Link
-          href={social.linkedin.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="LinkedIn"
-          title="LinkedIn"
-          icon="devicon-plain:linkedin"
-          class="nav-link"
-        />
-        <Link
-          href={social.twitter.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Twitter"
-          title="Twitter"
-          icon="devicon:twitter"
-          class="nav-link"
-        />
+
+      <div class="site-footer-controls">
+        {/* Theme Picker */}
+        <div class="site-footer-theme">
+          <Icon name="carbon:paint-brush" class="site-footer-theme-icon" />
+          <select id="theme-select" class="site-footer-theme-select" aria-label="Select theme">
+            <option value="auto">Auto</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="high-contrast-light">High contrast light</option>
+            <option value="high-contrast-dark">High contrast dark</option>
+            <option value="paper">Paper</option>
+          </select>
+        </div>
+
+        {/* Social */}
+        <div class="site-footer-social">
+          <Link
+            href={social.github.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+            icon="carbon:logo-github"
+            class="site-footer-social-link"
+          />
+          <Link
+            href={social.linkedin.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="LinkedIn"
+            title="LinkedIn"
+            icon="carbon:logo-linkedin"
+            class="site-footer-social-link"
+          />
+          <Link
+            href={social.twitter.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Twitter"
+            title="Twitter"
+            icon="carbon:logo-twitter"
+            class="site-footer-social-link"
+          />
+        </div>
       </div>
     </div>
 
     {/* Copyright */}
     <p class="site-footer-copyright">
       &copy; {yearDisplay}
-      {copyright.holder}. All rights reserved.
+      {copyright.holder}
     </p>
   </div>
 </footer>

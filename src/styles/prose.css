@@ -2,7 +2,10 @@
    PROSE CUSTOMIZATION
    ========================================================================== */
 
-.prose {
+.prose,
+.article-content,
+.article-prose,
+.article-prose-content {
   --tw-prose-body: var(--color-text-secondary);
   --tw-prose-headings: var(--color-text);
   --tw-prose-lead: var(--color-text);

@@ -1,0 +1,8 @@
+/* Mermaid: Themed diagram images */
+
+@reference "tailwindcss";
+
+.mermaid-diagram {
+  @apply mx-auto block max-w-full;
+  height: auto;
+}

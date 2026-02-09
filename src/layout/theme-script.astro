@@ -8,6 +8,9 @@
  * 3. Apply the theme class to <html>
  * 4. Set color-scheme CSS property
  * 5. Define window.applySiteTheme() for runtime switching
+ * 6. Define window.getNextTheme() for smart cycling
+ * 7. Expose window.__themeConfig for module scripts
+ * 8. BroadcastChannel cross-tab sync
  *
  * Must be rendered in <head> as `is:inline` (not a module).
  */
@@ -17,7 +20,26 @@
   ;(function () {
     var THEMES = ["auto", "light", "dark", "high-contrast-light", "high-contrast-dark", "paper"]
     var STORAGE_KEY = "site-theme"
+    var THEME_LABELS = {
+      auto: "Auto (system)",
+      light: "Light",
+      dark: "Dark",
+      "high-contrast-light": "High contrast light",
+      "high-contrast-dark": "High contrast dark",
+      paper: "Paper",
+    }
     var darkQuery = window.matchMedia("(prefers-color-scheme: dark)")
+
+    // Expose shared config for module scripts
+    window.__themeConfig = { THEMES: THEMES, STORAGE_KEY: STORAGE_KEY, THEME_LABELS: THEME_LABELS }
+
+    // BroadcastChannel for cross-tab sync
+    var channel = null
+    try {
+      channel = new BroadcastChannel("site-theme-sync")
+    } catch (e) {
+      // BroadcastChannel not supported
+    }
 
     function getResolvedTheme(theme) {
       if (theme === "auto") {
@@ -31,7 +53,7 @@
       return "light"
     }
 
-    function applyTheme(theme) {
+    function applyTheme(theme, _fromBroadcast) {
       if (!theme || THEMES.indexOf(theme) === -1) theme = "auto"
 
       var resolved = getResolvedTheme(theme)
@@ -53,6 +75,9 @@
       var meta = document.querySelector('meta[name="color-scheme"]')
       if (meta) meta.setAttribute("content", scheme)
 
+      // Set color scheme data attribute for CSS/JS consumers
+      root.dataset.colorScheme = scheme
+
       // Store the user's chosen theme (not the resolved one)
       try {
         localStorage.setItem(STORAGE_KEY, theme)
@@ -63,6 +88,37 @@
       // Dispatch event for other scripts to react
       root.dataset.theme = theme
       root.dataset.resolvedTheme = resolved
+
+      // Broadcast to other tabs (but not if we received this from another tab)
+      if (!_fromBroadcast && channel) {
+        try {
+          channel.postMessage({ theme: theme })
+        } catch (e) {
+          // Channel may be closed
+        }
+      }
+    }
+
+    // Smart cycling: skip the theme that "auto" resolves to
+    function getNextTheme() {
+      var current = "auto"
+      try {
+        current = localStorage.getItem(STORAGE_KEY) || "auto"
+      } catch (e) {}
+      if (THEMES.indexOf(current) === -1) current = "auto"
+
+      var idx = THEMES.indexOf(current)
+      var next = THEMES[(idx + 1) % THEMES.length]
+
+      // If current is "auto", skip the theme auto resolves to
+      if (current === "auto") {
+        var autoResolved = getResolvedTheme("auto")
+        if (next === autoResolved) {
+          next = THEMES[(idx + 2) % THEMES.length]
+        }
+      }
+
+      return next
     }
 
     // Apply on load
@@ -85,7 +141,17 @@
       }
     })
 
+    // Listen for cross-tab theme changes
+    if (channel) {
+      channel.onmessage = function (event) {
+        if (event.data && event.data.theme) {
+          applyTheme(event.data.theme, true)
+        }
+      }
+    }
+
     // Expose for runtime use
     window.applySiteTheme = applyTheme
+    window.getNextTheme = getNextTheme
   })()
 </script>

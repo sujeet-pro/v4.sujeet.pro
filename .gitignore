@@ -29,7 +29,9 @@ logs/
 
 
 # katex files
-
 public/katex-v1
+
+# mermaid generated diagrams
+public/_mermaid
 
 content-dump

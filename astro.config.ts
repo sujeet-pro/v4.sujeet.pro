@@ -27,7 +27,7 @@ import rehypeImgClass from "./plugins/rehype-img-class"
 import rehypeInternalLinks from "./plugins/rehype-internal-links"
 
 // Custom Plugins
-import rehypeMermaid from "rehype-mermaid"
+import rehypeMermaidThemed from "./plugins/rehype-mermaid-themed"
 import rehypeTable from "./plugins/rehype-table"
 import { remarkCodeTitleUsingFile } from "./plugins/remark-code-title-using-file"
 import { remarkFrontmatterPlugin } from "./plugins/remark-frontmatter-plugin"
@@ -131,7 +131,7 @@ export default defineConfig({
           properties: { ariaHidden: true, tabIndex: -1, class: "deep-link" },
         },
       ],
-      [rehypeMermaid, { strategy: "inline-svg", mermaidConfig: { theme: "default" } }],
+      rehypeMermaidThemed,
       rehypeImgClass,
       rehypeTable,
     ],

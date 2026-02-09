@@ -78,5 +78,8 @@
 /* Tag Page: Tag listing page styles */
 @import "./tag-page.css";
 
+/* Mermaid: Themed diagram images */
+@import "./mermaid.css";
+
 /* Legacy: Compatibility classes and responsive utilities */
 @import "./legacy.css";

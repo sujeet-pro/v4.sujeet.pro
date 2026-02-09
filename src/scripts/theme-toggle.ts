@@ -1,27 +1,8 @@
-const THEMES: SiteTheme[] = ["auto", "light", "dark", "high-contrast-light", "high-contrast-dark", "paper"]
-const STORAGE_KEY = "site-theme"
-
-const THEME_LABELS: Record<SiteTheme, string> = {
-  auto: "Auto (system)",
-  light: "Light",
-  dark: "Dark",
-  "high-contrast-light": "High contrast light",
-  "high-contrast-dark": "High contrast dark",
-  paper: "Paper",
-}
-
-function getCurrentTheme(): SiteTheme {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY) as SiteTheme | null
-    if (saved && THEMES.includes(saved)) return saved
-  } catch {
-    // localStorage unavailable
-  }
-  return "auto"
-}
-
 function updateButton(btn: HTMLElement, theme: SiteTheme) {
-  btn.setAttribute("aria-label", `Theme: ${THEME_LABELS[theme]}. Click to cycle.`)
+  const labels = window.__themeConfig.THEME_LABELS
+  const nextTheme = window.getNextTheme()
+  btn.setAttribute("aria-label", `Theme: ${labels[theme]}. Click to cycle.`)
+  btn.title = `Switch to ${labels[nextTheme]}`
   btn.dataset.theme = theme
 
   // Show only the active icon
@@ -31,31 +12,72 @@ function updateButton(btn: HTMLElement, theme: SiteTheme) {
   })
 }
 
-export function initThemeToggle() {
-  const btn = document.getElementById("theme-toggle-btn")
-  if (!btn) return
-  // Prevent double-init
+function updateSelect(select: HTMLSelectElement, theme: SiteTheme) {
+  if (select.value !== theme) {
+    select.value = theme
+  }
+}
+
+function initButtonHandler(btn: HTMLElement) {
   if (btn.dataset.themeInit) return
   btn.dataset.themeInit = "true"
 
-  // Set initial state
-  updateButton(btn, getCurrentTheme())
-
   btn.addEventListener("click", () => {
-    const current = getCurrentTheme()
-    const idx = THEMES.indexOf(current)
-    const next = THEMES[(idx + 1) % THEMES.length]!
+    const next = window.getNextTheme()
     window.applySiteTheme(next)
-    updateButton(btn, next)
   })
+}
 
-  // Listen for external theme changes (e.g. from another tab)
-  const observer = new MutationObserver(() => {
-    const theme = (document.documentElement.dataset.theme as SiteTheme) || "auto"
-    updateButton(btn, theme)
+function initSelectHandler(select: HTMLSelectElement) {
+  if (select.dataset.themeInit) return
+  select.dataset.themeInit = "true"
+
+  select.addEventListener("change", () => {
+    const theme = select.value as SiteTheme
+    const themes = window.__themeConfig.THEMES
+    if (themes.includes(theme)) {
+      window.applySiteTheme(theme)
+    }
   })
-  observer.observe(document.documentElement, {
+}
+
+function initThemeObserver() {
+  const root = document.documentElement
+  // Guard: one observer per page lifecycle (survives View Transitions)
+  if (root.dataset.themeObserverInit) return
+  root.dataset.themeObserverInit = "true"
+
+  const observer = new MutationObserver(() => {
+    const theme = (root.dataset.theme as SiteTheme) || "auto"
+    // Re-query each time to avoid stale refs after View Transitions
+    const btn = document.getElementById("theme-toggle-btn")
+    if (btn) updateButton(btn, theme)
+    const select = document.getElementById("theme-select") as HTMLSelectElement | null
+    if (select) updateSelect(select, theme)
+  })
+  observer.observe(root, {
     attributes: true,
     attributeFilter: ["data-theme"],
   })
+}
+
+export function initThemeToggle() {
+  const currentTheme = (document.documentElement.dataset.theme as SiteTheme) || "auto"
+
+  // Header button
+  const btn = document.getElementById("theme-toggle-btn")
+  if (btn) {
+    updateButton(btn, currentTheme)
+    initButtonHandler(btn)
+  }
+
+  // Footer select
+  const select = document.getElementById("theme-select") as HTMLSelectElement | null
+  if (select) {
+    updateSelect(select, currentTheme)
+    initSelectHandler(select)
+  }
+
+  // Single observer for all UI updates
+  initThemeObserver()
 }

@@ -331,7 +331,6 @@ export function initImageModal() {
     const selectors = [
       ".prose img:not([data-no-modal])",
       ".prose svg:not([data-icon]):not([data-no-modal])",
-      ".prose .mermaid svg:not([data-no-modal])",
       "article img:not([data-no-modal])",
       "article svg:not([data-icon]):not([data-no-modal])",
       "figure img:not([data-no-modal])",

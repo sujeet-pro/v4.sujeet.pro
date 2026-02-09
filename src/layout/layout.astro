@@ -145,5 +145,10 @@ const containerClass = containerWidth === "wide" ? "content-container-wide" : "c
     {hasRightSidebar && <ScrollSpy />}
     <ThemeToggle />
     <DocSearch />
+    <script>
+      import { initMermaidTheme } from "@/scripts/mermaid-theme"
+      document.addEventListener("DOMContentLoaded", initMermaidTheme)
+      document.addEventListener("astro:page-load", initMermaidTheme)
+    </script>
   </body>
 </html>

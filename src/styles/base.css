@@ -17,6 +17,9 @@ body {
   @apply flex min-h-screen flex-col;
   background: var(--color-bg);
   color: var(--color-text-secondary);
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
 }
 
 /* Base heading styles */

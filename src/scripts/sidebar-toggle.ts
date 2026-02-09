@@ -25,10 +25,12 @@ export function initSidebarToggle() {
     if (leftState === "collapsed" && leftSidebar) {
       leftSidebar.classList.add("is-collapsed")
       leftToggle?.setAttribute("aria-expanded", "false")
+      updateLeftToggleTitle(false)
     }
     if (rightState === "collapsed" && rightSidebar) {
       rightSidebar.classList.add("is-collapsed")
       rightToggle?.setAttribute("aria-expanded", "false")
+      updateRightToggleTitle(false)
     }
   }
 
@@ -39,6 +41,18 @@ export function initSidebarToggle() {
     document.body.style.overflow = ""
   }
 
+  function updateLeftToggleTitle(expanded: boolean) {
+    if (leftToggle) {
+      leftToggle.title = expanded ? "Hide navigation sidebar" : "Show navigation sidebar"
+    }
+  }
+
+  function updateRightToggleTitle(expanded: boolean) {
+    if (rightToggle) {
+      rightToggle.title = expanded ? "Hide table of contents" : "Show table of contents"
+    }
+  }
+
   function toggleLeftSidebar() {
     if (!leftSidebar) return
 
@@ -47,6 +61,7 @@ export function initSidebarToggle() {
       const isCollapsed = leftSidebar.classList.contains("is-collapsed")
       localStorage.setItem("zen-sidebar-left", isCollapsed ? "collapsed" : "open")
       leftToggle?.setAttribute("aria-expanded", String(!isCollapsed))
+      updateLeftToggleTitle(!isCollapsed)
     } else {
       const isOpen = leftSidebar.classList.contains("is-open")
       if (isOpen) {
@@ -68,6 +83,7 @@ export function initSidebarToggle() {
       const isCollapsed = rightSidebar.classList.contains("is-collapsed")
       localStorage.setItem("zen-sidebar-right", isCollapsed ? "collapsed" : "open")
       rightToggle?.setAttribute("aria-expanded", String(!isCollapsed))
+      updateRightToggleTitle(!isCollapsed)
     } else {
       const isOpen = rightSidebar.classList.contains("is-open")
       if (isOpen) {
@@ -104,10 +120,12 @@ export function initSidebarToggle() {
       if (leftState === "collapsed" && leftSidebar) {
         leftSidebar.classList.add("is-collapsed")
         leftToggle?.setAttribute("aria-expanded", "false")
+        updateLeftToggleTitle(false)
       }
       if (rightState === "collapsed" && rightSidebar) {
         rightSidebar.classList.add("is-collapsed")
         rightToggle?.setAttribute("aria-expanded", "false")
+        updateRightToggleTitle(false)
       }
     } else {
       // Crossed into mobile: remove desktop collapsed state
@@ -115,6 +133,8 @@ export function initSidebarToggle() {
       rightSidebar?.classList.remove("is-collapsed")
       leftToggle?.setAttribute("aria-expanded", "true")
       rightToggle?.setAttribute("aria-expanded", "true")
+      updateLeftToggleTitle(true)
+      updateRightToggleTitle(true)
     }
   })
 }
