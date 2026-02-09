@@ -30,7 +30,7 @@ const { Content } = categoryIndex
   description={categoryIndex.description}
   {crumbs}
   pageType="listing"
-  noIndex={categoryIndex.isDraft}
+  noIndex={categoryIndex.isDraft || articles.length === 0}
   hasLeftSidebar={true}
 >
   <SidebarNavBrowse slot="sidebar-left" currentCategoryId={categoryId} />

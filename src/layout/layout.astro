@@ -87,7 +87,7 @@ const containerClass = containerWidth === "wide" ? "content-container-wide" : "c
     <meta name="docsearch:language" content="en" />
     <Seo {...seoProps} />
     <link rel="alternate" type="application/rss+xml" href={getFilePath("rss.xml")} />
-    <link rel="sitemap" href={getFilePath("sitemap-index.xml")} />
+    <link rel="sitemap" href={getFilePath("sitemap.xml")} />
     <!-- LLM-friendly content -->
     <link rel="alternate" type="text/plain" href={getFilePath("llms.txt")} title="LLM Index" />
     <link rel="alternate" type="text/plain" href={getFilePath("llms-full.txt")} title="LLM Full Content" />
@@ -102,6 +102,14 @@ const containerClass = containerWidth === "wide" ? "content-container-wide" : "c
         <div class="zen-layout">
           {hasLeftSidebar && (
             <aside id="left-sidebar" class="zen-sidebar zen-sidebar-left" aria-label="Navigation sidebar">
+              <div class="zen-sidebar-header">
+                <span class="zen-sidebar-header-title">Navigation</span>
+                <button class="zen-sidebar-close" data-sidebar-close="left" aria-label="Close navigation sidebar">
+                  <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M8 8l16 16M24 8L8 24" />
+                  </svg>
+                </button>
+              </div>
               <div class="zen-sidebar-content">
                 <slot name="sidebar-left" />
               </div>
@@ -116,6 +124,14 @@ const containerClass = containerWidth === "wide" ? "content-container-wide" : "c
           </main>
           {hasRightSidebar && (
             <aside id="right-sidebar" class="zen-sidebar zen-sidebar-right" aria-label="Table of contents">
+              <div class="zen-sidebar-header">
+                <span class="zen-sidebar-header-title">On This Page</span>
+                <button class="zen-sidebar-close" data-sidebar-close="right" aria-label="Close table of contents">
+                  <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M8 8l16 16M24 8L8 24" />
+                  </svg>
+                </button>
+              </div>
               <div class="zen-sidebar-content">
                 <slot name="sidebar-right" />
               </div>

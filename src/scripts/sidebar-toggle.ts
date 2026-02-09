@@ -1,3 +1,5 @@
+import { lockScroll, resetScrollLock, unlockScroll } from "@/utils/scroll-lock"
+
 const SIDEBAR_BREAKPOINT = "(min-width: 1440px)"
 
 export function initSidebarToggle() {
@@ -10,6 +12,8 @@ export function initSidebarToggle() {
   const leftToggle = document.getElementById("left-sidebar-toggle")
   const rightToggle = document.getElementById("right-sidebar-toggle")
   const backdrop = document.getElementById("sidebar-backdrop")
+  const leftClose = document.querySelector<HTMLButtonElement>('[data-sidebar-close="left"]')
+  const rightClose = document.querySelector<HTMLButtonElement>('[data-sidebar-close="right"]')
 
   const desktopQuery = window.matchMedia(SIDEBAR_BREAKPOINT)
 
@@ -35,10 +39,11 @@ export function initSidebarToggle() {
   }
 
   function closeMobileSidebars() {
+    const wasOpen = leftSidebar?.classList.contains("is-open") || rightSidebar?.classList.contains("is-open")
     leftSidebar?.classList.remove("is-open")
     rightSidebar?.classList.remove("is-open")
     backdrop?.classList.remove("is-visible")
-    document.body.style.overflow = ""
+    if (wasOpen) unlockScroll()
   }
 
   function updateLeftToggleTitle(expanded: boolean) {
@@ -70,7 +75,7 @@ export function initSidebarToggle() {
         rightSidebar?.classList.remove("is-open")
         leftSidebar.classList.add("is-open")
         backdrop?.classList.add("is-visible")
-        document.body.style.overflow = "hidden"
+        lockScroll()
       }
     }
   }
@@ -92,7 +97,7 @@ export function initSidebarToggle() {
         leftSidebar?.classList.remove("is-open")
         rightSidebar.classList.add("is-open")
         backdrop?.classList.add("is-visible")
-        document.body.style.overflow = "hidden"
+        lockScroll()
       }
     }
   }
@@ -100,6 +105,8 @@ export function initSidebarToggle() {
   leftToggle?.addEventListener("click", toggleLeftSidebar)
   rightToggle?.addEventListener("click", toggleRightSidebar)
   backdrop?.addEventListener("click", closeMobileSidebars)
+  leftClose?.addEventListener("click", closeMobileSidebars)
+  rightClose?.addEventListener("click", closeMobileSidebars)
 
   // Escape key closes mobile sidebars
   document.addEventListener("keydown", (e) => {
@@ -113,7 +120,10 @@ export function initSidebarToggle() {
     if (e.matches) {
       // Crossed into desktop: close any open mobile sidebars,
       // then restore desktop collapsed state from localStorage
-      closeMobileSidebars()
+      leftSidebar?.classList.remove("is-open")
+      rightSidebar?.classList.remove("is-open")
+      backdrop?.classList.remove("is-visible")
+      resetScrollLock()
 
       const leftState = localStorage.getItem("zen-sidebar-left")
       const rightState = localStorage.getItem("zen-sidebar-right")

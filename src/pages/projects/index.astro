@@ -9,7 +9,13 @@ const count = projects.length
 const countText = count === 1 ? "1 project" : `${count} projects`
 ---
 
-<Layout title="Projects" description="Open source projects and tools" crumbs={null} hasLeftSidebar={true}>
+<Layout
+  title="Projects"
+  description="Open source projects and tools"
+  crumbs={null}
+  hasLeftSidebar={true}
+  noIndex={count === 0}
+>
   <SidebarNavProjects slot="sidebar-left" />
 
   <h1 class="page-title">Projects</h1>

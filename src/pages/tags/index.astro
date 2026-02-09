@@ -7,7 +7,13 @@ import { getAllTags } from "@/utils/content"
 const tags = await getAllTags()
 ---
 
-<Layout title="Tags" description="Browse content by tag" crumbs={null} hasLeftSidebar={true}>
+<Layout
+  title="Tags"
+  description="Browse content by tag"
+  crumbs={null}
+  hasLeftSidebar={true}
+  noIndex={tags.length === 0}
+>
   <SidebarNavSite slot="sidebar-left" />
 
   <h1 class="page-title">Tags</h1>

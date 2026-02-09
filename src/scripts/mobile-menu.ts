@@ -1,3 +1,5 @@
+import { lockScroll, unlockScroll } from "@/utils/scroll-lock"
+
 export function initMobileMenu() {
   const menuBtn = document.getElementById("mobile-menu-btn")
   const closeBtn = document.getElementById("mobile-menu-close")
@@ -9,7 +11,7 @@ export function initMobileMenu() {
     overlay?.classList.remove("is-hidden")
     menuBtn?.setAttribute("aria-expanded", "true")
     menu?.setAttribute("aria-hidden", "false")
-    document.body.style.overflow = "hidden"
+    lockScroll()
   }
 
   function closeMenu() {
@@ -17,7 +19,7 @@ export function initMobileMenu() {
     overlay?.classList.add("is-hidden")
     menuBtn?.setAttribute("aria-expanded", "false")
     menu?.setAttribute("aria-hidden", "true")
-    document.body.style.overflow = ""
+    unlockScroll()
   }
 
   menuBtn?.addEventListener("click", openMenu)

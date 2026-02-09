@@ -42,4 +42,32 @@
 
   initDocSearch()
   document.addEventListener("astro:page-load", initDocSearch)
+
+  // Scroll lock when DocSearch modal opens on mobile
+  import { lockScroll, unlockScroll } from "@/utils/scroll-lock"
+
+  const MOBILE_QUERY = "(max-width: 768px)"
+
+  function observeDocSearchModal() {
+    const mobileQuery = window.matchMedia(MOBILE_QUERY)
+    let locked = false
+
+    const observer = new MutationObserver(() => {
+      const isActive = document.body.classList.contains("DocSearch--active")
+      if (isActive && mobileQuery.matches && !locked) {
+        lockScroll()
+        locked = true
+      } else if (!isActive && locked) {
+        unlockScroll()
+        locked = false
+      }
+    })
+
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    })
+  }
+
+  observeDocSearchModal()
 </script>

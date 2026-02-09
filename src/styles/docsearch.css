@@ -118,3 +118,58 @@
 .DocSearch-Hit-path {
   font-size: 0.8125rem;
 }
+
+/* Mobile: floating centered modal instead of full-screen takeover */
+@media (max-width: 768px) {
+  .DocSearch-Container {
+    display: flex;
+    align-items: flex-start;
+    padding: 3.5rem 0.75rem 0.75rem;
+  }
+
+  /* Center vertically when showing start screen (no results yet) */
+  .DocSearch-Container--stalled,
+  .DocSearch-Container:has(.DocSearch-StartScreen) {
+    align-items: center;
+    padding-top: 0.75rem;
+  }
+
+  .DocSearch-Modal {
+    height: auto;
+    max-height: calc(100dvh - 4.5rem);
+    border-radius: 12px;
+    box-shadow: var(--shadow-xl);
+  }
+
+  .DocSearch-Footer {
+    border-radius: 0 0 12px 12px;
+    position: relative;
+  }
+
+  /* Restyle Cancel button into a visual close icon */
+  .DocSearch-Cancel {
+    position: absolute;
+    top: -3rem;
+    right: 0;
+    width: var(--min-touch-target);
+    height: var(--min-touch-target);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background var(--transition-fast);
+  }
+
+  .DocSearch-Cancel:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .DocSearch-Cancel::after {
+    content: "\00D7";
+    font-size: 1.75rem;
+    line-height: 1;
+  }
+}

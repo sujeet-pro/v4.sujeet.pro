@@ -23,6 +23,7 @@ const crumbs = [{ name: "Tags", href: "/tags" }]
   description={`Content tagged with "${tagData.tag}"`}
   crumbs={crumbs}
   hasLeftSidebar={true}
+  noIndex={tagData.count === 0}
 >
   <SidebarNavSite slot="sidebar-left" />
 

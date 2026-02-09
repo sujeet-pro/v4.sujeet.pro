@@ -9,7 +9,13 @@ const count = blogs.length
 const countText = count === 1 ? "1 blog post" : `${count} blog posts`
 ---
 
-<Layout title="Blog" description="Personal blog posts and thoughts" crumbs={null} hasLeftSidebar={true}>
+<Layout
+  title="Blog"
+  description="Personal blog posts and thoughts"
+  crumbs={null}
+  hasLeftSidebar={true}
+  noIndex={count === 0}
+>
   <SidebarNavBlogs slot="sidebar-left" />
 
   <h1 class="page-title">Blog</h1>

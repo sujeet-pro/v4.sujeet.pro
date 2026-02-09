@@ -5,7 +5,7 @@
   "scripts": {
     "postinstall": "npx playwright install chromium",
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && cp dist/sitemap-0.xml dist/sitemap.xml",
     "preview": "astro preview",
     "prod": "astro build && npm run preview",
     "copy:katex": "node --experimental-strip-types scripts/copy-katex-assets.ts",
@@ -32,7 +32,7 @@
     "external:revalidate": "npx tsx scripts/validation/validate-external-links.ts --mode failed",
     "external:revalidate:all": "npx tsx scripts/validation/validate-external-links.ts --mode all",
     "lighthouse": "unlighthouse --site https://sujeet.pro",
-    "lighthouse:local": "unlighthouse --site http://localhost:4321",
+    "lighthouse:local": "unlighthouse --site http://localhost:4322",
     "lighthouse:desktop": "unlighthouse --site https://sujeet.pro --desktop"
   },
   "devDependencies": {

@@ -4,7 +4,7 @@ import { defineConfig, envField } from "astro/config"
 import icon from "astro-icon"
 
 import sitemap from "@astrojs/sitemap"
-import { createSitemapFilter } from "./plugins/sitemap-draft-filter"
+import { createSitemapFilter, serializeSitemapItem } from "./plugins/sitemap-draft-filter"
 
 import expressiveCode from "astro-expressive-code"
 
@@ -98,7 +98,7 @@ export default defineConfig({
         },
       },
     }),
-    sitemap({ filter: sitemapFilter }),
+    sitemap({ filter: sitemapFilter, serialize: serializeSitemapItem }),
   ],
   vite: {
     plugins: [tailwindcss() as any],

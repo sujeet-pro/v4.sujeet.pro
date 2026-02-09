@@ -9,7 +9,14 @@ const categories = await getCategoryHierarchy()
 const totalTopics = categories.reduce((sum, cat) => sum + cat.topics.length, 0)
 ---
 
-<Layout title="All Articles" description="Browse all articles" crumbs={null} pageType="listing" hasLeftSidebar={true}>
+<Layout
+  title="All Articles"
+  description="Browse all articles"
+  crumbs={null}
+  pageType="listing"
+  hasLeftSidebar={true}
+  noIndex={allArticles.length === 0}
+>
   <SidebarNavBrowse slot="sidebar-left" />
   <h1 class="page-title" transition:animate="fade">Articles</h1>
   <p class="page-description">
