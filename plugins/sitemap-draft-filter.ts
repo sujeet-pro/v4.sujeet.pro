@@ -328,34 +328,21 @@ const lastmodMap = buildLastmodMap()
 const buildDate = new Date().toISOString()
 
 /**
- * Determine priority and changefreq based on URL pattern.
+ * Determine priority based on URL pattern.
  */
-function getUrlMetadata(urlPath: string): { priority: number; changefreq: ChangeFreqEnum } {
-  if (urlPath === "/") {
-    return { priority: 1.0, changefreq: Freq.WEEKLY }
-  }
-  if (urlPath === "/articles") {
-    return { priority: 0.9, changefreq: Freq.WEEKLY }
-  }
+function getUrlPriority(urlPath: string): number {
+  if (urlPath === "/") return 1.0
+  if (urlPath === "/articles") return 0.9
 
-  // Article pages: /articles/<cat>/<topic>/<slug>
   if (urlPath.startsWith("/articles/")) {
     const segments = urlPath.replace("/articles/", "").split("/")
-    if (segments.length === 3) {
-      // Individual article
-      return { priority: 0.8, changefreq: Freq.MONTHLY }
-    }
-    // Category or topic index (1 or 2 segments)
-    return { priority: 0.7, changefreq: Freq.MONTHLY }
+    // Individual article (3 segments: cat/topic/slug)
+    if (segments.length === 3) return 0.8
+    // Category or topic index
+    return 0.7
   }
 
-  // Blogs, projects, tags listing pages
-  if (urlPath === "/blogs" || urlPath === "/projects" || urlPath === "/tags") {
-    return { priority: 0.5, changefreq: Freq.MONTHLY }
-  }
-
-  // Default
-  return { priority: 0.5, changefreq: Freq.MONTHLY }
+  return 0.5
 }
 
 /**
@@ -366,13 +353,13 @@ export function serializeSitemapItem(item: SitemapItem): SitemapItem {
   const url = new URL(item.url)
   const urlPath = normalizePath(url.pathname)
 
-  const { priority, changefreq } = getUrlMetadata(urlPath)
+  const priority = getUrlPriority(urlPath)
   const lastmod = lastmodMap.get(urlPath) ?? buildDate
 
   return {
     ...item,
     lastmod,
-    changefreq,
+    changefreq: Freq.DAILY,
     priority,
   }
 }

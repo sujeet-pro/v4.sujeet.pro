@@ -13,6 +13,7 @@ export const GET: APIRoute = async () => {
     title: "Sujeet's Blog",
     description: "Technical blog covering web development, system design, and performance optimization.",
     site: site + getLinkProps({ href: "/" }).href,
+    trailingSlash: false,
     stylesheet: getFilePath("rss", "styles.xsl"),
     items: allContent.map((item) => {
       const postUrl = getLinkProps({ href: item.href }).href

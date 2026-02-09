@@ -325,7 +325,60 @@ export async function runStaticUrlValidation() {
     logger.success("All external URLs returned 200.")
   }
 
-  const totalIssues = internalIssueCount + externalIssueCount
+  // ── Trailing-slash validation ─────────────────────────────────────────────
+  // Check sitemap, RSS, llms.txt, and HTML for internal URLs with trailing /
+  const SITE_ORIGIN = "https://sujeet.pro"
+  let trailingSlashIssueCount = 0
+
+  function checkFileForTrailingSlashes(filePath: string, pattern: RegExp) {
+    const fullPath = path.join(DIST_DIR, filePath)
+    if (!fs.existsSync(fullPath)) return
+    const content = fs.readFileSync(fullPath, "utf-8")
+    const matches = content.matchAll(pattern)
+    for (const match of matches) {
+      const url = match[1]!
+      if (url === SITE_ORIGIN + "/" || url === "/") continue
+      if (url.endsWith("/")) {
+        trailingSlashIssueCount++
+        pushIssue(filePath, {
+          type: "internal",
+          kind: "link",
+          url,
+          message: "URL has trailing slash (trailingSlash: never)",
+        })
+      }
+    }
+  }
+
+  // Sitemap URLs
+  checkFileForTrailingSlashes("sitemap-0.xml", /<loc>([^<]+)<\/loc>/g)
+
+  // RSS links and guids
+  checkFileForTrailingSlashes("rss.xml", /<link>([^<]+)<\/link>/g)
+  checkFileForTrailingSlashes("rss.xml", /<guid[^>]*>([^<]+)<\/guid>/g)
+
+  // HTML internal links (href values starting with / or site origin)
+  for (const ref of internalRefs) {
+    const cleaned = stripQueryAndHash(ref.url)
+    if (cleaned !== "/" && cleaned.endsWith("/")) {
+      const sourceRelative = path.relative(process.cwd(), ref.sourceFile)
+      trailingSlashIssueCount++
+      pushIssue(sourceRelative, {
+        type: "internal",
+        kind: ref.kind,
+        url: ref.url,
+        message: "URL has trailing slash (trailingSlash: never)",
+      })
+    }
+  }
+
+  if (trailingSlashIssueCount > 0) {
+    logger.error(`Trailing-slash issues: ${trailingSlashIssueCount}`)
+  } else {
+    logger.success("No trailing-slash URLs found.")
+  }
+
+  const totalIssues = internalIssueCount + externalIssueCount + trailingSlashIssueCount
   const filesWithIssues = Array.from(issuesByFile.values()).filter((issues) => issues.length > 0).length
 
   const summary = {
