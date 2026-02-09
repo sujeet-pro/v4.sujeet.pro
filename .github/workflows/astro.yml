@@ -93,6 +93,10 @@ jobs:
           PUBLIC_SUJEET_PRO_ALGOLIA_API_KEY: ${{ vars.PUBLIC_SUJEET_PRO_ALGOLIA_API_KEY }}
           PUBLIC_SUJEET_PRO_ALGOLIA_INDEX_NAME: ${{ vars.PUBLIC_SUJEET_PRO_ALGOLIA_INDEX_NAME }}
 
+      - name: Copy flat sitemap for /sitemap.xml fallback
+        run: cp dist/sitemap-0.xml dist/sitemap.xml
+        working-directory: ${{ env.BUILD_PATH }}
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

@@ -4,4 +4,4 @@ Disallow: /in-research
 Disallow: /posts/drafts
 Disallow: /articles/drafts
 
-Sitemap: https://sujeet.pro/sitemap.xml
+Sitemap: https://sujeet.pro/sitemap-index.xml
