@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Blob Storage Design
 
 Designing scalable object storage systems requires understanding the fundamental trade-offs between storage efficiency, durability, and access performance. This article covers the core building blocks—chunking, deduplication, metadata management, redundancy, and tiered storage—with design reasoning for each architectural choice.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # Critical Rendering Path: Compositing
 
 How the compositor thread assembles rasterized layers into compositor frames and coordinates with the Viz process to display the final pixels on screen.

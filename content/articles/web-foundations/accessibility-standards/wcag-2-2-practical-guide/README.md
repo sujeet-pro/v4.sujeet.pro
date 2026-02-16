@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # WCAG 2.2: Practical Accessibility Guide
 
 Web Content Accessibility Guidelines (WCAG) 2.2 became a W3C Recommendation in October 2023, adding 9 new success criteria focused on cognitive accessibility, mobile interaction, and focus visibility. This guide covers implementation strategies for semantic HTML, ARIA patterns, and testing methodologies—practical knowledge for building inclusive web experiences that meet legal requirements in the US (ADA) and EU (European Accessibility Act).

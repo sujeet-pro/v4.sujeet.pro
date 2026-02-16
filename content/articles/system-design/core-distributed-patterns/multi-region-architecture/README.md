@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Multi-Region Architecture
 
 Building systems that span multiple geographic regions to achieve lower latency, higher availability, and regulatory compliance. This article covers the design paths—active-passive, active-active, and cell-based architectures—along with production implementations from Netflix, Slack, and Uber, data replication strategies, conflict resolution approaches, and the operational complexity trade-offs that determine which pattern fits your constraints.

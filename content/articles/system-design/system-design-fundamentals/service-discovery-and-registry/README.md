@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Service Discovery and Registry Patterns
 
 How services find each other in dynamic distributed environments where instance locations change continuously. This article covers discovery models, registry design, health checking mechanisms, and production trade-offs across client-side, server-side, and service mesh approaches.

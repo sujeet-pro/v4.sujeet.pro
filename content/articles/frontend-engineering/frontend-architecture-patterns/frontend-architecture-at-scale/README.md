@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-24
+---
+
 # Draft: Frontend Architecture at Scale: Boundaries and Ownership
 
 How large teams organize UI codebases, ownership, and release workflows.

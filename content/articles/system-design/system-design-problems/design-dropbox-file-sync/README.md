@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Design Dropbox File Sync
 
 A system design for a file synchronization service that keeps files consistent across multiple devices. This design addresses the core challenges of efficient data transfer, conflict resolution, and real-time synchronization at scale—handling 500+ petabytes of data across 700 million users.

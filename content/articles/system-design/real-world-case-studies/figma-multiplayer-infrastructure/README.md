@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-09
+---
+
 # Figma: Building Multiplayer Infrastructure for Real-Time Design Collaboration
 
 How Figma built a real-time collaboration engine that supports 200 concurrent editors per document using a CRDT-inspired, server-authoritative protocol — rejecting both Operational Transformation and pure CRDTs in favor of property-level last-writer-wins with fractional indexing, backed by a Rust multiplayer server and a DynamoDB write-ahead journal processing over 2.2 billion changes per day.

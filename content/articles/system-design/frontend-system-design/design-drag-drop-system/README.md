@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Design a Drag and Drop System
 
 Building drag and drop interactions that work across input devices, handle complex reordering scenarios, and maintain accessibility—the browser APIs, architectural patterns, and trade-offs that power production implementations in Trello, Notion, and Figma.

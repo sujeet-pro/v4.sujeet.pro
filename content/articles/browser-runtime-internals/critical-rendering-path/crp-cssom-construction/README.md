@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # Critical Rendering Path: CSSOM Construction
 
 The **CSS Object Model (CSSOM)** is the browser engine's internal representation of all CSS rules—a tree structure of stylesheets, rule objects, and declaration blocks. Unlike [DOM construction](../crp-dom-construction/README.md), which is incremental, CSSOM construction must complete entirely before rendering can proceed. This render-blocking behavior exists because the CSS cascade requires the full rule set to resolve which declarations win.

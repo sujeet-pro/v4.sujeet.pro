@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-08
+---
+
 # Instagram: From Redis to Cassandra and the Rocksandra Storage Engine
 
 How Instagram migrated critical workloads from Redis to Apache Cassandra, achieving 75% cost savings, then engineered a custom RocksDB-based storage engine to eliminate JVM garbage collection stalls and reduce P99 read latency by 10x. A seven-year evolution from 12 nodes to 1,000+ nodes serving billions of operations daily.

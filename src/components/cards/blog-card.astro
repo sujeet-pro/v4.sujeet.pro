@@ -1,6 +1,7 @@
 ---
 import type { BlogCardInfo } from "@/utils/content"
 import Link from "@/components/ui/link.astro"
+import { formatDate } from "@/utils/format.utils"
 
 interface Props {
   blog: BlogCardInfo
@@ -14,7 +15,7 @@ const { blog } = Astro.props
     <Link href={blog.href} class="blog-card-link">{blog.title}</Link>
   </h3>
   <div class="blog-card-meta">
-    {blog.publishedOn && <span>{blog.publishedOn}</span>}
+    <span>{formatDate(blog.publishedOn)}</span>
     <span class="frontmatter-separator">&middot;</span>
     <span>{blog.minutesRead}</span>
     {blog.isDraft && <span class="badge-accent">Draft</span>}

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Design Uber-Style Ride Hailing
 
 A comprehensive system design for a ride-hailing platform handling real-time driver-rider matching, geospatial indexing at scale, dynamic pricing, and sub-second location tracking. This design addresses the core challenges of matching millions of riders with drivers in real-time while optimizing for ETAs, driver utilization, and surge pricing across global markets.

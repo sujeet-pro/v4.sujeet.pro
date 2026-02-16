@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # DOM API Essentials: Structure, Traversal, and Mutation
 
 A comprehensive exploration of DOM APIs, examining the interface hierarchy design decisions, selector return type differences, and the modern Observer pattern for efficient DOM monitoring. The [DOM Standard](https://dom.spec.whatwg.org/) (WHATWG Living Standard, last updated January 2026) defines a layered inheritance model where each interface adds specific capabilities while maintaining backward compatibility—understanding this design reveals why certain methods exist on `Element` rather than `HTMLElement` and why selector APIs return different collection types with distinct liveness semantics.

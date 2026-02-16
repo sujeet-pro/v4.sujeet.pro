@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Design Google Search
 
 Building a web-scale search engine that processes 8.5 billion queries daily across 400+ billion indexed pages with sub-second latency. Search engines solve the fundamental information retrieval problem: given a query, return the most relevant documents from a massive corpus—instantly. This design covers crawling (web discovery), indexing (content organization), ranking (relevance scoring), and serving (query processing)—the four pillars that make search work at planetary scale.

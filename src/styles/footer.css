@@ -8,7 +8,8 @@
 }
 
 .site-footer-inner {
-  @apply flex flex-col gap-6;
+  @apply mx-auto flex w-full flex-col gap-6;
+  max-width: var(--content-max-width);
 }
 
 /* --- Categories --- */

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-24
+---
+
 # E-commerce SSG to SSR Migration: Strategy and Pitfalls
 
 This comprehensive guide outlines the strategic migration from Static Site Generation (SSG) to Server-Side Rendering (SSR) for enterprise e-commerce platforms. Drawing from real-world implementation experience where SSG limitations caused significant business impact including product rollout disruptions, ad rejections, and marketing campaign inefficiencies, this playbook addresses the critical business drivers, technical challenges, and operational considerations that make this architectural transformation essential for modern digital commerce.

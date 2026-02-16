@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-06
+---
+
 # Design a Distributed File System
 
 A comprehensive system design for a distributed file system like GFS or HDFS covering metadata management, chunk storage, replication strategies, consistency models, and failure handling. This design addresses petabyte-scale storage with high throughput for batch processing workloads while maintaining fault tolerance across commodity hardware.

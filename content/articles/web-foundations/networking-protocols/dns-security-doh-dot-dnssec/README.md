@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # DNS Security and Privacy: DNSSEC, DoH, and DoT
 
 Traditional DNS transmits queries in plaintext over UDP port 53—visible to any network observer and trivially spoofable. This created two distinct security gaps: authenticity (how do you know the response is legitimate?) and confidentiality (who can see what you're querying?). DNSSEC (Domain Name System Security Extensions) addresses authenticity through cryptographic signatures. DoH (DNS over HTTPS) and DoT (DNS over TLS) address confidentiality through encryption. These technologies solve different problems and operate independently—a zone can be DNSSEC-signed without using encrypted transport, and encrypted DNS works without DNSSEC validation.

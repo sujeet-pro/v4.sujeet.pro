@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Change Data Capture
 
 Change Data Capture (CDC) extracts and streams database changes to downstream systems in real-time. Rather than polling databases or maintaining dual-write logic, CDC reads directly from the database's internal change mechanisms—transaction logs, replication streams, or triggers—providing a reliable, non-invasive way to propagate data changes across systems.

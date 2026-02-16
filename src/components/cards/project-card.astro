@@ -15,7 +15,10 @@ const { project } = Astro.props
     <Link href={project.href}>{project.title}</Link>
   </h3>
   <div class="project-card-meta">
-    <span>{project.minutesRead}</span>
+    <span class="project-card-meta-item">
+      <Icon name="carbon:time" class="icon-sm" />
+      {project.minutesRead}
+    </span>
     {project.isDraft && <span class="badge-accent">Draft</span>}
     {
       project.gitRepo && (
@@ -26,12 +29,12 @@ const { project } = Astro.props
       )
     }
     {
-      project.demoUrl && (
-        <Link href={project.demoUrl} class="project-card-link-item" target="_blank" rel="noopener noreferrer">
+      project.links.map((link) => (
+        <Link href={link.url} class="project-card-link-item" target="_blank" rel="noopener noreferrer">
           <Icon name="carbon:launch" class="icon-sm" />
-          <span>Demo</span>
+          <span>{link.text}</span>
         </Link>
-      )
+      ))
     }
   </div>
   {project.description && <p class="project-card-excerpt">{project.description}</p>}

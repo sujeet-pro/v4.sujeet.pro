@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Graceful Degradation
 
 Graceful degradation is the discipline of designing distributed systems that maintain partial functionality when components fail, rather than collapsing entirely. The core insight: a system serving degraded responses to all users is preferable to one returning errors to most users. This article covers the pattern variants, implementation trade-offs, and production strategies that separate resilient systems from fragile ones.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Design System Implementation and Scaling
 
 Technical implementation patterns for building, migrating, and operating design systems at enterprise scale. This article assumes governance and strategic alignment are in place (see [Design System Adoption: Foundations and Governance](../design-system-adoption-foundations/README.md)) and focuses on the engineering decisions that determine whether a design system thrives or becomes technical debt.

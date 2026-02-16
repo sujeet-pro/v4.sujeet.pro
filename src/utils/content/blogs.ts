@@ -6,7 +6,6 @@
  */
 
 import { getCollection, render } from "astro:content"
-import { getLastModifiedDate } from "@/utils/git.utils"
 import { filterDrafts } from "./drafts"
 import { parseFrontmatter } from "./helpers"
 import { getOrdering } from "./ordering"
@@ -35,7 +34,7 @@ async function processAllBlogs(): Promise<BlogItem[]> {
       minutesRead: frontmatter.minutesRead,
       isDraft: frontmatter.isDraft,
       publishedOn: item.data.publishedOn,
-      lastUpdatedOn: item.data.lastUpdatedOn ?? getLastModifiedDate(item.filePath ?? ""),
+      lastUpdatedOn: item.data.lastUpdatedOn,
       archived: item.data.archived ?? false,
       tags: item.data.tags ?? [],
       href: `/blogs/${item.id}`,
@@ -43,13 +42,8 @@ async function processAllBlogs(): Promise<BlogItem[]> {
     })
   }
 
-  // Sort by publishedOn descending (newest first), items without date go last
-  blogs.sort((a, b) => {
-    if (!a.publishedOn && !b.publishedOn) return 0
-    if (!a.publishedOn) return 1
-    if (!b.publishedOn) return -1
-    return new Date(b.publishedOn).getTime() - new Date(a.publishedOn).getTime()
-  })
+  // Sort by publishedOn descending (newest first)
+  blogs.sort((a, b) => b.publishedOn.getTime() - a.publishedOn.getTime())
 
   cachedBlogs = blogs
   return cachedBlogs

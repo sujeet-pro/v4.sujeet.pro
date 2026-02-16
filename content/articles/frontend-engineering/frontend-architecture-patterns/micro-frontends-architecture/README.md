@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-24
+---
+
 # Micro-Frontends Architecture: Composition, Isolation, and Delivery
 
 Learn how to scale frontend development with microfrontends, enabling team autonomy, independent deployments, and domain-driven boundaries for large-scale applications.

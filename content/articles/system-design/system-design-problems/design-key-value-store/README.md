@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-06
+---
+
 # Design a Distributed Key-Value Store
 
 A distributed key-value store provides simple get/put semantics while handling the complexities of partitioning, replication, and failure recovery across a cluster of machines. This design explores the architectural decisions behind systems like Amazon Dynamo, Apache Cassandra, and Riak—AP systems that prioritize availability and partition tolerance over strong consistency. We also contrast with CP alternatives like etcd for scenarios requiring linearizability.

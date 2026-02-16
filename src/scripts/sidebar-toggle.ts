@@ -21,7 +21,7 @@ export function initSidebarToggle() {
     return desktopQuery.matches
   }
 
-  // Restore desktop sidebar state from localStorage
+  // Restore sidebar state based on screen size
   if (isDesktop()) {
     const leftState = localStorage.getItem("zen-sidebar-left")
     const rightState = localStorage.getItem("zen-sidebar-right")
@@ -36,6 +36,12 @@ export function initSidebarToggle() {
       rightToggle?.setAttribute("aria-expanded", "false")
       updateRightToggleTitle(false)
     }
+  } else {
+    // Mobile: sidebars start closed
+    leftToggle?.setAttribute("aria-expanded", "false")
+    rightToggle?.setAttribute("aria-expanded", "false")
+    updateLeftToggleTitle(false)
+    updateRightToggleTitle(false)
   }
 
   function closeMobileSidebars() {
@@ -43,6 +49,10 @@ export function initSidebarToggle() {
     leftSidebar?.classList.remove("is-open")
     rightSidebar?.classList.remove("is-open")
     backdrop?.classList.remove("is-visible")
+    leftToggle?.setAttribute("aria-expanded", "false")
+    rightToggle?.setAttribute("aria-expanded", "false")
+    updateLeftToggleTitle(false)
+    updateRightToggleTitle(false)
     if (wasOpen) unlockScroll()
   }
 
@@ -72,9 +82,11 @@ export function initSidebarToggle() {
       if (isOpen) {
         closeMobileSidebars()
       } else {
-        rightSidebar?.classList.remove("is-open")
+        closeMobileSidebars()
         leftSidebar.classList.add("is-open")
         backdrop?.classList.add("is-visible")
+        leftToggle?.setAttribute("aria-expanded", "true")
+        updateLeftToggleTitle(true)
         lockScroll()
       }
     }
@@ -94,9 +106,11 @@ export function initSidebarToggle() {
       if (isOpen) {
         closeMobileSidebars()
       } else {
-        leftSidebar?.classList.remove("is-open")
+        closeMobileSidebars()
         rightSidebar.classList.add("is-open")
         backdrop?.classList.add("is-visible")
+        rightToggle?.setAttribute("aria-expanded", "true")
+        updateRightToggleTitle(true)
         lockScroll()
       }
     }
@@ -105,8 +119,8 @@ export function initSidebarToggle() {
   leftToggle?.addEventListener("click", toggleLeftSidebar)
   rightToggle?.addEventListener("click", toggleRightSidebar)
   backdrop?.addEventListener("click", closeMobileSidebars)
-  leftClose?.addEventListener("click", closeMobileSidebars)
-  rightClose?.addEventListener("click", closeMobileSidebars)
+  leftClose?.addEventListener("click", toggleLeftSidebar)
+  rightClose?.addEventListener("click", toggleRightSidebar)
 
   // Escape key closes mobile sidebars
   document.addEventListener("keydown", (e) => {
@@ -125,6 +139,12 @@ export function initSidebarToggle() {
       backdrop?.classList.remove("is-visible")
       resetScrollLock()
 
+      // Default: sidebars expanded on desktop
+      leftToggle?.setAttribute("aria-expanded", "true")
+      rightToggle?.setAttribute("aria-expanded", "true")
+      updateLeftToggleTitle(true)
+      updateRightToggleTitle(true)
+
       const leftState = localStorage.getItem("zen-sidebar-left")
       const rightState = localStorage.getItem("zen-sidebar-right")
       if (leftState === "collapsed" && leftSidebar) {
@@ -138,13 +158,13 @@ export function initSidebarToggle() {
         updateRightToggleTitle(false)
       }
     } else {
-      // Crossed into mobile: remove desktop collapsed state
+      // Crossed into mobile: remove desktop collapsed state, sidebars start closed
       leftSidebar?.classList.remove("is-collapsed")
       rightSidebar?.classList.remove("is-collapsed")
-      leftToggle?.setAttribute("aria-expanded", "true")
-      rightToggle?.setAttribute("aria-expanded", "true")
-      updateLeftToggleTitle(true)
-      updateRightToggleTitle(true)
+      leftToggle?.setAttribute("aria-expanded", "false")
+      rightToggle?.setAttribute("aria-expanded", "false")
+      updateLeftToggleTitle(false)
+      updateRightToggleTitle(false)
     }
   })
 }

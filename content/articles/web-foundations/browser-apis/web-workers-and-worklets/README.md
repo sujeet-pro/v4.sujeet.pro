@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Web Workers and Worklets for Off-Main-Thread Work
 
 Concurrency primitives for keeping the main thread responsive. Workers provide general-purpose parallelism via message passing; worklets integrate directly into the browser's rendering pipeline for synchronized paint, animation, and audio processing.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Web Video Playback Architecture: HLS, DASH, and Low Latency
 
 The complete video delivery pipeline from codecs and compression to adaptive streaming protocols, DRM systems, and ultra-low latency technologies. Covers protocol internals, design trade-offs, and production failure modes for building resilient video applications.

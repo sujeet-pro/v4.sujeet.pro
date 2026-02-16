@@ -6,7 +6,6 @@
  */
 
 import { getCollection, render } from "astro:content"
-import { getLastModifiedDate } from "@/utils/git.utils"
 import { filterDrafts } from "./drafts"
 import { parseFrontmatter } from "./helpers"
 import { getOrdering } from "./ordering"
@@ -35,9 +34,9 @@ async function processAllProjects(): Promise<ProjectItem[]> {
       description: frontmatter.description,
       minutesRead: frontmatter.minutesRead,
       isDraft: frontmatter.isDraft,
-      lastUpdatedOn: item.data.lastUpdatedOn ?? getLastModifiedDate(item.filePath ?? ""),
+      lastUpdatedOn: item.data.lastUpdatedOn,
       gitRepo: item.data.gitRepo,
-      demoUrl: item.data.demoUrl,
+      links: item.data.links ?? [],
       tags: item.data.tags ?? [],
       href: `/projects/${item.id}`,
       Content,
@@ -65,7 +64,7 @@ function toProjectCard(project: ProjectItemWithoutContent): ProjectCardInfo {
     href: project.href,
     minutesRead: project.minutesRead,
     gitRepo: project.gitRepo,
-    demoUrl: project.demoUrl,
+    links: project.links,
     tags: project.tags,
     isDraft: project.isDraft,
   }

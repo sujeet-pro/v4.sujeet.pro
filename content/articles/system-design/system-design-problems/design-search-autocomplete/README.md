@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Design Search Autocomplete: Prefix Matching at Scale
 
 A system design for search autocomplete (typeahead) covering prefix data structures, ranking algorithms, distributed architecture, and sub-100ms latency requirements. This design addresses the challenge of returning relevant suggestions within the user's typing cadence—typically under 100ms—while handling billions of queries daily.

@@ -3,10 +3,10 @@ import Layout from "@/layout/layout.astro"
 import ReadingProgress from "@/layout/reading-progress.astro"
 import SidebarNavProjects from "@/components/nav/sidebar-nav-projects.astro"
 import SidebarToc from "@/components/nav/sidebar-toc.astro"
+import Frontmatter from "@/components/ui/frontmatter.astro"
 import Link from "@/components/ui/link.astro"
 import { Icon } from "astro-icon/components"
 import { getAllProjectPaths, getProjectPage } from "@/utils/content"
-import { formatDate } from "@/utils/format.utils"
 import { render, getCollection } from "astro:content"
 
 export async function getStaticPaths() {
@@ -40,36 +40,27 @@ const crumbs = [{ name: "Projects", href: "/projects" }]
 
   <ReadingProgress />
 
-  <article class="article">
-    <header class="article-header">
-      <h1 class="article-title">{project.title}</h1>
-      <div class="article-meta">
-        {project.lastUpdatedOn && <span class="article-meta-item">Updated {formatDate(project.lastUpdatedOn)}</span>}
-        <span class="article-meta-item">{project.minutesRead}</span>
-        {project.isDraft && <span class="badge-accent">Draft</span>}
-      </div>
-      {
-        (project.gitRepo || project.demoUrl) && (
-          <div class="project-card-links" style="margin-top: 1rem;">
-            {project.gitRepo && (
-              <Link href={project.gitRepo} class="project-card-link-item" target="_blank" rel="noopener noreferrer">
-                <Icon name="carbon:logo-github" class="icon-sm" />
-                <span>Source Code</span>
-              </Link>
-            )}
-            {project.demoUrl && (
-              <Link href={project.demoUrl} class="project-card-link-item" target="_blank" rel="noopener noreferrer">
-                <Icon name="carbon:launch" class="icon-sm" />
-                <span>Live Demo</span>
-              </Link>
-            )}
-          </div>
-        )
-      }
-    </header>
+  <div class="project-page-meta">
+    <Frontmatter minutesRead={project.minutesRead} isDraft={project.isDraft} lastUpdatedOn={project.lastUpdatedOn} />
+    {
+      project.gitRepo && (
+        <Link href={project.gitRepo} class="project-page-link-item" target="_blank" rel="noopener noreferrer">
+          <Icon name="carbon:logo-github" class="icon-sm" />
+          <span>Source Code</span>
+        </Link>
+      )
+    }
+    {
+      project.links.map((link) => (
+        <Link href={link.url} class="project-page-link-item" target="_blank" rel="noopener noreferrer">
+          <Icon name="carbon:launch" class="icon-sm" />
+          <span>{link.text}</span>
+        </Link>
+      ))
+    }
+  </div>
 
-    <div id="article-content" class="article-prose-content">
-      <project.Content />
-    </div>
+  <article id="article-content" class="article-prose-content">
+    <project.Content />
   </article>
 </Layout>

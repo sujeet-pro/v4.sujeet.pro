@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-24
+---
+
 # Statsig Experimentation Platform: Architecture and Rollouts
 
 Statsig is a unified experimentation platform that combines feature flags, A/B testing, and product analytics into a single, cohesive system. This post explores the internal architecture, SDK integration patterns, and implementation strategies for both browser and server-side environments.

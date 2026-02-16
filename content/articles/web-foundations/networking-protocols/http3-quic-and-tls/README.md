@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # HTTP/3 and QUIC: Transport Layer Revolution
 
 HTTP/3 eliminates TCP's head-of-line blocking by building HTTP directly on QUIC, a UDP-based transport with integrated TLS 1.3. This article covers QUIC's design rationale, the TLS 1.3 integration that enables 1-RTT handshakes, 0-RTT security trade-offs, and the DNS/Alt-Svc discovery mechanisms browsers use for protocol negotiation.

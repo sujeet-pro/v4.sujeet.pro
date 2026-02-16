@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # Node.js Runtime Architecture: Event Loop, Streams, and APIs
 
 Node.js is a host environment that pairs V8 with libuv, a C++ bindings layer, and a large set of JavaScript core modules and Application Programming Interfaces (APIs). This article focuses on the runtime boundaries that matter at scale: event loop ordering, microtasks, thread pool backpressure, buffer and stream memory, and Application Binary Interface (ABI) stable extension points. Coverage is current as of Node.js 22 LTS (libuv 1.49+, V8 12.4+).

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # CSRF and CORS Defense for Modern Web Applications
 
 A deep dive into Cross-Site Request Forgery (CSRF) and Cross-Origin Resource Sharing (CORS)—their threat models, specification-level mechanics, and defense-in-depth implementation patterns for production web applications.

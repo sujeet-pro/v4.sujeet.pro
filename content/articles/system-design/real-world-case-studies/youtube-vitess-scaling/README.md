@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-08
+---
+
 # YouTube: Scaling MySQL to Serve Billions with Vitess
 
 How YouTube built Vitess to horizontally scale MySQL from 4 shards to 256 across tens of thousands of nodes, serving millions of queries per second without abandoning the relational model—and why they eventually migrated to Spanner anyway.

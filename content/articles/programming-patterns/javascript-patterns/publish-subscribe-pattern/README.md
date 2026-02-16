@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Publish-Subscribe Pattern in JavaScript
 
 Architectural principles, implementation trade-offs, and production patterns for event-driven systems. Covers the three decoupling dimensions, subscriber ordering guarantees, error isolation strategies, and when Pub/Sub is the wrong choice.

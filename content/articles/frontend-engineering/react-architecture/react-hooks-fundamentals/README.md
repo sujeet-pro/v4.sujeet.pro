@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # React Hooks Fundamentals: Rules, Core Hooks, and Custom Hooks
 
 React Hooks enable functional components to manage state and side effects. Introduced in React 16.8 (February 2019), hooks replaced class components as the recommended approach for most use cases. This article covers the architectural principles, core hooks, and patterns for building production applications.

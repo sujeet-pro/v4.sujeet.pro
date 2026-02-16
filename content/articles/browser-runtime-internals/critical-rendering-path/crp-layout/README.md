@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # Critical Rendering Path: Layout Stage
 
 Layout is the rendering pipeline stage that transforms styled elements into physical geometry—computing exact pixel positions and sizes for every visible box. In Chromium's LayoutNG architecture, this stage produces the **Fragment Tree**, an immutable data structure describing how elements are broken into boxes (fragments) with resolved coordinates.

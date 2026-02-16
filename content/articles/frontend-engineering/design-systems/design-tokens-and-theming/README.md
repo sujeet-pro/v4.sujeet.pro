@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Design Tokens and Theming Architecture
 
 Design tokens encode design decisions as platform-agnostic data, enabling consistent UI across web, iOS, and Android from a single source of truth. This article covers the token taxonomy, semantic layering for theming, multi-platform transformation pipelines, and governance strategies that make enterprise design systems maintainable at scale.

@@ -33,6 +33,14 @@
   transform: translateX(0);
 }
 
+/* Sidebar header (close button + title) */
+.zen-sidebar-header {
+  @apply flex items-center justify-between;
+  @apply px-5 py-3;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
 /* Desktop (>=1440px): sidebars are sticky grid columns */
 @media (min-width: 1440px) {
   .zen-sidebar {
@@ -76,14 +84,6 @@
   .zen-sidebar-right.is-collapsed {
     border-left-color: transparent;
   }
-}
-
-/* Sidebar header (mobile close button) */
-.zen-sidebar-header {
-  @apply flex items-center justify-between;
-  @apply px-5 py-3;
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
 }
 
 .zen-sidebar-header-title {

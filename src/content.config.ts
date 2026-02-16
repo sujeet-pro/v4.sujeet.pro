@@ -194,7 +194,7 @@ const article = defineCollection({
     category: z.string().optional(),
     topic: z.string().optional(),
     tags: z.array(z.string()).optional().default([]),
-    lastUpdatedOn: z.string().optional(),
+    lastUpdatedOn: z.coerce.date(),
   }),
 })
 
@@ -210,8 +210,8 @@ const blog = defineCollection({
     },
   }),
   schema: z.object({
-    publishedOn: z.string().optional(),
-    lastUpdatedOn: z.string().optional(),
+    publishedOn: z.coerce.date(),
+    lastUpdatedOn: z.coerce.date(),
     archived: z.boolean().optional().default(false),
     tags: z.array(z.string()).optional().default([]),
   }),
@@ -230,9 +230,12 @@ const project = defineCollection({
   }),
   schema: z.object({
     gitRepo: z.string().optional(),
-    demoUrl: z.string().optional(),
+    links: z
+      .array(z.object({ url: z.string(), text: z.string() }))
+      .optional()
+      .default([]),
     tags: z.array(z.string()).optional().default([]),
-    lastUpdatedOn: z.string().optional(),
+    lastUpdatedOn: z.coerce.date(),
   }),
 })
 

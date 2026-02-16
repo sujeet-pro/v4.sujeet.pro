@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-24
+---
+
 # k6 Load Testing Overview: Smoke, Spike, Soak, Stress
 
 Master k6's Go-based architecture, JavaScript scripting capabilities, and advanced workload modeling for modern DevOps and CI/CD performance testing workflows.

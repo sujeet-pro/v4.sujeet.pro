@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-06
+---
+
 # Design a YouTube-Style Video Platform
 
 A video platform at YouTube scale handles massive upload volumes, transcoding across dozens of resolution/codec combinations, and global delivery to billions of daily viewers. This design covers the upload pipeline, transcoding infrastructure, adaptive streaming delivery, and metadata/discovery systems—focusing on the architectural decisions that enable sub-second playback start times while processing 500+ hours of new video every minute.

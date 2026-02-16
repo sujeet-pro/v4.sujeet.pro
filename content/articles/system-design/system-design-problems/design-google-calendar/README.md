@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Design Google Calendar
 
 A comprehensive system design for a calendar and scheduling application handling recurring events, timezone complexity, and real-time collaboration. This design addresses event recurrence at scale (RRULE expansion), global timezone handling across DST boundaries, availability aggregation for meeting scheduling, and multi-client synchronization with conflict resolution.

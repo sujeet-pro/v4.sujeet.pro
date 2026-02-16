@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-06
+---
+
 # Design Yelp: Location-Based Business Discovery Platform
 
 A comprehensive system design for a location-based business discovery service. This design addresses proximity search at scale, multi-signal ranking, and user-generated content moderation with a focus on sub-100ms search latency and global availability.

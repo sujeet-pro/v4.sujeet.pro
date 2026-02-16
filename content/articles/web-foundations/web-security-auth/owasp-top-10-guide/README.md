@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # OWASP Top 10: Web Application Security Risks
 
 The OWASP Top 10 is a ranked list of the most critical web application security risks, derived from real-world vulnerability data. The 2025 edition analyzed 2.8 million applications with 589 CWE (Common Weakness Enumeration) mappings across 248 categories, making it the definitive baseline for application security priorities.

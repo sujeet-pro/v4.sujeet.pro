@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # Critical Rendering Path: Style Recalculation
 
 Style Recalculation transforms the DOM and CSSOM into computed styles for every element. The browser engine matches CSS selectors against DOM nodes, resolves cascade conflicts, and computes absolute values—producing the `ComputedStyle` objects that the Layout stage consumes. In Chromium's Blink engine, this phase is handled by the `StyleResolver`, which uses indexed rule sets, Bloom filters, and invalidation sets to minimize work on each frame.

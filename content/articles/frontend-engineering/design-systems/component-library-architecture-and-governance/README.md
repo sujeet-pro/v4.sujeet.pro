@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Component Library Architecture and Governance
 
 A component library is a product with internal customers. Its success depends on API stability, contribution workflows, and operational rigor. This article covers the architectural decisions and governance models that separate thriving design systems from abandoned experiments.

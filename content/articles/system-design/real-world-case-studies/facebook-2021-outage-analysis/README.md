@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-16
+---
+
 # Facebook 2021 Outage: BGP Withdrawal, DNS Collapse, and the Backbone That Disappeared
 
 How a routine maintenance command on Facebook's backbone routers accidentally withdrew all BGP (Border Gateway Protocol) routes for AS32934, making Facebook's authoritative DNS servers unreachable for ~6 hours on October 4, 2021. With 3.5 billion combined users across Facebook, Instagram, WhatsApp, and Messenger unable to resolve any Meta domain, this incident exposed what happens when DNS infrastructure, remote management, physical security, and internal tooling all depend on the same network backbone—and that backbone vanishes.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Service Workers and Cache API
 
 A comprehensive exploration of offline-first web architecture, examining how the [Service Worker API](https://w3c.github.io/ServiceWorker/) (W3C Working Draft, January 2026) enables network interception and background processing, how the [Cache API](https://w3c.github.io/ServiceWorker/#cache-interface) provides fine-grained storage for request/response pairs, and how update flows ensure clients transition safely between versions. These APIs form the foundation of Progressive Web Apps (PWAs): service workers intercept fetches and decide response sources, Cache API stores those responses durably, and the lifecycle model ensures exactly one version controls clients at any time.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # DNS Deep Dive
 
 The Domain Name System (DNS) is the distributed hierarchical database that maps human-readable domain names to IP addresses. Designed in 1983 by Paul Mockapetris (RFC 1034/1035), DNS handles **billions of queries per day** with sub-100ms latency globally—yet its design choices (UDP transport, caching semantics, hierarchical delegation) create operational nuances that affect failover speed, security posture, and load distribution. This article covers DNS internals, resolution mechanics, record types with design rationale, TTL strategies, load balancing approaches, security mechanisms (DNSSEC, DoH/DoT), and production patterns from major providers.

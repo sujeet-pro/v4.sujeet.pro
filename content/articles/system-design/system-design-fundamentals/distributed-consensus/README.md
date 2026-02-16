@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Distributed Consensus
 
 Understanding how distributed systems reach agreement despite failures—the fundamental algorithms, their design trade-offs, and practical implementations that power modern infrastructure.

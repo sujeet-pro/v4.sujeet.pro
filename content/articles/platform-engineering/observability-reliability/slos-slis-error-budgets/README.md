@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # SLOs, SLIs, and Error Budgets
 
 Service Level Objectives (SLOs), Service Level Indicators (SLIs), and error budgets form a framework for quantifying reliability and balancing it against development velocity. This is not just monitoring—it is a business tool that aligns engineering effort with user experience. SLIs measure what users care about, SLOs set explicit targets, and error budgets convert those targets into actionable resource constraints. The framework originated at Google's SRE practice and has become the industry standard for reliability management. This article covers the design reasoning behind each concept, the mathematics of error budget consumption and burn rate alerting, and the operational practices that make SLOs effective in production.

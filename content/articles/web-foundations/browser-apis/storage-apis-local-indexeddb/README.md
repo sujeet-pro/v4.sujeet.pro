@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-09
+---
+
 # Browser Storage APIs: localStorage, IndexedDB, and Beyond
 
 A deep dive into browser-side persistence, examining the design trade-offs behind each storage API, their quota models, transaction semantics, and eviction behavior. The [WHATWG Storage Standard](https://storage.spec.whatwg.org/) (Living Standard) unifies quota management under a single bucket model, while individual APIs—[Web Storage](https://html.spec.whatwg.org/multipage/webstorage.html) (localStorage/sessionStorage), [IndexedDB](https://www.w3.org/TR/IndexedDB-3/) (W3C, version 3.0), and the [Cache API](https://w3c.github.io/ServiceWorker/#cache-interface) (W3C)—each optimize for different access patterns. Choosing the right API depends on data shape, access frequency, thread requirements, and durability guarantees—not just capacity limits.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # Critical Rendering Path: Prepaint
 
 Prepaint is a RenderingNG pipeline stage that performs an in-order traversal of the **LayoutObject tree** to build **Property Trees** and compute paint invalidations. It decouples visual effect state (transforms, clips, filters, scroll offsets) from the paint and compositing stages, enabling compositor-driven animations and off-main-thread scrolling.

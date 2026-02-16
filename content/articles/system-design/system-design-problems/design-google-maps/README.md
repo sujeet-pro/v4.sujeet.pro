@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-06
+---
+
 # Design Google Maps
 
 A system design for a mapping and navigation platform handling tile-based rendering, real-time routing with traffic awareness, geocoding, and offline maps. This design addresses continental-scale road networks (18M+ nodes), sub-second routing queries, and 97%+ ETA accuracy.

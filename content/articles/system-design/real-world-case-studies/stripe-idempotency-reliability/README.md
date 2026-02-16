@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-08
+---
+
 # Stripe: Idempotency for Payment Reliability
 
 How Stripe prevents double charges and enables safe retries across billions of transactions using idempotency keys, atomic phases, and database-backed state machines. This case study examines the design decisions behind Stripe's approach—why they chose database transactions over distributed consensus, how they handle foreign state mutations, and the patterns that enabled 99.999% uptime while processing $1 trillion in payments.

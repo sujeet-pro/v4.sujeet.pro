@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-16
+---
+
 # Slack: Scaling a Real-Time Messaging Platform from Monolith to Distributed Architecture
 
 How Slack evolved from a PHP monolith with workspace-sharded MySQL into a distributed system handling 2.3 million queries per second (QPS) across Vitess-managed databases, 4 million concurrent WebSocket connections through a global edge cache, and a cellular infrastructure design achieving 99.99% availability—all without a single big-bang rewrite. This case study traces the architectural decisions behind each layer: data storage, real-time messaging, edge caching, and reliability infrastructure.

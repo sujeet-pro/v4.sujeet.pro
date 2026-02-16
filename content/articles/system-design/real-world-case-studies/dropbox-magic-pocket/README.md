@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-08
+---
+
 # Dropbox Magic Pocket: Building Exabyte-Scale Blob Storage
 
 How Dropbox migrated 500+ petabytes off AWS S3 onto custom infrastructure in under two years, saving $74.6 million net while achieving higher durability than the service it replaced. Magic Pocket is a content-addressable, immutable block store built by a team of fewer than six engineers, now serving 700+ million users across 600,000+ storage drives.

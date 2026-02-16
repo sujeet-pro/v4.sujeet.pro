@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Component Architecture Blueprint for Scalable UI
 
 Modern frontend applications face a common challenge: as codebases grow, coupling between UI components, business logic, and framework-specific APIs creates maintenance nightmares and testing friction. This architecture addresses these issues through strict layering, dependency injection via React Context, and boundary enforcement via ESLint.

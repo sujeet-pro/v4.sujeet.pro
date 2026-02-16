@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Design Amazon Shopping Cart
 
 A system design for an e-commerce shopping cart handling millions of concurrent users, real-time inventory, dynamic pricing, and distributed checkout. This design focuses on high availability during flash sales, consistent inventory management, and seamless guest-to-user cart transitions.

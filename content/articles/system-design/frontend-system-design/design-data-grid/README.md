@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Design a Data Grid
 
 High-performance data grids render thousands to millions of rows while maintaining 60fps scrolling and sub-second interactions. This article explores the architectural patterns, virtualization strategies, and implementation trade-offs that separate production-grade grids from naive table implementations.

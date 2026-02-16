@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Design a Cookie Consent Service
 
 Building a multi-tenant consent management platform that handles regulatory compliance (GDPR, CCPA, LGPD) at scale. Cookie consent services face unique challenges: read-heavy traffic patterns (every page load queries consent status), strict latency requirements (consent checks block page rendering), regulatory complexity across jurisdictions, and the need to merge anonymous visitor consent with authenticated user profiles. This design covers edge-cached consent delivery, anonymous-to-authenticated identity migration, and a multi-tenant architecture serving thousands of websites.

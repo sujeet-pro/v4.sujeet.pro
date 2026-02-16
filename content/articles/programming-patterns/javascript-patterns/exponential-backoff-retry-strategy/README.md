@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Exponential Backoff and Retry Strategy
 
 Learn how to build resilient distributed systems using exponential backoff, jitter, and modern retry strategies to handle transient failures and prevent cascading outages.

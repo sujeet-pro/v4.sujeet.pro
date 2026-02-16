@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Image Loading Optimization
 
 Client-side strategies for optimizing image delivery: lazy loading, responsive images, modern formats, and Cumulative Layout Shift (CLS) prevention. Covers browser mechanics, priority hints, and real-world implementation patterns.

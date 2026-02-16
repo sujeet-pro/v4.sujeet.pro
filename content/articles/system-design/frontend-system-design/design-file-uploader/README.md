@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Design a File Uploader
 
 Building robust file upload requires handling browser constraints, network failures, and user experience across a wide spectrum of file sizes and device capabilities. A naive approach—form submission or single XHR (XMLHttpRequest)—fails at scale: large files exhaust memory, network interruptions lose progress, and users see no feedback. Production uploaders solve this through chunked uploads, resumable protocols, and careful memory management.

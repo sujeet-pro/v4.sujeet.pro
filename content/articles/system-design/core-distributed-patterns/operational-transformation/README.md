@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Operational Transformation
 
 Deep-dive into Operational Transformation (OT): the algorithm powering Google Docs, with its design variants, correctness properties, and production trade-offs.

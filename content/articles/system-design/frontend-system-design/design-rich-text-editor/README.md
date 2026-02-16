@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Design a Rich Text Editor
 
 Building a rich text editor for web applications requires choosing between fundamentally different document models, input handling strategies, and collaboration architectures. This article covers contentEditable vs custom rendering trade-offs, the document models behind ProseMirror, Slate, Lexical, and Quill, transaction-based state management, browser input handling (Input Events Level 2, IME), collaboration patterns (OT vs CRDT), virtualization for large documents, and accessibility requirements.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # DRM Fundamentals for Streaming Media
 
 Digital Rights Management (DRM) for streaming media combines encryption, license management, and platform-specific security to control content playback. This article covers the encryption architecture (CENC, AES modes), the three dominant DRM systems (Widevine, FairPlay, PlayReady), license server design, client integration via EME (Encrypted Media Extensions), and operational considerations including key rotation, security levels, and the threat model that DRM addresses.

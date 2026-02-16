@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Exactly-Once Delivery
 
 True exactly-once delivery is impossible in distributed systems—the Two Generals Problem (1975) and FLP impossibility theorem (1985) prove this mathematically. What we call "exactly-once" is actually "effectively exactly-once": at-least-once delivery combined with idempotency and deduplication mechanisms that ensure each message's effect occurs exactly once, even when the message itself is delivered multiple times.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Accessibility Testing and Tooling Workflow
 
 A practical workflow for automated and manual accessibility testing, covering tool selection, CI/CD integration, and testing strategies. Automated testing catches approximately 57% of accessibility issues (Deque, 2021)—the remaining 43% requires keyboard navigation testing, screen reader verification, and subjective judgment about content quality. This guide covers how to build a testing strategy that maximizes automated coverage while establishing the manual testing practices that no tool can replace.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Edge Delivery and Cache Invalidation
 
 Production CDN caching architecture for balancing content freshness against cache efficiency. Covers cache key design, invalidation strategies (path-based, tag-based, versioned URLs), stale-while-revalidate patterns, and edge compute use cases—with specific focus on design tradeoffs, operational failure modes, and the thundering herd problem that senior engineers encounter during cache-related incidents.

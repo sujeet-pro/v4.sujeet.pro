@@ -1,6 +1,11 @@
 ---
+lastUpdatedOn: 2026-02-16
 gitRepo: https://github.com/sujeet-pro/stateloom
-demoUrl: https://www.npmjs.com/org/stateloom
+links:
+  - url: https://www.npmjs.com/org/stateloom
+    text: npm
+  - url: https://projects.sujeet.pro/stateloom/
+    text: docs
 tags: [state-management, signals, reactivity, typescript, react, vue, solid, svelte, angular, ssr, middleware, monorepo]
 ---
 

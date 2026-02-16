@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-08
+---
+
 # Uber Schemaless: Building a Scalable Datastore on MySQL
 
 In early 2014, Uber faced an infrastructure crisis: trip data growth was consuming database capacity so rapidly that their systems would fail by year's end without intervention. Rather than adopting an existing NoSQL solution, Uber built Schemaless—a thin, horizontally scalable layer on top of MySQL that prioritized operational simplicity over feature richness. This case study examines the architectural decisions that enabled Schemaless to scale from crisis point to billions of trips, the trade-offs inherent in its append-only cell model, and the design patterns that made MySQL work as a distributed datastore.

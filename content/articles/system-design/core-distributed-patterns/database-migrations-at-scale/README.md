@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Database Migrations at Scale
 
 Changing database schemas in production systems without downtime requires coordinating schema changes, data transformations, and application code across distributed systems. The core challenge: the schema change itself takes milliseconds, but MySQL's `ALTER TABLE` on a 500GB table with row locking would take days and block all writes. This article covers the design paths, tool mechanisms, and production patterns that enable zero-downtime migrations.

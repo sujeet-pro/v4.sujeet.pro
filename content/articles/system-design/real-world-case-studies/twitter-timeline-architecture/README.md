@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-08
+---
+
 # Twitter/X: Timeline Architecture and the Recommendation Algorithm
 
 How Twitter evolved from a monolithic Ruby on Rails app delivering reverse-chronological tweets at 4,600 writes/second into a distributed ML pipeline that processes 500 million tweets daily through a multi-stage recommendation system -- and how X replaced all of it with a Grok-based transformer in 2026. This case study traces the full arc: fanout-on-write, the hybrid celebrity problem, the algorithmic timeline controversy, the unprecedented open-sourcing of the recommendation algorithm, and the latest Phoenix/Thunder architecture.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Trees and Graphs: Traversals and Applications
 
 Hierarchical and networked data structures that underpin file systems, databases, build tools, and routing. This guide covers tree variants (BST, AVL, Red-Black, B-trees, tries), graph representations (adjacency matrix vs list), traversal algorithms (DFS, BFS), and key algorithms (cycle detection, topological sort, shortest paths). Focus on design trade-offs and when to choose each structure.

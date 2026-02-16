@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Heaps and Priority Queues: Internals, Trade-offs, and When Theory Breaks Down
 
 Heaps provide the fundamental abstraction for "give me the most important thing next" in O(log n) time. Priority queues—the abstract interface—power task schedulers, shortest-path algorithms, and event-driven simulations. Binary heaps dominate in practice not because they're theoretically optimal, but because array storage exploits cache locality. Understanding the gap between textbook complexity and real-world performance reveals when to use standard libraries, when to roll your own, and when the "better" algorithm is actually worse.

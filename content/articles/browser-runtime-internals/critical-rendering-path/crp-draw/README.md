@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # Critical Rendering Path: Draw
 
 The Draw stage is the final phase of the browser's rendering pipeline. The Viz process (Visuals) in Chromium takes abstract compositor frames—consisting of render passes and draw quads—and translates them into low-level GPU commands to produce actual pixels on the display.

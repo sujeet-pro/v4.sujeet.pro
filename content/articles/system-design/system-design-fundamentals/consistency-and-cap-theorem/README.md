@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Consistency Models and the CAP Theorem
 
 Understanding consistency guarantees in distributed systems: from the theoretical foundations of CAP to practical consistency models, their trade-offs, and when to choose each for production systems.

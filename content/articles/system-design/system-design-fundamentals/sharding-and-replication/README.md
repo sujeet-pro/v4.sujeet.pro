@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Sharding and Replication
 
 Scaling data stores beyond a single machine requires two complementary strategies: **sharding** (horizontal partitioning) distributes data across nodes to scale writes and storage capacity; **replication** copies data across nodes to improve read throughput and availability. These mechanisms are orthogonal—you choose a sharding strategy independently from a replication model—but their interaction determines your system's consistency, availability, and operational complexity. This article covers design choices, trade-offs, and production patterns from systems handling millions of queries per second.

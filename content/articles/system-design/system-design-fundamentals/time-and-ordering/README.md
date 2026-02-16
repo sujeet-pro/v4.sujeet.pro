@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Time and Ordering in Distributed Systems
 
 Understanding how distributed systems establish event ordering without a global clock—from the fundamental problem of clock synchronization to the practical algorithms that enable causal consistency, conflict resolution, and globally unique identifiers.

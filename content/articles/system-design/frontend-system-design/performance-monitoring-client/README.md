@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Client Performance Monitoring
 
 Measuring frontend performance in production requires capturing real user experience data—not just synthetic benchmarks. Lab tools like Lighthouse measure performance under controlled conditions, but users experience your application on varied devices, networks, and contexts. Real User Monitoring (RUM) bridges this gap by collecting performance metrics from actual browser sessions, enabling data-driven optimization where it matters most: in the field.

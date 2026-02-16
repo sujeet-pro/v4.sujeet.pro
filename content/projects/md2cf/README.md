@@ -1,6 +1,11 @@
 ---
+lastUpdatedOn: 2026-02-16
 gitRepo: https://github.com/sujeet-pro/markdown-to-confluence-sync
-demoUrl: https://www.npmjs.com/package/md2cf
+links:
+  - url: https://www.npmjs.com/package/md2cf
+    text: npm
+  - url: https://projects.sujeet.pro/markdown-to-confluence-sync/
+    text: docs
 tags: [cli, confluence, markdown, typescript, developer-tools, docs-as-code]
 ---
 

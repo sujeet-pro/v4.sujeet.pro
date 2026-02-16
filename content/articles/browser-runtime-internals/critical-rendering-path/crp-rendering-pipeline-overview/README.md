@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # Critical Rendering Path: Rendering Pipeline Overview
 
 The browser's rendering pipeline transforms HTML, CSS, and JavaScript into visual pixels through a series of discrete, highly optimized stages. Modern browser engines like Chromium employ the **RenderingNG** architecture—a next-generation rendering system developed between 2014 and 2021—which decouples the main thread from the compositor and GPU processes to ensure 60fps+ performance and minimize interaction latency.

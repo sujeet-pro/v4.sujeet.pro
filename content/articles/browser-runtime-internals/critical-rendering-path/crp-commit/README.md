@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # Critical Rendering Path: Commit
 
 Commit is the synchronization point where the Main Thread hands over processed frame data to the Compositor Thread. This blocking operation ensures the compositor receives an immutable, consistent snapshot of property trees and display lists—enabling the dual-tree architecture that allows rasterization to proceed independently while the main thread prepares the next frame.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # HTTP/1.1 to HTTP/2: Bottlenecks and Multiplexing
 
 How HTTP/1.1's request-response model and application-layer head-of-line (HOL) blocking led to HTTP/2's binary framing, HPACK header compression, and stream multiplexing. This article covers the architectural constraints, design trade-offs, and remaining TCP-layer limitations that motivated HTTP/3.

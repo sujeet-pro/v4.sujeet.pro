@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # Critical Rendering Path: Paint Stage
 
 The Paint stage records drawing instructions into display lists—it does not produce pixels. Following [Prepaint](../crp-prepaint/README.md) (property tree construction and invalidation), Paint walks the layout tree and generates a sequence of low-level graphics commands stored in **Paint Artifacts**. These artifacts are later consumed by the [Rasterization](../crp-raster/README.md) stage, which executes them to produce actual pixels on the GPU.

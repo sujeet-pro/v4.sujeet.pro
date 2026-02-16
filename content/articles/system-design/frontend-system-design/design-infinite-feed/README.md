@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Design an Infinite Feed
 
 Building infinite scrolling feed interfaces that scale from hundreds to millions of items while maintaining 60fps scroll performance. This article covers pagination strategies, scroll detection, virtualization, state management, and accessibility patterns that power feeds at Twitter, Instagram, and LinkedIn.

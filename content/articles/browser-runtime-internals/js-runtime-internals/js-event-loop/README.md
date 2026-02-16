@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # JS Event Loop: Tasks, Microtasks, and Rendering (For Browser & Node.js)
 
 The event loop is not a JavaScript language feature—it is the host environment's mechanism for orchestrating asynchronous operations around the engine's single-threaded execution. Browsers implement the WHATWG HTML Standard processing model optimized for UI responsiveness (60 frames per second, ~16.7ms budgets). Node.js implements a phased architecture via libuv, optimized for high-throughput I/O (Input/Output). Understanding both models is essential for debugging timing issues, avoiding starvation, and choosing the right scheduling primitive.

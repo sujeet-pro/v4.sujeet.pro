@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Failure Modes and Resilience Patterns
 
 Distributed systems fail in complex, often surprising ways. This article covers the taxonomy of failures—from clean crashes to insidious gray failures—and the resilience patterns that mitigate them. The focus is on design decisions: when to use each pattern, how to tune parameters, and what trade-offs you're accepting.

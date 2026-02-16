@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-09
+---
+
 # Design Pastebin: Text Sharing, Expiration, and Abuse Prevention
 
 A comprehensive system design for a text-sharing service like Pastebin covering URL generation strategies, content storage at scale, expiration policies, syntax highlighting, access control, and abuse prevention. This design addresses sub-100ms paste retrieval at 10:1 read-to-write ratio with content deduplication and multi-tier storage tiering.

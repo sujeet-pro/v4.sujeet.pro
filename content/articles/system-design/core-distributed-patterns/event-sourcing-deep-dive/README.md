@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Event Sourcing
 
 A deep-dive into event sourcing: understanding the core pattern, implementation variants, snapshot strategies, schema evolution, and production trade-offs across different architectures.

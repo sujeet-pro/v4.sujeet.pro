@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Circuit Breaker Patterns for Resilient Systems
 
 Circuit breakers prevent cascading failures by failing fast when downstream dependencies are unhealthy. This article examines design choices—threshold-based vs time-window detection, thread pool vs semaphore isolation, per-host vs per-service scoping—along with production configurations from Netflix, Shopify, and modern implementations in Resilience4j.

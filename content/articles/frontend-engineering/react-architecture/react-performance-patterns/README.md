@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # React Performance Patterns: Rendering, Memoization, and Scheduling
 
 Patterns for keeping React applications fast as they scale: understanding the render pipeline, applying memoization correctly, leveraging concurrent features, and profiling effectively. Covers React 18+ with notes on React 19 and the React Compiler.

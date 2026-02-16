@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-08
+---
+
 # GitHub: Scaling MySQL from One Database to 1,200+ Hosts
 
 How GitHub evolved its MySQL infrastructure from a single monolithic database to a fleet of 1,200+ hosts across 50+ clusters serving 5.5 million queries per second (QPS)—through vertical partitioning, custom tooling (gh-ost, orchestrator, freno), Vitess adoption, and a major version upgrade—while keeping github.com available throughout.

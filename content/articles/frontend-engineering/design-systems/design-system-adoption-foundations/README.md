@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Design System Adoption: Foundations and Governance
 
 A comprehensive framework for building and scaling design systems from initial conception through enterprise-wide adoption—covering ROI analysis, executive buy-in, team structures, governance models, technical implementation, migration strategies, adoption tooling, and continuous improvement. This guide addresses the organizational, technical, and cultural challenges across the entire design system lifecycle, from proving the business case through measuring long-term impact.

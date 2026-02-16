@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-16
+---
+
 # AWS Kinesis 2020 Outage: Thread Limits, Thundering Herds, and Hidden Dependencies
 
 How a routine capacity addition to Amazon Kinesis Data Streams in US-EAST-1 exceeded an OS thread limit on every front-end server, triggering a 17-hour cascading failure that took down CloudWatch, Lambda, Cognito, and dozens of other AWS services on November 25, 2020—the day before Thanksgiving. This incident is a case study in O(N²) scaling patterns, untested failsafes, and the consequences of monitoring systems that depend on the services they monitor.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Load Balancer Architecture: L4 vs L7 and Routing
 
 How load balancers distribute traffic, terminate TLS, and maintain availability at scale. This article covers the design choices behind L4/L7 balancing, algorithm selection, health checking, and session management—with real-world examples from Netflix, Google, and Cloudflare.

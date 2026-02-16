@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Frontend Data Fetching Patterns and Caching
 
 Patterns for fetching, caching, and synchronizing server state in frontend applications. Covers request deduplication, cache invalidation strategies, stale-while-revalidate mechanics, and library implementations.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Unique ID Generation in Distributed Systems
 
 Designing unique identifier systems for distributed environments: understanding the trade-offs between sortability, coordination overhead, collision probability, and database performance across UUIDs, Snowflake IDs, ULIDs, and KSUIDs.

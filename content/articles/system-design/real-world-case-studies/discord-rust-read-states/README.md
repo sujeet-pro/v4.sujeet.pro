@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-08
+---
+
 # Discord: Rewriting Read States from Go to Rust
 
 How Discord eliminated periodic latency spikes in their most heavily accessed service by rewriting it from Go to Rust—and why the garbage collector, not the application code, was the bottleneck. The Read States service tracks which channels every user has read across billions of states, and its performance directly affects every connection, every message send, and every message acknowledgment on the platform.

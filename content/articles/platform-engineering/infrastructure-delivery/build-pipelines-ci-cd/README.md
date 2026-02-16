@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-24
+---
+
 # Draft: Build Pipelines and CI/CD Architecture
 
 Designing fast, reliable build and deployment pipelines.

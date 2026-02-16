@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Rate Limiting Strategies: Token Bucket, Leaky Bucket, and Sliding Window
 
 Rate limiting protects distributed systems from abuse, prevents resource exhaustion, and ensures fair access. This article examines five core algorithms—their internal mechanics, trade-offs, and production implementations—plus distributed coordination patterns that make rate limiting work at scale.

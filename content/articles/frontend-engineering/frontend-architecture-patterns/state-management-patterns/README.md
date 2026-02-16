@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-24
+---
+
 # Draft: State Management Patterns: Local, Global, and Server State
 
 A decision guide for state boundaries, data ownership, and consistency.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Capacity Planning and Back-of-the-Envelope Estimates
 
 Capacity planning validates architectural decisions before writing code. This article covers the mental models, reference numbers, and calculation techniques that let you estimate QPS, storage, bandwidth, and server counts—transforming vague "we need to handle millions of users" into concrete infrastructure requirements.

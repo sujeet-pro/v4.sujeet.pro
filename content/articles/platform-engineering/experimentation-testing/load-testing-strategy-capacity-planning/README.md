@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-24
+---
+
 # Draft: Load Testing Strategy and Capacity Planning
 
 Designing load tests that inform capacity and reliability decisions.

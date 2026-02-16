@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Sharded Counters
 
 Scaling counters beyond single-node write limitations through distributed sharding, aggregation strategies, and consistency trade-offs.

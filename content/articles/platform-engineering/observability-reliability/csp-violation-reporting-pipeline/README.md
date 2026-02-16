@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # CSP Violation Reporting Pipeline at Scale
 
 CSP-Sentinel is a centralized system designed to collect, process, and analyze Content Security Policy (CSP) violation reports from web browsers at scale. The system handles baseline 50k RPS with burst capacity to 500k+ RPS while maintaining sub-millisecond response times and near-zero impact on client browsers.

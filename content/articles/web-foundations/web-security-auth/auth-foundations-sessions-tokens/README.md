@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Authentication Foundations: Sessions, Tokens, and Trust
 
 An in-depth technical analysis of AAA frameworks for expert practitioners, exploring modern authentication mechanisms, authorization models, access control paradigms, and their implementation patterns with Node.js examples.

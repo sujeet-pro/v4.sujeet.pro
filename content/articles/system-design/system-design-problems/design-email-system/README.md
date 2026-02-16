@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-06
+---
+
 # Design an Email System
 
 A comprehensive system design for building a scalable email service like Gmail or Outlook. This design addresses reliable delivery, spam filtering, conversation threading, and search at scale—handling billions of messages daily with sub-second search latency and 99.99% delivery reliability.

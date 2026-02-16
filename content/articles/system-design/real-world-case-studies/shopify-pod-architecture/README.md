@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-08
+---
+
 # Shopify: Pod Architecture for Multi-Tenant Isolation at Scale
 
 How Shopify evolved from a single-database Rails monolith to a pod-based architecture that isolates millions of merchants into self-contained units — surviving 284 million edge requests per minute during Black Friday 2024 while maintaining sub-10-second failover. This case study examines why sharding alone wasn't enough, how pods enforce blast radius containment, the zero-downtime migration tooling that moves shops between pods in seconds, and the organizational patterns that let 1,000+ developers deploy 40 times a day to a 2.8-million-line Ruby codebase.

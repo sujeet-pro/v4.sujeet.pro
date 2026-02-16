@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Fetch, Streams, and AbortController
 
 A comprehensive exploration of the modern web's network primitives, examining how the [Fetch Standard](https://fetch.spec.whatwg.org/) (WHATWG Living Standard, January 2026) unifies request/response handling across all platform features, how the [Streams Standard](https://streams.spec.whatwg.org/) enables incremental data processing with automatic backpressure, and how [AbortController/AbortSignal](https://dom.spec.whatwg.org/#aborting-ongoing-activities) (DOM Standard Section 3.3) provide composable cancellation semantics. These three APIs form an integrated system: Fetch exposes response bodies as ReadableStreams, Streams propagate backpressure through pipe chains, and AbortSignal enables cancellation at any point in the pipeline.

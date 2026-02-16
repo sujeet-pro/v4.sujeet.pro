@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Bundle Splitting Strategies
 
 Modern JavaScript applications ship megabytes of code by default. Without bundle splitting, users download, parse, and execute the entire application before seeing anything interactive—regardless of which features they'll actually use. Bundle splitting transforms monolithic builds into targeted delivery: load the code for the current route immediately, defer everything else until needed. The payoff is substantial—30-60% reduction in initial bundle size translates directly to faster Time to Interactive (TTI) and improved Core Web Vitals.

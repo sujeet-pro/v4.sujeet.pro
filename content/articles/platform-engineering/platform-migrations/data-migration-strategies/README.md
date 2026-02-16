@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-24
+---
+
 # Draft: Data Migration Strategies and Zero-Downtime Cuts
 
 Patterns for moving data without disrupting production systems.

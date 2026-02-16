@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Design a Form Builder
 
 Schema-driven form generation systems that render dynamic UIs from declarative definitions. This article covers form schema architectures, validation strategies, state management patterns, and the trade-offs that shape production form builders like Typeform, Google Forms, and enterprise low-code platforms.

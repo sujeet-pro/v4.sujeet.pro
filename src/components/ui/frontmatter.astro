@@ -10,7 +10,7 @@ type TopicLike = TopicRef | CardLinkInfo
 interface Props {
   minutesRead?: string
   isDraft?: boolean
-  lastUpdatedOn?: string
+  lastUpdatedOn?: Date
   class?: string
   category?: CategoryLike
   topic?: TopicLike
@@ -54,7 +54,7 @@ const { minutesRead, isDraft, lastUpdatedOn, class: className, category, topic }
     lastUpdatedOn && (
       <span class="frontmatter-item">
         <Icon name="carbon:calendar" class="icon-sm" />
-        Last updated {formatDate(lastUpdatedOn)}
+        Last updated on {formatDate(lastUpdatedOn)}
       </span>
     )
   }

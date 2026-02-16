@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # macOS Developer Environment Setup
 
 A production-ready development environment for macOS, designed around keyboard-driven workflows, reproducible setup via Ansible, and modern CLI tools that replace legacy UNIX utilities. This configuration separates work and personal contexts at the Git, SSH, and directory levels. Optimized for Apple Silicon with sub-100ms shell startup.

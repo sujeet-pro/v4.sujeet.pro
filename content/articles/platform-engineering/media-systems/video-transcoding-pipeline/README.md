@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Video Transcoding Pipeline Design
 
 Building scalable video transcoding pipelines requires orchestrating CPU/GPU-intensive encoding jobs across distributed infrastructure while optimizing for quality, cost, and throughput. This article covers pipeline architecture patterns, codec selection, rate control strategies, job orchestration with chunked parallel processing, quality validation, and failure handling for production video platforms.

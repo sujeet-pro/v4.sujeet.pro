@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-06
+---
+
 # Design Spotify Music Streaming
 
 Spotify serves 675+ million monthly active users across 180+ markets, streaming from a catalog of 100+ million tracks. Unlike video platforms where files are gigabytes, audio files are megabytes—but the scale of concurrent streams, personalization depth, and the expectation of instant playback create unique challenges. This design covers the audio delivery pipeline, the recommendation engine that drives 30%+ of listening, offline sync, and the microservices architecture that enables 300+ autonomous teams to ship independently.

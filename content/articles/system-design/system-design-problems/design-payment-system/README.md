@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Design a Payment System
 
 Building a payment processing platform that handles card transactions, bank transfers, and digital wallets with PCI DSS compliance, idempotent processing, and real-time fraud detection. Payment systems operate under unique constraints: zero tolerance for duplicate charges, regulatory mandates (PCI DSS), and sub-second fraud decisions. This design covers the complete payment lifecycle—authorization, capture, settlement—plus reconciliation, refunds, and multi-gateway routing.

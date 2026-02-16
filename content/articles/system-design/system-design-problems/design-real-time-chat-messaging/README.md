@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Design Real-Time Chat and Messaging
 
 A comprehensive system design for real-time chat and messaging covering connection management, message delivery guarantees, ordering strategies, presence systems, group chat fan-out, and offline synchronization. This design addresses sub-second message delivery at WhatsApp/Discord scale (100B+ messages/day) with strong delivery guarantees and mobile-first offline resilience.

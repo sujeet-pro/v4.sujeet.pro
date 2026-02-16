@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-06
+---
+
 # Design a Notification System
 
 A comprehensive system design for multi-channel notifications covering event ingestion, channel routing, delivery guarantees, user preferences, rate limiting, and failure handling. This design addresses sub-second delivery at Uber/LinkedIn scale (millions of notifications per second) with at-least-once delivery guarantees and user-centric throttling.

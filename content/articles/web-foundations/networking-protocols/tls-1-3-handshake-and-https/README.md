@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # TLS 1.3 Handshake and HTTPS Hardening
 
 How TLS 1.3 achieves 1-RTT handshakes, enforces forward secrecy by design, and what production HTTPS hardening actually requires—from certificate chains and OCSP stapling to HSTS preload and 0-RTT replay risks.

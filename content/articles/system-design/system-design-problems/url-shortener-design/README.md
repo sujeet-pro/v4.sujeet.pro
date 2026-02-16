@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-06
+---
+
 # Design a URL Shortener: IDs, Storage, and Scale
 
 A comprehensive system design for a URL shortening service covering ID generation strategies, database sharding, caching layers, analytics pipelines, and abuse prevention. This design addresses sub-50ms redirect latency at Bitly scale (6 billion clicks/month) with 99.99% availability and real-time click tracking.

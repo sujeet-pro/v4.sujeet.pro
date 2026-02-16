@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Design a Web Crawler
 
 A comprehensive system design for a web-scale crawler that discovers, downloads, and indexes billions of pages. This design addresses URL frontier management with politeness constraints, distributed crawling at scale, duplicate detection, and freshness maintenance across petabytes of web content.

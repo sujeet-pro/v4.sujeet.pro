@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # Browser Event Loop: Tasks, Microtasks, Rendering, and Idle Time
 
 Spec-accurate map of the WHATWG HTML Living Standard event loop in window and worker contexts, centered on task selection, microtask checkpoints, rendering opportunities, and idle scheduling. Focus is on latency and frame-budget trade-offs rather than beginner JavaScript async basics.

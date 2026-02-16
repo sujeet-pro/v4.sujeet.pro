@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Client State Management
 
 Choosing the right state management approach requires understanding that "state" is not monolithic—different categories have fundamentally different requirements. Server state needs caching, deduplication, and background sync. UI state needs fast updates and component isolation. Form state needs validation and dirty tracking. Conflating these categories is the root cause of most state management complexity.

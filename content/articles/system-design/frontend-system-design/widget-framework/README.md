@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Multi-Tenant Pluggable Widget Framework
 
 Designing a frontend framework that hosts third-party extensions—dynamically loaded at runtime based on tenant configurations. This article covers the architectural decisions behind systems like VS Code extensions, Figma plugins, and Shopify embedded apps: module loading strategies (Webpack Module Federation vs SystemJS), sandboxing techniques (iframe, Shadow DOM, Web Workers, WASM), manifest and registry design, the host SDK API contract, and multi-tenant orchestration that resolves widget implementations per user or organization.

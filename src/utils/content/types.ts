@@ -83,7 +83,7 @@ export interface ContentItem {
   minutesRead: string
   description: string
   isDraft: boolean
-  lastUpdatedOn?: string
+  lastUpdatedOn: Date
   Content: RenderResult["Content"]
   href: string // Full URL path (e.g., "/articles/programming/algo/sorting-algorithms")
   // Category and topic derived from folder structure
@@ -209,8 +209,8 @@ export interface BlogItem {
   description: string
   minutesRead: string
   isDraft: boolean
-  publishedOn?: string | undefined
-  lastUpdatedOn?: string | undefined
+  publishedOn: Date
+  lastUpdatedOn: Date
   archived: boolean
   tags: string[]
   href: string
@@ -225,8 +225,8 @@ export interface BlogCardInfo {
   description: string
   href: string
   minutesRead: string
-  publishedOn?: string | undefined
-  lastUpdatedOn?: string | undefined
+  publishedOn: Date
+  lastUpdatedOn: Date
   tags: string[]
   isDraft: boolean
 }
@@ -235,15 +235,20 @@ export interface BlogCardInfo {
 // Project Types
 // =============================================================================
 
+export interface ProjectLink {
+  url: string
+  text: string
+}
+
 export interface ProjectItem {
   id: string
   title: string
   description: string
   minutesRead: string
   isDraft: boolean
-  lastUpdatedOn?: string
+  lastUpdatedOn: Date
   gitRepo?: string | undefined
-  demoUrl?: string | undefined
+  links: ProjectLink[]
   tags: string[]
   href: string
   Content: RenderResult["Content"]
@@ -258,7 +263,7 @@ export interface ProjectCardInfo {
   href: string
   minutesRead: string
   gitRepo?: string | undefined
-  demoUrl?: string | undefined
+  links: ProjectLink[]
   tags: string[]
   isDraft: boolean
 }

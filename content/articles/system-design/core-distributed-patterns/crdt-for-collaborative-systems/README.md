@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # CRDTs for Collaborative Systems
 
 Conflict-free Replicated Data Types (CRDTs) are data structures mathematically guaranteed to converge to the same state across distributed replicas without coordination. They solve the fundamental challenge of distributed collaboration: allowing concurrent updates while ensuring eventual consistency without locking or consensus protocols.

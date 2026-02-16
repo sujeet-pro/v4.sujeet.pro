@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # React Rendering Architecture: Fiber, SSR, and RSC
 
 React's rendering architecture has evolved from a synchronous stack-based reconciler to a sophisticated concurrent system built on Fiber's virtual call stack. This article examines the Fiber reconciliation engine, lane-based priority scheduling, streaming Server-Side Rendering (SSR), and React Server Components (RSC)—now stable as of React 19 (December 2024). Understanding these internals is essential for making informed architectural decisions about rendering strategies, performance optimization, and infrastructure requirements.

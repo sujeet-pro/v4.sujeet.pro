@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-16
+---
+
 # Rendering Strategies: CSR, SSR, SSG, and ISR
 
 Every page load is a sequence of decisions: where HTML is generated, when data is fetched, and how interactivity is attached. The four canonical rendering strategies — Client-Side Rendering (CSR), Server-Side Rendering (SSR), Static Site Generation (SSG), and Incremental Static Regeneration (ISR) — represent different trade-off points along axes of freshness, performance, cost, and complexity. Modern frameworks blur the boundaries further with per-route strategies, streaming, islands architecture, and Partial Prerendering (PPR). This article examines the mechanics, failure modes, and design reasoning behind each approach, then builds a decision framework for choosing between them.

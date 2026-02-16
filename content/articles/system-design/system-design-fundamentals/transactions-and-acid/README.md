@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Transactions and ACID Properties
 
 Database transactions provide the foundation for reliable data operations: atomicity ensures all-or-nothing execution, consistency maintains invariants, isolation controls concurrent access, and durability guarantees persistence. This article explores implementation mechanisms (WAL, MVCC, locking), isolation level semantics across major databases, distributed transaction protocols (2PC, 3PC, Spanner's TrueTime), and practical alternatives (sagas, outbox pattern) for systems where traditional transactions don't scale.

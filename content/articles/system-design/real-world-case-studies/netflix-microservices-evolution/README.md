@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-08
+---
+
 # Netflix: From Monolith to Microservices — A 7-Year Architecture Evolution
 
 In August 2008, a database corruption in Netflix's monolithic Oracle backend prevented DVD shipments for three days — exposing a single point of failure that threatened the business. Rather than patching the existing architecture, Netflix leadership made a radical decision: migrate entirely to AWS and decompose the monolith into independent microservices. Over 7 years (2009–2016), Netflix grew from 9.4 million to 89 million subscribers, scaled from 20 million to 2 billion API requests per day, and built an open-source ecosystem (Eureka, Hystrix, Zuul, Chaos Monkey) that redefined how the industry thinks about cloud-native architecture. This case study traces the technical decisions, migration phases, tools built, and hard-won lessons from one of the most influential architecture transformations in software history.

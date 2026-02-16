@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-09
+---
+
 # Design an API Rate Limiter: Distributed Throttling, Multi-Tenant Quotas, and Graceful Degradation
 
 A comprehensive system design for a distributed API rate limiting service covering algorithm selection, Redis-backed counting, multi-tenant quota management, rate limit header communication, and graceful degradation under failure. This design addresses sub-millisecond rate check latency at 500K+ decisions per second with configurable per-tenant policies and fail-open resilience.

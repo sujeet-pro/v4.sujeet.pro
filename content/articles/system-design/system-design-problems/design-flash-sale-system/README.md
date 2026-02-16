@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Design a Flash Sale System
 
 Building a system to handle millions of concurrent users competing for limited inventory during time-bounded sales events. Flash sales present a unique challenge: extreme traffic spikes (10-100x normal) concentrated in seconds, with zero tolerance for inventory errors. This design covers virtual waiting rooms, atomic inventory management, and asynchronous order processing.

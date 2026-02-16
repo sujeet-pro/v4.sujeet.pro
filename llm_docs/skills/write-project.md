@@ -70,7 +70,9 @@ Create `content/projects/<slug>/README.md` with the following structure:
 ```markdown
 ---
 gitRepo: <detected or provided>
-demoUrl: <detected or provided>
+links:
+  - url: <detected or provided>
+    text: <short label e.g. npm, Docs, Demo>
 tags: [<inferred from tech/domain>]
 ---
 
@@ -134,7 +136,7 @@ Project repo, docs, related resources.
 - Accuracy: Is every claim verifiable from the scanned codebase?
 - Completeness: Are all sections filled with substantive content?
 - No fluff: Does every paragraph earn its place?
-- Frontmatter: Are `gitRepo`, `demoUrl`, and `tags` correctly populated?
+- Frontmatter: Are `gitRepo`, `links`, and `tags` correctly populated?
 - Ordering: Is the slug added to `content/ordering.json5`?
 
 ## Output Checklist
@@ -146,6 +148,6 @@ Project repo, docs, related resources.
 - [ ] All claims grounded in the scanned codebase
 - [ ] Architecture/flow diagram included (mermaid)
 - [ ] Getting Started section provides working quick start
-- [ ] Frontmatter populated (`gitRepo`, `demoUrl`, `tags`)
+- [ ] Frontmatter populated (`gitRepo`, `links`, `tags`)
 - [ ] Appendix includes Tech Stack and References
 - [ ] No filler — every paragraph earns its place

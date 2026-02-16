@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # Critical Rendering Path: Layerize
 
 The Layerize stage converts paint chunks into composited layers (`cc::Layer` objects), determining how display items should be grouped for independent rasterization and animation. This process happens after [Paint](../crp-paint/README.md) produces the paint artifact and before [Rasterization](../crp-raster/README.md) converts those layers into GPU textures.

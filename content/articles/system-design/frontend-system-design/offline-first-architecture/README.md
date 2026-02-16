@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Offline-First Architecture
 
 Building applications that prioritize local data and functionality, treating network connectivity as an enhancement rather than a requirement—the storage APIs, sync strategies, and conflict resolution patterns that power modern collaborative and offline-capable applications.

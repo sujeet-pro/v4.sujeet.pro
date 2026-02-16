@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Image Performance Optimization for the Web
 
 Comprehensive guide to image optimization covering modern formats (AVIF, WebP, JPEG XL), responsive image implementation with `srcset` and `sizes`, loading strategies with `fetchpriority` and `decoding` attributes, and network-aware delivery. Targets 50-80% bandwidth reduction and significant Largest Contentful Paint (LCP) improvements.

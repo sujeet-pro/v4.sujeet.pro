@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Async Queue Pattern in JavaScript
 
 Build resilient, scalable asynchronous task processing systems—from basic in-memory queues to advanced distributed patterns—using Node.js. This article covers the design reasoning behind queue architectures, concurrency control mechanisms, and resilience patterns for production systems.

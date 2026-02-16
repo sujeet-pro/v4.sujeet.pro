@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Indexing and Query Optimization
 
 Database indexes accelerate reads by trading write overhead and storage for faster lookups. This article covers index data structures, composite index design, query planner behavior, and maintenance strategies for production systems.

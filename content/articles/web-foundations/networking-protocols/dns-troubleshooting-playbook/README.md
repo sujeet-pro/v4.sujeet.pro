@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # DNS Troubleshooting Playbook
 
 A systematic approach to diagnosing DNS outages, propagation delays, and resolution failures. This playbook provides decision trees for symptom-driven triage, command recipes for isolating failures across the resolution chain, and DNSSEC (Domain Name System Security Extensions) debugging workflows for the most common signing failures.

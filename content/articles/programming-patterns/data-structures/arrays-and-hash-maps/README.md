@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Arrays and Hash Maps: Engine Internals and Performance Reality
 
 Theoretical complexity hides the real story. Arrays promise O(1) access but degrade to O(n) with sparse indices. Hash maps guarantee O(1) lookups until collisions chain into linear probes. Understanding V8's internal representations—elements kinds, hidden classes, and deterministic hash tables—reveals when these data structures actually deliver their promised performance and when they fail.

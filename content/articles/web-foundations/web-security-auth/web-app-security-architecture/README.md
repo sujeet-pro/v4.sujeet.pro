@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Web Application Security Architecture
 
 A defense-in-depth guide to security controls, threat mitigation strategies, and implementation patterns for modern web applications—covering security headers, authentication, cryptography, and the OWASP Top 10:2025.

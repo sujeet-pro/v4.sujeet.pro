@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # SSG Performance Optimizations: Build, Cache, and Delivery
 
 Production-grade Static Site Generation (SSG) architecture for AWS CloudFront delivery. Covers atomic deployments, pre-compression strategies, Lambda@Edge routing patterns, and Core Web Vitals optimization—with specific focus on design tradeoffs and operational failure modes that senior engineers encounter in production.

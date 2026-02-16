@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Virtualization and Windowing
 
 Rendering large lists (1,000+ items) without virtualization creates a DOM tree so large that layout calculations alone can block the main thread for hundreds of milliseconds. Virtualization solves this by rendering only visible items plus a small buffer, keeping DOM node count constant regardless of list size. The trade-off: implementation complexity for consistent O(viewport) rendering performance.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-06
+---
+
 # Design a Social Feed (Facebook/Instagram)
 
 A comprehensive system design for social feed generation and ranking covering fan-out strategies, ML-powered ranking, graph-based storage, and caching at scale. This design addresses sub-second feed delivery for billions of users with personalized content ranking, handling the "celebrity problem" where a single post can require millions of fan-out operations.

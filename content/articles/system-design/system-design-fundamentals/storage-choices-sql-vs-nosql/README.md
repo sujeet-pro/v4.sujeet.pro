@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Storage Choices: SQL vs NoSQL
 
 Choosing between SQL and NoSQL databases based on data model requirements, access patterns, consistency needs, and operational constraints. This guide presents the design choices, trade-offs, and decision factors that drive storage architecture decisions in production systems.

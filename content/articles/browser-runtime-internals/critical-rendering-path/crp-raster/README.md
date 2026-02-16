@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # Critical Rendering Path: Rasterization
 
 Rasterization is the process where the browser converts recorded display lists into actual pixels—bitmaps for software raster or GPU textures for hardware-accelerated paths. This stage marks the transition from abstract paint commands to concrete visual data. In Chromium, rasterization is managed by the compositor thread and executed by worker threads, ensuring smooth interactions even when the main thread is saturated with JavaScript or layout work.

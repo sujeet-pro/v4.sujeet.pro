@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # JavaScript Error Handling Patterns
 
 Master exception-based and value-based error handling approaches, from traditional try-catch patterns to modern functional programming techniques with monadic structures.

@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-04
+---
+
 # Distributed Locking
 
 Distributed locks coordinate access to shared resources across multiple processes or nodes. Unlike single-process mutexes, they must handle network partitions, clock drift, process pauses, and partial failures—all while providing mutual exclusion guarantees that range from "best effort" to "correctness critical."

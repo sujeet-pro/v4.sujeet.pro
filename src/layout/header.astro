@@ -18,19 +18,17 @@ const navItems = await getNavItems()
     <nav class="header-nav">
       <!-- Left side: sidebar toggle + logo -->
       <div class="header-left">
-        {
-          hasLeftSidebar && (
-            <button
-              id="left-sidebar-toggle"
-              class="sidebar-toggle-btn"
-              aria-label="Toggle navigation sidebar"
-              aria-expanded="true"
-              title="Hide navigation sidebar"
-            >
-              <Icon name="carbon:side-panel-open" class="icon-md" />
-            </button>
-          )
-        }
+        <button
+          id="left-sidebar-toggle"
+          class:list={["sidebar-toggle-btn", { "sidebar-toggle-placeholder": !hasLeftSidebar }]}
+          aria-label="Toggle navigation sidebar"
+          aria-expanded="true"
+          title="Hide navigation sidebar"
+          aria-hidden={!hasLeftSidebar}
+          tabindex={hasLeftSidebar ? undefined : -1}
+        >
+          <Icon name="carbon:side-panel-open" class="icon-md" />
+        </button>
         <Link href="/" class="header-logo">
           <span class="header-logo-name">sujeet.pro</span>
         </Link>
@@ -132,19 +130,17 @@ const navItems = await getNavItems()
           </svg>
         </button>
 
-        {
-          hasRightSidebar && (
-            <button
-              id="right-sidebar-toggle"
-              class="sidebar-toggle-btn"
-              aria-label="Toggle table of contents"
-              aria-expanded="true"
-              title="Hide table of contents"
-            >
-              <Icon name="carbon:side-panel-close" class="icon-md" />
-            </button>
-          )
-        }
+        <button
+          id="right-sidebar-toggle"
+          class:list={["sidebar-toggle-btn", { "sidebar-toggle-placeholder": !hasRightSidebar }]}
+          aria-label="Toggle table of contents"
+          aria-expanded="true"
+          title="Hide table of contents"
+          aria-hidden={!hasRightSidebar}
+          tabindex={hasRightSidebar ? undefined : -1}
+        >
+          <Icon name="carbon:side-panel-close" class="icon-md" />
+        </button>
 
         <!-- Hamburger Menu - visible on mobile only -->
         <button
@@ -209,12 +205,27 @@ const navItems = await getNavItems()
     @apply flex;
   }
 
+  /* Placeholder: reserves space on desktop, hidden on mobile */
+  .sidebar-toggle-placeholder {
+    @apply hidden;
+    pointer-events: none;
+  }
+
+  @media (min-width: 1440px) {
+    .sidebar-toggle-placeholder {
+      @apply flex;
+      visibility: hidden;
+    }
+  }
+
   .sidebar-toggle-btn .icon-md {
     transition: transform var(--transition-fast);
   }
 
-  /* Flip arrow when sidebar is open */
-  .sidebar-toggle-btn[aria-expanded="true"] .icon-md {
-    transform: scaleX(-1);
+  /* Desktop: flip arrow when sidebar is expanded (collapse direction) */
+  @media (min-width: 1440px) {
+    .sidebar-toggle-btn[aria-expanded="true"] .icon-md {
+      transform: scaleX(-1);
+    }
   }
 </style>

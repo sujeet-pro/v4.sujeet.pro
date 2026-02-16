@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-01-31
+---
+
 # V8 Engine Architecture: Parsing, Optimization, and JIT
 
 V8's multi-tiered compilation pipeline—Ignition interpreter through TurboFan optimizer—achieves near-native JavaScript performance while maintaining language dynamism. This analysis covers the four-tier architecture (as of V8 12.x / Chrome 120+), the runtime's hidden class and inline caching systems that enable speculative optimization, and the Orinoco garbage collector's parallel/concurrent strategies.

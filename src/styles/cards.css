@@ -290,6 +290,29 @@
   color: var(--color-text-muted);
 }
 
+.project-card-meta-item {
+  @apply inline-flex items-center gap-1;
+}
+
+.project-page-meta {
+  @apply mb-8 flex flex-wrap items-center gap-x-4 gap-y-3 text-xs;
+  color: var(--color-text-muted);
+}
+
+.project-page-meta .frontmatter {
+  display: contents;
+}
+
+.project-page-link-item {
+  @apply inline-flex items-center gap-1.5 text-xs no-underline;
+  color: var(--color-text-muted);
+  transition: color var(--transition-fast);
+}
+
+.project-page-link-item:hover {
+  color: var(--color-text);
+}
+
 .project-card-link-item {
   @apply inline-flex items-center gap-1 text-xs no-underline;
   color: var(--color-text-muted);

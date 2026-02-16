@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # K-Crystal Balls Problem: Jump Search Pattern
 
 The K-crystal balls (or K-egg drop) problem demonstrates how constrained resources fundamentally change optimal search strategy. With unlimited test resources, binary search achieves O(log n). With exactly k resources that are consumed on failure, the optimal worst-case complexity becomes O(n^(1/k))—a jump search pattern where each resource enables one level of hierarchical partitioning.

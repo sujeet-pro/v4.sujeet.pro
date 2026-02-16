@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Web Performance Infrastructure: DNS, CDN, Caching, and Edge
 
 Infrastructure optimization addresses the foundation of web performance—the layers between a user's request and your application's response. This article covers DNS as a performance lever, HTTP/3 and QUIC for eliminating protocol-level bottlenecks, CDN and edge computing for geographic proximity, compression strategies for payload reduction, and caching patterns that can reduce Time to First Byte (TTFB) by 85-95% while offloading 80%+ of traffic from origin servers.

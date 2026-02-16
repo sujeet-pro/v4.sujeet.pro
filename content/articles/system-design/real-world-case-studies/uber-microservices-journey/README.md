@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-16
+---
+
 # Uber: From Monolith to Domain-Oriented Microservices
 
 How Uber evolved from two monolithic services to 4,000+ microservices and then restructured into domain-oriented architecture, demonstrating that the hardest part of microservices is not splitting the monolith but managing what comes after. Each architectural phase solved real scaling bottlenecks while creating new organizational and operational challenges at the next order of magnitude.

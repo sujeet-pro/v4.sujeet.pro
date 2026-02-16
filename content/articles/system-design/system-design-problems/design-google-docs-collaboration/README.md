@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # Design Collaborative Document Editing (Google Docs)
 
 A comprehensive system design for real-time collaborative document editing covering synchronization algorithms, presence broadcasting, conflict resolution, storage patterns, and offline support. This design addresses sub-second convergence for concurrent edits while maintaining document history and supporting 10-50 simultaneous editors.

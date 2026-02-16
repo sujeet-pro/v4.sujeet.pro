@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-03
+---
+
 # RPC and API Design
 
 Choosing communication protocols and patterns for distributed systems. This article covers REST, gRPC, and GraphQL—their design trade-offs, when each excels, and real-world implementations. Also covers API versioning, pagination, rate limiting, and documentation strategies that scale.

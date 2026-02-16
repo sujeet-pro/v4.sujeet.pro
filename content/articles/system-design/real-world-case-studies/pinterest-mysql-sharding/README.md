@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-08
+---
+
 # Pinterest: MySQL Sharding from Zero to Billions of Objects
 
 In 2012, Pinterest had 3.2 million users doubling every 45 days, 3 engineers, and five different database technologies all breaking simultaneously. Their fix: abandon every NoSQL database, shard MySQL with a 64-bit ID scheme that embeds shard location directly in every object ID, and never move data between shards. This case study examines how Pinterest's "boring technology" philosophy produced one of the most enduring database architectures in Silicon Valley---still running in production over a decade later---and the specific design decisions that made it work at 150+ billion objects.

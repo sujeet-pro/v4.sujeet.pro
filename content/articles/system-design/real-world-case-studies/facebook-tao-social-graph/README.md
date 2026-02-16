@@ -1,3 +1,7 @@
+---
+lastUpdatedOn: 2026-02-08
+---
+
 # Facebook TAO: The Social Graph's Distributed Cache
 
 Facebook's social graph presents a unique data access problem: billions of users generating trillions of edges (friendships, likes, comments) that must be readable at sub-millisecond latencies and writable at millions of operations per second. TAO (The Associations and Objects) replaced the generic memcache+MySQL architecture with a graph-aware caching system that handles over 1 billion reads per second at 96.4% cache hit rate. This case study examines why generic key-value caches failed for graph data, how TAO's two-tier write-through architecture solves thundering herd and consistency problems, and what design patterns emerge for caching highly connected data.
