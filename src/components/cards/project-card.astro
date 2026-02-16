@@ -17,9 +17,6 @@ const { project } = Astro.props
   <div class="project-card-meta">
     <span>{project.minutesRead}</span>
     {project.isDraft && <span class="badge-accent">Draft</span>}
-  </div>
-  {project.description && <p class="project-card-excerpt">{project.description}</p>}
-  <div class="project-card-links">
     {
       project.gitRepo && (
         <Link href={project.gitRepo} class="project-card-link-item" target="_blank" rel="noopener noreferrer">
@@ -37,6 +34,7 @@ const { project } = Astro.props
       )
     }
   </div>
+  {project.description && <p class="project-card-excerpt">{project.description}</p>}
   {
     project.tags.length > 0 && (
       <div class="project-card-tags">

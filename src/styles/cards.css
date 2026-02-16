@@ -290,12 +290,8 @@
   color: var(--color-text-muted);
 }
 
-.project-card-links {
-  @apply mt-3 flex flex-wrap items-center gap-4;
-}
-
 .project-card-link-item {
-  @apply inline-flex items-center gap-1.5 text-sm no-underline;
+  @apply inline-flex items-center gap-1 text-xs no-underline;
   color: var(--color-text-muted);
   transition: color var(--transition-fast);
 }

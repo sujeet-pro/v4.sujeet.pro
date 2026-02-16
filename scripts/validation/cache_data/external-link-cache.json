@@ -103,6 +103,14 @@
       "lastChecked": "2026-02-03T08:45:47.246Z",
       "hint": "fetch-node"
     },
+    "https://about.fb.com/news/2021/10/update-about-the-october-4th-outage/": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:45.862Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
+    },
     "https://about.gitlab.com/topics/version-control/what-is-innersource/": {
       "status": 200,
       "ok": true,
@@ -125,6 +133,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:48:29.549Z",
+      "hint": "fetch-node"
+    },
+    "https://adamwathan.me/css-utility-classes-and-separation-of-concerns/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:40.233Z",
       "hint": "fetch-node"
     },
     "https://adasq.github.io/scheduling-in-react-16-x/": {
@@ -154,7 +168,7 @@
     "https://ai.meta.com/blog/powered-by-ai-instagrams-explore-recommender-system/": {
       "status": 500,
       "ok": true,
-      "lastChecked": "2026-02-09T11:27:46.034Z",
+      "lastChecked": "2026-02-16T09:58:44.311Z",
       "error": "HTTP 500",
       "hint": "manual",
       "manual": "auto"
@@ -193,6 +207,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:45:28.015Z",
+      "hint": "fetch-node"
+    },
+    "https://antfu.me/posts/reimagine-atomic-css": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:41.059Z",
       "hint": "fetch-node"
     },
     "https://antirez.com/news/101": {
@@ -453,6 +473,18 @@
       "lastChecked": "2026-02-03T08:46:55.796Z",
       "hint": "fetch-node"
     },
+    "https://aws.amazon.com/message/11201/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:12.288Z",
+      "hint": "fetch-node"
+    },
+    "https://aws.amazon.com/premiumsupport/technology/pes/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:13.063Z",
+      "hint": "fetch-node"
+    },
     "https://aws.amazon.com/s3/storage-classes/": {
       "status": 200,
       "ok": true,
@@ -463,6 +495,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-07T23:06:08.034Z",
+      "hint": "fetch-node"
+    },
+    "https://aws.amazon.com/solutions/guidance/cell-based-architecture-on-aws/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:14.059Z",
       "hint": "fetch-node"
     },
     "https://backstage.io/": {
@@ -613,6 +651,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:48:07.501Z",
+      "hint": "fetch-node"
+    },
+    "https://blog.cloudflare.com/october-2021-facebook-outage/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:43.946Z",
       "hint": "fetch-node"
     },
     "https://blog.cloudflare.com/part1-coreless-purge/": {
@@ -1419,6 +1463,12 @@
       "lastChecked": "2026-02-03T08:47:43.591Z",
       "hint": "fetch-node"
     },
+    "https://cube.fyi/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:40.993Z",
+      "hint": "fetch-node"
+    },
     "https://curator.apache.org/": {
       "status": 200,
       "ok": true,
@@ -1615,6 +1665,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:49:01.538Z",
+      "hint": "fetch-node"
+    },
+    "https://datatracker.ietf.org/doc/html/rfc4271": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:42.937Z",
       "hint": "fetch-node"
     },
     "https://datatracker.ietf.org/doc/html/rfc4791": {
@@ -2079,6 +2135,12 @@
       "lastChecked": "2026-02-06T04:34:04.714Z",
       "hint": "fetch-node"
     },
+    "https://dev.to/srmagura/why-were-breaking-up-wiht-css-in-js-4g9b": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:40.246Z",
+      "hint": "fetch-node"
+    },
     "https://dev.to/sujeetpro": {
       "status": 200,
       "ok": true,
@@ -2125,6 +2187,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:46:53.542Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.atlassian.com/cloud/confluence/rest/v2/intro/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:45.274Z",
+      "hint": "fetch-node"
+    },
+    "https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:45.766Z",
       "hint": "fetch-node"
     },
     "https://developer.atlassian.com/cloud/jira/platform/rest/v3/": {
@@ -3078,7 +3152,7 @@
     "https://dl.acm.org/doi/10.1145/2488388.2488433": {
       "status": 403,
       "ok": true,
-      "lastChecked": "2026-02-09T11:27:45.777Z",
+      "lastChecked": "2026-02-16T09:58:43.584Z",
       "error": "HTTP 403",
       "hint": "manual",
       "manual": "auto"
@@ -3793,6 +3867,12 @@
       "lastChecked": "2026-02-03T08:47:56.391Z",
       "hint": "playwright"
     },
+    "https://downtimeproject.com/podcast/kinesis-hits-the-thread-limit/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:16.178Z",
+      "hint": "fetch-node"
+    },
     "https://drafts.css-houdini.org/css-paint-api-1/": {
       "status": 200,
       "ok": true,
@@ -3941,6 +4021,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:14.098Z",
+      "hint": "fetch-node"
+    },
+    "https://effector.dev/docs/api/effector/fork/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:48.234Z",
       "hint": "fetch-node"
     },
     "https://elasticsearch-learning-to-rank.readthedocs.io/": {
@@ -4165,6 +4251,12 @@
       "lastChecked": "2026-02-07T23:38:47.142Z",
       "hint": "fetch-node"
     },
+    "https://engineering.fb.com/2021/10/05/networking-traffic/outage-details/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:42.115Z",
+      "hint": "fetch-node"
+    },
     "https://engineering.fb.com/2022/06/08/core-infra/cache-made-consistent/": {
       "status": 200,
       "ok": true,
@@ -4288,7 +4380,7 @@
     "https://engineeringblog.yelp.com/2021/03/personalizing-yelp-home-with-contextual-bandit.html": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-09T11:27:46.667Z",
+      "lastChecked": "2026-02-16T09:58:45.526Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -4332,7 +4424,7 @@
     "https://etcd.io/docs/v3.5/dev-guide/api_concurrency_ref/": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-09T11:27:44.292Z",
+      "lastChecked": "2026-02-16T09:58:43.186Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -4860,6 +4952,12 @@
       "lastChecked": "2026-02-03T08:46:09.071Z",
       "hint": "fetch-node"
     },
+    "https://github.com/css-modules/css-modules": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:41.123Z",
+      "hint": "fetch-node"
+    },
     "https://github.com/dequelabs/axe-core": {
       "status": 200,
       "ok": true,
@@ -4968,6 +5066,12 @@
       "lastChecked": "2026-02-03T20:26:37.091Z",
       "hint": "fetch-node"
     },
+    "https://github.com/jamsinclair/marklassian": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:45.338Z",
+      "hint": "fetch-node"
+    },
     "https://github.com/javierbrea/eslint-plugin-boundaries": {
       "status": 200,
       "ok": true,
@@ -5061,7 +5165,7 @@
     "https://github.com/nicholasgross/nicholasgross.github.io": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-09T11:27:47.523Z",
+      "lastChecked": "2026-02-16T09:58:46.112Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -5100,6 +5204,24 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-07T23:08:33.465Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/pmndrs/jotai": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:49.569Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/pmndrs/valtio": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:50.603Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/pmndrs/zustand": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:48.594Z",
       "hint": "fetch-node"
     },
     "https://github.com/primus/eventemitter3": {
@@ -5192,6 +5314,12 @@
       "lastChecked": "2026-02-03T08:48:04.402Z",
       "hint": "fetch-node"
     },
+    "https://github.com/stubbornella/oocss/wiki": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:42.468Z",
+      "hint": "fetch-node"
+    },
     "https://github.com/sujeet-pro": {
       "status": 200,
       "ok": true,
@@ -5202,6 +5330,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:14.907Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/sujeet-pro/markdown-to-confluence-sync": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:44.573Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/sujeet-pro/stateloom": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:46.414Z",
       "hint": "fetch-node"
     },
     "https://github.com/supermacro/neverthrow": {
@@ -5226,6 +5366,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:20.999Z",
+      "hint": "fetch-node"
+    },
+    "https://github.com/tc39/proposal-signals": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:47.800Z",
       "hint": "fetch-node"
     },
     "https://github.com/tc39/proposal-throw-expressions": {
@@ -5547,6 +5693,12 @@
       "lastChecked": "2026-02-07T23:38:47.034Z",
       "hint": "fetch-node"
     },
+    "https://highscalability.com/lessons-learned-from-scaling-uber-to-2000-engineers-1000-ser/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:25:15.618Z",
+      "hint": "fetch-node"
+    },
     "https://highscalability.com/the-whatsapp-architecture-facebook-bought-for-19-billion/": {
       "status": 200,
       "ok": true,
@@ -5665,6 +5817,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:48:08.927Z",
+      "hint": "fetch-node"
+    },
+    "https://id.atlassian.com/manage/api-tokens": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:44.503Z",
       "hint": "fetch-node"
     },
     "https://ieeexplore.ieee.org/document/4668339/": {
@@ -5955,6 +6113,12 @@
       "lastChecked": "2026-02-07T23:06:27.880Z",
       "hint": "fetch-node"
     },
+    "https://labs.ripe.net/author/alun_davies/facebook-down-and-out-in-bgplay/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:43.199Z",
+      "hint": "fetch-node"
+    },
     "https://lamport.azurewebsites.net/pubs/multi.pdf": {
       "status": 200,
       "ok": true,
@@ -6115,6 +6279,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:31.090Z",
+      "hint": "fetch-node"
+    },
+    "https://linuxczar.net/blog/2020/12/07/aws-kinesis-outage/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:12.444Z",
       "hint": "fetch-node"
     },
     "https://lmax-exchange.github.io/disruptor/": {
@@ -6301,6 +6471,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:55.669Z",
+      "hint": "fetch-browser-agent"
+    },
+    "https://medium.com/airbnb-engineering/airbnbs-trip-to-linaria-dc169230bd12": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:42.271Z",
       "hint": "fetch-browser-agent"
     },
     "https://medium.com/airbnb-engineering/capturing-data-evolution-in-a-service-oriented-architecture-72f7c643ee6f": {
@@ -6727,6 +6903,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T20:07:30.291Z",
+      "hint": "fetch-node"
+    },
+    "https://nextjs.org/docs/app/building-your-application/rendering": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:42.325Z",
+      "hint": "fetch-node"
+    },
+    "https://nextjs.org/docs/app/building-your-application/rendering/partial-prerendering": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:42.566Z",
       "hint": "fetch-node"
     },
     "https://nextjs.org/docs/app/building-your-application/routing/loading-ui-and-streaming": {
@@ -7189,6 +7377,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T15:21:42.877Z",
+      "hint": "fetch-node"
+    },
+    "https://preactjs.com/blog/signal-boosting": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:46.886Z",
       "hint": "fetch-node"
     },
     "https://prometheus.io/blog/2016/07/23/pull-does-not-scale-or-does-it/": {
@@ -7701,6 +7895,12 @@
       "lastChecked": "2026-02-03T20:26:34.338Z",
       "hint": "fetch-node"
     },
+    "https://ryanfrantz.com/posts/aws-kinesis-outage-analysis.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:12.610Z",
+      "hint": "fetch-node"
+    },
     "https://s2geometry.io/": {
       "status": 200,
       "ok": true,
@@ -7770,7 +7970,7 @@
     "https://serialized.io/blog/apache-kafka-is-not-for-event-sourcing/": {
       "status": null,
       "ok": true,
-      "lastChecked": "2026-02-09T11:27:43.893Z",
+      "lastChecked": "2026-02-16T09:58:42.476Z",
       "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://serialized.io/blog/apache-kafka-is-not-for-event-sourcing/\nCall log:\n\u001b[2m  - navigating to \"https://serialized.io/blog/apache-kafka-is-not-for-event-sourcing/\", waiting until \"domcontentloaded\"\u001b[22m\n",
       "hint": "manual",
       "manual": "auto"
@@ -7907,10 +8107,58 @@
       "lastChecked": "2026-02-03T15:21:42.933Z",
       "hint": "fetch-node"
     },
+    "https://slack.engineering/disasterpiece-theater-slacks-process-for-approachable-chaos-engineering/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:15.515Z",
+      "hint": "fetch-node"
+    },
+    "https://slack.engineering/flannel-an-application-level-edge-cache-to-make-slack-scale/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:12.527Z",
+      "hint": "fetch-node"
+    },
+    "https://slack.engineering/getting-to-slack-faster-with-incremental-boot/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:20.556Z",
+      "hint": "fetch-node"
+    },
+    "https://slack.engineering/how-big-technical-changes-happen-at-slack/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:19.950Z",
+      "hint": "fetch-node"
+    },
+    "https://slack.engineering/how-we-design-our-apis-at-slack/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:24.026Z",
+      "hint": "fetch-node"
+    },
+    "https://slack.engineering/infrastructure-observability-for-changing-the-spend-curve/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:23.499Z",
+      "hint": "fetch-node"
+    },
+    "https://slack.engineering/migrating-millions-of-concurrent-websockets-to-envoy/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:14.007Z",
+      "hint": "fetch-node"
+    },
     "https://slack.engineering/real-time-messaging/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:40.430Z",
+      "hint": "fetch-node"
+    },
+    "https://slack.engineering/reducing-slacks-memory-footprint/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:22.032Z",
       "hint": "fetch-node"
     },
     "https://slack.engineering/scaling-datastores-at-slack-with-vitess/": {
@@ -7925,10 +8173,34 @@
       "lastChecked": "2026-02-03T08:48:14.589Z",
       "hint": "fetch-node"
     },
+    "https://slack.engineering/search-at-slack/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:21.028Z",
+      "hint": "fetch-node"
+    },
+    "https://slack.engineering/slacks-incident-on-2-22-22/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:14.513Z",
+      "hint": "fetch-node"
+    },
     "https://slack.engineering/slacks-migration-to-a-cellular-architecture/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:30.699Z",
+      "hint": "fetch-node"
+    },
+    "https://slack.engineering/taking-php-seriously/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:17.126Z",
+      "hint": "fetch-node"
+    },
+    "https://slack.engineering/the-scary-thing-about-automating-deploys/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:17.508Z",
       "hint": "fetch-node"
     },
     "https://slack.engineering/tracing-notifications/": {
@@ -8165,6 +8437,18 @@
       "lastChecked": "2026-02-03T08:46:07.386Z",
       "hint": "fetch-node"
     },
+    "https://stylexjs.com/blog/introducing-stylex": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:40.630Z",
+      "hint": "fetch-node"
+    },
+    "https://sujeet-pro.github.io/markdown-to-confluence-sync/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:45.300Z",
+      "hint": "fetch-node"
+    },
     "https://support.atlassian.com/jira/kb/understanding-and-managing-lexorank-in-jira-server/": {
       "status": 200,
       "ok": true,
@@ -8211,6 +8495,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-06T04:34:04.976Z",
+      "hint": "fetch-node"
+    },
+    "https://tailwindcss.com/blog/tailwindcss-v4": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:40.183Z",
+      "hint": "fetch-node"
+    },
+    "https://tailwindcss.com/docs/theme": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:41.159Z",
       "hint": "fetch-node"
     },
     "https://tanstack.com/query/latest": {
@@ -8507,6 +8803,12 @@
       "lastChecked": "2026-02-03T08:47:04.710Z",
       "hint": "fetch-node"
     },
+    "https://vanilla-extract.style/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:40.776Z",
+      "hint": "fetch-node"
+    },
     "https://varnish-cache.org/docs/7.3/users-guide/vcl-grace.html": {
       "status": 200,
       "ok": true,
@@ -8517,6 +8819,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:02.451Z",
+      "hint": "fetch-node"
+    },
+    "https://vercel.com/blog/understanding-react-server-components": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:41.886Z",
       "hint": "fetch-node"
     },
     "https://vercel.com/docs/functions/runtimes/edge": {
@@ -8553,6 +8861,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:46:08.990Z",
+      "hint": "fetch-node"
+    },
+    "https://vitess.io/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:15.950Z",
       "hint": "fetch-node"
     },
     "https://vitess.io/blog/2016-03-10-percona-live-featured-talk-with-sugu-sougoumarane-vitess-the-complete-story/": {
@@ -8792,7 +9106,7 @@
     "https://web.dev/articles/long-animation-frames": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-09T11:27:45.441Z",
+      "lastChecked": "2026-02-16T09:58:44.327Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -9189,6 +9503,12 @@
       "lastChecked": "2026-02-03T08:47:59.230Z",
       "hint": "fetch-node"
     },
+    "https://www.catchpoint.com/blog/incident-review-for-the-facebook-outage-when-social-networks-go-anti-social": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:42.786Z",
+      "hint": "fetch-node"
+    },
     "https://www.chromatic.com/": {
       "status": 200,
       "ok": true,
@@ -9285,6 +9605,12 @@
       "lastChecked": "2026-02-06T04:34:04.205Z",
       "hint": "playwright"
     },
+    "https://www.cncf.io/announcements/2019/10/31/cloud-native-computing-foundation-announces-jaeger-graduation/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:25:25.377Z",
+      "hint": "fetch-node"
+    },
     "https://www.cncf.io/announcements/2019/11/05/cloud-native-computing-foundation-announces-vitess-graduation/": {
       "status": 200,
       "ok": true,
@@ -9375,6 +9701,12 @@
       "lastChecked": "2026-02-03T08:48:09.002Z",
       "hint": "fetch-node"
     },
+    "https://www.creativebloq.com/web-design/manage-large-css-projects-itcss-101517528": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:41.887Z",
+      "hint": "fetch-node"
+    },
     "https://www.crunchydata.com/blog/why-covering-indexes-are-incredibly-helpful": {
       "status": 200,
       "ok": true,
@@ -9408,7 +9740,7 @@
     "https://www.cs.princeton.edu/courses/archive/spring13/cos598C/Lectures/SimHash.pdf": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-09T11:27:46.849Z",
+      "lastChecked": "2026-02-16T09:58:45.390Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -9623,6 +9955,12 @@
       "lastChecked": "2026-02-03T08:48:30.885Z",
       "hint": "fetch-node"
     },
+    "https://www.evanjones.ca/kinesis-outage.html": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:12.404Z",
+      "hint": "fetch-node"
+    },
     "https://www.fastly.com/documentation/guides/concepts/edge-state/cache/": {
       "status": 200,
       "ok": true,
@@ -9734,7 +10072,7 @@
     "https://www.figma.com/blog/section/engineering/": {
       "status": 404,
       "ok": true,
-      "lastChecked": "2026-02-09T11:27:45.424Z",
+      "lastChecked": "2026-02-16T09:58:43.051Z",
       "error": "HTTP 404",
       "hint": "manual",
       "manual": "auto"
@@ -9919,6 +10257,12 @@
       "lastChecked": "2026-02-03T08:48:25.815Z",
       "hint": "fetch-node"
     },
+    "https://www.infoq.com/presentations/uber-scalability-services/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:25:17.199Z",
+      "hint": "fetch-node"
+    },
     "https://www.infoq.com/presentations/whatsapp-scalability/": {
       "status": 200,
       "ok": true,
@@ -10007,6 +10351,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-08T05:40:25.281Z",
+      "hint": "fetch-node"
+    },
+    "https://www.kentik.com/blog/facebooks-historic-outage-explained/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:42.818Z",
       "hint": "fetch-node"
     },
     "https://www.knapsack.cloud/reports/roi-report": {
@@ -10147,10 +10497,22 @@
       "lastChecked": "2026-02-03T16:48:05.216Z",
       "hint": "fetch-node"
     },
+    "https://www.npmjs.com/org/stateloom": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:48.107Z",
+      "hint": "playwright"
+    },
     "https://www.npmjs.com/package/jest-axe": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:46:05.695Z",
+      "hint": "playwright"
+    },
+    "https://www.npmjs.com/package/md2cf": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:47.992Z",
       "hint": "playwright"
     },
     "https://www.npmjs.com/package/p-queue": {
@@ -10194,6 +10556,14 @@
       "ok": true,
       "lastChecked": "2026-02-03T08:47:01.518Z",
       "hint": "fetch-node"
+    },
+    "https://www.patterns.dev/react/rendering-patterns/": {
+      "status": 404,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:44.511Z",
+      "error": "HTTP 404",
+      "hint": "manual",
+      "manual": "auto"
     },
     "https://www.pcisecuritystandards.org/": {
       "status": 200,
@@ -10534,7 +10904,7 @@
     "https://www.semanticscholar.org/paper/UbiCrawler:-a-scalable-fully-distributed-Web-Boldi-Codenotti/ba8269289ea5ca6bd8f3b43c0153409e6286b38e": {
       "status": 202,
       "ok": true,
-      "lastChecked": "2026-02-09T11:27:46.155Z",
+      "lastChecked": "2026-02-16T09:58:44.969Z",
       "error": "HTTP 202",
       "hint": "manual",
       "manual": "auto"
@@ -10599,6 +10969,12 @@
       "lastChecked": "2026-02-03T18:41:40.599Z",
       "hint": "fetch-node"
     },
+    "https://www.smashingmagazine.com/2025/06/css-cascade-layers-bem-utility-classes-specificity-control/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:41.886Z",
+      "hint": "fetch-node"
+    },
     "https://www.softwareatscale.dev/p/software-at-scale-29-sugu-sougoumarane": {
       "status": 200,
       "ok": true,
@@ -10635,6 +11011,18 @@
       "lastChecked": "2026-02-03T15:14:03.887Z",
       "hint": "fetch-node"
     },
+    "https://www.theregister.com/2020/11/25/aws_down/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:13.733Z",
+      "hint": "fetch-node"
+    },
+    "https://www.theregister.com/2020/11/30/aws_outage_explanation/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:48:12.789Z",
+      "hint": "fetch-node"
+    },
     "https://www.tunetheweb.com/blog/critical-resources-and-the-first-14kb/": {
       "status": 200,
       "ok": true,
@@ -10658,6 +11046,12 @@
       "ok": true,
       "lastChecked": "2026-02-03T08:46:09.082Z",
       "hint": "fetch-node"
+    },
+    "https://www.uber.com/blog/announcing-cadence/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:25:38.233Z",
+      "hint": "playwright"
     },
     "https://www.uber.com/blog/building-ubers-data-lake-batch-data-replication-using-hivesync/": {
       "status": 200,
@@ -10687,6 +11081,18 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:56.087Z",
+      "hint": "playwright"
+    },
+    "https://www.uber.com/blog/go-geofence-highest-query-per-second-service/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:25:42.314Z",
+      "hint": "playwright"
+    },
+    "https://www.uber.com/blog/go-monorepo-bazel/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:25:47.136Z",
       "hint": "playwright"
     },
     "https://www.uber.com/blog/h3/": {
@@ -10719,10 +11125,22 @@
       "lastChecked": "2026-02-03T08:48:21.119Z",
       "hint": "playwright"
     },
+    "https://www.uber.com/blog/introducing-kraken/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:25:38.623Z",
+      "hint": "playwright"
+    },
     "https://www.uber.com/blog/kafka/": {
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:47:38.302Z",
+      "hint": "playwright"
+    },
+    "https://www.uber.com/blog/m3/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:25:36.547Z",
       "hint": "playwright"
     },
     "https://www.uber.com/blog/mezzanine-codebase-data-migration/": {
@@ -10767,6 +11185,18 @@
       "lastChecked": "2026-02-03T20:51:35.059Z",
       "hint": "playwright"
     },
+    "https://www.uber.com/blog/resource-scheduler-cluster-management-peloton/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:25:47.621Z",
+      "hint": "playwright"
+    },
+    "https://www.uber.com/blog/ringpop-open-source-nodejs-library/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:25:48.458Z",
+      "hint": "playwright"
+    },
     "https://www.uber.com/blog/schemaless-part-one-mysql-datastore/": {
       "status": 200,
       "ok": true,
@@ -10795,6 +11225,30 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-07T23:06:39.305Z",
+      "hint": "playwright"
+    },
+    "https://www.uber.com/blog/service-oriented-architecture/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:25:25.067Z",
+      "hint": "playwright"
+    },
+    "https://www.uber.com/blog/tech-stack-part-one-foundation/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:25:35.503Z",
+      "hint": "playwright"
+    },
+    "https://www.uber.com/blog/up-portable-microservices-ready-for-the-cloud/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:25:45.596Z",
+      "hint": "playwright"
+    },
+    "https://www.uber.com/en-US/blog/microservice-architecture/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-13T17:25:30.862Z",
       "hint": "playwright"
     },
     "https://www.usenix.org/conference/atc13/technical-sessions/presentation/bronson": {
@@ -11001,6 +11455,12 @@
       "lastChecked": "2026-02-03T08:45:28.110Z",
       "hint": "fetch-node"
     },
+    "https://www.w3.org/TR/css-cascade-6/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:41.888Z",
+      "hint": "fetch-node"
+    },
     "https://www.w3.org/TR/css-contain-2/": {
       "status": 200,
       "ok": true,
@@ -11023,6 +11483,12 @@
       "status": 200,
       "ok": true,
       "lastChecked": "2026-02-03T08:45:38.771Z",
+      "hint": "fetch-node"
+    },
+    "https://www.w3.org/TR/css-nesting-1/": {
+      "status": 200,
+      "ok": true,
+      "lastChecked": "2026-02-16T09:58:40.900Z",
       "hint": "fetch-node"
     },
     "https://www.w3.org/TR/css-overflow-3/": {

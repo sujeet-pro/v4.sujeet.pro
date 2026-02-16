@@ -395,7 +395,7 @@
   featuredTopics: ["system-design-problems", "critical-rendering-path"],
 
   // Project ordering (by array position)
-  projects: [],
+  projects: ["stateloom", "md2cf"],
 
   // Pinned content (shown first on listing pages)
   pinnedArticles: [],

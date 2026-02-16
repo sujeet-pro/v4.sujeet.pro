@@ -14,10 +14,11 @@ Use these commands for common tasks:
 
 ### Content Skills
 
-| Command                           | Description                                |
-| --------------------------------- | ------------------------------------------ |
-| `/write-article <topic>`          | Write new article with deep research       |
-| `/update-article <path> <prompt>` | Update existing article with deep research |
+| Command                                            | Description                                |
+| -------------------------------------------------- | ------------------------------------------ |
+| `/write-article <topic>`                           | Write new article with deep research       |
+| `/update-article <path> <prompt>`                  | Update existing article with deep research |
+| `/write-project <folder> [existing-project-path]`  | Write/update project page from local code  |
 
 ### Skill Details
 
@@ -25,6 +26,7 @@ See `.claude/skills/`, `.codex/skills/`, and `llm_docs/skills/` for detailed doc
 
 - `write-article/SKILL.md` - Claude wrapper for `llm_docs/skills/write-article.md`
 - `update-article/SKILL.md` - Claude wrapper for `llm_docs/skills/update-article.md`
+- `write-project/SKILL.md` - Claude wrapper for `llm_docs/skills/write-project.md`
 - Codex wrappers live in `.codex/skills/` with the same skill names
 
 ### Guidelines
