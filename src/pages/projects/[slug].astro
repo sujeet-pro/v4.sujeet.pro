@@ -6,6 +6,7 @@ import SidebarToc from "@/components/nav/sidebar-toc.astro"
 import Link from "@/components/ui/link.astro"
 import { Icon } from "astro-icon/components"
 import { getAllProjectPaths, getProjectPage } from "@/utils/content"
+import { formatDate } from "@/utils/format.utils"
 import { render, getCollection } from "astro:content"
 
 export async function getStaticPaths() {
@@ -43,6 +44,7 @@ const crumbs = [{ name: "Projects", href: "/projects" }]
     <header class="article-header">
       <h1 class="article-title">{project.title}</h1>
       <div class="article-meta">
+        {project.lastUpdatedOn && <span class="article-meta-item">Updated {formatDate(project.lastUpdatedOn)}</span>}
         <span class="article-meta-item">{project.minutesRead}</span>
         {project.isDraft && <span class="badge-accent">Draft</span>}
       </div>

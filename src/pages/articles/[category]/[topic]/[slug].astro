@@ -24,7 +24,7 @@ if (!articleDetail) {
 }
 
 const { article, toc, next: nextArticle, prev: prevArticle } = articleDetail
-const { description, title, minutesRead, Content, isDraft, category: articleCategory, topic: articleTopic } = article
+const { description, title, minutesRead, Content, isDraft, lastUpdatedOn, category: articleCategory, topic: articleTopic } = article
 
 const crumbs = [
   { name: articleCategory.name, href: articleCategory.href },
@@ -52,7 +52,7 @@ const hasToc = toc.length > 0
   <ReadingProgress />
 
   <!-- Article Metadata -->
-  <Frontmatter {minutesRead} {isDraft} class="article-frontmatter" />
+  <Frontmatter {minutesRead} {isDraft} {lastUpdatedOn} class="article-frontmatter" />
 
   <!-- Main Article Content -->
   <article id="article-content" class="article-prose-content DocSearch-content">

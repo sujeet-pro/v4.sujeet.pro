@@ -6,6 +6,7 @@
  */
 
 import { getCollection, render } from "astro:content"
+import { getLastModifiedDate } from "@/utils/git.utils"
 import { parseFrontmatter } from "./helpers"
 import { getArticlesForTopicFromConfig, getCategoryOrderFromConfig, getTopicsForCategoryFromConfig } from "./ordering"
 import type {
@@ -240,6 +241,7 @@ async function processAllContent(): Promise<ProcessedContent> {
       minutesRead: frontmatter.minutesRead,
       description: frontmatter.description,
       isDraft: frontmatter.isDraft,
+      lastUpdatedOn: item.data.lastUpdatedOn ?? getLastModifiedDate(item.filePath ?? ""),
       Content,
       href: `/articles/${frontmatter.pageSlug}`,
       categoryId,

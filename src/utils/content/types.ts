@@ -83,6 +83,7 @@ export interface ContentItem {
   minutesRead: string
   description: string
   isDraft: boolean
+  lastUpdatedOn?: string
   Content: RenderResult["Content"]
   href: string // Full URL path (e.g., "/articles/programming/algo/sorting-algorithms")
   // Category and topic derived from folder structure
@@ -240,6 +241,7 @@ export interface ProjectItem {
   description: string
   minutesRead: string
   isDraft: boolean
+  lastUpdatedOn?: string
   gitRepo?: string | undefined
   demoUrl?: string | undefined
   tags: string[]

@@ -4,6 +4,7 @@ import ReadingProgress from "@/layout/reading-progress.astro"
 import SidebarNavBlogs from "@/components/nav/sidebar-nav-blogs.astro"
 import SidebarToc from "@/components/nav/sidebar-toc.astro"
 import { getAllBlogPaths, getBlogPage } from "@/utils/content"
+import { formatDate } from "@/utils/format.utils"
 import { render, getCollection } from "astro:content"
 
 export async function getStaticPaths() {
@@ -42,6 +43,7 @@ const crumbs = [{ name: "Blogs", href: "/blogs" }]
       <h1 class="article-title">{blog.title}</h1>
       <div class="article-meta">
         {blog.publishedOn && <span class="article-meta-item">{blog.publishedOn}</span>}
+        {blog.lastUpdatedOn && <span class="article-meta-item">Updated {formatDate(blog.lastUpdatedOn)}</span>}
         <span class="article-meta-item">{blog.minutesRead}</span>
         {blog.isDraft && <span class="badge-accent">Draft</span>}
       </div>

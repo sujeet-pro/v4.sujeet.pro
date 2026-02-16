@@ -194,6 +194,7 @@ const article = defineCollection({
     category: z.string().optional(),
     topic: z.string().optional(),
     tags: z.array(z.string()).optional().default([]),
+    lastUpdatedOn: z.string().optional(),
   }),
 })
 
@@ -231,6 +232,7 @@ const project = defineCollection({
     gitRepo: z.string().optional(),
     demoUrl: z.string().optional(),
     tags: z.array(z.string()).optional().default([]),
+    lastUpdatedOn: z.string().optional(),
   }),
 })
 

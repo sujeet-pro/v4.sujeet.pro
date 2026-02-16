@@ -2,6 +2,7 @@
 import { Icon } from "astro-icon/components"
 import type { CardLinkInfo, CategoryRef, TopicRef } from "@/utils/content"
 import Link from "@/components/ui/link.astro"
+import { formatDate } from "@/utils/format.utils"
 
 type CategoryLike = CategoryRef | CardLinkInfo
 type TopicLike = TopicRef | CardLinkInfo
@@ -9,12 +10,13 @@ type TopicLike = TopicRef | CardLinkInfo
 interface Props {
   minutesRead?: string
   isDraft?: boolean
+  lastUpdatedOn?: string
   class?: string
   category?: CategoryLike
   topic?: TopicLike
 }
 
-const { minutesRead, isDraft, class: className, category, topic } = Astro.props as Props
+const { minutesRead, isDraft, lastUpdatedOn, class: className, category, topic } = Astro.props as Props
 ---
 
 <div class:list={["frontmatter", className]}>
@@ -44,6 +46,15 @@ const { minutesRead, isDraft, class: className, category, topic } = Astro.props 
       <span class="frontmatter-item">
         <Icon name="carbon:time" class="icon-sm" />
         {minutesRead}
+      </span>
+    )
+  }
+
+  {
+    lastUpdatedOn && (
+      <span class="frontmatter-item">
+        <Icon name="carbon:calendar" class="icon-sm" />
+        Last updated {formatDate(lastUpdatedOn)}
       </span>
     )
   }

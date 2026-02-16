@@ -23,3 +23,15 @@ export function pluralize(count: number, singular: string, plural?: string): str
 export function formatCount(count: number, singular: string, plural?: string): string {
   return `${count} ${pluralize(count, singular, plural)}`
 }
+
+/**
+ * Format an ISO date string as a human-readable date (e.g., "Jan 15, 2024")
+ */
+export function formatDate(isoDate: string): string {
+  const date = new Date(isoDate)
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date)
+}
